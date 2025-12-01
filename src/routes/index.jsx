@@ -90,6 +90,7 @@ import RA88 from "../screens/RA88";
 import RA89 from "../screens/RA89";
 import RA90 from "../screens/RA90";
 import RA91 from "../screens/RA91";
+import Wallet from "../screens/Wallet";
 import MoreMenu from "../screens/MoreMenu";
 import Settings from "../screens/Settings";
 import Help from "../screens/Help";
@@ -215,7 +216,7 @@ export default function AppRouter() {
         </Route>
 
         {/* Placeholder routes - Wallet is marked as "future work" in routing guide */}
-        <Route path="wallet" element={<RA01 />} />
+        <Route path="wallet" element={<Wallet />} />
         <Route path="more" element={<MoreMenu />} />
         <Route path="settings" element={<Settings />} />
         <Route path="help" element={<Help />} />

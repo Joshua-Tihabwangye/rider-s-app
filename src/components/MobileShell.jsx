@@ -69,8 +69,8 @@ export default function MobileShell({ children }) {
         bgcolor: (t) => t.palette.background.default,
         backgroundImage: (t) =>
           t.palette.mode === "light"
-            ? "radial-gradient(circle at top, #E0F2FE 0, #F3F4F6 55%, #F3F4F6 100%)"
-            : "radial-gradient(circle at top, #020617 0, #020617 60%, #020617 100%)",
+            ? "radial-gradient(circle at top, #D1FAE5 0, #F3F4F6 55%, #F3F4F6 100%)"
+            : "radial-gradient(circle at top, #064E3B 0, #020617 60%, #020617 100%)",
         // Safe area support for notched devices
         paddingTop: { xs: "env(safe-area-inset-top)", sm: 0 },
         // Prevent horizontal scroll
