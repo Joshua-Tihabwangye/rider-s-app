@@ -1,0 +1,705 @@
+
+# EVzone Rider / Customer App – Routing Guide (RA01–RA91)
+
+This document maps all **91 Rider / Customer App screens** (RA01–RA91) to:
+
+- Their **logical routes / paths**
+- How they **connect and flow** into each other
+- Which **vertical** they belong to (Rides, Deliveries, Rental, Tours, Ambulance, School, Global)
+
+The examples assume a web-style router (e.g. React Router v6), but the structure also applies to mobile stacks (React Navigation, etc.).
+
+---
+
+
+## 1. Global Navigation Model
+
+### 1.1 Bottom Tabs (Always Visible in Rider App)
+
+Primary bottom navigation:
+
+- **Home** → `/home` (RA01 + service shortcuts)
+- **Rides** → `/rides/...` (RA02–RA49)
+- **Deliveries** → `/deliveries/...` (RA50–RA68)
+- **Wallet** → `/wallet` (future work)
+- **More** → `/more` (settings, help, global history RA91, etc.)
+
+Top-level routes:
+
+```text
+/                 (redirect → /home)
+/home             (RA01)
+/rides/*          (RA02–RA49)
+/deliveries/*     (RA50–RA68)
+/rental/*         (RA69–RA76, RA90)
+/tours/*          (RA77–RA82)
+/ambulance/*      (RA83–RA88)
+/school-handoff   (RA89)
+/history/all      (RA91)
+```
+
+
+## 2. Home & Global Screens
+
+### 2.1 Super App Home & Service Picker
+
+**RA01 – Home Dashboard – EVzone Super App**
+
+- Path: `/home`
+- Role: Landing screen with grid of services:
+  - Ride, Delivery, Rental, Tours, School, Ambulance.
+- From here:
+  - Ride → `/rides/enter` (RA02/RA05/RA38/RA44/RA45)
+  - Delivery → `/deliveries` (RA50/RA51) or `/deliveries/new` (RA59)
+  - Rental → `/rental` (RA69)
+  - Tours → `/tours` (RA77)
+  - Ambulance → `/ambulance` (RA83)
+  - School → `/school-handoff` (RA89)
+
+### 2.2 School Handoff
+
+**RA89 – School Shuttles Handoff**
+
+- Path: `/school-handoff`
+- Role: Explain that school shuttles live in a separate School/Parents app and deep-link there.
+
+### 2.3 Global All-Orders History
+
+**RA91 – All Orders – Combined History**
+
+- Path: `/history/all`
+- Role: Unified history across:
+  - Rides, Deliveries, Rentals, Tours, Ambulance.
+- From each row:
+  - Ride → `/rides/history/:rideId` (RA37)
+  - Delivery → `/deliveries/tracking/:orderId/details` (RA68)
+  - Rental → `/rental/history/:rentalId` (RA90)
+  - Tour → `/tours/history` (RA82) then specific tour
+  - Ambulance → `/ambulance/history` (RA88) and tracking.
+
+
+## 3. Rides Vertical (RA02–RA49)
+
+### 3.1 Core Ride Entry & Planning
+
+**RA02 – Enter Destination – Main** → `/rides/enter`  
+**RA03 – Daily Commutes** → `/rides/commutes` (or tab in RA02)  
+**RA04 – Upcoming Rides – Inline** → `/rides/upcoming-inline`  
+**RA05 – Enter Destination – Expanded Trip Setup** → `/rides/enter/details`  
+**RA06 – Pick Your Destination – Map Selection** → `/rides/enter/map`  
+**RA07 – Enter Destination – Simplified View** → `/rides/enter/simple`  
+**RA08 – Schedule Ride – Date & Time** → `/rides/schedule`  
+**RA09 – Ride Later – Scheduled Summary** → `/rides/schedule/summary`
+
+Typical flow (Ride now, one way):
+
+```text
+RA01 → RA02/RA05
+  (optional RA03 / RA04 tabs)
+  → RA05 for full details
+```
+
+Ride later:
+
+```text
+RA05 (Ride Later) → RA08 (date/time) → RA09 (summary) → RA49/RA34 upcoming
+```
+
+From RA02/RA05 you can also open map (RA06) and variants (RA38/RA44/RA45).
+
+### 3.2 Switch Rider / Ride for Someone Else
+
+**RA10 – Switch Rider (chooser)** → `/rides/switch-rider`  
+**RA11 – Switch Rider (Contact selected)** → `/rides/switch-rider/contact`  
+**RA12 – Switch Rider (Manual entry)** → `/rides/switch-rider/manual`  
+**RA13 – Ride for Contact (Summary)** → `/rides/switch-rider/summary`
+
+These are opened from RA05/RA20 to specify “Ride for me / contact / someone else”, then return to RA20/RA21 with rider context.
+
+### 3.3 Trip Type, Round Trip & Preferences
+
+**RA14 – Select Ride Type** → `/rides/select-type`  
+**RA15 – Round Trip Toggle** → `/rides/round-trip`  
+**RA16 – Round Trip Details** → `/rides/round-trip/details`  
+**RA17 – Preference Selection** → `/rides/preferences/quick`  
+**RA18 – Ride Preference Setup** → `/rides/preferences/setup`  
+**RA19 – Driver Preferences** → `/rides/preferences/driver`
+
+Segment:
+
+```text
+RA05/RA07/RA38
+  → RA14
+  → (RA15/RA16 if round trip)
+  → (optional RA17/RA18/RA19)
+  → RA20
+```
+
+### 3.4 Final Ride Selection & Payment
+
+**RA20 – Select Your Ride** → `/rides/options`  
+**RA21 – Payment Method Selection** → `/rides/payment`
+
+From RA21 you go to matching:
+
+```text
+RA20 → RA21 → RA22
+```
+
+### 3.5 Matching & Driver Arrival
+
+**RA22 – Searching for Driver** → `/rides/searching`  
+**RA23 – Driver Assigned / On The Way** → `/rides/driver-on-way`  
+**RA24 – Driver Has Arrived / Start Trip** → `/rides/driver-arrived`
+
+Flows:
+
+```text
+RA21 → RA22 → RA23 → RA24 → RA25/RA26/RA27
+```
+
+### 3.6 Trip in Progress & Driver Profile
+
+**RA25 – Trip in Progress – Basic** → `/rides/trip`  
+**RA26 – Trip in Progress – With Driver & Vehicle info** → `/rides/trip/details`  
+**RA27 – Trip in Progress – Expanded Route Details** → `/rides/trip/route`  
+**RA28 – Driver Profile During Trip** → `/rides/trip/driver-profile`
+
+### 3.7 Trip Completed, Sharing & Rating
+
+**RA29 – Trip Completed – Arrival Summary** → `/rides/trip/completed`  
+**RA30 – Share Ride / Passengers** → `/rides/trip/share`  
+**RA31 – Ride Rating & Feedback** → `/rides/rating`  
+**RA32 – Ride Rating + Tip** → `/rides/rating/tip`  
+**RA35 – Rate Driver & Add Tip (Dedicated)** → `/rides/rating/driver`  
+**RA36 – Shared Passengers Screen** → `/rides/shared-passengers`
+
+### 3.8 Ride History & Completed Trip Detail
+
+**RA33 – Ride History – Past Trips** → `/rides/history/past`  
+**RA34 – Ride History – Upcoming Trips** → `/rides/history/upcoming`  
+**RA37 – Ride Info – Completed Trip Summary** → `/rides/history/:rideId`  
+**RA49 – Upcoming Rides – Dedicated Screen** → `/rides/upcoming`
+
+
+### 3.9 Multi-stop & Booking Variants
+
+**RA38 – Enter Destination – Variant (Single / Multi)** → `/rides/enter/variant`  
+**RA39 – Enter Destination – Multiple Stops** → `/rides/enter/multi-stops`  
+**RA40 – Enter Destination – Maximum Stops Reached** → `/rides/enter/multi-stops/max`  
+**RA41 – Add Stop – Search Overlay** → `/rides/enter/multi-stops/add`  
+**RA43 – Add Stop – Search Results** → `/rides/enter/multi-stops/search-results`  
+
+**RA42 – Ride Details – Pre Confirm View (Variant 1)** → `/rides/details`  
+**RA46 – Ride Details – Variant 2** → `/rides/details/variant`  
+**RA47 – Ride Details – Booking Confirmation** → `/rides/booking/confirmation`  
+**RA48 – Ride Booking Confirmation – Thank You** → `/rides/booking/thank-you`  
+
+**RA44 – Where to Today? – Alternate Entry** → `/rides/enter/alt`  
+**RA45 – Enter Destination – Variant Layout** → `/rides/enter/variant-layout`
+
+Typical multi-stop flow:
+
+```text
+RA01 → RA02/RA38/RA44/RA45
+  → RA39 (multi stops)
+    → RA41 / RA43 (add stop)
+    → RA40 (max stops reached)
+  → RA42/RA46 (pre-confirm)
+  → RA47 (booking confirmation)
+  → RA48 (thank you)
+  → RA22+ (matching and trip lifecycle)
+```
+
+
+## 5. Deliveries Vertical (RA50–RA68)
+
+### 5.1 Deliveries Dashboard (Sending & Receiving)
+
+**RA50 – Deliveries Dashboard – Delivering Tab v1** → `/deliveries`  
+**RA52 – Deliveries Dashboard – Delivering Tab v2** → `/deliveries/delivering-v2`  
+
+**RA51 – Deliveries Dashboard – Received Tab v1** → `/deliveries/received`  
+**RA53 – Deliveries Dashboard – Received Tab v2** → `/deliveries/received-v2`  
+**RA54 – Deliveries Dashboard – Received Tab v3** → `/deliveries/received-v3`
+
+### 5.2 Tracking & Invitations
+
+**RA55 – Shipment Tracking – Received Parcel** → `/deliveries/tracking/:orderId/received`  
+**RA56 – Incoming Tracking Requests** → `/deliveries/tracking/incoming`  
+**RA57 – Invitations – Pending v1** → `/deliveries/invitations`  
+**RA58 – Invitations – Pending v2** → `/deliveries/invitations/v2`
+
+
+### 5.3 Order Setup & Active Tracking
+
+**RA59 – Order Delivery – Address & Parcel Setup** → `/deliveries/new`  
+
+Active tracking views (different states for same order):
+
+- **RA60 – Package Tracking – En Route** → `/deliveries/tracking/:orderId/en-route`  
+- **RA61 – Active Delivery – With Cancel Option** → `/deliveries/tracking/:orderId/cancel`  
+- **RA62 – Active Delivery – Live Package Tracking** → `/deliveries/tracking/:orderId/live`  
+- **RA63 – Active Delivery – Driver Info & Live Tracking** → `/deliveries/tracking/:orderId/driver`
+
+### 5.4 Status, Completion & Detailed View
+
+**RA64 – Delivery Status – Order Progress Timeline** → `/deliveries/tracking/:orderId/timeline`  
+**RA65 – Order Delivered – Confirmation** → `/deliveries/tracking/:orderId/delivered`  
+**RA66 – Pick Up Confirmed – Order Details** → `/deliveries/tracking/:orderId/pickup-confirmed`  
+**RA67 – Order Completion – Rating Prompt** → `/deliveries/tracking/:orderId/rating`  
+**RA68 – Order Delivery – Detailed View** → `/deliveries/tracking/:orderId/details`
+
+Typical delivery flow:
+
+```text
+RA01/RA50 → RA59
+  → RA60/RA61/RA62/RA63
+  → RA64/RA66
+  → RA65
+  → RA67
+  → RA68 (detail & receipt)
+```
+
+
+## 6. Rental Vertical (RA69–RA76, RA90)
+
+### 6.1 Rental Entry & Vehicle Selection
+
+**RA69 – Rental Entry** → `/rental`  
+**RA70 – Rental Vehicle List** → `/rental/list`  
+**RA71 – Rental Vehicle Detail** → `/rental/vehicle/:vehicleId`
+
+### 6.2 Dates, Branches & Payment
+
+**RA72 – Rental Dates & Duration** → `/rental/dates`  
+**RA73 – Rental Pickup/Return Branches** → `/rental/branches`  
+**RA74 – Rental Summary & Payment** → `/rental/summary`
+
+### 6.3 Booking Confirmation & History
+
+**RA75 – Rental Booking Confirmation** → `/rental/confirmation`  
+**RA76 – Rental Upcoming & History** → `/rental/history`  
+**RA90 – Rental Booking Detail** → `/rental/history/:rentalId`
+
+Typical rental flow:
+
+```text
+RA01 → RA69
+  → RA70
+  → RA71
+  → RA72
+  → RA73
+  → RA74
+  → RA75
+  → RA76
+  → RA90 (from history)
+```
+
+
+## 7. Tours Vertical (RA77–RA82)
+
+### 7.1 Discovery & Booking
+
+**RA77 – Tours – Browse** → `/tours`  
+**RA78 – Tours – Detail** → `/tours/:tourId`  
+**RA79 – Tours – Date & Guests** → `/tours/:tourId/dates`
+
+### 7.2 Summary, Payment, Confirmation & History
+
+**RA80 – Tour Booking – Summary & Payment** → `/tours/:tourId/summary`  
+**RA81 – Tour Booking – Confirmation** → `/tours/:tourId/confirmation`  
+**RA82 – Tours – Upcoming & History** → `/tours/history`
+
+Typical tours flow:
+
+```text
+RA01 → RA77
+  → RA78
+  → RA79
+  → RA80
+  → RA81
+  → RA82
+```
+
+
+## 8. Ambulance Vertical (RA83–RA88)
+
+> EMS is branded as **Ambulance** in the customer app.
+
+### 8.1 Request Setup
+
+**RA83 – Ambulance Home / Request Type** → `/ambulance`  
+**RA84 – Ambulance – Location & Patient Details** → `/ambulance/location`  
+**RA85 – Ambulance – Destination Hospital** → `/ambulance/destination`
+
+### 8.2 Confirmation, Live Tracking & History
+
+**RA86 – Ambulance – Request Confirmation & ETA** → `/ambulance/confirmation`  
+**RA87 – Ambulance – Live Tracking** → `/ambulance/tracking/:requestId`  
+**RA88 – Ambulance – Requests History** → `/ambulance/history`
+
+Typical ambulance flow:
+
+```text
+RA01 → RA83
+  → RA84
+  → RA85
+  → RA86
+  → RA87
+  → RA88 (for past requests)
+```
+
+
+## 9. School Handoff & Global History
+
+### 9.1 School Shuttles Handoff
+
+**RA89 – School – Handoff to School App** → `/school-handoff`  
+Explains that school shuttle booking and tracking is done in a separate app and provides a deep link / CTA.
+
+### 9.2 All Orders Combined History
+
+**RA91 – All Orders – Combined History** → `/history/all`  
+
+From each item:
+
+- Ride → `/rides/history/:rideId` (RA37)  
+- Delivery → `/deliveries/tracking/:orderId/details` (RA68)  
+- Rental → `/rental/history/:rentalId` (RA90)  
+- Tour → `/tours/history` (RA82) then drill to RA78/RA81  
+- Ambulance → `/ambulance/history` (RA88) / `/ambulance/tracking/:requestId` (RA87)
+
+This is the “single pane of glass” for the customer’s multi-vertical activity.
+
+
+## 10. Example React Router Wiring (Reference)
+
+Below is an example of how you could wire these routes using `react-router-dom`.  
+Component names (e.g. `ScreenRA01`) should match your actual codebase.
+
+```jsx
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+import ScreenRA01 from "./screens/ScreenRA01";
+import ScreenRA02 from "./screens/ScreenRA02";
+// ...
+import ScreenRA91 from "./screens/ScreenRA91";
+
+function AppRouter() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* AppShell contains bottom nav, header, etc. */}
+        <Route path="/" element={<AppShell />}>
+          {/* Home & global */}
+          <Route index element={<ScreenRA01 />} />
+          <Route path="home" element={<ScreenRA01 />} />
+          <Route path="school-handoff" element={<ScreenRA89 />} />
+          <Route path="history/all" element={<ScreenRA91 />} />
+
+          {/* Rides */}
+          <Route path="rides">
+            <Route index element={<ScreenRA02 />} />
+            <Route path="enter" element={<ScreenRA02 />} />
+            <Route path="enter/details" element={<ScreenRA05 />} />
+            <Route path="enter/simple" element={<ScreenRA07 />} />
+            <Route path="enter/map" element={<ScreenRA06 />} />
+            <Route path="enter/alt" element={<ScreenRA44 />} />
+            <Route path="enter/variant-layout" element={<ScreenRA45 />} />
+            <Route path="enter/variant" element={<ScreenRA38 />} />
+            <Route path="enter/multi-stops" element={<ScreenRA39 />} />
+            <Route path="enter/multi-stops/max" element={<ScreenRA40 />} />
+            <Route path="enter/multi-stops/add" element={<ScreenRA41 />} />
+            <Route
+              path="enter/multi-stops/search-results"
+              element={<ScreenRA43 />}
+            />
+
+            <Route path="commutes" element={<ScreenRA03 />} />
+            <Route path="upcoming-inline" element={<ScreenRA04 />} />
+            <Route path="upcoming" element={<ScreenRA49 />} />
+
+            <Route path="schedule" element={<ScreenRA08 />} />
+            <Route
+              path="schedule/summary"
+              element={<ScreenRA09 />}
+            />
+
+            <Route path="switch-rider" element={<ScreenRA10 />} />
+            <Route
+              path="switch-rider/contact"
+              element={<ScreenRA11 />}
+            />
+            <Route
+              path="switch-rider/manual"
+              element={<ScreenRA12 />}
+            />
+            <Route
+              path="switch-rider/summary"
+              element={<ScreenRA13 />}
+            />
+
+            <Route path="select-type" element={<ScreenRA14 />} />
+            <Route path="round-trip" element={<ScreenRA15 />} />
+            <Route
+              path="round-trip/details"
+              element={<ScreenRA16 />}
+            />
+
+            <Route
+              path="preferences/quick"
+              element={<ScreenRA17 />}
+            />
+            <Route
+              path="preferences/setup"
+              element={<ScreenRA18 />}
+            />
+            <Route
+              path="preferences/driver"
+              element={<ScreenRA19 />}
+            />
+
+            <Route path="options" element={<ScreenRA20 />} />
+            <Route path="payment" element={<ScreenRA21 />} />
+            <Route path="searching" element={<ScreenRA22 />} />
+            <Route
+              path="driver-on-way"
+              element={<ScreenRA23 />}
+            />
+            <Route
+              path="driver-arrived"
+              element={<ScreenRA24 />}
+            />
+
+            <Route path="trip" element={<ScreenRA25 />} />
+            <Route
+              path="trip/details"
+              element={<ScreenRA26 />}
+            />
+            <Route
+              path="trip/route"
+              element={<ScreenRA27 />}
+            />
+            <Route
+              path="trip/driver-profile"
+              element={<ScreenRA28 />}
+            />
+            <Route
+              path="trip/completed"
+              element={<ScreenRA29 />}
+            />
+            <Route
+              path="trip/share"
+              element={<ScreenRA30 />}
+            />
+
+            <Route path="rating" element={<ScreenRA31 />} />
+            <Route
+              path="rating/tip"
+              element={<ScreenRA32 />}
+            />
+            <Route
+              path="rating/driver"
+              element={<ScreenRA35 />}
+            />
+            <Route
+              path="shared-passengers"
+              element={<ScreenRA36 />}
+            />
+
+            <Route
+              path="history/past"
+              element={<ScreenRA33 />}
+            />
+            <Route
+              path="history/upcoming"
+              element={<ScreenRA34 />}
+            />
+            <Route
+              path="history/:rideId"
+              element={<ScreenRA37 />}
+            />
+
+            <Route path="details" element={<ScreenRA42 />} />
+            <Route
+              path="details/variant"
+              element={<ScreenRA46 />}
+            />
+            <Route
+              path="booking/confirmation"
+              element={<ScreenRA47 />}
+            />
+            <Route
+              path="booking/thank-you"
+              element={<ScreenRA48 />}
+            />
+          </Route>
+
+          {/* Deliveries */}
+          <Route path="deliveries">
+            <Route index element={<ScreenRA50 />} />
+            <Route
+              path="received"
+              element={<ScreenRA51 />}
+            />
+            <Route
+              path="delivering-v2"
+              element={<ScreenRA52 />}
+            />
+            <Route
+              path="received-v2"
+              element={<ScreenRA53 />}
+            />
+            <Route
+              path="received-v3"
+              element={<ScreenRA54 />}
+            />
+
+            <Route path="new" element={<ScreenRA59 />} />
+            <Route
+              path="tracking/incoming"
+              element={<ScreenRA56 />}
+            />
+            <Route
+              path="invitations"
+              element={<ScreenRA57 />}
+            />
+            <Route
+              path="invitations/v2"
+              element={<ScreenRA58 />}
+            />
+
+            <Route
+              path="tracking/:orderId/received"
+              element={<ScreenRA55 />}
+            />
+            <Route
+              path="tracking/:orderId/en-route"
+              element={<ScreenRA60 />}
+            />
+            <Route
+              path="tracking/:orderId/cancel"
+              element={<ScreenRA61 />}
+            />
+            <Route
+              path="tracking/:orderId/live"
+              element={<ScreenRA62 />}
+            />
+            <Route
+              path="tracking/:orderId/driver"
+              element={<ScreenRA63 />}
+            />
+            <Route
+              path="tracking/:orderId/timeline"
+              element={<ScreenRA64 />}
+            />
+            <Route
+              path="tracking/:orderId/delivered"
+              element={<ScreenRA65 />}
+            />
+            <Route
+              path="tracking/:orderId/pickup-confirmed"
+              element={<ScreenRA66 />}
+            />
+            <Route
+              path="tracking/:orderId/rating"
+              element={<ScreenRA67 />}
+            />
+            <Route
+              path="tracking/:orderId/details"
+              element={<ScreenRA68 />}
+            />
+          </Route>
+
+          {/* Rental */}
+          <Route path="rental">
+            <Route index element={<ScreenRA69 />} />
+            <Route path="list" element={<ScreenRA70 />} />
+            <Route
+              path="vehicle/:vehicleId"
+              element={<ScreenRA71 />}
+            />
+            <Route path="dates" element={<ScreenRA72 />} />
+            <Route
+              path="branches"
+              element={<ScreenRA73 />}
+            />
+            <Route
+              path="summary"
+              element={<ScreenRA74 />}
+            />
+            <Route
+              path="confirmation"
+              element={<ScreenRA75 />}
+            />
+            <Route
+              path="history"
+              element={<ScreenRA76 />}
+            />
+            <Route
+              path="history/:rentalId"
+              element={<ScreenRA90 />}
+            />
+          </Route>
+
+          {/* Tours */}
+          <Route path="tours">
+            <Route index element={<ScreenRA77 />} />
+            <Route
+              path=":tourId"
+              element={<ScreenRA78 />}
+            />
+            <Route
+              path=":tourId/dates"
+              element={<ScreenRA79 />}
+            />
+            <Route
+              path=":tourId/summary"
+              element={<ScreenRA80 />}
+            />
+            <Route
+              path=":tourId/confirmation"
+              element={<ScreenRA81 />}
+            />
+            <Route
+              path="history"
+              element={<ScreenRA82 />}
+            />
+          </Route>
+
+          {/* Ambulance */}
+          <Route path="ambulance">
+            <Route index element={<ScreenRA83 />} />
+            <Route
+              path="location"
+              element={<ScreenRA84 />}
+            />
+            <Route
+              path="destination"
+              element={<ScreenRA85 />}
+            />
+            <Route
+              path="confirmation"
+              element={<ScreenRA86 />}
+            />
+            <Route
+              path="tracking/:requestId"
+              element={<ScreenRA87 />}
+            />
+            <Route
+              path="history"
+              element={<ScreenRA88 />}
+            />
+          </Route>
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/home" replace />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+}
+```
+
+This wiring mirrors the route map above and ensures **every RA01–RA91 screen** has a home in the navigation graph.
