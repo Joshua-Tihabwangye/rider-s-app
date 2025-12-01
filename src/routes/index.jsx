@@ -90,6 +90,10 @@ import RA88 from "../screens/RA88";
 import RA89 from "../screens/RA89";
 import RA90 from "../screens/RA90";
 import RA91 from "../screens/RA91";
+import MoreMenu from "../screens/MoreMenu";
+import Settings from "../screens/Settings";
+import Help from "../screens/Help";
+import About from "../screens/About";
 
 export default function AppRouter() {
   return (
@@ -194,7 +198,7 @@ export default function AppRouter() {
         <Route path="tours">
           <Route index element={<RA77 />} />
           <Route path=":tourId" element={<RA78 />} />
-          <Route path=":tourId/date-guests" element={<RA79 />} />
+          <Route path=":tourId/dates" element={<RA79 />} />
           <Route path=":tourId/summary" element={<RA80 />} />
           <Route path=":tourId/confirmation" element={<RA81 />} />
           <Route path="history" element={<RA82 />} />
@@ -206,13 +210,16 @@ export default function AppRouter() {
           <Route path="location" element={<RA84 />} />
           <Route path="destination" element={<RA85 />} />
           <Route path="confirmation" element={<RA86 />} />
-          <Route path="tracking" element={<RA87 />} />
+          <Route path="tracking/:requestId" element={<RA87 />} />
           <Route path="history" element={<RA88 />} />
         </Route>
 
         {/* Placeholder routes */}
         <Route path="wallet" element={<RA01 />} />
-        <Route path="more" element={<RA91 />} />
+        <Route path="more" element={<MoreMenu />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="help" element={<Help />} />
+        <Route path="about" element={<About />} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/home" replace />} />
