@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import DarkModeToggle from "../components/DarkModeToggle";
 import {
   
@@ -13,43 +14,48 @@ import {
 } from "@mui/material";
 
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
 import MobileShell from "../components/MobileShell";
-const getDesignTokens = (mode) => ({
-  palette: {
-    mode,
-    primary: { main: "#03CD8C" },
-    secondary: { main: "#F77F00" },
-    ...(mode === "light"
-      ? {
-          background: { default: "#F3F4F6", paper: "#FFFFFF" },
-          text: { primary: "#0F172A", secondary: "#6B7280" },
-          divider: "rgba(148,163,184,0.4)"
-        }
-      : {
-          background: { default: "#020617", paper: "#020617" },
-          text: { primary: "#F9FAFB", secondary: "#A6A6A6" },
-          divider: "rgba(148,163,184,0.24)"
-        })
-  },
-  shape: { borderRadius: 12 },
-  typography: {
-    fontFamily:
-      '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    button: { textTransform: "none", fontWeight: 600 },
-    h6: { fontWeight: 600 }
-  }
-});
 
 function WhereToTodayAlternateScreen() {
+  const navigate = useNavigate();
+
   const [query, setQuery] = useState("");
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+      {/* Header */}
+      <Box
+        sx={{
+          mb: 2.5,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between"
+        }}
+      >
+        <IconButton
+          size="small"
+          aria-label="Back"
+          onClick={() => navigate(-1)}
+          sx={{
+            borderRadius: 999,
+            bgcolor: (t) =>
+              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+            border: (t) =>
+              t.palette.mode === "light"
+                ? "1px solid rgba(209,213,219,0.9)"
+                : "1px solid rgba(51,65,85,0.9)"
+          }}
+        >
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+        <Box sx={{ width: 32 }} />
+      </Box>
       {/* Top bar */}
       <Box sx={{ mb: 3, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
@@ -188,10 +194,8 @@ function WhereToTodayAlternateScreen() {
 }
 
 export default function RiderScreen44WhereToTodayAlternateCanvas_v2() {
-      return (
-    
-      
-      <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
+  return (
+    <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
         
 
         <DarkModeToggle />
@@ -202,6 +206,5 @@ export default function RiderScreen44WhereToTodayAlternateCanvas_v2() {
           <WhereToTodayAlternateScreen />
         </MobileShell>
       </Box>
-    
   );
 }

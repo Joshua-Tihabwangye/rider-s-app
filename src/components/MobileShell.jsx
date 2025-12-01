@@ -86,10 +86,13 @@ export default function MobileShell({ children }) {
           flex: 1,
           overflowY: "auto",
           overflowX: "hidden",
-          // Add padding bottom to account for fixed navigation (64px nav + safe area)
+          // Add padding bottom to account for fixed navigation (responsive nav height + safe area)
           paddingBottom: { 
             xs: "calc(64px + env(safe-area-inset-bottom))", 
-            sm: "calc(56px + env(safe-area-inset-bottom))" 
+            sm: "calc(64px + env(safe-area-inset-bottom))",
+            md: "calc(64px + env(safe-area-inset-bottom))",
+            lg: "calc(70px + env(safe-area-inset-bottom))",
+            xl: "calc(74px + env(safe-area-inset-bottom))"
           },
           // Smooth scrolling on mobile
           WebkitOverflowScrolling: "touch",
@@ -127,7 +130,12 @@ export default function MobileShell({ children }) {
         <Paper
           elevation={0}
           sx={{
-            borderRadius: { xs: 0, sm: "16px 16px 0 0", md: "16px 16px 0 0" },
+            borderRadius: { 
+              xs: 0, 
+              sm: "16px 16px 0 0", 
+              md: "16px 16px 0 0",
+              lg: "20px 20px 0 0"
+            },
             overflow: "hidden",
             bgcolor: (t) =>
               t.palette.mode === "light"
@@ -140,9 +148,12 @@ export default function MobileShell({ children }) {
                 : "1px solid rgba(30,64,175,0.6)",
             boxShadow:
               "0 -14px 40px rgba(15,23,42,0.26), 0 -1px 0 rgba(148,163,184,0.38)",
-            // Responsive max width for larger screens
-            maxWidth: { xs: "100%", sm: "100%", md: 600 },
-            margin: { xs: "0 auto", sm: "0 auto", md: "0 auto" }
+            // Responsive max width for larger screens - only constrain on very large screens
+            maxWidth: { xs: "100%", sm: "100%", md: "100%", lg: 600, xl: 600 },
+            margin: { xs: 0, sm: 0, md: 0, lg: "0 auto", xl: "0 auto" },
+            // Ensure it doesn't overflow on small screens
+            width: "100%",
+            boxSizing: "border-box"
           }}
         >
           <BottomNavigation
@@ -153,26 +164,98 @@ export default function MobileShell({ children }) {
               bgcolor: "transparent",
               height: { 
                 xs: "calc(64px + env(safe-area-inset-bottom))",
-                sm: 56,
-                md: 64
+                sm: "calc(64px + env(safe-area-inset-bottom))",
+                md: "calc(64px + env(safe-area-inset-bottom))",
+                lg: 70,
+                xl: 74
               },
-              minHeight: { xs: 64, sm: 56, md: 64 },
-              py: { xs: 0.5, sm: 0.3, md: 0.5 },
-              px: { xs: 0.5, sm: 1, md: 1.5 },
+              minHeight: { 
+                xs: 64, 
+                sm: 64, 
+                md: 64,
+                lg: 70,
+                xl: 74
+              },
+              maxHeight: {
+                xs: "calc(80px + env(safe-area-inset-bottom))",
+                sm: "calc(80px + env(safe-area-inset-bottom))",
+                md: "calc(80px + env(safe-area-inset-bottom))",
+                lg: 85,
+                xl: 90
+              },
+              py: { 
+                xs: 0.5, 
+                sm: 0.5, 
+                md: 0.5,
+                lg: 0.75,
+                xl: 1
+              },
+              px: { 
+                xs: 0.5, 
+                sm: 1, 
+                md: 1.5,
+                lg: 3,
+                xl: 4
+              },
+              // Ensure proper width on all screens
+              width: "100%",
+              boxSizing: "border-box",
               "& .MuiBottomNavigationAction-root": {
                 color: (t) =>
                   t.palette.mode === "light"
                     ? "#9CA3AF"
                     : "rgba(148,163,184,0.9)",
-                minWidth: 0,
-                paddingY: { xs: 0.75, sm: 0.5, md: 0.75 },
-                paddingX: { xs: 0.25, sm: 0.5, md: 0.75 },
-                // Responsive max width - use percentage on mobile, fixed on larger screens
-                maxWidth: { xs: "20%", sm: 90, md: 120 },
-                // Ensure touch targets are at least 44x44px on mobile
-                minHeight: { xs: 44, sm: 40, md: 44 },
-                width: { xs: "auto", sm: "auto", md: "auto" },
-                flex: { xs: "1 1 0%", sm: "0 1 auto", md: "0 1 auto" },
+                paddingY: { 
+                  xs: 0.75, 
+                  sm: 0.75, 
+                  md: 0.75,
+                  lg: 1.25,
+                  xl: 1.5
+                },
+                paddingX: { 
+                  xs: 0.25, 
+                  sm: 0.5, 
+                  md: 0.75,
+                  lg: 2,
+                  xl: 2.5
+                },
+                // Responsive max width - use percentage on mobile, allow more space on larger screens
+                maxWidth: { 
+                  xs: "20%", 
+                  sm: "20%", 
+                  md: "20%",
+                  lg: "none",
+                  xl: "none"
+                },
+                // Ensure touch targets are at least 44x44px on mobile, larger on bigger screens
+                minHeight: { 
+                  xs: 44, 
+                  sm: 44, 
+                  md: 44,
+                  lg: 56,
+                  xl: 60
+                },
+                minWidth: {
+                  xs: 44,
+                  sm: 44,
+                  md: 44,
+                  lg: 56,
+                  xl: 60
+                },
+                width: { 
+                  xs: "auto", 
+                  sm: "auto", 
+                  md: "auto",
+                  lg: "auto",
+                  xl: "auto"
+                },
+                flex: { 
+                  xs: "1 1 0%", 
+                  sm: "1 1 0%", 
+                  md: "1 1 0%",
+                  lg: "1 1 0%",
+                  xl: "1 1 0%"
+                },
                 "&.Mui-selected": {
                   color: "#03CD8C"
                 },
@@ -180,23 +263,85 @@ export default function MobileShell({ children }) {
                 transition: "all 0.2s ease-in-out",
                 "&:active": {
                   transform: "scale(0.95)"
+                },
+                "&:hover": {
+                  backgroundColor: "transparent"
+                },
+                // Ensure proper spacing on very small screens
+                "@media (max-width: 360px)": {
+                  paddingX: 0.125,
+                  paddingY: 0.5
                 }
               },
               "& .MuiBottomNavigationAction-label": {
-                fontSize: { xs: 10, sm: 11, md: 12 },
+                fontSize: { 
+                  xs: 10, 
+                  sm: 10, 
+                  md: 11,
+                  lg: 12,
+                  xl: 13
+                },
                 fontWeight: 500,
-                marginTop: { xs: 0.5, sm: 0.25, md: 0.5 },
-                lineHeight: 1.2,
+                marginTop: { 
+                  xs: 0.5, 
+                  sm: 0.5, 
+                  md: 0.5,
+                  lg: 0.75,
+                  xl: 1
+                },
+                lineHeight: { 
+                  xs: 1.2, 
+                  sm: 1.2, 
+                  md: 1.3,
+                  lg: 1.4,
+                  xl: 1.5
+                },
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
+                // Responsive label sizing for very small screens
+                "@media (max-width: 360px)": {
+                  fontSize: 9,
+                  marginTop: 0.25
+                },
                 "&.Mui-selected": { 
-                  fontSize: { xs: 11, sm: 12, md: 13 }, 
+                  fontSize: { 
+                    xs: 11, 
+                    sm: 11, 
+                    md: 12,
+                    lg: 13,
+                    xl: 14
+                  }, 
                   fontWeight: 600 
                 }
               },
               "& .MuiSvgIcon-root": {
-                fontSize: { xs: 22, sm: 24, md: 26 }
+                fontSize: { 
+                  xs: 22, 
+                  sm: 22, 
+                  md: 24,
+                  lg: 28,
+                  xl: 30
+                },
+                // Ensure icons scale properly on very small screens
+                "@media (max-width: 360px)": {
+                  fontSize: 20
+                },
+                // Prevent icon squeezing on larger screens
+                minWidth: {
+                  xs: "auto",
+                  sm: "auto",
+                  md: "auto",
+                  lg: 28,
+                  xl: 30
+                },
+                minHeight: {
+                  xs: "auto",
+                  sm: "auto",
+                  md: "auto",
+                  lg: 28,
+                  xl: 30
+                }
               }
             }}
           >

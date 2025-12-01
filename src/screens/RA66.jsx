@@ -1,51 +1,54 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import DarkModeToggle from "../components/DarkModeToggle";
-import {
-  
-  Box,
+import { Box,
   Typography,
   Card,
   CardContent,
-  Stack
-} from "@mui/material";
+  Stack, IconButton } from "@mui/material";
 
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import MobileShell from "../components/MobileShell";
-const getDesignTokens = (mode) => ({
-  palette: {
-    mode,
-    primary: { main: "#03CD8C" },
-    secondary: { main: "#F77F00" },
-    ...(mode === "light"
-      ? {
-          background: { default: "#F3F4F6", paper: "#FFFFFF" },
-          text: { primary: "#0F172A", secondary: "#6B7280" },
-          divider: "rgba(148,163,184,0.4)"
-        }
-      : {
-          background: { default: "#020617", paper: "#020617" },
-          text: { primary: "#F9FAFB", secondary: "#A6A6A6" },
-          divider: "rgba(148,163,184,0.24)"
-        })
-  },
-  shape: { borderRadius: 12 },
-  typography: {
-    fontFamily:
-      '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    button: { textTransform: "none", fontWeight: 600 },
-    h6: { fontWeight: 600 }
-  }
-});
 
 function PickUpConfirmedOrderDetailsScreen() {
+  const navigate = useNavigate();
+
   const trackingId = "DLV-2025-10-07-001";
   const pickedAt = "Today • 15:20";
 
   return (
-    <Box sx={{ px: 2.5, pt: 3, pb: 3 }}>
+    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+      {/* Header */}
+      <Box
+        sx={{
+          mb: 2.5,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between"
+        }}
+      >
+        <IconButton
+          size="small"
+          aria-label="Back"
+          onClick={() => navigate(-1)}
+          sx={{
+            borderRadius: 999,
+            bgcolor: (t) =>
+              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+            border: (t) =>
+              t.palette.mode === "light"
+                ? "1px solid rgba(209,213,219,0.9)"
+                : "1px solid rgba(51,65,85,0.9)"
+          }}
+        >
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+        <Box sx={{ width: 32 }} />
+      </Box>
       {/* Pick-up confirmed banner */}
       <Box sx={{ textAlign: "center", mb: 2.5 }}>
         <Box

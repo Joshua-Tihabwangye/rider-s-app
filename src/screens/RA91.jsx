@@ -23,31 +23,6 @@ import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
 import MobileShell from "../components/MobileShell";
-const getDesignTokens = (mode) => ({
-  palette: {
-    mode,
-    primary: { main: "#03CD8C" },
-    secondary: { main: "#F77F00" },
-    ...(mode === "light"
-      ? {
-          background: { default: "#F3F4F6", paper: "#FFFFFF" },
-          text: { primary: "#0F172A", secondary: "#6B7280" },
-          divider: "rgba(148,163,184,0.4)"
-        }
-      : {
-          background: { default: "#020617", paper: "#020617" },
-          text: { primary: "#F9FAFB", secondary: "#A6A6A6" },
-          divider: "rgba(148,163,184,0.24)"
-        })
-  },
-  shape: { borderRadius: 12 },
-  typography: {
-    fontFamily:
-      '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    button: { textTransform: "none", fontWeight: 600 },
-    h6: { fontWeight: 600 }
-  }
-});
 
 const ALL_ORDERS = [
   {
@@ -115,18 +90,42 @@ function getTypeIcon(type) {
 }
 
 function AllOrdersCard({ order }) {
+  const navigate = useNavigate();
+  
+  const handleViewDetails = () => {
+    // Navigate based on order type
+    if (order.type === "Ride") {
+      navigate("/rides/upcoming");
+    } else if (order.type === "Delivery") {
+      navigate("/deliveries");
+    } else if (order.type === "Rental") {
+      navigate("/rental");
+    } else if (order.type === "Tour") {
+      navigate("/tours");
+    } else if (order.type === "Ambulance") {
+      navigate("/ambulance");
+    }
+  };
+  
   return (
     <Card
       elevation={0}
+      onClick={handleViewDetails}
       sx={{
         mb: 1.75,
         borderRadius: 2,
+        cursor: "pointer",
         bgcolor: (t) =>
           t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
         border: (t) =>
           t.palette.mode === "light"
             ? "1px solid rgba(209,213,219,0.9)"
-            : "1px solid rgba(51,65,85,0.9)"
+            : "1px solid rgba(51,65,85,0.9)",
+        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+        "&:hover": {
+          transform: "translateY(-2px)",
+          boxShadow: 4
+        }
       }}
     >
       <CardContent sx={{ px: 1.75, py: 1.6 }}>
@@ -197,6 +196,10 @@ function AllOrdersCard({ order }) {
           <Button
             size="small"
             variant="outlined"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewDetails();
+            }}
             sx={{
               borderRadius: 999,
               px: 2,
