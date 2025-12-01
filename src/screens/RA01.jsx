@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -20,6 +21,7 @@ import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 
 function HomeMultiServiceScreen() {
+  const navigate = useNavigate();
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
       {/* Top bar */}
@@ -75,6 +77,7 @@ function HomeMultiServiceScreen() {
             {/* Ride */}
             <Card
               elevation={0}
+              onClick={() => navigate("/rides/enter")}
               sx={{
                 flex: 1,
                 borderRadius: 2,
@@ -114,6 +117,7 @@ function HomeMultiServiceScreen() {
             {/* Delivery */}
             <Card
               elevation={0}
+              onClick={() => navigate("/deliveries")}
               sx={{
                 flex: 1,
                 borderRadius: 2,
@@ -155,6 +159,7 @@ function HomeMultiServiceScreen() {
             {/* Rental */}
             <Card
               elevation={0}
+              onClick={() => navigate("/rental")}
               sx={{
                 flex: 1,
                 borderRadius: 2,
@@ -194,6 +199,7 @@ function HomeMultiServiceScreen() {
             {/* Tours */}
             <Card
               elevation={0}
+              onClick={() => navigate("/tours")}
               sx={{
                 flex: 1,
                 borderRadius: 2,
@@ -235,6 +241,7 @@ function HomeMultiServiceScreen() {
             {/* School */}
             <Card
               elevation={0}
+              onClick={() => navigate("/school-handoff")}
               sx={{
                 flex: 1,
                 borderRadius: 2,
@@ -274,6 +281,7 @@ function HomeMultiServiceScreen() {
             {/* Ambulance */}
             <Card
               elevation={0}
+              onClick={() => navigate("/ambulance")}
               sx={{
                 flex: 1,
                 borderRadius: 2,
