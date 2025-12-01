@@ -214,7 +214,7 @@ export default function AppRouter() {
           <Route path="history" element={<RA88 />} />
         </Route>
 
-        {/* Placeholder routes */}
+        {/* Placeholder routes - Wallet is marked as "future work" in routing guide */}
         <Route path="wallet" element={<RA01 />} />
         <Route path="more" element={<MoreMenu />} />
         <Route path="settings" element={<Settings />} />

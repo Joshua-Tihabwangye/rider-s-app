@@ -39,7 +39,7 @@ export default function MobileShell({ children }) {
       currentTab = "deliveries";
     } else if (path.startsWith("/wallet")) {
       currentTab = "wallet";
-    } else if (path.startsWith("/rental") || path.startsWith("/tours") || path.startsWith("/ambulance") || path.startsWith("/more") || path.startsWith("/history") || path.startsWith("/school-handoff")) {
+    } else if (path.startsWith("/rental") || path.startsWith("/tours") || path.startsWith("/ambulance") || path.startsWith("/more") || path.startsWith("/history") || path.startsWith("/school-handoff") || path.startsWith("/settings") || path.startsWith("/help") || path.startsWith("/about")) {
       currentTab = "more";
     }
     
