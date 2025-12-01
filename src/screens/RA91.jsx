@@ -93,17 +93,22 @@ function AllOrdersCard({ order }) {
   const navigate = useNavigate();
   
   const handleViewDetails = () => {
-    // Navigate based on order type
+    // Navigate based on order type according to routing guide
     if (order.type === "Ride") {
-      navigate("/rides/upcoming");
+      // Ride → /rides/history/:rideId (RA37)
+      navigate(`/rides/history/${order.id}`);
     } else if (order.type === "Delivery") {
-      navigate("/deliveries");
+      // Delivery → /deliveries/tracking/:orderId/details (RA68)
+      navigate(`/deliveries/tracking/${order.id}/details`);
     } else if (order.type === "Rental") {
-      navigate("/rental");
+      // Rental → /rental/history/:rentalId (RA90)
+      navigate(`/rental/history/${order.id}`);
     } else if (order.type === "Tour") {
-      navigate("/tours");
+      // Tour → /tours/history (RA82) then specific tour
+      navigate("/tours/history");
     } else if (order.type === "Ambulance") {
-      navigate("/ambulance");
+      // Ambulance → /ambulance/history (RA88) and tracking
+      navigate("/ambulance/history");
     }
   };
   
