@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from "react";
+import React from "react";
+import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
 import {
-  CssBaseline,
+  
   Box,
   IconButton,
   Typography,
@@ -17,9 +17,6 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
-import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
-import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
-
 import MobileShell from "../components/MobileShell";
 const getDesignTokens = (mode) => ({
   palette: {
@@ -58,8 +55,6 @@ const getDesignTokens = (mode) => ({
     h6: { fontWeight: 600 }
   }
 });
-
-
 
 function TripInProgressWithDriverScreen() {
   const navigate = useNavigate();
@@ -280,12 +275,9 @@ function TripInProgressWithDriverScreen() {
 }
 
 export default function RiderScreen26TripInProgressWithDriverCanvas_v2() {
-  const [mode, setMode] = useState("light");
-  const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
-
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+      return (
+    
+      
       <Box
         sx={{
           position: "relative",
@@ -293,35 +285,16 @@ export default function RiderScreen26TripInProgressWithDriverCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        <IconButton
-          size="small"
-          onClick={() => setMode((prev) => (prev === "light" ? "dark" : "light"))}
-          sx={{
-            position: "fixed",
-            top: 10,
-            right: 10,
-            zIndex: 50,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (theme) =>
-              theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(30,64,175,0.7)",
-            boxShadow: 3
-          }}
-          aria-label="Toggle light/dark mode"
-        >
-          {mode === "light" ? (
-            <DarkModeRoundedIcon sx={{ fontSize: 18 }} />
-          ) : (
-            <LightModeRoundedIcon sx={{ fontSize: 18 }} />
-          )}
-        </IconButton>
+        
+
+        <DarkModeToggle />
+
+        
 
         <MobileShell>
           <TripInProgressWithDriverScreen />
         </MobileShell>
       </Box>
-    </ThemeProvider>
+    
   );
 }

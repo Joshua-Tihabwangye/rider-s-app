@@ -84,7 +84,6 @@ dist
 
 # Gatsby (if ever migrated)
 .cache/
-public
 
 # Storybook build outputs
 storybook-static

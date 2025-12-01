@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from "react";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
+import React, { useState } from "react";
+import DarkModeToggle from "../components/DarkModeToggle";
 import {
-  CssBaseline,
+  
   Box,
   Avatar,
   IconButton,
@@ -18,9 +18,6 @@ import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
-import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
-import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
-
 import MobileShell from "../components/MobileShell";
 const getDesignTokens = (mode) => ({
   palette: {
@@ -47,8 +44,6 @@ const getDesignTokens = (mode) => ({
     h6: { fontWeight: 600 }
   }
 });
-
-
 
 function WhereToTodayAlternateScreen() {
   const [query, setQuery] = useState("");
@@ -193,42 +188,20 @@ function WhereToTodayAlternateScreen() {
 }
 
 export default function RiderScreen44WhereToTodayAlternateCanvas_v2() {
-  const [mode, setMode] = useState("light");
-  const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
-
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+      return (
+    
+      
       <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-        <IconButton
-          size="small"
-          onClick={() => setMode((prev) => (prev === "light" ? "dark" : "light"))}
-          sx={{
-            position: "fixed",
-            top: 10,
-            right: 10,
-            zIndex: 50,
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(30,64,175,0.7)",
-            boxShadow: 3
-          }}
-          aria-label="Toggle light/dark mode"
-        >
-          {mode === "light" ? (
-            <DarkModeRoundedIcon sx={{ fontSize: 18 }} />
-          ) : (
-            <LightModeRoundedIcon sx={{ fontSize: 18 }} />
-          )}
-        </IconButton>
+        
+
+        <DarkModeToggle />
+
+        
 
         <MobileShell>
           <WhereToTodayAlternateScreen />
         </MobileShell>
       </Box>
-    </ThemeProvider>
+    
   );
 }

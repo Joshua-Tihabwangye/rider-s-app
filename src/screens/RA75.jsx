@@ -1,9 +1,8 @@
-import React, { useState, useMemo } from "react";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
+import React from "react";
+import DarkModeToggle from "../components/DarkModeToggle";
 import {
-  CssBaseline,
+  
   Box,
-  IconButton,
   Typography,
   Card,
   CardContent,
@@ -11,8 +10,6 @@ import {
   Button
 } from "@mui/material";
 
-import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
-import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
@@ -44,8 +41,6 @@ const getDesignTokens = (mode) => ({
     h6: { fontWeight: 600 }
   }
 });
-
-
 
 function RentalBookingConfirmationScreen() {
   const bookingId = "RENT-2025-10-07-001";
@@ -205,12 +200,9 @@ function RentalBookingConfirmationScreen() {
 }
 
 export default function RiderScreen75RentalBookingConfirmationCanvas_v2() {
-  const [mode, setMode] = useState("light");
-  const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
-
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+      return (
+    
+      
       <Box
         sx={{
           position: "relative",
@@ -218,35 +210,16 @@ export default function RiderScreen75RentalBookingConfirmationCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        <IconButton
-          size="small"
-          onClick={() => setMode((prev) => (prev === "light" ? "dark" : "light"))}
-          sx={{
-            position: "fixed",
-            top: 10,
-            right: 10,
-            zIndex: 50,
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(30,64,175,0.7)",
-            boxShadow: 3
-          }}
-          aria-label="Toggle light/dark mode"
-        >
-          {mode === "light" ? (
-            <DarkModeRoundedIcon sx={{ fontSize: 18 }} />
-          ) : (
-            <LightModeRoundedIcon sx={{ fontSize: 18 }} />
-          )}
-        </IconButton>
+        
+
+        <DarkModeToggle />
+
+        
 
         <MobileShell>
           <RentalBookingConfirmationScreen />
         </MobileShell>
       </Box>
-    </ThemeProvider>
+    
   );
 }
