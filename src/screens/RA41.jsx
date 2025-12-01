@@ -6,12 +6,9 @@ import {
   Paper,
   IconButton,
   Typography,
-  Card,
-  CardContent,
   TextField,
   InputAdornment,
   List,
-  ListItem,
   ListItemText,
   ListItemButton
 } from "@mui/material";
