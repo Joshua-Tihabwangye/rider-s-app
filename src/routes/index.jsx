@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import RA01 from "../screens/RA01";
-import RA02 from "../screens/RA02";
 import RA03 from "../screens/RA03";
 import RA04 from "../screens/RA04";
 import RA05 from "../screens/RA05";
@@ -48,7 +47,6 @@ import RA46 from "../screens/RA46";
 import RA47 from "../screens/RA47";
 import RA48 from "../screens/RA48";
 import RA49 from "../screens/RA49";
-import RA50 from "../screens/RA50";
 import RA51 from "../screens/RA51";
 import RA52 from "../screens/RA52";
 import RA53 from "../screens/RA53";
@@ -67,7 +65,6 @@ import RA65 from "../screens/RA65";
 import RA66 from "../screens/RA66";
 import RA67 from "../screens/RA67";
 import RA68 from "../screens/RA68";
-import RA69 from "../screens/RA69";
 import RA70 from "../screens/RA70";
 import RA71 from "../screens/RA71";
 import RA72 from "../screens/RA72";
@@ -75,13 +72,11 @@ import RA73 from "../screens/RA73";
 import RA74 from "../screens/RA74";
 import RA75 from "../screens/RA75";
 import RA76 from "../screens/RA76";
-import RA77 from "../screens/RA77";
 import RA78 from "../screens/RA78";
 import RA79 from "../screens/RA79";
 import RA80 from "../screens/RA80";
 import RA81 from "../screens/RA81";
 import RA82 from "../screens/RA82";
-import RA83 from "../screens/RA83";
 import RA84 from "../screens/RA84";
 import RA85 from "../screens/RA85";
 import RA86 from "../screens/RA86";
@@ -95,6 +90,12 @@ import MoreMenu from "../screens/MoreMenu";
 import Settings from "../screens/Settings";
 import Help from "../screens/Help";
 import About from "../screens/About";
+import RidesDashboard from "../screens/RidesDashboard";
+import DeliveriesDashboard from "../screens/DeliveriesDashboard";
+import RentalDashboard from "../screens/RentalDashboard";
+import ToursDashboard from "../screens/ToursDashboard";
+import AmbulanceDashboard from "../screens/AmbulanceDashboard";
+import SchoolDashboard from "../screens/SchoolDashboard";
 
 export default function AppRouter() {
   return (
@@ -109,7 +110,7 @@ export default function AppRouter() {
         {/* Rides */}
         <Route path="rides">
           <Route index element={<Navigate to="/rides/enter" replace />} />
-          <Route path="enter" element={<RA02 />} />
+          <Route path="enter" element={<RidesDashboard />} />
           <Route path="enter/details" element={<RA05 />} />
           <Route path="enter/simple" element={<RA07 />} />
           <Route path="enter/map" element={<RA06 />} />
@@ -161,7 +162,7 @@ export default function AppRouter() {
 
         {/* Deliveries */}
         <Route path="deliveries">
-          <Route index element={<RA50 />} />
+          <Route index element={<DeliveriesDashboard />} />
           <Route path="delivering-v2" element={<RA52 />} />
           <Route path="received" element={<RA51 />} />
           <Route path="received-v2" element={<RA53 />} />
@@ -184,7 +185,7 @@ export default function AppRouter() {
 
         {/* Rental */}
         <Route path="rental">
-          <Route index element={<RA69 />} />
+          <Route index element={<RentalDashboard />} />
           <Route path="list" element={<RA70 />} />
           <Route path="vehicle/:vehicleId" element={<RA71 />} />
           <Route path="dates" element={<RA72 />} />
@@ -197,7 +198,7 @@ export default function AppRouter() {
 
         {/* Tours */}
         <Route path="tours">
-          <Route index element={<RA77 />} />
+          <Route index element={<ToursDashboard />} />
           <Route path=":tourId" element={<RA78 />} />
           <Route path=":tourId/dates" element={<RA79 />} />
           <Route path=":tourId/summary" element={<RA80 />} />
@@ -207,7 +208,7 @@ export default function AppRouter() {
 
         {/* Ambulance */}
         <Route path="ambulance">
-          <Route index element={<RA83 />} />
+          <Route index element={<AmbulanceDashboard />} />
           <Route path="location" element={<RA84 />} />
           <Route path="destination" element={<RA85 />} />
           <Route path="confirmation" element={<RA86 />} />
@@ -221,6 +222,7 @@ export default function AppRouter() {
         <Route path="settings" element={<Settings />} />
         <Route path="help" element={<Help />} />
         <Route path="about" element={<About />} />
+        <Route path="school" element={<SchoolDashboard />} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/home" replace />} />
