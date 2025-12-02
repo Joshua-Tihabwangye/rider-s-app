@@ -407,10 +407,10 @@ function EnterDestinationMainScreen() {
             minHeight: 36,
             fontSize: 12,
             textTransform: "none",
-            color: "rgba(148,163,184,1)"
+            color: (t) => t.palette.text.secondary
           },
           "& .Mui-selected": {
-            color: "#111827"
+            color: (t) => t.palette.text.primary
           },
           "& .MuiTabs-indicator": {
             height: 2,

@@ -109,16 +109,16 @@ function DeliveryDashboardHomeScreen() {
             <Box>
               <Typography
                 variant="caption"
-                sx={{ fontSize: 11, color: "rgba(88,28,14,0.85)" }}
+                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Today’s deliveries
+                Today's deliveries
               </Typography>
               <Typography
                 variant="h6"
                 sx={{
                   fontWeight: 700,
                   letterSpacing: "-0.03em",
-                  color: "#7C2D12"
+                  color: (t) => t.palette.text.primary
                 }}
               >
                 3 active • 5 completed
@@ -132,8 +132,11 @@ function DeliveryDashboardHomeScreen() {
                 borderRadius: 999,
                 fontSize: 10,
                 height: 22,
-                bgcolor: "rgba(255,255,255,0.9)",
-                color: "#7C2D12"
+                bgcolor: (t) =>
+                  t.palette.mode === "light"
+                    ? "rgba(255,255,255,0.9)"
+                    : "rgba(15,23,42,0.96)",
+                color: (t) => t.palette.text.primary
               }}
             />
           </Stack>
@@ -167,11 +170,23 @@ function DeliveryDashboardHomeScreen() {
                 py: 0.9,
                 fontSize: 13,
                 textTransform: "none",
-                borderColor: "rgba(120,53,15,0.5)",
-                color: "rgba(67,20,7,0.9)",
+                borderColor: (t) =>
+                  t.palette.mode === "light"
+                    ? "rgba(120,53,15,0.5)"
+                    : "rgba(251,191,36,0.5)",
+                color: (t) =>
+                  t.palette.mode === "light"
+                    ? "rgba(67,20,7,0.9)"
+                    : "rgba(251,191,36,0.9)",
                 "&:hover": {
-                  borderColor: "rgba(120,53,15,0.9)",
-                  bgcolor: "rgba(120,53,15,0.06)"
+                  borderColor: (t) =>
+                    t.palette.mode === "light"
+                      ? "rgba(120,53,15,0.9)"
+                      : "rgba(251,191,36,0.9)",
+                  bgcolor: (t) =>
+                    t.palette.mode === "light"
+                      ? "rgba(120,53,15,0.06)"
+                      : "rgba(251,191,36,0.1)"
                 }
               }}
             >
