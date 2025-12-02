@@ -101,30 +101,30 @@ function RentalDashboardHomeScreen() {
         <CardContent sx={{ px: 1.9, py: 1.9 }}>
           <Typography
             variant="caption"
-            sx={{ fontSize: 11, color: "rgba(22,101,52,0.85)", mb: 0.4, display: "block" }}
+            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.4, display: "block" }}
           >
             Your next rental
           </Typography>
           <Typography
             variant="body1"
-            sx={{ fontWeight: 700, letterSpacing: "-0.02em", mb: 0.1, color: "#022C22" }}
+            sx={{ fontWeight: 700, letterSpacing: "-0.02em", mb: 0.1, color: (t) => t.palette.text.primary }}
           >
             Nissan Leaf • Self-drive
           </Typography>
           <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.4 }}>
-            <CalendarMonthRoundedIcon sx={{ fontSize: 16, color: "rgba(22,101,52,0.9)" }} />
+            <CalendarMonthRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
             <Typography
               variant="caption"
-              sx={{ fontSize: 11, color: "rgba(22,101,52,0.9)" }}
+              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
               Thu 10 Oct → Sun 13 Oct • 3 days
             </Typography>
           </Stack>
           <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
-            <PlaceRoundedIcon sx={{ fontSize: 16, color: "rgba(22,101,52,0.9)" }} />
+            <PlaceRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
             <Typography
               variant="caption"
-              sx={{ fontSize: 11, color: "rgba(22,101,52,0.9)" }}
+              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
               Pickup: Nsambya EV Hub • Return: Bugolobi EV Hub
             </Typography>
@@ -155,11 +155,23 @@ function RentalDashboardHomeScreen() {
                 py: 0.9,
                 fontSize: 13,
                 textTransform: "none",
-                borderColor: "rgba(22,101,52,0.4)",
-                color: "rgba(22,101,52,0.9)",
+                borderColor: (t) =>
+                  t.palette.mode === "light"
+                    ? "rgba(22,101,52,0.4)"
+                    : "rgba(16,185,129,0.5)",
+                color: (t) =>
+                  t.palette.mode === "light"
+                    ? "rgba(22,101,52,0.9)"
+                    : "rgba(16,185,129,0.9)",
                 "&:hover": {
-                  borderColor: "rgba(22,101,52,0.9)",
-                  bgcolor: "rgba(22,101,52,0.06)"
+                  borderColor: (t) =>
+                    t.palette.mode === "light"
+                      ? "rgba(22,101,52,0.9)"
+                      : "rgba(16,185,129,0.9)",
+                  bgcolor: (t) =>
+                    t.palette.mode === "light"
+                      ? "rgba(22,101,52,0.06)"
+                      : "rgba(16,185,129,0.1)"
                 }
               }}
             >
@@ -174,13 +186,19 @@ function RentalDashboardHomeScreen() {
                 px: 1.1,
                 py: 0.7,
                 borderRadius: 2,
-                bgcolor: "rgba(255,255,255,0.95)",
-                border: "1px solid rgba(22,163,74,0.5)"
+                bgcolor: (t) =>
+                  t.palette.mode === "light"
+                    ? "rgba(255,255,255,0.95)"
+                    : "rgba(15,23,42,0.96)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(22,163,74,0.5)"
+                    : "1px solid rgba(16,185,129,0.5)"
               }}
             >
               <Typography
                 variant="caption"
-                sx={{ fontSize: 10.5, color: "rgba(22,101,52,0.9)" }}
+                sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
               >
                 Next step: open the rental extension flow with new end date and updated pricing.
               </Typography>
@@ -322,7 +340,7 @@ function RentalDashboardHomeScreen() {
                 fontWeight: 600,
                 textTransform: "none",
                 bgcolor: "primary.main",
-                color: "#020617",
+                color: (t) => (t.palette.mode === "light" ? "#020617" : "#FFFFFF"),
                 "&:hover": { bgcolor: "#06e29a" }
               }}
             >

@@ -201,9 +201,22 @@ function SchoolDashboardHomeScreen() {
                   borderRadius: 999,
                   fontSize: 10,
                   height: 22,
-                  bgcolor:
-                    i === 0 ? "rgba(34,197,94,0.12)" : "rgba(56,189,248,0.12)",
-                  color: i === 0 ? "#16A34A" : "#0284C7"
+                  bgcolor: (t) =>
+                    i === 0
+                      ? t.palette.mode === "light"
+                        ? "rgba(34,197,94,0.12)"
+                        : "rgba(34,197,94,0.2)"
+                      : t.palette.mode === "light"
+                      ? "rgba(56,189,248,0.12)"
+                      : "rgba(56,189,248,0.2)",
+                  color: (t) =>
+                    i === 0
+                      ? t.palette.mode === "light"
+                        ? "#16A34A"
+                        : "#22C55E"
+                      : t.palette.mode === "light"
+                      ? "#0284C7"
+                      : "#38BDF8"
                 }}
               />
             </Box>

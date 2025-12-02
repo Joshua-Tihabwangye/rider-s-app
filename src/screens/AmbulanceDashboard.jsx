@@ -109,7 +109,7 @@ function AmbulanceDashboardHomeScreen() {
             <Box>
               <Typography
                 variant="caption"
-                sx={{ fontSize: 11, color: "rgba(127,29,29,0.9)" }}
+                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
                 Need an ambulance?
               </Typography>
@@ -118,7 +118,7 @@ function AmbulanceDashboardHomeScreen() {
                 sx={{
                   fontWeight: 700,
                   letterSpacing: "-0.03em",
-                  color: "#7F1D1D"
+                  color: (t) => t.palette.text.primary
                 }}
               >
                 24/7 partner network
@@ -132,8 +132,11 @@ function AmbulanceDashboardHomeScreen() {
                 borderRadius: 999,
                 fontSize: 10,
                 height: 22,
-                bgcolor: "rgba(254,242,242,0.95)",
-                color: "#7F1D1D"
+                bgcolor: (t) =>
+                  t.palette.mode === "light"
+                    ? "rgba(254,242,242,0.95)"
+                    : "rgba(15,23,42,0.96)",
+                color: (t) => t.palette.text.primary
               }}
             />
           </Stack>
@@ -165,11 +168,23 @@ function AmbulanceDashboardHomeScreen() {
                 py: 0.9,
                 fontSize: 13,
                 textTransform: "none",
-                borderColor: "rgba(127,29,29,0.6)",
-                color: "rgba(88,28,28,0.95)",
+                borderColor: (t) =>
+                  t.palette.mode === "light"
+                    ? "rgba(127,29,29,0.6)"
+                    : "rgba(239,68,68,0.5)",
+                color: (t) =>
+                  t.palette.mode === "light"
+                    ? "rgba(88,28,28,0.95)"
+                    : "rgba(239,68,68,0.9)",
                 "&:hover": {
-                  borderColor: "rgba(127,29,29,0.9)",
-                  bgcolor: "rgba(127,29,29,0.06)"
+                  borderColor: (t) =>
+                    t.palette.mode === "light"
+                      ? "rgba(127,29,29,0.9)"
+                      : "rgba(239,68,68,0.9)",
+                  bgcolor: (t) =>
+                    t.palette.mode === "light"
+                      ? "rgba(127,29,29,0.06)"
+                      : "rgba(239,68,68,0.1)"
                 }
               }}
             >
@@ -273,8 +288,7 @@ function AmbulanceDashboardHomeScreen() {
                         t.palette.mode === "light"
                           ? "1px solid rgba(209,213,219,0.9)"
                           : "1px solid rgba(51,65,85,0.9)",
-                color:
-                  forWhom === "me" ? "#7F1D1D" : (t) => t.palette.text.primary
+                color: (t) => t.palette.text.primary
               }}
             />
             <Chip
@@ -299,8 +313,7 @@ function AmbulanceDashboardHomeScreen() {
                         t.palette.mode === "light"
                           ? "1px solid rgba(209,213,219,0.9)"
                           : "1px solid rgba(51,65,85,0.9)",
-                color:
-                  forWhom === "family" ? "#7F1D1D" : (t) => t.palette.text.primary
+                color: (t) => t.palette.text.primary
               }}
             />
             <Chip
@@ -325,8 +338,7 @@ function AmbulanceDashboardHomeScreen() {
                         t.palette.mode === "light"
                           ? "1px solid rgba(209,213,219,0.9)"
                           : "1px solid rgba(51,65,85,0.9)",
-                color:
-                  forWhom === "facility" ? "#7F1D1D" : (t) => t.palette.text.primary
+                color: (t) => t.palette.text.primary
               }}
             />
           </Stack>

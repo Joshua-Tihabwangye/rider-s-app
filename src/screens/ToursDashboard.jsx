@@ -241,7 +241,7 @@ function ToursDashboardHomeScreen() {
                             : "rgba(15,23,42,0.96)",
                   color:
                     activeCategory === cat.id
-                      ? "#020617"
+                      ? (t) => (t.palette.mode === "light" ? "#020617" : "#FFFFFF")
                       : (t) => t.palette.text.primary
                 }}
               />
@@ -376,8 +376,14 @@ function ToursDashboardHomeScreen() {
                   borderRadius: 999,
                   fontSize: 10,
                   height: 22,
-                  bgcolor: "rgba(3,205,140,0.12)",
-                  color: "#059669"
+                  bgcolor: (t) =>
+                    t.palette.mode === "light"
+                      ? "rgba(3,205,140,0.12)"
+                      : "rgba(16,185,129,0.2)",
+                  color: (t) =>
+                    t.palette.mode === "light"
+                      ? "#059669"
+                      : "#10B981"
                 }}
               />
             )}
