@@ -8,16 +8,16 @@ import {
 } from "@mui/material";
 
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import ManageAccountsRoundedIcon from "@mui/icons-material/ManageAccountsRounded";
+import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
+import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
-import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 
 const NAV_TABS = [
   { value: "home", label: "Home", icon: <HomeOutlinedIcon />, route: "/home" },
-  { value: "manager", label: "Manager", icon: <ManageAccountsRoundedIcon />, route: "/manager" },
+  { value: "rides", label: "Rides", icon: <DirectionsCarFilledRoundedIcon />, route: "/rides" },
+  { value: "deliveries", label: "Deliveries", icon: <LocalShippingRoundedIcon />, route: "/deliveries" },
   { value: "wallet", label: "Wallet", icon: <AccountBalanceWalletRoundedIcon />, route: "/wallet" },
-  { value: "settings", label: "Settings", icon: <SettingsRoundedIcon />, route: "/settings" },
   { value: "more", label: "More", icon: <MoreHorizRoundedIcon />, route: "/more" }
 ];
 
@@ -33,13 +33,13 @@ export default function MobileShell({ children }) {
     
     if (path === "/" || path === "/home") {
       currentTab = "home";
-    } else if (path.startsWith("/manager")) {
-      currentTab = "manager";
+    } else if (path.startsWith("/rides")) {
+      currentTab = "rides";
+    } else if (path.startsWith("/deliveries")) {
+      currentTab = "deliveries";
     } else if (path.startsWith("/wallet")) {
       currentTab = "wallet";
-    } else if (path.startsWith("/settings")) {
-      currentTab = "settings";
-    } else if (path.startsWith("/rental") || path.startsWith("/tours") || path.startsWith("/ambulance") || path.startsWith("/more") || path.startsWith("/history") || path.startsWith("/school-handoff") || path.startsWith("/help") || path.startsWith("/about") || path.startsWith("/rides") || path.startsWith("/deliveries") || path.startsWith("/school")) {
+    } else if (path.startsWith("/rental") || path.startsWith("/tours") || path.startsWith("/ambulance") || path.startsWith("/more") || path.startsWith("/history") || path.startsWith("/school-handoff") || path.startsWith("/help") || path.startsWith("/about") || path.startsWith("/settings") || path.startsWith("/school")) {
       currentTab = "more";
     }
     
@@ -207,8 +207,8 @@ export default function MobileShell({ children }) {
               "& .MuiBottomNavigationAction-root": {
                 color: (t) =>
                   t.palette.mode === "light"
-                    ? "#9CA3AF"
-                    : "rgba(148,163,184,0.9)",
+                    ? "#808080"
+                    : "rgba(128,128,128,0.9)",
                 paddingY: { 
                   xs: 0.75, 
                   sm: 0.75, 
@@ -265,7 +265,7 @@ export default function MobileShell({ children }) {
                   xl: "1 1 0%"
                 },
                 "&.Mui-selected": {
-                  color: "#03CD8C"
+                  color: "#32CD32" // Vibrant green for active state
                 },
                 // Better touch feedback
                 transition: "all 0.2s ease-in-out",
