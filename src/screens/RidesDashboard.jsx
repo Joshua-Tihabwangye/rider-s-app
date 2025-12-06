@@ -697,11 +697,15 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }) {
           : "0 1px 3px rgba(0,0,0,0.08)",
         transition: "all 0.2s ease",
         "&:hover": {
-          boxShadow: "0 2px 8px rgba(0,0,0,0.12)"
+          boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+          transform: "translateY(-1px)"
+        },
+        "&:active": {
+          transform: "translateY(0px)"
         }
       }}
     >
-      <CardContent sx={{ py: 1.5, px: 1.75 }}>
+      <CardContent sx={{ py: 1.5, px: 1.75, position: "relative" }}>
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
           <Box
             sx={{
@@ -734,6 +738,17 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }) {
             </Box>
           </Box>
         </Box>
+        <ArrowForwardIosRoundedIcon
+          sx={{
+            fontSize: 14,
+            color: (theme) => theme.palette.text.secondary,
+            opacity: 0.5,
+            position: "absolute",
+            right: 12,
+            top: "50%",
+            transform: "translateY(-50%)"
+          }}
+        />
       </CardContent>
     </Card>
   );
@@ -1824,6 +1839,168 @@ function EnterDestinationMainScreen() {
             </Typography>
           </CardContent>
         </Card>
+      )}
+
+      {/* Sticky Bottom Card - From/To/ETA/Fare/Continue */}
+      {(selectedPlace || destinationCoords) && routeData && (
+        <Box
+          sx={{
+            position: "sticky",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1000,
+            bgcolor: (t) => t.palette.background.default,
+            borderTop: (t) =>
+              t.palette.mode === "light"
+                ? "1px solid rgba(209,213,219,0.9)"
+                : "1px solid rgba(51,65,85,0.9)",
+            boxShadow: "0 -4px 20px rgba(0,0,0,0.1)",
+            pt: 1.5,
+            pb: 2,
+            px: 2.5
+          }}
+        >
+          <Card
+            elevation={0}
+            sx={{
+              borderRadius: 2.5,
+              bgcolor: (t) =>
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+              border: (t) =>
+                t.palette.mode === "light"
+                  ? "1px solid rgba(209,213,219,0.9)"
+                  : "1px solid rgba(51,65,85,0.9)"
+            }}
+          >
+            <CardContent sx={{ px: 2, py: 1.5 }}>
+              <Stack spacing={1.5}>
+                {/* From/To */}
+                <Stack spacing={1}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        bgcolor: "#3b82f6",
+                        border: "2px solid white",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                      }}
+                    />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontSize: 12,
+                        fontWeight: 500,
+                        color: (t) => t.palette.text.secondary
+                      }}
+                    >
+                      From: Current location
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <PlaceRoundedIcon
+                      sx={{ fontSize: 18, color: "#10B981" }}
+                    />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        letterSpacing: "-0.01em",
+                        flex: 1
+                      }}
+                    >
+                      To: {selectedPlace?.name || "Selected destination"}
+                    </Typography>
+                  </Stack>
+                </Stack>
+
+                {/* ETA • Fare • Continue */}
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  sx={{ pt: 0.5 }}
+                >
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <AccessTimeRoundedIcon
+                        sx={{ fontSize: 14, color: (t) => t.palette.text.secondary }}
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: (t) => t.palette.text.secondary
+                        }}
+                      >
+                        {routeData.duration}
+                      </Typography>
+                    </Stack>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontSize: 11,
+                        color: (t) => t.palette.text.secondary
+                      }}
+                    >
+                      •
+                    </Typography>
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <AttachMoneyRoundedIcon
+                        sx={{ fontSize: 14, color: (t) => t.palette.text.secondary }}
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: (t) => t.palette.text.secondary
+                        }}
+                      >
+                        {routeData.fare || "UGX 20,000"}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => {
+                      navigate("/rides/enter/details", {
+                        state: {
+                          pickup: currentLocation?.address || "Current location",
+                          destination: selectedPlace?.name || "Selected destination",
+                          pickupCoords: currentLocation?.coordinates,
+                          destinationCoords: destinationCoords,
+                          routeData: routeData,
+                          isSharedRide: isSharedRideMode
+                        }
+                      });
+                    }}
+                    sx={{
+                      bgcolor: "#3b82f6",
+                      color: "#FFFFFF",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      px: 2.5,
+                      py: 0.75,
+                      borderRadius: 1.5,
+                      textTransform: "none",
+                      "&:hover": {
+                        bgcolor: "#2563eb"
+                      }
+                    }}
+                  >
+                    Continue
+                  </Button>
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Box>
       )}
       </Box>
     </Box>

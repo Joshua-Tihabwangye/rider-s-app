@@ -32,6 +32,10 @@ import InventoryRoundedIcon from "@mui/icons-material/InventoryRounded";
 import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded";
 import BoltRoundedIcon from "@mui/icons-material/BoltRounded";
 import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
+import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
+import WorkRoundedIcon from "@mui/icons-material/WorkRounded";
+import RouteRoundedIcon from "@mui/icons-material/RouteRounded";
+import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 
@@ -449,6 +453,212 @@ function HomeMultiServiceScreen() {
         </Card>
       )}
 
+      {/* Personalization Area - Last Ride Info */}
+      <Card
+        elevation={0}
+        onClick={() => navigate("/rides/enter")}
+        sx={{
+          mb: 2.5,
+          borderRadius: 2,
+          cursor: "pointer",
+          bgcolor: (t) =>
+            t.palette.mode === "light"
+              ? "linear-gradient(135deg, #E0F2FE 0%, #FFFFFF 100%)"
+              : "linear-gradient(135deg, rgba(3,205,140,0.1) 0%, rgba(15,23,42,0.98) 100%)",
+          border: (t) =>
+            t.palette.mode === "light"
+              ? "1px solid rgba(3,205,140,0.2)"
+              : "1px solid rgba(3,205,140,0.3)",
+          transition: "transform 0.12s ease, box-shadow 0.12s ease",
+          "&:hover": {
+            transform: "translateY(-1px)",
+            boxShadow: 2
+          }
+        }}
+      >
+        <CardContent sx={{ px: 2, py: 1.5 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: (t) => t.palette.text.secondary,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  mb: 0.5,
+                  display: "block"
+                }}
+              >
+                Your last ride
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  letterSpacing: "-0.01em",
+                  mb: 0.25
+                }}
+              >
+                Home → Office
+              </Typography>
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontSize: 11,
+                    color: (t) => t.palette.text.secondary
+                  }}
+                >
+                  12 min
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontSize: 11,
+                    color: (t) => t.palette.text.secondary
+                  }}
+                >
+                  •
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontSize: 11,
+                    color: (t) => t.palette.text.secondary
+                  }}
+                >
+                  UGX 5,000
+                </Typography>
+              </Stack>
+            </Box>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                bgcolor: "#03CD8C",
+                color: "#020617",
+                fontSize: 11,
+                fontWeight: 600,
+                px: 2,
+                py: 0.75,
+                borderRadius: 1.5,
+                textTransform: "none",
+                "&:hover": {
+                  bgcolor: "#02B87A"
+                }
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate("/rides/enter");
+              }}
+            >
+              Rebook
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions Section */}
+      <Box sx={{ mb: 2.5 }}>
+        <Typography
+          variant="caption"
+          sx={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: (t) => t.palette.text.secondary,
+            mb: 1.5,
+            display: "block",
+            textTransform: "uppercase",
+            letterSpacing: "0.5px"
+          }}
+        >
+          Quick actions
+        </Typography>
+        <Stack direction="row" spacing={1.2}>
+          <Card
+            elevation={0}
+            onClick={() => navigate("/rides/enter")}
+            sx={{
+              flex: 1,
+              borderRadius: 2,
+              cursor: "pointer",
+              bgcolor: (t) =>
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+              border: (t) =>
+                t.palette.mode === "light"
+                  ? "1px solid rgba(209,213,219,0.9)"
+                  : "1px solid rgba(51,65,85,0.9)",
+              transition: "transform 0.12s ease, box-shadow 0.12s ease",
+              "&:hover": {
+                transform: "translateY(-1px)",
+                boxShadow: 2
+              }
+            }}
+          >
+            <CardContent sx={{ px: 1.5, py: 1.2 }}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <RouteRoundedIcon
+                  sx={{ fontSize: 20, color: "#03CD8C" }}
+                />
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    letterSpacing: "-0.01em",
+                    flex: 1
+                  }}
+                >
+                  Book usual route
+                </Typography>
+              </Stack>
+            </CardContent>
+          </Card>
+          <Card
+            elevation={0}
+            onClick={() => navigate("/rides/enter")}
+            sx={{
+              flex: 1,
+              borderRadius: 2,
+              cursor: "pointer",
+              bgcolor: (t) =>
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+              border: (t) =>
+                t.palette.mode === "light"
+                  ? "1px solid rgba(209,213,219,0.9)"
+                  : "1px solid rgba(51,65,85,0.9)",
+              transition: "transform 0.12s ease, box-shadow 0.12s ease",
+              "&:hover": {
+                transform: "translateY(-1px)",
+                boxShadow: 2
+              }
+            }}
+          >
+            <CardContent sx={{ px: 1.5, py: 1.2 }}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <WorkRoundedIcon
+                  sx={{ fontSize: 20, color: "#03CD8C" }}
+                />
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    letterSpacing: "-0.01em",
+                    flex: 1
+                  }}
+                >
+                  Go to work
+                </Typography>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Stack>
+      </Box>
+
       {/* Service Sections */}
       <Box sx={{ mb: 2.5 }}>
         {/* EVZone Marketplace - 4 cards in a row */}
@@ -812,7 +1022,7 @@ function HomeMultiServiceScreen() {
         </Stack>
         </Box>
 
-        {/* EVZone Ride - 4 cards in a row */}
+        {/* EVZone Ride - 4 cards in a row (same style as Marketplace and Charging) */}
         <Typography
           variant="caption"
           sx={{
@@ -864,7 +1074,10 @@ function HomeMultiServiceScreen() {
                     color: "#F77F00",
                     position: "absolute",
                     top: -4,
-                    right: -4
+                    right: -4,
+                    bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+                    borderRadius: "50%",
+                    p: 0.25
                   }}
                 />
               </Box>
@@ -898,16 +1111,38 @@ function HomeMultiServiceScreen() {
               }
             }}
           >
-            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center" }}>
-              <LocalTaxiRoundedIcon
-                sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
-              />
+            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center", position: "relative" }}>
+              <Box sx={{ position: "relative", display: "inline-block" }}>
+                <LocalTaxiRoundedIcon
+                  sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
+                />
+                <BoltRoundedIcon
+                  sx={{
+                    fontSize: 14,
+                    color: "#F77F00",
+                    position: "absolute",
+                    top: -4,
+                    right: -4
+                  }}
+                />
+              </Box>
               <Typography
                 variant="subtitle2"
                 sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
               >
-                Book a Ride
+                Book a ride
               </Typography>
+              <ArrowForwardIosRoundedIcon
+                sx={{
+                  fontSize: 14,
+                  color: (t) => t.palette.text.secondary,
+                  opacity: 0.5,
+                  position: "absolute",
+                  right: 8,
+                  top: "50%",
+                  transform: "translateY(-50%)"
+                }}
+              />
             </CardContent>
           </Card>
 
@@ -953,6 +1188,17 @@ function HomeMultiServiceScreen() {
               >
                 Share a Ride
               </Typography>
+              <ArrowForwardIosRoundedIcon
+                sx={{
+                  fontSize: 14,
+                  color: (t) => t.palette.text.secondary,
+                  opacity: 0.5,
+                  position: "absolute",
+                  right: 8,
+                  top: "50%",
+                  transform: "translateY(-50%)"
+                }}
+              />
             </CardContent>
           </Card>
 
@@ -977,7 +1223,7 @@ function HomeMultiServiceScreen() {
               }
             }}
           >
-            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center" }}>
+            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center", position: "relative" }}>
               <InventoryRoundedIcon
                 sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
               />
@@ -987,6 +1233,17 @@ function HomeMultiServiceScreen() {
               >
                 Deliver a Parcel
               </Typography>
+              <ArrowForwardIosRoundedIcon
+                sx={{
+                  fontSize: 14,
+                  color: (t) => t.palette.text.secondary,
+                  opacity: 0.5,
+                  position: "absolute",
+                  right: 8,
+                  top: "50%",
+                  transform: "translateY(-50%)"
+                }}
+              />
             </CardContent>
           </Card>
         </Stack>
@@ -1016,7 +1273,7 @@ function HomeMultiServiceScreen() {
           }}
         >
           <Stack direction="row" spacing={1.2}>
-            {/* School card - green book with graduation cap - merges with background */}
+            {/* School card - orange book with graduation cap - merges with background */}
             <Card
               elevation={0}
               onClick={() => navigate("/school-handoff")}
@@ -1036,12 +1293,12 @@ function HomeMultiServiceScreen() {
               <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center", position: "relative" }}>
                 <Box sx={{ position: "relative", display: "inline-block" }}>
                   <MenuBookRoundedIcon
-                    sx={{ fontSize: 28, color: "#03CD8C", mb: 0.5 }}
+                    sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
                   />
                   <SchoolRoundedIcon
                     sx={{
                       fontSize: 14,
-                      color: "#03CD8C",
+                      color: "#F77F00",
                       position: "absolute",
                       top: -4,
                       right: -4

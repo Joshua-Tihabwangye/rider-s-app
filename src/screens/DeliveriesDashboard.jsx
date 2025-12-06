@@ -15,6 +15,8 @@ import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import TrackChangesRoundedIcon from "@mui/icons-material/TrackChangesRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
+import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
+import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
@@ -77,7 +79,7 @@ function DeliveryDashboardHomeScreen() {
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Send parcels, track EV couriers & see incoming packages
+              Send parcels, track EV riders, and see incoming packages
             </Typography>
           </Box>
         </Box>
@@ -111,7 +113,7 @@ function DeliveryDashboardHomeScreen() {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Today's deliveries
+                Today's deliveries · {new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
               </Typography>
               <Typography
                 variant="h6"
@@ -274,25 +276,41 @@ function DeliveryDashboardHomeScreen() {
               }}
               onClick={() => setViewMode("sending")}
             >
-              <CardContent sx={{ px: 1.4, py: 1.3 }}>
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5 }}
-                >
-                  Sending
-                </Typography>
+              <CardContent sx={{ px: 1.4, py: 1.3, position: "relative" }}>
+                <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.5 }}>
+                  <ArrowUpwardRoundedIcon
+                    sx={{ fontSize: 16, color: "#F59E0B", transform: "rotate(45deg)" }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+                  >
+                    Sending
+                  </Typography>
+                </Stack>
                 <Typography
                   variant="body2"
-                  sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em" }}
+                  sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
                 >
-                  2 in transit
+                  Next: Bugolobi → Makerere
                 </Typography>
                 <Typography
                   variant="caption"
                   sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
                 >
-                  • 1 waiting pickup
+                  ETA 14:32
                 </Typography>
+                <ArrowForwardIosRoundedIcon
+                  sx={{
+                    fontSize: 14,
+                    color: (t) => t.palette.text.secondary,
+                    opacity: 0.5,
+                    position: "absolute",
+                    right: 12,
+                    top: "50%",
+                    transform: "translateY(-50%)"
+                  }}
+                />
               </CardContent>
             </Card>
 
@@ -325,25 +343,41 @@ function DeliveryDashboardHomeScreen() {
               }}
               onClick={handleViewIncoming}
             >
-              <CardContent sx={{ px: 1.4, py: 1.3 }}>
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5 }}
-                >
-                  Receiving
-                </Typography>
+              <CardContent sx={{ px: 1.4, py: 1.3, position: "relative" }}>
+                <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.5 }}>
+                  <ArrowDownwardRoundedIcon
+                    sx={{ fontSize: 16, color: "#3b82f6", transform: "rotate(-45deg)" }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+                  >
+                    Receiving
+                  </Typography>
+                </Stack>
                 <Typography
                   variant="body2"
-                  sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em" }}
+                  sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
                 >
-                  1 arriving
+                  Arriving: Kansanga → City centre
                 </Typography>
                 <Typography
                   variant="caption"
                   sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
                 >
-                  • 3 delivered this week
+                  Arriving today
                 </Typography>
+                <ArrowForwardIosRoundedIcon
+                  sx={{
+                    fontSize: 14,
+                    color: (t) => t.palette.text.secondary,
+                    opacity: 0.5,
+                    position: "absolute",
+                    right: 12,
+                    top: "50%",
+                    transform: "translateY(-50%)"
+                  }}
+                />
               </CardContent>
             </Card>
           </Stack>
@@ -392,7 +426,11 @@ function DeliveryDashboardHomeScreen() {
           </Stack>
           <Divider sx={{ mb: 1, borderColor: (t) => t.palette.divider }} />
 
-          {[0, 1, 2].map((i) => (
+          {[
+            { route: "Nsambya → EV Hub", status: "Delivered", code: "DLV-001", date: "Today • 14:32", type: "sent" },
+            { route: "Kampala → Entebbe", status: "In transit", code: "DLV-002", date: "Mon • 11:03", type: "sent" },
+            { route: "Makerere → Bugolobi", status: "Delivered", code: "DLV-003", date: "Sun • 09:15", type: "received" }
+          ].map((delivery, i) => (
             <Box
               key={i}
               sx={{
@@ -405,30 +443,46 @@ function DeliveryDashboardHomeScreen() {
                 }
               }}
             >
-              <Box>
-                <Typography
-                  variant="body2"
-                  sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
-                >
-                  {i === 0
-                    ? "Nsambya → EV Hub"
-                    : i === 1
-                    ? "City centre → Kansanga"
-                    : "Bugolobi → Makerere"}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-                >
-                  {i === 0
-                    ? "DLV-2025-10-05-002 • Delivered"
-                    : i === 1
-                    ? "DLV-2025-10-02-008 • In transit"
-                    : "DLV-2025-09-28-011 • Delivered"}
-                </Typography>
-              </Box>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1 }}>
+                {delivery.type === "sent" ? (
+                  <ArrowUpwardRoundedIcon
+                    sx={{ fontSize: 16, color: "#F59E0B", transform: "rotate(45deg)" }}
+                  />
+                ) : (
+                  <ArrowDownwardRoundedIcon
+                    sx={{ fontSize: 16, color: "#3b82f6", transform: "rotate(-45deg)" }}
+                  />
+                )}
+                <Box sx={{ flex: 1 }}>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.25 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
+                    >
+                      {delivery.route}
+                    </Typography>
+                    <Chip
+                      label={delivery.status}
+                      size="small"
+                      sx={{
+                        height: 18,
+                        fontSize: 9,
+                        fontWeight: 600,
+                        bgcolor: delivery.status === "Delivered" ? "#D1FAE5" : "#FEF3C7",
+                        color: delivery.status === "Delivered" ? "#064E3B" : "#78350F"
+                      }}
+                    />
+                  </Stack>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
+                  >
+                    {delivery.code} • {delivery.date}
+                  </Typography>
+                </Box>
+              </Stack>
               <ArrowForwardIosRoundedIcon
-                sx={{ fontSize: 14, color: (t) => t.palette.text.secondary }}
+                sx={{ fontSize: 14, color: (t) => t.palette.text.secondary, opacity: 0.5 }}
               />
             </Box>
           ))}

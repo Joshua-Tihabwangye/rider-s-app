@@ -110,6 +110,7 @@ function EnterDestinationScreen() {
   const [pickup, setPickup] = useState(initialState.pickup || "Current location");
   const [destination, setDestination] = useState(initialState.destination || "");
   const [passengers, setPassengers] = useState(initialState.passengers || 1);
+  const [customPassengers, setCustomPassengers] = useState("");
   const [rideType, setRideType] = useState(initialState.rideType || "Personal");
   const [tripType, setTripType] = useState(initialState.tripType || "One Way");
   const [schedule, setSchedule] = useState(initialState.schedule || "Now");
@@ -1164,28 +1165,43 @@ function EnterDestinationScreen() {
               >
                 Passengers
               </Typography>
-              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+              <Stack 
+                direction="row" 
+                spacing={1} 
+                sx={{ 
+                  flexWrap: "nowrap",
+                  overflowX: "auto",
+                  "&::-webkit-scrollbar": { display: "none" },
+                  scrollbarWidth: "none",
+                  mb: 1.5
+                }}
+              >
                 {passengerOptions.map((pax) => (
                   <Chip
                     key={pax}
                     label={pax}
                     size="small"
-                    onClick={() => setPassengers(pax)}
+                    onClick={() => {
+                      setPassengers(pax);
+                      setCustomPassengers("");
+                    }}
                     sx={{
+                      minWidth: 48,
                       width: 48,
                       height: 48,
                       borderRadius: 2,
                       fontSize: 14,
                       fontWeight: 600,
-                      bgcolor: passengers === pax
+                      flexShrink: 0,
+                      bgcolor: passengers === pax && !customPassengers
                         ? lightBlue
                         : theme.palette.mode === "light"
                           ? "rgba(0,0,0,0.05)"
                           : "rgba(255,255,255,0.05)",
-                      color: passengers === pax
+                      color: passengers === pax && !customPassengers
                         ? accentBlue
                         : theme.palette.text.primary,
-                      border: passengers === pax
+                      border: passengers === pax && !customPassengers
                         ? "none"
                         : theme.palette.mode === "light"
                           ? "1px solid rgba(0,0,0,0.15)"
@@ -1193,7 +1209,7 @@ function EnterDestinationScreen() {
                       cursor: "pointer",
                       transition: "all 0.2s ease",
                       "&:hover": {
-                        bgcolor: passengers === pax
+                        bgcolor: passengers === pax && !customPassengers
                           ? lightBlue
                           : theme.palette.mode === "light"
                             ? "rgba(0,0,0,0.1)"
@@ -1203,6 +1219,61 @@ function EnterDestinationScreen() {
                   />
                 ))}
               </Stack>
+              <TextField
+                fullWidth
+                type="number"
+                placeholder="Enter number of passengers (more than 6)"
+                value={customPassengers}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "" || (parseInt(value) > 6 && parseInt(value) <= 50)) {
+                    setCustomPassengers(value);
+                    if (value !== "") {
+                      setPassengers(parseInt(value));
+                    }
+                  }
+                }}
+                onFocus={() => {
+                  setPassengers(customPassengers ? parseInt(customPassengers) : 1);
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonRoundedIcon 
+                        sx={{ 
+                          fontSize: 18, 
+                          color: theme.palette.text.secondary 
+                        }} 
+                      />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    bgcolor: theme.palette.mode === "light"
+                      ? "rgba(0,0,0,0.02)"
+                      : "rgba(255,255,255,0.05)",
+                    "& fieldset": {
+                      borderColor: theme.palette.mode === "light"
+                        ? "rgba(0,0,0,0.15)"
+                        : "rgba(255,255,255,0.2)"
+                    },
+                    "&:hover fieldset": {
+                      borderColor: theme.palette.mode === "light"
+                        ? "rgba(0,0,0,0.3)"
+                        : "rgba(255,255,255,0.3)"
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: accentBlue
+                    }
+                  },
+                  "& .MuiInputBase-input": {
+                    fontSize: 14,
+                    py: 1.25
+                  }
+                }}
+              />
             </CardContent>
           </Card>
         </Stack>
