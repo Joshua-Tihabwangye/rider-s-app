@@ -22,28 +22,12 @@ import MobileShell from "../components/MobileShell";
 
 const CONTACTS = [
   {
-    id: 1,
-    name: "Mary Immaculate",
-    relation: "Sister",
-    phone: "+256 700 123456",
-    initials: "MI",
-    rides: 24
-  },
-  {
     id: 2,
     name: "John Doe",
     relation: "Friend",
     phone: "+256 772 987654",
     initials: "JD",
     rides: 8
-  },
-  {
-    id: 3,
-    name: "Dad",
-    relation: "Parent",
-    phone: "+256 701 445566",
-    initials: "D",
-    rides: 4
   }
 ];
 

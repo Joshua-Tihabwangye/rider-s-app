@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import DarkModeToggle from "../components/DarkModeToggle";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useTheme } from "@mui/material/styles";
 import {
-  
   Box,
   IconButton,
   Typography,
@@ -10,242 +10,712 @@ import {
   CardContent,
   TextField,
   InputAdornment,
-  Button
+  Button,
+  Stack,
+  Chip,
+  FormControl,
+  Select,
+  MenuItem,
+  Alert
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
+import MapRoundedIcon from "@mui/icons-material/MapRounded";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
+import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
+import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
+import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import MobileShell from "../components/MobileShell";
 
-const MAX_STOPS = 5;
-
-const INITIAL_STOPS_MAX = [
-  { id: "A", label: "Stop A", value: "Nsambya Road 472, Kampala" },
-  { id: "B", label: "Stop B", value: "Bugolobi Village, Kampala" },
-  { id: "C", label: "Stop C", value: "Kansanga Market" },
-  { id: "D", label: "Stop D", value: "Munyonyo" },
-  { id: "E", label: "Stop E", value: "Entebbe Airport" }
-];
-
-function StopRow({ stop, index }) {
-  const isFirst = index === 0;
-  return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.25 }}>
-      <Box
-        sx={{
-          width: 26,
-          height: 26,
-          borderRadius: 999,
-          bgcolor: isFirst ? "primary.main" : "rgba(15,23,42,0.9)",
-          color: isFirst ? "#020617" : "#F9FAFB",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 12,
-          fontWeight: 600
-        }}
-      >
-        {stop.id}
-      </Box>
-      <TextField
-        fullWidth
-        size="small"
-        defaultValue={stop.value}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <PlaceRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
-            </InputAdornment>
-          )
-        }}
-        sx={{
-          "& .MuiOutlinedInput-root": {
-            borderRadius: 999,
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
-            "& fieldset": {
-              borderColor: (t) =>
-                t.palette.mode === "light" ? "rgba(209,213,219,0.9)" : "rgba(51,65,85,0.9)"
-            },
-            "&:hover fieldset": { borderColor: "primary.main" }
-          }
-        }}
-      />
-      <DragIndicatorRoundedIcon sx={{ fontSize: 20, color: "text.secondary" }} />
-    </Box>
-  );
-}
+const MAX_STOPS = 6; // A-F
 
 function EnterDestinationMaxStopsScreen() {
   const navigate = useNavigate();
-  const [stops] = useState(INITIAL_STOPS_MAX);
-  const canAddMore = stops.length < MAX_STOPS;
+  const location = useLocation();
+  const theme = useTheme();
+  const initialState = location.state || {};
+
+  const [pickup] = useState(initialState.pickup || "Entebbe International Airport");
+  const [stops, setStops] = useState(initialState.stops || [
+    { id: "A", value: "Abayita Ababiri, Lyamu..." },
+    { id: "B", value: "Belle Vue Rooftop" },
+    { id: "C", value: "Freedom City Mall" },
+    { id: "D", value: "Kampala City" },
+    { id: "E", value: "Kampala City" },
+    { id: "F", value: "Kampala City" }
+  ]);
+  const [ridePurpose, setRidePurpose] = useState(initialState.ridePurpose || "Personal");
+  const [tripDirection, setTripDirection] = useState(initialState.tripDirection || "One Way");
+  const [passengers, setPassengers] = useState(initialState.passengers || 1);
+  const [schedule] = useState(initialState.schedule || "Now");
+  const [showError, setShowError] = useState(false);
+  const [showMaxStopsMessage, setShowMaxStopsMessage] = useState(false);
+
+  // Theme-aware colors
+  const headerBg = "#0B1E3A"; // Deep navy
+  const headerText = "#FFFFFF";
+  const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
+  const accentBlue = "#00B7FF"; // Teal/blue
+  const lightBlue = "#E3F2FD"; // Light blue for active passenger
+
+  const passengerOptions = [1, 2, 3, 4, 5, 6];
+
+  // Re-index stops alphabetically when one is removed
+  const reindexStops = (stopsList) => {
+    return stopsList.map((stop, index) => ({
+      ...stop,
+      id: String.fromCharCode(65 + index) // A, B, C, D, E, F
+    }));
+  };
+
+  const handleRemoveStop = (stopId) => {
+    const newStops = stops.filter(stop => stop.id !== stopId);
+    setStops(reindexStops(newStops));
+    setShowMaxStopsMessage(false);
+  };
+
+  const handleAddStop = () => {
+    if (stops.length < MAX_STOPS) {
+      const nextLetter = String.fromCharCode(65 + stops.length); // A-F
+      setStops([...stops, { id: nextLetter, value: "" }]);
+      setShowMaxStopsMessage(false);
+    } else {
+      setShowMaxStopsMessage(true);
+      setTimeout(() => setShowMaxStopsMessage(false), 3000);
+    }
+  };
+
+  const handleStopChange = (stopId, value) => {
+    setStops(stops.map(stop => 
+      stop.id === stopId ? { ...stop, value } : stop
+    ));
+  };
+
+  const handleLocateOnMap = () => {
+    navigate("/rides/enter/preferences", {
+      state: {
+        pickup,
+        stops,
+        ridePurpose,
+        tripDirection,
+        passengers,
+        schedule,
+        isMaxStops: true
+      }
+    });
+  };
+
+  const handleContinue = () => {
+    // Validation: pickup and at least one stop with value required
+    const hasValidStops = stops.some(stop => stop.value.trim() !== "");
+    
+    // Check for duplicate addresses
+    const addresses = stops.map(s => s.value.trim().toLowerCase()).filter(a => a !== "");
+    const hasDuplicates = addresses.length !== new Set(addresses).size;
+    
+    if (!pickup.trim() || !hasValidStops) {
+      setShowError(true);
+      return;
+    }
+    
+    if (hasDuplicates) {
+      setShowError(true);
+      return;
+    }
+
+    navigate("/rides/options", {
+      state: {
+        pickup,
+        stops: stops.filter(stop => stop.value.trim() !== ""),
+        ridePurpose,
+        tripDirection,
+        passengers,
+        schedule,
+        isMaxStops: true
+      }
+    });
+  };
+
+  const canContinue = pickup.trim() !== "" && stops.some(stop => stop.value.trim() !== "");
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box sx={{ mb: 2, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "#0B1E3A",
+        paddingBottom: { 
+          xs: "calc(100px + env(safe-area-inset-bottom))", 
+          sm: "120px"
+        }
+      }}
+    >
+      {/* Header Section - Deep Navy */}
+      <Box
+        sx={{
+          px: 2.5,
+          pt: 2.5,
+          pb: 2,
+          bgcolor: headerBg
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
           <IconButton
             size="small"
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
               borderRadius: 999,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)" (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)")}}
+              bgcolor: "rgba(255,255,255,0.1)",
+              color: headerText,
+              "&:hover": {
+                bgcolor: "rgba(255,255,255,0.2)"
+              }
+            }}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
-              Add multiple stops
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              You have reached the maximum of {MAX_STOPS} stops for this trip
-            </Typography>
-          </Box>
+          <Typography
+            variant="subtitle1"
+            sx={{ 
+              fontWeight: 600, 
+              letterSpacing: "-0.01em", 
+              color: headerText 
+            }}
+          >
+            Enter Destination
+          </Typography>
         </Box>
+
+        {/* Route Setup Card */}
+        <Card
+          elevation={0}
+          sx={{
+            borderRadius: 2,
+            bgcolor: contentBg,
+            border: theme.palette.mode === "light"
+              ? "1px solid rgba(0,0,0,0.1)"
+              : "1px solid rgba(255,255,255,0.1)",
+            maxHeight: "60vh",
+            overflowY: "auto"
+          }}
+        >
+          <CardContent sx={{ px: 2, py: 2 }}>
+            <Stack spacing={2}>
+              {/* Pickup Point - Locked with Green Dot Marker */}
+              <TextField
+                fullWidth
+                size="small"
+                variant="outlined"
+                value={pickup}
+                disabled
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Box
+                        sx={{
+                          width: 12,
+                          height: 12,
+                          borderRadius: "50%",
+                          bgcolor: "#4CAF50",
+                          border: "2px solid white",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                        }}
+                      />
+                    </InputAdornment>
+                  )
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 999,
+                    bgcolor: theme.palette.mode === "light"
+                      ? "rgba(0,0,0,0.05)"
+                      : "rgba(255,255,255,0.05)",
+                    color: theme.palette.text.primary,
+                    "& fieldset": {
+                      borderColor: theme.palette.mode === "light"
+                        ? "rgba(0,0,0,0.15)"
+                        : "rgba(255,255,255,0.2)"
+                    },
+                    "&.Mui-disabled": {
+                      bgcolor: theme.palette.mode === "light"
+                        ? "rgba(0,0,0,0.03)"
+                        : "rgba(255,255,255,0.03)",
+                      color: theme.palette.text.secondary
+                    }
+                  }
+                }}
+              />
+
+              {/* Destination Fields A-F */}
+              {stops.map((stop, index) => {
+                const isLast = index === stops.length - 1;
+                return (
+                  <Box key={stop.id} sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      variant="outlined"
+                      value={stop.value}
+                      onChange={(e) => handleStopChange(stop.id, e.target.value)}
+                      placeholder={`Stop ${stop.id}`}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            {isLast ? (
+                              // Orange pin icon for final stop
+                              <PlaceRoundedIcon sx={{ fontSize: 20, color: "#FF9800" }} />
+                            ) : (
+                              // Letter badge for other stops
+                              <Box
+                                sx={{
+                                  width: 24,
+                                  height: 24,
+                                  borderRadius: "50%",
+                                  bgcolor: "rgba(15,23,42,0.9)",
+                                  color: "#F9FAFB",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: 12,
+                                  fontWeight: 600
+                                }}
+                              >
+                                {stop.id}
+                              </Box>
+                            )}
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                              <DragIndicatorRoundedIcon 
+                                sx={{ 
+                                  fontSize: 18, 
+                                  color: theme.palette.text.secondary,
+                                  cursor: "grab",
+                                  "&:active": { cursor: "grabbing" }
+                                }} 
+                              />
+                              <IconButton
+                                size="small"
+                                onClick={() => handleRemoveStop(stop.id)}
+                                sx={{
+                                  color: theme.palette.text.secondary,
+                                  "&:hover": {
+                                    bgcolor: theme.palette.mode === "light"
+                                      ? "rgba(0,0,0,0.05)"
+                                      : "rgba(255,255,255,0.05)"
+                                  }
+                                }}
+                              >
+                                <CloseRoundedIcon sx={{ fontSize: 18 }} />
+                              </IconButton>
+                            </Box>
+                          </InputAdornment>
+                        )
+                      }}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 999,
+                          bgcolor: theme.palette.mode === "light"
+                            ? "rgba(0,0,0,0.05)"
+                            : "rgba(255,255,255,0.05)",
+                          color: theme.palette.text.primary,
+                          "& fieldset": {
+                            borderColor: theme.palette.mode === "light"
+                              ? "rgba(0,0,0,0.15)"
+                              : "rgba(255,255,255,0.2)"
+                          },
+                          "&:hover fieldset": {
+                            borderColor: accentBlue
+                          },
+                          "&.Mui-focused fieldset": {
+                            borderColor: accentBlue
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                );
+              })}
+
+              {/* Add Stop Button */}
+              {stops.length < MAX_STOPS && (
+                <Button
+                  fullWidth
+                  size="small"
+                  onClick={handleAddStop}
+                  startIcon={<AddRoundedIcon sx={{ fontSize: 18 }} />}
+                  sx={{
+                    borderRadius: 999,
+                    textTransform: "none",
+                    fontSize: 12,
+                    bgcolor: theme.palette.mode === "light"
+                      ? "rgba(0,0,0,0.05)"
+                      : "rgba(255,255,255,0.05)",
+                    color: theme.palette.text.primary,
+                    border: theme.palette.mode === "light"
+                      ? "1px solid rgba(0,0,0,0.15)"
+                      : "1px solid rgba(255,255,255,0.2)",
+                    "&:hover": {
+                      bgcolor: theme.palette.mode === "light"
+                        ? "rgba(0,0,0,0.1)"
+                        : "rgba(255,255,255,0.1)",
+                      borderColor: accentBlue
+                    }
+                  }}
+                >
+                  Add Stop
+                </Button>
+              )}
+
+              {/* Date & Time Selector */}
+              <Button
+                variant="outlined"
+                startIcon={<CalendarTodayRoundedIcon sx={{ fontSize: 18 }} />}
+                endIcon={<KeyboardArrowDownRoundedIcon sx={{ fontSize: 18 }} />}
+                sx={{
+                  borderRadius: 999,
+                  textTransform: "none",
+                  borderColor: theme.palette.mode === "light"
+                    ? "rgba(0,0,0,0.15)"
+                    : "rgba(255,255,255,0.2)",
+                  color: theme.palette.text.primary,
+                  bgcolor: theme.palette.mode === "light"
+                    ? "rgba(0,0,0,0.05)"
+                    : "rgba(255,255,255,0.05)",
+                  "&:hover": {
+                    borderColor: accentBlue,
+                    bgcolor: `${accentBlue}10`
+                  },
+                  justifyContent: "flex-start"
+                }}
+              >
+                {schedule}
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
       </Box>
 
-      {/* Pickup */}
-      <Card
-        elevation={0}
+      {/* Lower Section */}
+      <Box
         sx={{
-          mb: 2.5,
-          borderRadius: 2,
-          bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
-          border: (t) =>
-            t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)"
+          px: 2.5,
+          pt: 2,
+          bgcolor: contentBg,
+          minHeight: "calc(100vh - 200px)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block" }}
+        {/* Error Alert */}
+        {showError && (
+          <Alert 
+            severity="error" 
+            sx={{ mb: 2 }}
+            onClose={() => setShowError(false)}
           >
-            Pickup
-          </Typography>
-          <TextField
-            fullWidth
-            size="small"
-            defaultValue="Current location"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <MyLocationRoundedIcon sx={{ fontSize: 18, color: "primary.main" }} />
-                </InputAdornment>
-              )
-            }}
+            Please provide pickup location and at least one destination. Duplicate addresses are not allowed.
+          </Alert>
+        )}
+
+        {/* Maximum Stops Message */}
+        {showMaxStopsMessage && (
+          <Alert 
+            severity="info" 
+            sx={{ mb: 2 }}
+            onClose={() => setShowMaxStopsMessage(false)}
+          >
+            Maximum number of stops reached.
+          </Alert>
+        )}
+
+        {/* Trip Type Section */}
+        <Stack spacing={1.5} sx={{ mb: 2 }}>
+          {/* Ride Purpose Dropdown */}
+          <Card
+            elevation={0}
             sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                "& fieldset": {
-                  borderColor: (t) =>
-                    t.palette.mode === "light" ? "rgba(209,213,219,0.9)" : "rgba(51,65,85,0.9)"
-                },
-                "&:hover fieldset": { borderColor: "primary.main" }
-              }
+              borderRadius: 2,
+              bgcolor: contentBg,
+              border: theme.palette.mode === "light"
+                ? "1px solid rgba(0,0,0,0.1)"
+                : "1px solid rgba(255,255,255,0.1)"
             }}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Stops list */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
-          border: (t) =>
-            t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 1, display: "block" }}
           >
-            Stops (max {MAX_STOPS})
-          </Typography>
+            <CardContent sx={{ px: 2, py: 1.5 }}>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={ridePurpose}
+                  onChange={(e) => setRidePurpose(e.target.value)}
+                  renderValue={(value) => (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <PersonRoundedIcon sx={{ fontSize: 18, color: accentBlue }} />
+                      <Typography>{value}</Typography>
+                    </Box>
+                  )}
+                  sx={{
+                    borderRadius: 999,
+                    bgcolor: theme.palette.mode === "light"
+                      ? "rgba(0,0,0,0.05)"
+                      : "rgba(255,255,255,0.05)",
+                    color: theme.palette.text.primary,
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: theme.palette.mode === "light"
+                        ? "rgba(0,0,0,0.15)"
+                        : "rgba(255,255,255,0.2)"
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: accentBlue
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: accentBlue
+                    }
+                  }}
+                >
+                  <MenuItem value="Personal">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <PersonRoundedIcon sx={{ fontSize: 18 }} />
+                      Personal
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="Business">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <DirectionsCarRoundedIcon sx={{ fontSize: 18 }} />
+                      Business
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="Delivery">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <DirectionsCarRoundedIcon sx={{ fontSize: 18 }} />
+                      Delivery
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="Shared Ride">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <GroupRoundedIcon sx={{ fontSize: 18 }} />
+                      Shared Ride
+                    </Box>
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </CardContent>
+          </Card>
 
-          {stops.map((stop, index) => (
-            <StopRow key={stop.id} stop={stop} index={index} />
-          ))}
-
-          <Button
-            size="small"
-            disabled={!canAddMore}
-            startIcon={<AddRoundedIcon sx={{ fontSize: 18 }} />}
+          {/* Trip Direction Dropdown */}
+          <Card
+            elevation={0}
             sx={{
-              mt: 0.75,
-              borderRadius: 999,
-              textTransform: "none",
-              fontSize: 12,
-              bgcolor: "rgba(15,23,42,0.02)",
-              color: "#9CA3AF",
-              "&:disabled": { opacity: 1 }
+              borderRadius: 2,
+              bgcolor: contentBg,
+              border: theme.palette.mode === "light"
+                ? "1px solid rgba(0,0,0,0.1)"
+                : "1px solid rgba(255,255,255,0.1)"
             }}
           >
-            Maximum stops reached
-          </Button>
-          <Typography
-            variant="caption"
-            sx={{ mt: 0.75, display: "block", fontSize: 11, color: (t) => t.palette.text.secondary }}
-          >
-            To edit your stops, remove one of the existing destinations before adding a new one.
-          </Typography>
-        </CardContent>
-      </Card>
+            <CardContent sx={{ px: 2, py: 1.5 }}>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={tripDirection}
+                  onChange={(e) => setTripDirection(e.target.value)}
+                  renderValue={(value) => (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <DirectionsCarRoundedIcon sx={{ fontSize: 18, color: accentBlue }} />
+                      <Typography>{value}</Typography>
+                    </Box>
+                  )}
+                  sx={{
+                    borderRadius: 999,
+                    bgcolor: theme.palette.mode === "light"
+                      ? "rgba(0,0,0,0.05)"
+                      : "rgba(255,255,255,0.05)",
+                    color: theme.palette.text.primary,
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: theme.palette.mode === "light"
+                        ? "rgba(0,0,0,0.15)"
+                        : "rgba(255,255,255,0.2)"
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: accentBlue
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: accentBlue
+                    }
+                  }}
+                >
+                  <MenuItem value="One Way">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <DirectionsCarRoundedIcon sx={{ fontSize: 18 }} />
+                      One Way
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="Round Trip">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <DirectionsCarRoundedIcon sx={{ fontSize: 18 }} />
+                      Round Trip
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="Multi-stop">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <DirectionsCarRoundedIcon sx={{ fontSize: 18 }} />
+                      Multi-stop
+                    </Box>
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </CardContent>
+          </Card>
+        </Stack>
 
-      <Button
-        fullWidth
-        variant="contained"
+        {/* Passenger Count Selector */}
+        <Card
+          elevation={0}
+          sx={{
+            mb: 2.5,
+            borderRadius: 2,
+            bgcolor: contentBg,
+            border: theme.palette.mode === "light"
+              ? "1px solid rgba(0,0,0,0.1)"
+              : "1px solid rgba(255,255,255,0.1)"
+          }}
+        >
+          <CardContent sx={{ px: 2, py: 1.5 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ 
+                fontWeight: 600, 
+                mb: 1.5, 
+                color: theme.palette.text.primary 
+              }}
+            >
+              Passengers
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+              {passengerOptions.map((pax) => (
+                <Chip
+                  key={pax}
+                  label={pax}
+                  size="small"
+                  onClick={() => setPassengers(pax)}
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 2,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    bgcolor: passengers === pax
+                      ? lightBlue
+                      : theme.palette.mode === "light"
+                        ? "rgba(0,0,0,0.05)"
+                        : "rgba(255,255,255,0.05)",
+                    color: passengers === pax
+                      ? accentBlue
+                      : theme.palette.text.primary,
+                    border: passengers === pax
+                      ? "none"
+                      : theme.palette.mode === "light"
+                        ? "1px solid rgba(0,0,0,0.15)"
+                        : "1px solid rgba(255,255,255,0.2)",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      bgcolor: passengers === pax
+                        ? lightBlue
+                        : theme.palette.mode === "light"
+                          ? "rgba(0,0,0,0.1)"
+                          : "rgba(255,255,255,0.1)"
+                    }
+                  }}
+                />
+              ))}
+            </Stack>
+          </CardContent>
+        </Card>
+      </Box>
+
+      {/* Fixed Bottom Section */}
+      <Box
         sx={{
-          borderRadius: 999,
-          py: 1.1,
-          fontSize: 15,
-          fontWeight: 600,
-          textTransform: "none",
-          bgcolor: "primary.main",
-          color: "#020617",
-          "&:hover": { bgcolor: "#06e29a" }
+          position: "fixed",
+          bottom: { xs: "calc(64px + env(safe-area-inset-bottom))", sm: 64 },
+          left: 0,
+          right: 0,
+          bgcolor: contentBg,
+          borderTop: theme.palette.mode === "light"
+            ? "1px solid rgba(0,0,0,0.1)"
+            : "1px solid rgba(255,255,255,0.1)",
+          px: 2.5,
+          py: 2,
+          zIndex: 999,
+          maxWidth: { lg: 600, xl: 600 },
+          margin: { lg: "0 auto", xl: "0 auto" }
         }}
       >
-        Continue
-      </Button>
+        {/* Locate on Map Button */}
+        <Button
+          fullWidth
+          onClick={handleLocateOnMap}
+          sx={{
+            mb: 1.5,
+            color: accentBlue,
+            textTransform: "none",
+            fontSize: 14,
+            fontWeight: 500,
+            "&:hover": {
+              bgcolor: `${accentBlue}10`
+            }
+          }}
+          startIcon={<MapRoundedIcon />}
+        >
+          Locate on Map
+        </Button>
+
+        {/* Continue Button */}
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={handleContinue}
+          disabled={!canContinue}
+          sx={{
+            borderRadius: 2,
+            py: 1.5,
+            fontSize: 16,
+            fontWeight: 600,
+            textTransform: "none",
+            bgcolor: canContinue ? "#000000" : "rgba(0,0,0,0.2)",
+            color: "#FFFFFF",
+            boxShadow: "none",
+            "&:hover": {
+              bgcolor: canContinue ? "#333333" : "rgba(0,0,0,0.3)",
+              boxShadow: "none"
+            },
+            "&.Mui-disabled": {
+              bgcolor: "rgba(0,0,0,0.2)",
+              color: "#FFFFFF",
+              opacity: 1
+            }
+          }}
+        >
+          Continue
+        </Button>
+      </Box>
     </Box>
   );
 }
 
 export default function RiderScreen40EnterDestinationMaxStopsCanvas_v2() {
-      return (
-    
-      
-      <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-        
-
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
-          <EnterDestinationMaxStopsScreen />
-        </MobileShell>
-      </Box>
-    
+  return (
+    <Box
+      sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}
+    >
+      <DarkModeToggle />
+      <MobileShell>
+        <EnterDestinationMaxStopsScreen />
+      </MobileShell>
+    </Box>
   );
 }

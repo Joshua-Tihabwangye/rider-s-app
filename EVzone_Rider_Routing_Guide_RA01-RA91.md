@@ -19,9 +19,9 @@ The examples assume a web-style router (e.g. React Router v6), but the structure
 Primary bottom navigation:
 
 - **Home** → `/home` (RA01 + service shortcuts)
-- **Rides** → `/rides/...` (RA02–RA49)
-- **Deliveries** → `/deliveries/...` (RA50–RA68)
-- **Wallet** → `/wallet` (future work)
+- **Rides** → `/rides/...` (RidesDashboard + RA03–RA49)
+- **Deliveries** → `/deliveries/...` (DeliveriesDashboard + RA51–RA68)
+- **Wallet** → `/wallet` (Wallet component)
 - **More** → `/more` (settings, help, global history RA91, etc.)
 
 Top-level routes:
@@ -29,11 +29,17 @@ Top-level routes:
 ```text
 /                 (redirect → /home)
 /home             (RA01)
-/rides/*          (RA02–RA49)
-/deliveries/*     (RA50–RA68)
-/rental/*         (RA69–RA76, RA90)
-/tours/*          (RA77–RA82)
-/ambulance/*      (RA83–RA88)
+/rides/*          (RidesDashboard + RA03–RA49)
+/deliveries/*     (DeliveriesDashboard + RA51–RA68)
+/rental/*         (RentalDashboard + RA70–RA76, RA90)
+/tours/*          (ToursDashboard + RA78–RA82)
+/ambulance/*      (AmbulanceDashboard + RA84–RA88)
+/wallet           (Wallet)
+/more             (MoreMenu)
+/settings         (Settings)
+/help             (Help)
+/about            (About)
+/school           (SchoolDashboard)
 /school-handoff   (RA89)
 /history/all      (RA91)
 ```
@@ -49,21 +55,54 @@ Top-level routes:
 - Role: Landing screen with grid of services:
   - Ride, Delivery, Rental, Tours, School, Ambulance.
 - From here:
-  - Ride → `/rides/enter` (RA02/RA05/RA38/RA44/RA45)
-  - Delivery → `/deliveries` (RA50/RA51) or `/deliveries/new` (RA59)
-  - Rental → `/rental` (RA69)
-  - Tours → `/tours` (RA77)
-  - Ambulance → `/ambulance` (RA83)
-  - School → `/school-handoff` (RA89)
+  - Ride → `/rides/enter` (RidesDashboard) or `/rides/enter/details` (RA05/RA38/RA44/RA45)
+  - Delivery → `/deliveries` (DeliveriesDashboard) or `/deliveries/new` (RA59)
+  - Rental → `/rental` (RentalDashboard)
+  - Tours → `/tours` (ToursDashboard)
+  - Ambulance → `/ambulance` (AmbulanceDashboard)
+  - School → `/school` (SchoolDashboard) or `/school-handoff` (RA89)
+  - Wallet → `/wallet` (Wallet)
 
-### 2.2 School Handoff
+### 2.2 School Dashboard & Handoff
+
+**SchoolDashboard – School Shuttles Dashboard**
+
+- Path: `/school`
+- Role: Quick overview of children, routes, and shuttle notifications with links to the School app.
 
 **RA89 – School Shuttles Handoff**
 
 - Path: `/school-handoff`
 - Role: Explain that school shuttles live in a separate School/Parents app and deep-link there.
 
-### 2.3 Global All-Orders History
+### 2.3 Additional Global Routes
+
+**Wallet – Wallet Home**
+
+- Path: `/wallet`
+- Role: View balance, add/send money, manage payment methods, and view transaction history.
+
+**MoreMenu – More Menu**
+
+- Path: `/more`
+- Role: Access to settings, help, about, and global history (RA91).
+
+**Settings – App Settings**
+
+- Path: `/settings`
+- Role: App preferences, account settings, and configuration options.
+
+**Help – Help & Support**
+
+- Path: `/help`
+- Role: Help articles, FAQs, and support contact information.
+
+**About – About EVzone**
+
+- Path: `/about`
+- Role: App information, version details, and legal links.
+
+### 2.4 Global All-Orders History
 
 **RA91 – All Orders – Combined History**
 
@@ -78,12 +117,12 @@ Top-level routes:
   - Ambulance → `/ambulance/history` (RA88) and tracking.
 
 
-## 3. Rides Vertical (RA02–RA49)
+## 3. Rides Vertical (RidesDashboard + RA03–RA49)
 
 ### 3.1 Core Ride Entry & Planning
 
-**RA02 – Enter Destination – Main** → `/rides/enter`  
-**RA03 – Daily Commutes** → `/rides/commutes` (or tab in RA02)  
+**RidesDashboard – Enter Destination Dashboard** → `/rides/enter`  
+**RA03 – Daily Commutes** → `/rides/commutes` (or tab in RidesDashboard)  
 **RA04 – Upcoming Rides – Inline** → `/rides/upcoming-inline`  
 **RA05 – Enter Destination – Expanded Trip Setup** → `/rides/enter/details`  
 **RA06 – Pick Your Destination – Map Selection** → `/rides/enter/map`  
@@ -91,10 +130,12 @@ Top-level routes:
 **RA08 – Schedule Ride – Date & Time** → `/rides/schedule`  
 **RA09 – Ride Later – Scheduled Summary** → `/rides/schedule/summary`
 
+> **Note:** The entry point `/rides/enter` uses `RidesDashboard` instead of RA02. RA02 exists but is not currently routed.
+
 Typical flow (Ride now, one way):
 
 ```text
-RA01 → RA02/RA05
+RA01 → RidesDashboard (/rides/enter)
   (optional RA03 / RA04 tabs)
   → RA05 for full details
 ```
@@ -102,10 +143,10 @@ RA01 → RA02/RA05
 Ride later:
 
 ```text
-RA05 (Ride Later) → RA08 (date/time) → RA09 (summary) → RA49/RA34 upcoming
+RidesDashboard (Ride Later) → RA08 (date/time) → RA09 (summary) → RA49/RA34 upcoming
 ```
 
-From RA02/RA05 you can also open map (RA06) and variants (RA38/RA44/RA45).
+From RidesDashboard/RA05 you can also open map (RA06) and variants (RA38/RA44/RA45).
 
 ### 3.2 Switch Rider / Ride for Someone Else
 
@@ -201,7 +242,7 @@ RA21 → RA22 → RA23 → RA24 → RA25/RA26/RA27
 Typical multi-stop flow:
 
 ```text
-RA01 → RA02/RA38/RA44/RA45
+RA01 → RidesDashboard/RA38/RA44/RA45
   → RA39 (multi stops)
     → RA41 / RA43 (add stop)
     → RA40 (max stops reached)
@@ -212,16 +253,18 @@ RA01 → RA02/RA38/RA44/RA45
 ```
 
 
-## 5. Deliveries Vertical (RA50–RA68)
+## 5. Deliveries Vertical (DeliveriesDashboard + RA51–RA68)
 
 ### 5.1 Deliveries Dashboard (Sending & Receiving)
 
-**RA50 – Deliveries Dashboard – Delivering Tab v1** → `/deliveries`  
+**DeliveriesDashboard – Deliveries Home Dashboard** → `/deliveries`  
 **RA52 – Deliveries Dashboard – Delivering Tab v2** → `/deliveries/delivering-v2`  
 
 **RA51 – Deliveries Dashboard – Received Tab v1** → `/deliveries/received`  
 **RA53 – Deliveries Dashboard – Received Tab v2** → `/deliveries/received-v2`  
 **RA54 – Deliveries Dashboard – Received Tab v3** → `/deliveries/received-v3`
+
+> **Note:** The entry point `/deliveries` uses `DeliveriesDashboard` instead of RA50. RA50 exists but is not currently routed.
 
 ### 5.2 Tracking & Invitations
 
@@ -253,7 +296,7 @@ Active tracking views (different states for same order):
 Typical delivery flow:
 
 ```text
-RA01/RA50 → RA59
+RA01/DeliveriesDashboard → RA59
   → RA60/RA61/RA62/RA63
   → RA64/RA66
   → RA65
@@ -262,13 +305,15 @@ RA01/RA50 → RA59
 ```
 
 
-## 6. Rental Vertical (RA69–RA76, RA90)
+## 6. Rental Vertical (RentalDashboard + RA70–RA76, RA90)
 
 ### 6.1 Rental Entry & Vehicle Selection
 
-**RA69 – Rental Entry** → `/rental`  
+**RentalDashboard – Rental Home Dashboard** → `/rental`  
 **RA70 – Rental Vehicle List** → `/rental/list`  
 **RA71 – Rental Vehicle Detail** → `/rental/vehicle/:vehicleId`
+
+> **Note:** The entry point `/rental` uses `RentalDashboard` instead of RA69. RA69 exists but is not currently routed.
 
 ### 6.2 Dates, Branches & Payment
 
@@ -285,7 +330,7 @@ RA01/RA50 → RA59
 Typical rental flow:
 
 ```text
-RA01 → RA69
+RA01 → RentalDashboard
   → RA70
   → RA71
   → RA72
@@ -297,13 +342,15 @@ RA01 → RA69
 ```
 
 
-## 7. Tours Vertical (RA77–RA82)
+## 7. Tours Vertical (ToursDashboard + RA78–RA82)
 
 ### 7.1 Discovery & Booking
 
-**RA77 – Tours – Browse** → `/tours`  
+**ToursDashboard – Tours Home Dashboard** → `/tours`  
 **RA78 – Tours – Detail** → `/tours/:tourId`  
 **RA79 – Tours – Date & Guests** → `/tours/:tourId/dates`
+
+> **Note:** The entry point `/tours` uses `ToursDashboard` instead of RA77. RA77 exists but is not currently routed.
 
 ### 7.2 Summary, Payment, Confirmation & History
 
@@ -314,7 +361,7 @@ RA01 → RA69
 Typical tours flow:
 
 ```text
-RA01 → RA77
+RA01 → ToursDashboard
   → RA78
   → RA79
   → RA80
@@ -323,15 +370,17 @@ RA01 → RA77
 ```
 
 
-## 8. Ambulance Vertical (RA83–RA88)
+## 8. Ambulance Vertical (AmbulanceDashboard + RA84–RA88)
 
 > EMS is branded as **Ambulance** in the customer app.
 
 ### 8.1 Request Setup
 
-**RA83 – Ambulance Home / Request Type** → `/ambulance`  
+**AmbulanceDashboard – Ambulance Home Dashboard** → `/ambulance`  
 **RA84 – Ambulance – Location & Patient Details** → `/ambulance/location`  
 **RA85 – Ambulance – Destination Hospital** → `/ambulance/destination`
+
+> **Note:** The entry point `/ambulance` uses `AmbulanceDashboard` instead of RA83. RA83 exists but is not currently routed.
 
 ### 8.2 Confirmation, Live Tracking & History
 
@@ -342,7 +391,7 @@ RA01 → RA77
 Typical ambulance flow:
 
 ```text
-RA01 → RA83
+RA01 → AmbulanceDashboard
   → RA84
   → RA85
   → RA86
@@ -375,33 +424,41 @@ This is the “single pane of glass” for the customer’s multi-vertical activ
 
 ## 10. Example React Router Wiring (Reference)
 
-Below is an example of how you could wire these routes using `react-router-dom`.  
-Component names (e.g. `ScreenRA01`) should match your actual codebase.
+Below is an example of how these routes are wired using `react-router-dom` in the current implementation.  
+Component names match the actual codebase.
 
 ```jsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import ScreenRA01 from "./screens/ScreenRA01";
-import ScreenRA02 from "./screens/ScreenRA02";
-// ...
-import ScreenRA91 from "./screens/ScreenRA91";
+import RA01 from "./screens/RA01";
+import RA03 from "./screens/RA03";
+// ... (all RA screens RA03-RA91, excluding RA02, RA50, RA69, RA77, RA83)
+import RidesDashboard from "./screens/RidesDashboard";
+import DeliveriesDashboard from "./screens/DeliveriesDashboard";
+import RentalDashboard from "./screens/RentalDashboard";
+import ToursDashboard from "./screens/ToursDashboard";
+import AmbulanceDashboard from "./screens/AmbulanceDashboard";
+import SchoolDashboard from "./screens/SchoolDashboard";
+import Wallet from "./screens/Wallet";
+import MoreMenu from "./screens/MoreMenu";
+import Settings from "./screens/Settings";
+import Help from "./screens/Help";
+import About from "./screens/About";
 
 function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* AppShell contains bottom nav, header, etc. */}
-        <Route path="/" element={<AppShell />}>
-          {/* Home & global */}
-          <Route index element={<ScreenRA01 />} />
-          <Route path="home" element={<ScreenRA01 />} />
-          <Route path="school-handoff" element={<ScreenRA89 />} />
-          <Route path="history/all" element={<ScreenRA91 />} />
+        {/* Home & Global */}
+        <Route index element={<Navigate to="/home" replace />} />
+        <Route path="home" element={<RA01 />} />
+        <Route path="school-handoff" element={<RA89 />} />
+        <Route path="history/all" element={<RA91 />} />
 
-          {/* Rides */}
-          <Route path="rides">
-            <Route index element={<ScreenRA02 />} />
-            <Route path="enter" element={<ScreenRA02 />} />
+        {/* Rides */}
+        <Route path="rides">
+          <Route index element={<Navigate to="/rides/enter" replace />} />
+          <Route path="enter" element={<RidesDashboard />} />
             <Route path="enter/details" element={<ScreenRA05 />} />
             <Route path="enter/simple" element={<ScreenRA07 />} />
             <Route path="enter/map" element={<ScreenRA06 />} />
@@ -538,7 +595,7 @@ function AppRouter() {
 
           {/* Deliveries */}
           <Route path="deliveries">
-            <Route index element={<ScreenRA50 />} />
+            <Route index element={<DeliveriesDashboard />} />
             <Route
               path="received"
               element={<ScreenRA51 />}
@@ -614,7 +671,7 @@ function AppRouter() {
 
           {/* Rental */}
           <Route path="rental">
-            <Route index element={<ScreenRA69 />} />
+            <Route index element={<RentalDashboard />} />
             <Route path="list" element={<ScreenRA70 />} />
             <Route
               path="vehicle/:vehicleId"
@@ -645,7 +702,7 @@ function AppRouter() {
 
           {/* Tours */}
           <Route path="tours">
-            <Route index element={<ScreenRA77 />} />
+            <Route index element={<ToursDashboard />} />
             <Route
               path=":tourId"
               element={<ScreenRA78 />}
@@ -670,7 +727,7 @@ function AppRouter() {
 
           {/* Ambulance */}
           <Route path="ambulance">
-            <Route index element={<ScreenRA83 />} />
+            <Route index element={<AmbulanceDashboard />} />
             <Route
               path="location"
               element={<ScreenRA84 />}
@@ -693,13 +750,20 @@ function AppRouter() {
             />
           </Route>
 
+          {/* Global/Misc routes */}
+          <Route path="wallet" element={<Wallet />} />
+          <Route path="more" element={<MoreMenu />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="help" element={<Help />} />
+          <Route path="about" element={<About />} />
+          <Route path="school" element={<SchoolDashboard />} />
+
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/home" replace />} />
-        </Route>
       </Routes>
     </BrowserRouter>
   );
 }
 ```
 
-This wiring mirrors the route map above and ensures **every RA01–RA91 screen** has a home in the navigation graph.
+This wiring matches the current implementation and ensures **every route** has a home in the navigation graph. Note that dashboard components (`RidesDashboard`, `DeliveriesDashboard`, `RentalDashboard`, `ToursDashboard`, `AmbulanceDashboard`) are used as entry points instead of the original RA screens (RA02, RA50, RA69, RA77, RA83), though those RA screens still exist in the codebase.

@@ -20,6 +20,8 @@ import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded";
 import PaymentRoundedIcon from "@mui/icons-material/PaymentRounded";
 import PrivacyTipRoundedIcon from "@mui/icons-material/PrivacyTipRounded";
 import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
+import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
+import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useThemeMode } from "../contexts/ThemeContext";
@@ -290,6 +292,49 @@ export default function Settings() {
                 <ListItemText
                   primary="Privacy"
                   secondary="Data privacy and sharing preferences"
+                />
+              </ListItemButton>
+            </ListItem>
+
+            <Divider sx={{ my: 1, opacity: 0.1 }} />
+
+            {/* Ride Preferences */}
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => navigate("/rides/preferences/setup")}
+                sx={{
+                  borderRadius: 2,
+                  mb: 1,
+                  py: 1.5,
+                  px: 1.5,
+                  bgcolor: (t) =>
+                    t.palette.mode === "light"
+                      ? "#FFFFFF"
+                      : "rgba(15,23,42,0.98)",
+                  border: (t) =>
+                    t.palette.mode === "light"
+                      ? "1px solid rgba(209,213,219,0.9)"
+                      : "1px solid rgba(51,65,85,0.9)"
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 40,
+                    color: "#03CD8C"
+                  }}
+                >
+                  <DirectionsCarRoundedIcon />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Ride Preferences"
+                  secondary="Customize your ride experience preferences"
+                />
+                <ArrowForwardIosRoundedIcon
+                  sx={{
+                    fontSize: 16,
+                    color: (t) => t.palette.text.secondary,
+                    ml: 1
+                  }}
                 />
               </ListItemButton>
             </ListItem>
