@@ -22,6 +22,7 @@ import PetsRoundedIcon from "@mui/icons-material/PetsRounded";
 import AccessibleRoundedIcon from "@mui/icons-material/AccessibleRounded";
 import MusicNoteRoundedIcon from "@mui/icons-material/MusicNoteRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import MobileShell from "../components/MobileShell";
 
 const PREF_OPTIONS = [
@@ -155,6 +156,23 @@ function RidePreferencesScreen() {
             </Typography>
           </Box>
         </Box>
+        <IconButton
+          size="small"
+          aria-label="Setup Preferences"
+          onClick={() => navigate("/rides/preferences/setup")}
+          sx={{
+            borderRadius: 999,
+            bgcolor: (theme) =>
+              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+            border: (theme) =>
+              theme.palette.mode === "light"
+                ? "1px solid rgba(209,213,219,0.9)"
+                : "1px solid rgba(51,65,85,0.9)",
+            color: "#007BFF"
+          }}
+        >
+          <SettingsRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
       </Box>
 
       {/* Preferences card */}

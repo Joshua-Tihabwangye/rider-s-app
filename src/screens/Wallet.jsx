@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -14,7 +14,15 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
-  Avatar
+  Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Menu,
+  MenuItem,
+  Divider
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
@@ -28,6 +36,10 @@ import LocalAtmRoundedIcon from "@mui/icons-material/LocalAtmRounded";
 import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
+import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
@@ -63,8 +75,77 @@ const TRANSACTIONS = [
 ];
 
 function WalletContent({ onBack }) {
+  const navigate = useNavigate();
   const balance = 520000; // demo
   const reserved = 180000; // e.g. deposits / holds
+  const [showAddMoneyDialog, setShowAddMoneyDialog] = useState(false);
+  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
+  const [showPaymentMethodsDialog, setShowPaymentMethodsDialog] = useState(false);
+  const [paymentMethodMenu, setPaymentMethodMenu] = useState({ open: false, anchorEl: null, method: null });
+
+  const handleAddMoney = () => {
+    setShowAddMoneyDialog(true);
+  };
+
+  const handleWithdraw = () => {
+    setShowWithdrawDialog(true);
+  };
+
+  const handleManagePaymentMethods = () => {
+    setShowPaymentMethodsDialog(true);
+  };
+
+  const handleViewAllTransactions = () => {
+    // Navigate to full transaction history (could be a new screen or existing)
+    navigate("/wallet/transactions");
+  };
+
+  const handlePaymentMethodClick = (event, method) => {
+    setPaymentMethodMenu({
+      open: true,
+      anchorEl: event.currentTarget,
+      method: method
+    });
+  };
+
+  const handlePaymentMethodMenuClose = () => {
+    setPaymentMethodMenu({ open: false, anchorEl: null, method: null });
+  };
+
+  const handleSetAsDefault = () => {
+    // Set payment method as default
+    console.log("Set as default:", paymentMethodMenu.method);
+    handlePaymentMethodMenuClose();
+  };
+
+  const handleEditPaymentMethod = (method = null) => {
+    // Edit payment method
+    const methodToEdit = method || paymentMethodMenu.method;
+    console.log("Edit:", methodToEdit);
+    handlePaymentMethodMenuClose();
+    // Could navigate to edit screen or show edit dialog
+    // For now, navigate to settings
+    navigate("/settings");
+  };
+
+  const handleRemovePaymentMethod = () => {
+    // Remove payment method
+    console.log("Remove:", paymentMethodMenu.method);
+    handlePaymentMethodMenuClose();
+    // Could show confirmation dialog first
+  };
+
+  const handleTransactionClick = (transaction) => {
+    // Navigate to transaction details
+    if (transaction.type === "ride") {
+      navigate(`/rides/history/${transaction.source.split(" ")[1]}`);
+    } else if (transaction.type === "delivery") {
+      navigate(`/deliveries/tracking/${transaction.source.split(" ")[1]}`);
+    } else {
+      // Show transaction details dialog or navigate to transaction detail
+      console.log("Transaction details:", transaction);
+    }
+  };
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -220,6 +301,7 @@ function WalletContent({ onBack }) {
               fullWidth
               variant="contained"
               startIcon={<AddCircleRoundedIcon sx={{ fontSize: 18 }} />}
+              onClick={handleAddMoney}
               sx={{
                 borderRadius: 999,
                 py: 0.9,
@@ -237,6 +319,7 @@ function WalletContent({ onBack }) {
               fullWidth
               variant="outlined"
               startIcon={<ArrowUpwardRoundedIcon sx={{ fontSize: 18 }} />}
+              onClick={handleWithdraw}
               sx={{
                 borderRadius: 999,
                 py: 0.9,
@@ -285,7 +368,15 @@ function WalletContent({ onBack }) {
             </Typography>
             <Typography
               variant="caption"
-              sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, cursor: "pointer" }}
+              onClick={handleManagePaymentMethods}
+              sx={{ 
+                fontSize: 10.5, 
+                color: (t) => t.palette.text.secondary, 
+                cursor: "pointer",
+                "&:hover": {
+                  color: (t) => t.palette.text.primary
+                }
+              }}
             >
               Manage
             </Typography>
@@ -294,12 +385,19 @@ function WalletContent({ onBack }) {
           <Stack direction="row" spacing={1.3}>
             <Card
               elevation={0}
+              onClick={(e) => handlePaymentMethodClick(e, "wallet")}
               sx={{
                 flex: 1,
                 borderRadius: 2,
+                cursor: "pointer",
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#ECFDF5" : "rgba(15,23,42,0.9)",
-                border: "1px solid rgba(52,211,153,0.5)"
+                border: "1px solid rgba(52,211,153,0.5)",
+                transition: "all 0.15s ease",
+                "&:hover": {
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
+                }
               }}
             >
               <CardContent sx={{ px: 1.4, py: 1.3 }}>
@@ -320,15 +418,22 @@ function WalletContent({ onBack }) {
 
             <Card
               elevation={0}
+              onClick={(e) => handlePaymentMethodClick(e, "cards")}
               sx={{
                 flex: 1,
                 borderRadius: 2,
+                cursor: "pointer",
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 border: (t) =>
                   t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)",
+                transition: "all 0.15s ease",
+                "&:hover": {
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
+                }
               }}
             >
               <CardContent sx={{ px: 1.4, py: 1.3 }}>
@@ -349,12 +454,19 @@ function WalletContent({ onBack }) {
 
             <Card
               elevation={0}
+              onClick={(e) => handlePaymentMethodClick(e, "mobile")}
               sx={{
                 flex: 1,
                 borderRadius: 2,
+                cursor: "pointer",
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#FFFBEB" : "rgba(15,23,42,0.96)",
-                border: "1px solid rgba(245,158,11,0.6)"
+                border: "1px solid rgba(245,158,11,0.6)",
+                transition: "all 0.15s ease",
+                "&:hover": {
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
+                }
               }}
             >
               <CardContent sx={{ px: 1.4, py: 1.3 }}>
@@ -410,7 +522,15 @@ function WalletContent({ onBack }) {
             </Stack>
             <Typography
               variant="caption"
-              sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, cursor: "pointer" }}
+              onClick={handleViewAllTransactions}
+              sx={{ 
+                fontSize: 10.5, 
+                color: (t) => t.palette.text.secondary, 
+                cursor: "pointer",
+                "&:hover": {
+                  color: (t) => t.palette.text.primary
+                }
+              }}
             >
               View all
             </Typography>
@@ -421,8 +541,15 @@ function WalletContent({ onBack }) {
               <ListItem
                 key={tx.id}
                 disableGutters
+                onClick={() => handleTransactionClick(tx)}
                 sx={{
                   py: 0.4,
+                  cursor: "pointer",
+                  borderRadius: 1,
+                  transition: "background-color 0.15s ease",
+                  "&:hover": {
+                    bgcolor: (t) => t.palette.mode === "light" ? "rgba(0,0,0,0.02)" : "rgba(255,255,255,0.02)"
+                  },
                   "&:not(:last-of-type)": {
                     borderBottom: (t) => `1px dashed ${t.palette.divider}`
                   }
@@ -494,6 +621,265 @@ function WalletContent({ onBack }) {
         Your EVzone Wallet is used for rides, deliveries, rentals and tours. You
         can connect more payment methods from the EVzone Pay settings.
       </Typography>
+
+      {/* Add Money Dialog */}
+      <Dialog
+        open={showAddMoneyDialog}
+        onClose={() => setShowAddMoneyDialog(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Add Money to Wallet</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ color: (t) => t.palette.text.secondary, mb: 2 }}>
+            Choose a payment method to add funds to your EVzone Wallet.
+          </DialogContentText>
+          <Stack spacing={1.5}>
+            <Button
+              variant="outlined"
+              fullWidth
+              startIcon={<LocalAtmRoundedIcon />}
+              sx={{ textTransform: "none", justifyContent: "flex-start" }}
+            >
+              Mobile Money (MTN / Airtel)
+            </Button>
+            <Button
+              variant="outlined"
+              fullWidth
+              startIcon={<CreditCardRoundedIcon />}
+              sx={{ textTransform: "none", justifyContent: "flex-start" }}
+            >
+              Credit/Debit Card
+            </Button>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 2.5, pb: 2 }}>
+          <Button
+            onClick={() => setShowAddMoneyDialog(false)}
+            sx={{ textTransform: "none" }}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Withdraw Dialog */}
+      <Dialog
+        open={showWithdrawDialog}
+        onClose={() => setShowWithdrawDialog(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Withdraw Funds</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ color: (t) => t.palette.text.secondary, mb: 2 }}>
+            Transfer funds from your EVzone Wallet to your bank account or mobile money.
+          </DialogContentText>
+          <Stack spacing={1.5}>
+            <Button
+              variant="outlined"
+              fullWidth
+              startIcon={<LocalAtmRoundedIcon />}
+              sx={{ textTransform: "none", justifyContent: "flex-start" }}
+            >
+              Mobile Money (MTN / Airtel)
+            </Button>
+            <Button
+              variant="outlined"
+              fullWidth
+              startIcon={<CreditCardRoundedIcon />}
+              sx={{ textTransform: "none", justifyContent: "flex-start" }}
+            >
+              Bank Account
+            </Button>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 2.5, pb: 2 }}>
+          <Button
+            onClick={() => setShowWithdrawDialog(false)}
+            sx={{ textTransform: "none" }}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Payment Methods Management Dialog */}
+      <Dialog
+        open={showPaymentMethodsDialog}
+        onClose={() => setShowPaymentMethodsDialog(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+            maxWidth: 400
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Payment Methods</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1.5} sx={{ mt: 1 }}>
+            {/* EVzone Wallet */}
+            <Card
+              elevation={0}
+              sx={{
+                borderRadius: 2,
+                bgcolor: (t) => t.palette.mode === "light" ? "#ECFDF5" : "rgba(15,23,42,0.9)",
+                border: "1px solid rgba(52,211,153,0.5)"
+              }}
+            >
+              <CardContent sx={{ px: 2, py: 1.5 }}>
+                <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <AccountBalanceWalletRoundedIcon sx={{ fontSize: 24, color: "#047857" }} />
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        EVzone Wallet
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontSize: 11, color: "rgba(22,101,52,0.9)" }}>
+                        Default for rides & deliveries
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <CheckCircleRoundedIcon sx={{ fontSize: 20, color: "#047857" }} />
+                </Stack>
+              </CardContent>
+            </Card>
+
+            {/* Cards */}
+            <Card
+              elevation={0}
+              sx={{
+                borderRadius: 2,
+                bgcolor: (t) => t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+                border: (t) => t.palette.mode === "light"
+                  ? "1px solid rgba(209,213,219,0.9)"
+                  : "1px solid rgba(51,65,85,0.9)"
+              }}
+            >
+              <CardContent sx={{ px: 2, py: 1.5 }}>
+                <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <CreditCardRoundedIcon sx={{ fontSize: 24, color: "#1D4ED8" }} />
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        VISA •••• 2451
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                        Expires 08/28
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <IconButton size="small" onClick={() => handleEditPaymentMethod("cards")}>
+                    <EditRoundedIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </Stack>
+              </CardContent>
+            </Card>
+
+            {/* Mobile Money */}
+            <Card
+              elevation={0}
+              sx={{
+                borderRadius: 2,
+                bgcolor: (t) => t.palette.mode === "light" ? "#FFFBEB" : "rgba(15,23,42,0.96)",
+                border: "1px solid rgba(245,158,11,0.6)"
+              }}
+            >
+              <CardContent sx={{ px: 2, py: 1.5 }}>
+                <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <LocalAtmRoundedIcon sx={{ fontSize: 24, color: "#EA580C" }} />
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        Mobile money
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                        MTN / Airtel
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <IconButton size="small" onClick={() => handleEditPaymentMethod("mobile")}>
+                    <EditRoundedIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </Stack>
+              </CardContent>
+            </Card>
+
+            <Divider sx={{ my: 1 }} />
+
+            {/* Add New Payment Method */}
+            <Button
+              variant="outlined"
+              fullWidth
+              startIcon={<AddRoundedIcon />}
+              onClick={() => {
+                setShowPaymentMethodsDialog(false);
+                // Navigate to add payment method screen or show dialog
+                navigate("/settings");
+              }}
+              sx={{
+                textTransform: "none",
+                borderRadius: 2,
+                py: 1.2,
+                borderStyle: "dashed"
+              }}
+            >
+              Add payment method
+            </Button>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 2.5, pb: 2 }}>
+          <Button
+            onClick={() => setShowPaymentMethodsDialog(false)}
+            sx={{ textTransform: "none" }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Payment Method Context Menu */}
+      <Menu
+        anchorEl={paymentMethodMenu.anchorEl}
+        open={paymentMethodMenu.open}
+        onClose={handlePaymentMethodMenuClose}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            minWidth: 200,
+            bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
+          }
+        }}
+      >
+        {paymentMethodMenu.method !== "wallet" && (
+          <MenuItem onClick={handleSetAsDefault}>
+            <CheckCircleRoundedIcon sx={{ fontSize: 18, mr: 1.5 }} />
+            Set as default
+          </MenuItem>
+        )}
+        <MenuItem onClick={handleEditPaymentMethod}>
+          <EditRoundedIcon sx={{ fontSize: 18, mr: 1.5 }} />
+          Edit
+        </MenuItem>
+        {paymentMethodMenu.method !== "wallet" && (
+          <>
+            <Divider />
+            <MenuItem onClick={handleRemovePaymentMethod} sx={{ color: "#EF4444" }}>
+              <DeleteRoundedIcon sx={{ fontSize: 18, mr: 1.5 }} />
+              Remove
+            </MenuItem>
+          </>
+        )}
+      </Menu>
     </Box>
   );
 }

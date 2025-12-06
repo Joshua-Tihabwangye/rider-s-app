@@ -8,16 +8,16 @@ import {
 } from "@mui/material";
 
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
-import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
+import ManageAccountsRoundedIcon from "@mui/icons-material/ManageAccountsRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 
 const NAV_TABS = [
   { value: "home", label: "Home", icon: <HomeOutlinedIcon />, route: "/home" },
-  { value: "rides", label: "Rides", icon: <DirectionsCarFilledRoundedIcon />, route: "/rides/enter" },
-  { value: "deliveries", label: "Deliveries", icon: <LocalShippingRoundedIcon />, route: "/deliveries" },
+  { value: "manager", label: "Manager", icon: <ManageAccountsRoundedIcon />, route: "/manager" },
   { value: "wallet", label: "Wallet", icon: <AccountBalanceWalletRoundedIcon />, route: "/wallet" },
+  { value: "settings", label: "Settings", icon: <SettingsRoundedIcon />, route: "/settings" },
   { value: "more", label: "More", icon: <MoreHorizRoundedIcon />, route: "/more" }
 ];
 
@@ -33,13 +33,13 @@ export default function MobileShell({ children }) {
     
     if (path === "/" || path === "/home") {
       currentTab = "home";
-    } else if (path.startsWith("/rides")) {
-      currentTab = "rides";
-    } else if (path.startsWith("/deliveries")) {
-      currentTab = "deliveries";
+    } else if (path.startsWith("/manager")) {
+      currentTab = "manager";
     } else if (path.startsWith("/wallet")) {
       currentTab = "wallet";
-    } else if (path.startsWith("/rental") || path.startsWith("/tours") || path.startsWith("/ambulance") || path.startsWith("/more") || path.startsWith("/history") || path.startsWith("/school-handoff") || path.startsWith("/settings") || path.startsWith("/help") || path.startsWith("/about")) {
+    } else if (path.startsWith("/settings")) {
+      currentTab = "settings";
+    } else if (path.startsWith("/rental") || path.startsWith("/tours") || path.startsWith("/ambulance") || path.startsWith("/more") || path.startsWith("/history") || path.startsWith("/school-handoff") || path.startsWith("/help") || path.startsWith("/about") || path.startsWith("/rides") || path.startsWith("/deliveries") || path.startsWith("/school")) {
       currentTab = "more";
     }
     
@@ -116,7 +116,7 @@ export default function MobileShell({ children }) {
           left: 0,
           right: 0,
           width: "100%",
-          zIndex: 1000,
+          zIndex: 2000, // Above modals to ensure it's always clickable
           // Safe area for bottom navigation
           paddingBottom: { xs: "env(safe-area-inset-bottom)", sm: 0 },
           // Ensure it stays at bottom and doesn't scroll
@@ -129,6 +129,8 @@ export default function MobileShell({ children }) {
       >
         <Paper
           elevation={0}
+          data-nav="true"
+          role="navigation"
           sx={{
             borderRadius: { 
               xs: 0, 
@@ -160,6 +162,8 @@ export default function MobileShell({ children }) {
             value={navValue}
             onChange={handleChange}
             showLabels
+            data-nav="true"
+            role="navigation"
             sx={{
               bgcolor: "transparent",
               height: { 
@@ -226,6 +230,10 @@ export default function MobileShell({ children }) {
                   md: "20%",
                   lg: "none",
                   xl: "none"
+                },
+                // Adjust for 5 tabs instead of 4
+                "@media (max-width: 600px)": {
+                  maxWidth: "20%"
                 },
                 // Ensure touch targets are at least 44x44px on mobile, larger on bigger screens
                 minHeight: { 

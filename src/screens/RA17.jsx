@@ -19,6 +19,7 @@ import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineR
 import AcUnitRoundedIcon from "@mui/icons-material/AcUnitRounded";
 import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import MobileShell from "../components/MobileShell";
 
 const INLINE_PREFS = [
@@ -130,6 +131,23 @@ function PreferenceSelectionInlineScreen() {
             </Typography>
           </Box>
         </Box>
+        <IconButton
+          size="small"
+          aria-label="Setup Preferences"
+          onClick={() => navigate("/rides/preferences/setup")}
+          sx={{
+            borderRadius: 999,
+            bgcolor: (theme) =>
+              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+            border: (theme) =>
+              theme.palette.mode === "light"
+                ? "1px solid rgba(209,213,219,0.9)"
+                : "1px solid rgba(51,65,85,0.9)",
+            color: "#007BFF"
+          }}
+        >
+          <SettingsRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
       </Box>
 
       {/* Preference pills */}

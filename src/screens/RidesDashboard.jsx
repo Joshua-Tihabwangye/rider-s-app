@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   IconButton,
@@ -11,7 +12,16 @@ import {
   Tab,
   Stack,
   Chip,
-  Divider
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Avatar,
+  Autocomplete,
+  CircularProgress,
+  keyframes
 } from "@mui/material";
 
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
@@ -23,46 +33,682 @@ import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFil
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
+import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+import HelpRoundedIcon from "@mui/icons-material/HelpRounded";
+import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import StarRoundedIcon from "@mui/icons-material/StarRounded";
+import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
+import StarHalfRoundedIcon from "@mui/icons-material/StarHalfRounded";
+import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
+import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
+import Button from "@mui/material/Button";
+import CancelRoundedIcon from "@mui/icons-material/CancelRounded";
+import EditCalendarRoundedIcon from "@mui/icons-material/EditCalendarRounded";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
 
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 
-function CommonPlaceCard({ icon, label, address, selected = false, onSelect }) {
+// Pulse animation for location marker
+const pulse = keyframes`
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+`;
+
+// Mock service for fetching saved locations from backend
+const fetchSavedLocations = async () => {
+  // In production, this would be an API call
+  // Simulating API delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  return [
+    {
+      id: "home",
+      type: "home",
+      label: "Home",
+      address: "12, JJ Apartments, New Street, Kampala",
+      coordinates: { lat: 0.3476, lng: 32.5825 },
+      icon: <HomeRoundedIcon sx={{ fontSize: 20, color: "#F97316" }} />
+    },
+    {
+      id: "office",
+      type: "office",
+      label: "Office",
+      address: "12, JJ Apartments, New Street, Kampala",
+      coordinates: { lat: 0.3136, lng: 32.5811 },
+      icon: <ApartmentRoundedIcon sx={{ fontSize: 20, color: "#F97316" }} />
+    }
+  ];
+};
+
+// Mock Google Places API autocomplete service
+const searchPlaces = async (query) => {
+  if (!query || query.length < 2) return [];
+  
+  // In production, this would call Google Places API
+  // Mock suggestions based on query
+  const mockSuggestions = [
+    { description: `${query} Street, Kampala`, placeId: "1", coordinates: { lat: 0.3476, lng: 32.5825 } },
+    { description: `${query} Market, Kampala`, placeId: "2", coordinates: { lat: 0.3136, lng: 32.5811 } },
+    { description: `${query} Mall, Kampala`, placeId: "3", coordinates: { lat: 0.3200, lng: 32.5900 } },
+    { description: `${query} Hospital, Kampala`, placeId: "4", coordinates: { lat: 0.3300, lng: 32.6000 } },
+    { description: `${query} Airport, Entebbe`, placeId: "5", coordinates: { lat: 0.0422, lng: 32.4435 } }
+  ];
+  
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return mockSuggestions.filter(s => 
+    s.description.toLowerCase().includes(query.toLowerCase())
+  );
+};
+
+// Mock route calculation service
+const calculateRoute = async (origin, destination) => {
+  // In production, this would use Google Directions API
+  await new Promise(resolve => setTimeout(resolve, 200));
+  return {
+    distance: "6.2 km",
+    duration: "15 min",
+    polyline: [
+      { x: 24, y: 60 }, // Start (current location)
+      { x: 30, y: 50 },
+      { x: 40, y: 40 },
+      { x: 50, y: 35 },
+      { x: 65, y: 30 },
+      { x: 75, y: 26 }  // End (destination)
+    ]
+  };
+};
+
+// Mock service for fetching daily commutes
+const fetchDailyCommutes = async () => {
+  // In production, this would be an API call
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return [
+    {
+      id: "commute-1",
+      driver: {
+        name: "Bwanbale",
+        avatar: "B",
+        vehicle: "Tesla Model X",
+        licensePlate: "UPL 630",
+        rating: 4.0
+      },
+      origin: {
+        address: "New School, JJ Street, Kampala",
+        coordinates: { lat: 0.3476, lng: 32.5825 }
+      },
+      destination: {
+        address: "New School, JJ Street, Kampala",
+        coordinates: { lat: 0.3136, lng: 32.5811 }
+      },
+      date: "Tomorrow",
+      distance: "12 km",
+      fare: "UGX 20,000"
+    }
+  ];
+};
+
+// Mock service for fetching upcoming rides
+const fetchUpcomingRides = async () => {
+  // In production, this would be an API call
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return [
+    {
+      id: "upcoming-1",
+      driver: {
+        name: "Bwanbale",
+        avatar: "B",
+        vehicle: "Tesla Model X",
+        licensePlate: "UPL 630",
+        rating: 4.0
+      },
+      origin: {
+        address: "New School, JJ Street, Kampala",
+        coordinates: { lat: 0.3476, lng: 32.5825 }
+      },
+      destination: {
+        address: "New School, JJ Street, Kampala",
+        coordinates: { lat: 0.3136, lng: 32.5811 }
+      },
+      date: "Tomorrow",
+      distance: "12 km",
+      fare: "UGX 20,000"
+    }
+  ];
+};
+
+// Star rating component
+function StarRating({ rating }) {
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 !== 0;
+  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+  return (
+    <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+      {Array.from({ length: fullStars }).map((_, i) => (
+        <StarRoundedIcon key={`full-${i}`} sx={{ fontSize: 16, color: "#facc15" }} />
+      ))}
+      {hasHalfStar && (
+        <StarHalfRoundedIcon sx={{ fontSize: 16, color: "#facc15" }} />
+      )}
+      {Array.from({ length: emptyStars }).map((_, i) => (
+        <StarBorderRoundedIcon key={`empty-${i}`} sx={{ fontSize: 16, color: "#d1d5db" }} />
+      ))}
+    </Box>
+  );
+}
+
+// Upcoming ride card component
+function UpcomingRideCard({ ride, onCancel, onChangeDate, onSelect }) {
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+
+  const handleCancelClick = (e) => {
+    e.stopPropagation();
+    setCancelDialogOpen(true);
+  };
+
+  const handleCancelConfirm = () => {
+    setCancelDialogOpen(false);
+    onCancel(ride);
+  };
+
+  const handleChangeDateClick = (e) => {
+    e.stopPropagation();
+    onChangeDate(ride);
+  };
+
+  return (
+    <>
+      <Card
+        elevation={0}
+        onClick={onSelect}
+        sx={{
+          mb: 2,
+          borderRadius: 2,
+          bgcolor: (t) =>
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          border: (t) =>
+            t.palette.mode === "light"
+              ? "1px solid rgba(209,213,219,0.9)"
+              : "1px solid rgba(51,65,85,0.9)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+          "&:hover": {
+            boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+            transform: "translateY(-2px)"
+          }
+        }}
+      >
+        <CardContent sx={{ px: 1.75, py: 1.6 }}>
+          {/* Driver Profile Section */}
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <Avatar
+                sx={{
+                  width: 44,
+                  height: 44,
+                  bgcolor: "#03CD8C",
+                  color: "#020617",
+                  fontSize: 18,
+                  fontWeight: 600
+                }}
+              >
+                {ride.driver.avatar}
+              </Avatar>
+              <Box>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
+                >
+                  {ride.driver.name}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
+                >
+                  {ride.driver.vehicle} – {ride.driver.licensePlate}
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.25 }}>
+                  <StarRating rating={ride.driver.rating} />
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Route Information */}
+          <Box sx={{ mb: 2 }}>
+            {/* Origin */}
+            <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5, mb: 1.5 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", pt: 0.5 }}>
+                <Box
+                  sx={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: "50%",
+                    bgcolor: "#10B981",
+                    border: "2px solid white",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                  }}
+                />
+                <Box
+                  sx={{
+                    width: 2,
+                    height: 24,
+                    bgcolor: (t) => t.palette.mode === "light" ? "#E5E7EB" : "#374151",
+                    mt: 0.5
+                  }}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Typography
+                  variant="caption"
+                  sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, mb: 0.25, display: "block" }}
+                >
+                  Origin
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
+                >
+                  {ride.origin.address}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Destination */}
+            <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", pt: 0.5 }}>
+                <Box
+                  sx={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: "50%",
+                    bgcolor: "#F97316",
+                    border: "2px solid white",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                  }}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Typography
+                  variant="caption"
+                  sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, mb: 0.25, display: "block" }}
+                >
+                  Destination
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
+                >
+                  {ride.destination.address}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Additional Details */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              mb: 2,
+              pb: 2,
+              borderBottom: (t) => `1px solid ${t.palette.divider}`
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <CalendarTodayRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
+              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                {ride.date}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <DirectionsCarFilledRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
+              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                {ride.distance}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <AttachMoneyRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
+              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                {ride.fare}
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Action Buttons */}
+          <Stack direction="row" spacing={1.5}>
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={<CancelRoundedIcon />}
+              onClick={handleCancelClick}
+              sx={{
+                borderRadius: 2,
+                py: 1.2,
+                bgcolor: "#FFECEC",
+                color: "#FF4C4C",
+                fontWeight: 600,
+                textTransform: "none",
+                fontSize: 14,
+                "&:hover": {
+                  bgcolor: "#FFD6D6"
+                }
+              }}
+            >
+              Cancel Ride
+            </Button>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<EditCalendarRoundedIcon />}
+              onClick={handleChangeDateClick}
+              sx={{
+                borderRadius: 2,
+                py: 1.2,
+                borderColor: "#007BFF",
+                color: "#007BFF",
+                fontWeight: 600,
+                textTransform: "none",
+                fontSize: 14,
+                "&:hover": {
+                  borderColor: "#0056B3",
+                  bgcolor: "rgba(0,123,255,0.05)"
+                }
+              }}
+            >
+              Change Date
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog
+        open={cancelDialogOpen}
+        onClose={() => setCancelDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            minWidth: 280
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontSize: 16, fontWeight: 600 }}>
+          Cancel Ride?
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ fontSize: 13, color: "text.secondary" }}>
+            Are you sure you want to cancel this scheduled ride? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 2, pb: 2 }}>
+          <Button
+            onClick={() => setCancelDialogOpen(false)}
+            sx={{ textTransform: "none", color: "text.secondary" }}
+          >
+            Keep Ride
+          </Button>
+          <Button
+            onClick={handleCancelConfirm}
+            sx={{
+              textTransform: "none",
+              bgcolor: "#FF4C4C",
+              color: "white",
+              "&:hover": {
+                bgcolor: "#E63946"
+              }
+            }}
+          >
+            Cancel Ride
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
+
+// Commute card component
+function CommuteCard({ commute, onRequest, onSelect }) {
   return (
     <Card
       elevation={0}
       onClick={onSelect}
       sx={{
+        mb: 2,
+        borderRadius: 2,
+        bgcolor: (t) =>
+          t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+        border: (t) =>
+          t.palette.mode === "light"
+            ? "1px solid rgba(209,213,219,0.9)"
+            : "1px solid rgba(51,65,85,0.9)",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+        "&:hover": {
+          boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+          transform: "translateY(-2px)"
+        }
+      }}
+    >
+      <CardContent sx={{ px: 1.75, py: 1.6 }}>
+        {/* Driver Profile Section */}
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Avatar
+              sx={{
+                width: 44,
+                height: 44,
+                bgcolor: "#03CD8C",
+                color: "#020617",
+                fontSize: 18,
+                fontWeight: 600
+              }}
+            >
+              {commute.driver.avatar}
+            </Avatar>
+            <Box>
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
+              >
+                {commute.driver.name}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
+              >
+                {commute.driver.vehicle} – {commute.driver.licensePlate}
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.25 }}>
+                <StarRating rating={commute.driver.rating} />
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Route Information */}
+        <Box sx={{ mb: 2 }}>
+          {/* Origin */}
+          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5, mb: 1.5 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", pt: 0.5 }}>
+              <Box
+                sx={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: "50%",
+                  bgcolor: "#10B981",
+                  border: "2px solid white",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                }}
+              />
+              <Box
+                sx={{
+                  width: 2,
+                  height: 24,
+                  bgcolor: (t) => t.palette.mode === "light" ? "#E5E7EB" : "#374151",
+                  mt: 0.5
+                }}
+              />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant="caption"
+                sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, mb: 0.25, display: "block" }}
+              >
+                Origin
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
+              >
+                {commute.origin.address}
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Destination */}
+          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", pt: 0.5 }}>
+              <Box
+                sx={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: "50%",
+                  bgcolor: "#F97316",
+                  border: "2px solid white",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                }}
+              />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant="caption"
+                sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, mb: 0.25, display: "block" }}
+              >
+                Destination
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
+              >
+                {commute.destination.address}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Additional Details */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            mb: 2,
+            pb: 2,
+            borderBottom: (t) => `1px solid ${t.palette.divider}`
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <CalendarTodayRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
+            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+              {commute.date}
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <DirectionsCarFilledRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
+            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+              {commute.distance}
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <AttachMoneyRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
+            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+              {commute.fare}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Request Button */}
+        <Button
+          fullWidth
+          variant="outlined"
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent card click when button is clicked
+            onRequest();
+          }}
+          sx={{
+            borderRadius: 2,
+            py: 1.2,
+            borderColor: "#3b82f6",
+            color: "#3b82f6",
+            fontWeight: 600,
+            textTransform: "none",
+            fontSize: 14,
+            "&:hover": {
+              borderColor: "#2563eb",
+              bgcolor: "rgba(59,130,246,0.05)"
+            }
+          }}
+        >
+          Request
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CommonPlaceCard({ icon, label, address, selected = false, onSelect }) {
+  return (
+    <Card
+      elevation={selected ? 2 : 1}
+      onClick={onSelect}
+      sx={{
         borderRadius: 2,
         cursor: onSelect ? "pointer" : "default",
         bgcolor: (theme) =>
-          selected
-            ? theme.palette.mode === "light"
-              ? "#ECFDF5"
-              : "rgba(15,23,42,0.96)"
-            : theme.palette.mode === "light"
-            ? "#FFFFFF"
-            : "rgba(15,23,42,0.98)",
+          theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
         border: (theme) =>
-          selected
-            ? "1px solid #03CD8C"
-            : theme.palette.mode === "light"
+          theme.palette.mode === "light"
             ? "1px solid rgba(209,213,219,0.9)"
             : "1px solid rgba(51,65,85,0.8)",
-        mb: 1.5
+        boxShadow: selected
+          ? "0 2px 8px rgba(0,0,0,0.1)"
+          : "0 1px 3px rgba(0,0,0,0.08)",
+        transition: "all 0.2s ease",
+        "&:hover": {
+          boxShadow: "0 2px 8px rgba(0,0,0,0.12)"
+        }
       }}
     >
       <CardContent sx={{ py: 1.5, px: 1.75 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
           <Box
             sx={{
-              width: 36,
-              height: 36,
-              borderRadius: 2,
-              bgcolor: (theme) =>
-                theme.palette.mode === "light"
-                  ? "#EFF6FF"
-                  : "rgba(248,250,252,0.04)",
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              bgcolor: "rgba(249,115,22,0.1)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center"
@@ -70,19 +716,22 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }) {
           >
             {icon}
           </Box>
-          <Box>
+          <Box sx={{ textAlign: "center", width: "100%" }}>
             <Typography
               variant="subtitle2"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
+              sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.5 }}
             >
               {label}
             </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (theme) => theme.palette.text.secondary }}
-            >
-              {address}
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5 }}>
+              <PlaceRoundedIcon sx={{ fontSize: 14, color: "#F97316" }} />
+              <Typography
+                variant="caption"
+                sx={{ fontSize: 11, color: (theme) => theme.palette.text.secondary }}
+              >
+                {address}
+              </Typography>
+            </Box>
           </Box>
         </Box>
       </CardContent>
@@ -91,10 +740,206 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }) {
 }
 
 function EnterDestinationMainScreen() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Check if this is a shared ride mode from query parameter
+  const searchParams = new URLSearchParams(location.search);
+  const isSharedRideMode = searchParams.get("mode") === "share";
+  
   const [tab, setTab] = useState("common");
   const [helperState, setHelperState] = useState("idle");
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [whereTo, setWhereTo] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [savedLocations, setSavedLocations] = useState([]);
+  const [loadingLocations, setLoadingLocations] = useState(true);
+  const [placeSuggestions, setPlaceSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [routeData, setRouteData] = useState(null);
+  const [destinationCoords, setDestinationCoords] = useState(null);
+  const [dailyCommutes, setDailyCommutes] = useState([]);
+  const [loadingCommutes, setLoadingCommutes] = useState(false);
+  const [upcomingRides, setUpcomingRides] = useState([]);
+  const [loadingUpcomingRides, setLoadingUpcomingRides] = useState(false);
+
+  // Fetch saved locations on mount
+  useEffect(() => {
+    const loadSavedLocations = async () => {
+      try {
+        setLoadingLocations(true);
+        const locations = await fetchSavedLocations();
+        setSavedLocations(locations);
+      } catch (error) {
+        console.error("Error loading saved locations:", error);
+      } finally {
+        setLoadingLocations(false);
+      }
+    };
+    loadSavedLocations();
+  }, []);
+
+  // Fetch daily commutes when Daily Commutes tab is active
+  useEffect(() => {
+    if (tab === "commutes") {
+      const loadCommutes = async () => {
+        try {
+          setLoadingCommutes(true);
+          const commutes = await fetchDailyCommutes();
+          setDailyCommutes(commutes);
+        } catch (error) {
+          console.error("Error loading daily commutes:", error);
+        } finally {
+          setLoadingCommutes(false);
+        }
+      };
+      loadCommutes();
+    }
+  }, [tab]);
+
+  // Fetch upcoming rides when Upcoming Rides tab is active
+  useEffect(() => {
+    if (tab === "upcoming") {
+      const loadUpcomingRides = async () => {
+        try {
+          setLoadingUpcomingRides(true);
+          const rides = await fetchUpcomingRides();
+          setUpcomingRides(rides);
+        } catch (error) {
+          console.error("Error loading upcoming rides:", error);
+        } finally {
+          setLoadingUpcomingRides(false);
+        }
+      };
+      loadUpcomingRides();
+    }
+  }, [tab]);
+
+  // Get current GPS location
+  useEffect(() => {
+    // Check if geolocation is available and permission hasn't been permanently denied
+    if (navigator.geolocation && navigator.permissions) {
+      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+        if (result.state === 'granted' || result.state === 'prompt') {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              setCurrentLocation({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              });
+            },
+            (error) => {
+              // Silently handle geolocation errors
+              // Fallback to default location (Kampala)
+              setCurrentLocation({ lat: 0.3476, lng: 32.5825 });
+            },
+            {
+              enableHighAccuracy: false,
+              timeout: 5000,
+              maximumAge: 300000 // Cache for 5 minutes
+            }
+          );
+        } else {
+          // Permission denied or blocked - use default location
+          setCurrentLocation({ lat: 0.3476, lng: 32.5825 });
+        }
+      }).catch(() => {
+        // Permissions API not supported - try anyway but with error handling
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setCurrentLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            });
+          },
+          () => {
+            // Fallback to default location
+            setCurrentLocation({ lat: 0.3476, lng: 32.5825 });
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 5000,
+            maximumAge: 300000
+          }
+        );
+      });
+    } else if (navigator.geolocation) {
+      // Geolocation available but Permissions API not supported
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        () => {
+          // Fallback to default location
+          setCurrentLocation({ lat: 0.3476, lng: 32.5825 });
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 5000,
+          maximumAge: 300000
+        }
+      );
+    } else {
+      // Fallback to default location
+      setCurrentLocation({ lat: 0.3476, lng: 32.5825 });
+    }
+  }, []);
+
+  // Calculate route when destination is selected
+  useEffect(() => {
+    if (destinationCoords && currentLocation) {
+      const calculateRoutePreview = async () => {
+        try {
+          const route = await calculateRoute(currentLocation, destinationCoords);
+          setRouteData(route);
+        } catch (error) {
+          console.error("Error calculating route:", error);
+        }
+      };
+      calculateRoutePreview();
+    } else {
+      setRouteData(null);
+    }
+  }, [destinationCoords, currentLocation]);
+
+
+  const handleCommuteRequest = (commute) => {
+    // Navigate to Enter Destination screen (RA05) with commute data
+    navigate("/rides/enter/details", {
+      state: {
+        pickup: commute.origin.address,
+        destination: commute.destination.address,
+        destinationCoords: commute.destination.coordinates,
+        originCoords: commute.origin.coordinates,
+        isCommute: true,
+        commute: commute,
+        driver: commute.driver,
+        fare: commute.fare,
+        distance: commute.distance,
+        date: commute.date
+      }
+    });
+  };
+
+  const handleCancelRide = (ride) => {
+    // In production, this would call API to cancel the ride
+    setUpcomingRides(prev => prev.filter(r => r.id !== ride.id));
+    // Show success message or notification
+  };
+
+  const handleChangeDate = (ride) => {
+    // Navigate to schedule screen to change date/time
+    navigate("/rides/schedule", {
+      state: {
+        rideId: ride.id,
+        existingRide: ride
+      }
+    });
+  };
 
   const handleTabChange = (event, value) => {
     setTab(value);
@@ -102,40 +947,241 @@ function EnterDestinationMainScreen() {
   };
 
   const handleQuickAction = (type) => {
-    setHelperState(type);
-  };
-
-  const handleSelectPlace = (place) => {
-    setSelectedPlace(place);
-    if (place === "home") {
-      setWhereTo("12, JJ Apartments, New Street, Kampala");
-    } else if (place === "office") {
-      setWhereTo("Plot 5, Acacia Avenue, Kampala");
+    if (type === "history") {
+      navigate("/rides/history/past");
+    } else if (type === "schedule") {
+      navigate("/rides/schedule");
+    } else if (type === "multi-stop") {
+      navigate("/rides/enter/multi-stops");
+    } else if (type === "book-contact") {
+      navigate("/rides/switch-rider");
+    } else if (type === "book-someone") {
+      navigate("/rides/switch-rider/manual");
+    } else if (type === "commutes-manage") {
+      navigate("/rides/commutes");
+    } else if (type === "upcoming-all") {
+      navigate("/rides/upcoming");
+    } else {
+      setHelperState(type);
     }
-    setHelperState("idle");
   };
 
-  const handleWhereToChange = (event) => {
-    setWhereTo(event.target.value);
+  const handleSelectPlace = async (place) => {
+    const location = savedLocations.find(loc => loc.id === place);
+    if (location) {
+      setSelectedPlace(place);
+      setWhereTo(location.address);
+      setDestinationCoords(location.coordinates);
+      setHelperState("idle");
+      
+      // Navigate to Enter Destination screen (RA05) after a brief delay to show route preview
+      setTimeout(() => {
+        navigate("/rides/enter/details", {
+          state: {
+            pickup: currentLocation ? "Current location" : "Entebbe International Airport",
+            destination: location.address,
+            destinationCoords: location.coordinates,
+            placeType: place
+          }
+        });
+      }, 1000);
+    }
+  };
+
+  const handlePlaceSearch = async (query) => {
+    setWhereTo(query);
     setHelperState("search");
     setSelectedPlace(null);
+    
+    if (query && query.length >= 2) {
+      setLoadingSuggestions(true);
+      try {
+        const suggestions = await searchPlaces(query);
+        setPlaceSuggestions(suggestions);
+      } catch (error) {
+        console.error("Error searching places:", error);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    } else {
+      setPlaceSuggestions([]);
+    }
   };
 
+  const handlePlaceSelect = async (place) => {
+    if (typeof place === "string") {
+      // User typed a custom address
+      setWhereTo(place);
+      setDestinationCoords({ lat: 0.3476, lng: 32.5825 }); // Default coords
+    } else {
+      // Selected from autocomplete
+      setWhereTo(place.description);
+      setDestinationCoords(place.coordinates);
+    }
+    setPlaceSuggestions([]);
+    
+    // Navigate to Enter Destination screen (RA05) after route calculation
+    setTimeout(() => {
+      navigate("/rides/enter/details", {
+        state: {
+          pickup: currentLocation ? "Current location" : "Entebbe International Airport",
+          destination: typeof place === "string" ? place : place.description,
+          destinationCoords: typeof place === "string" ? { lat: 0.3476, lng: 32.5825 } : place.coordinates,
+          isSharedRide: isSharedRideMode // Pass shared ride mode to details screen
+        }
+      });
+    }, 1000);
+  };
+
+  const handleMenuClose = () => {
+    setMenuOpen(false);
+  };
+
+  const handleMenuNavigation = (route) => {
+    navigate(route);
+    setMenuOpen(false);
+  };
+
+  const menuItems = [
+    {
+      icon: <PersonRoundedIcon />,
+      label: "Profile",
+      description: "View and edit your profile",
+      route: "/more"
+    },
+    {
+      icon: <HistoryRoundedIcon />,
+      label: "Ride History",
+      description: "View past and upcoming rides",
+      route: "/rides/history/past"
+    },
+    {
+      icon: <AccountBalanceWalletRoundedIcon />,
+      label: "Wallet",
+      description: "Manage your payment methods",
+      route: "/wallet"
+    },
+    {
+      icon: <HistoryRoundedIcon />,
+      label: "All Orders History",
+      description: "View all rides, deliveries, rentals",
+      route: "/history/all"
+    },
+    {
+      icon: <SettingsRoundedIcon />,
+      label: "Settings",
+      description: "App preferences and settings",
+      route: "/settings"
+    },
+    {
+      icon: <HelpRoundedIcon />,
+      label: "Help & Support",
+      description: "Get help and contact support",
+      route: "/help"
+    },
+    {
+      icon: <InfoRoundedIcon />,
+      label: "About",
+      description: "App version and information",
+      route: "/about"
+    }
+  ];
+
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
+    <Box>
+      {/* Navigation Drawer */}
+      <Drawer
+        anchor="left"
+        open={menuOpen}
+        onClose={handleMenuClose}
+        PaperProps={{
+          sx: {
+            width: 280,
+            bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
+          }
         }}
       >
+        <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Menu
+            </Typography>
+            <IconButton size="small" onClick={handleMenuClose}>
+              <CloseRoundedIcon />
+            </IconButton>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Avatar sx={{ bgcolor: "#03CD8C", color: "#020617", width: 48, height: 48 }}>
+              RZ
+            </Avatar>
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                Rider User
+              </Typography>
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                rider@evzone.com
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+        <List sx={{ px: 1, pt: 1 }}>
+          {menuItems.map((item) => (
+            <ListItem key={item.route} disablePadding>
+              <ListItemButton
+                onClick={() => handleMenuNavigation(item.route)}
+                sx={{
+                  borderRadius: 2,
+                  mb: 0.5,
+                  py: 1.5,
+                  "&:hover": {
+                    bgcolor: (t) =>
+                      t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,1)"
+                  }
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40, color: "#03CD8C" }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {item.label}
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography variant="caption" sx={{ fontSize: 11 }}>
+                      {item.description}
+                    </Typography>
+                  }
+                />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Drawer>
+
+      {/* Header with dark blue background */}
+      <Box
+        sx={{
+          bgcolor: "#1E3A8A",
+          px: 2.5,
+          pt: 2.5,
+          pb: 2.5,
+          mb: 0
+        }}
+      >
+        <Box
+          sx={{
+            mb: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between"
+          }}
+        >
         <IconButton
           size="small"
           aria-label="Open menu"
-          onClick={() => setHelperState("menu")}
+          onClick={() => setMenuOpen(true)}
           sx={{
             borderRadius: 999,
             bgcolor: (theme) =>
@@ -150,48 +1196,104 @@ function EnterDestinationMainScreen() {
         </IconButton>
         <Typography
           variant="subtitle1"
-          sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
+          sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
         >
           Where to today?
         </Typography>
         <Box sx={{ width: 32 }} />
+        </Box>
+
+        {/* Search with Autocomplete */}
+        <Autocomplete
+          freeSolo
+          options={placeSuggestions}
+          getOptionLabel={(option) => 
+            typeof option === "string" ? option : option.description
+          }
+          loading={loadingSuggestions}
+          value={whereTo}
+          onInputChange={(event, newValue) => {
+            handlePlaceSearch(newValue);
+          }}
+          onChange={(event, newValue) => {
+            if (newValue) {
+              handlePlaceSelect(newValue);
+            }
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              fullWidth
+              size="small"
+              placeholder="Where to?"
+              variant="outlined"
+              InputProps={{
+                ...params.InputProps,
+                startAdornment: (
+                  <>
+                    <InputAdornment position="start">
+                      <SearchRoundedIcon sx={{ fontSize: 20, color: "text.secondary" }} />
+                    </InputAdornment>
+                    {params.InputProps.startAdornment}
+                  </>
+                ),
+                endAdornment: (
+                  <>
+                    {loadingSuggestions ? <CircularProgress color="inherit" size={20} /> : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                )
+              }}
+              sx={{
+                mb: 2,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 999,
+                  bgcolor: (theme) =>
+                    theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
+                  "& fieldset": {
+                    borderColor: (theme) =>
+                      theme.palette.mode === "light"
+                        ? "rgba(209,213,219,0.9)"
+                        : "rgba(51,65,85,0.9)"
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "primary.main"
+                  }
+                }
+              }}
+            />
+          )}
+          renderOption={(props, option) => (
+            <Box component="li" {...props} key={typeof option === "string" ? option : option.placeId}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
+                <PlaceRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+                <Typography variant="body2">
+                  {typeof option === "string" ? option : option.description}
+                </Typography>
+              </Box>
+            </Box>
+          )}
+          PaperComponent={(props) => (
+            <Box
+              {...props}
+              sx={{
+                mt: 1,
+                borderRadius: 2,
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(209,213,219,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)",
+                boxShadow: "0 4px 20px rgba(15,23,42,0.15)"
+              }}
+            />
+          )}
+        />
       </Box>
 
-      {/* Search */}
-      <TextField
-        fullWidth
-        size="small"
-        placeholder="Where to?"
-        variant="outlined"
-        value={whereTo}
-        onChange={handleWhereToChange}
-        onFocus={() => setHelperState("search")}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchRoundedIcon sx={{ fontSize: 20, color: "text.secondary" }} />
-            </InputAdornment>
-          )
-        }}
-        sx={{
-          mb: 2,
-          "& .MuiOutlinedInput-root": {
-            borderRadius: 999,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
-            "& fieldset": {
-              borderColor: (theme) =>
-                theme.palette.mode === "light"
-                  ? "rgba(209,213,219,0.9)"
-                  : "rgba(51,65,85,0.9)"
-            },
-            "&:hover fieldset": {
-              borderColor: "primary.main"
-            }
-          }
-        }}
-      />
-
+      {/* White body section */}
+      <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
       {/* Map preview */}
       <Box
         sx={{
@@ -216,12 +1318,42 @@ function EnterDestinationMainScreen() {
             backgroundSize: "28px 28px"
           }}
         />
+        
+        {/* Route preview line */}
+        {routeData && routeData.polyline && (
+          <svg
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              pointerEvents: "none"
+            }}
+          >
+            <polyline
+              points={routeData.polyline.map(p => `${p.x},${p.y}`).join(" ")}
+              fill="none"
+              stroke="#3b82f6"
+              strokeWidth="0.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeDasharray="2,2"
+              opacity={0.8}
+            />
+          </svg>
+        )}
+
+        {/* Current location marker (blue pin) */}
         <Box
           sx={{
             position: "absolute",
-            left: "24%",
-            top: "60%",
-            transform: "translate(-50%, -50%)"
+            left: routeData?.polyline?.[0]?.x ? `${routeData.polyline[0].x}%` : "24%",
+            top: routeData?.polyline?.[0]?.y ? `${routeData.polyline[0].y}%` : "60%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 2
           }}
         >
           <Box sx={{ position: "relative" }}>
@@ -231,7 +1363,8 @@ function EnterDestinationMainScreen() {
                 height: 14,
                 borderRadius: "999px",
                 bgcolor: "#3b82f6",
-                border: "2px solid white"
+                border: "2px solid white",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
               }}
             />
             <Box
@@ -239,27 +1372,61 @@ function EnterDestinationMainScreen() {
                 position: "absolute",
                 inset: -8,
                 borderRadius: "999px",
-                border: "1px solid rgba(59,130,246,0.5)"
+                border: "1px solid rgba(59,130,246,0.5)",
+                animation: `${pulse} 2s infinite`
               }}
             />
           </Box>
         </Box>
-        <Box
-          sx={{
-            position: "absolute",
-            right: "18%",
-            top: "26%",
-            transform: "translate(50%, -50%)"
-          }}
-        >
-          <PlaceRoundedIcon
+
+        {/* Destination marker (green pin) - appears when a place is selected */}
+        {(selectedPlace || destinationCoords) && routeData && (
+          <Box
             sx={{
-              fontSize: 28,
-              color: "primary.main",
-              filter: "drop-shadow(0 4px 8px rgba(15,23,42,0.9))"
+              position: "absolute",
+              left: routeData.polyline?.[routeData.polyline.length - 1]?.x 
+                ? `${routeData.polyline[routeData.polyline.length - 1].x}%` 
+                : "75%",
+              top: routeData.polyline?.[routeData.polyline.length - 1]?.y 
+                ? `${routeData.polyline[routeData.polyline.length - 1].y}%` 
+                : "26%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 2
             }}
-          />
-        </Box>
+          >
+            <PlaceRoundedIcon
+              sx={{
+                fontSize: 28,
+                color: "#10B981",
+                filter: "drop-shadow(0 4px 8px rgba(15,23,42,0.9))"
+              }}
+            />
+          </Box>
+        )}
+
+        {/* Route info overlay */}
+        {routeData && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 8,
+              left: 8,
+              right: 8,
+              bgcolor: "rgba(255,255,255,0.95)",
+              borderRadius: 1.5,
+              px: 1.5,
+              py: 1,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+            }}
+          >
+            <Typography variant="caption" sx={{ fontSize: 10, fontWeight: 600 }}>
+              {routeData.distance} • {routeData.duration}
+            </Typography>
+          </Box>
+        )}
       </Box>
 
       {/* Quick actions */}
@@ -399,7 +1566,8 @@ function EnterDestinationMainScreen() {
       <Tabs
         value={tab}
         onChange={handleTabChange}
-        variant="fullWidth"
+        variant="scrollable"
+        scrollButtons={false}
         sx={{
           minHeight: 36,
           mb: 1.5,
@@ -407,15 +1575,17 @@ function EnterDestinationMainScreen() {
             minHeight: 36,
             fontSize: 12,
             textTransform: "none",
-            color: (t) => t.palette.text.secondary
+            color: (t) => t.palette.text.secondary,
+            fontWeight: 500
           },
           "& .Mui-selected": {
-            color: (t) => t.palette.text.primary
+            color: (t) => t.palette.text.primary,
+            fontWeight: 600
           },
           "& .MuiTabs-indicator": {
             height: 2,
             borderRadius: 999,
-            bgcolor: "primary.main"
+            bgcolor: "#3b82f6"
           }
         }}
       >
@@ -427,221 +1597,183 @@ function EnterDestinationMainScreen() {
       <Box sx={{ mt: 1 }}>
         {tab === "common" && (
           <>
-            <CommonPlaceCard
-              icon={<HomeRoundedIcon sx={{ fontSize: 20, color: "#F97316" }} />}
-              label="Home"
-              address="12, JJ Apartments, New Street, Kampala"
-              selected={selectedPlace === "home"}
-              onSelect={() => handleSelectPlace("home")}
-            />
-            <CommonPlaceCard
-              icon={<ApartmentRoundedIcon sx={{ fontSize: 20, color: "#F97316" }} />}
-              label="Office"
-              address="Plot 5, Acacia Avenue, Kampala"
-              selected={selectedPlace === "office"}
-              onSelect={() => handleSelectPlace("office")}
-            />
+            {loadingLocations ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : savedLocations.length > 0 ? (
+              <Stack direction="row" spacing={1.5}>
+                {savedLocations.map((location) => (
+                  <Box key={location.id} sx={{ flex: 1 }}>
+                    <CommonPlaceCard
+                      icon={location.icon}
+                      label={location.label}
+                      address={location.address}
+                      selected={selectedPlace === location.id}
+                      onSelect={() => handleSelectPlace(location.id)}
+                    />
+                  </Box>
+                ))}
+              </Stack>
+            ) : (
+              <Card
+                elevation={0}
+                sx={{
+                  borderRadius: 2,
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+                  border: (t) =>
+                    t.palette.mode === "light"
+                      ? "1px solid rgba(209,213,219,0.9)"
+                      : "1px solid rgba(51,65,85,0.9)"
+                }}
+              >
+                <CardContent sx={{ py: 3, textAlign: "center" }}>
+                  <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                    No saved locations. Add locations in settings.
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
 
         {tab === "commutes" && (
-          <Card
-            elevation={0}
-            sx={{
-              mt: 1,
-              mb: 1.5,
-              borderRadius: 2,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
-            }}
-          >
-            <CardContent sx={{ px: 1.75, py: 1.6 }}>
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-                sx={{ mb: 1 }}
+          <Box sx={{ mt: 1 }}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{ mb: 1.5 }}
+            >
+              <Typography
+                variant="caption"
+                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-                >
-                  Daily commutes
-                </Typography>
-                <Typography
-                  variant="caption"
-                  onClick={() => setHelperState("commutes-manage")}
-                  sx={{
-                    fontSize: 10.5,
-                    color: (t) => t.palette.text.secondary,
-                    cursor: "pointer"
-                  }}
-                >
-                  Manage
-                </Typography>
-              </Stack>
-              <Divider sx={{ mb: 1, borderColor: (t) => t.palette.divider }} />
+                Daily commutes
+              </Typography>
+              <Typography
+                variant="caption"
+                onClick={() => navigate("/rides/commutes")}
+                sx={{
+                  fontSize: 10.5,
+                  color: (t) => t.palette.text.secondary,
+                  cursor: "pointer",
+                  "&:hover": {
+                    color: (t) => t.palette.primary.main
+                  }
+                }}
+              >
+                Manage
+              </Typography>
+            </Stack>
 
-              {["Morning", "Evening"].map((when, idx) => (
-                <Box
-                  key={idx}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    py: 0.6,
-                    "&:not(:last-of-type)": {
-                      borderBottom: (t) => `1px dashed ${t.palette.divider}`
-                    }
-                  }}
-                >
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-                    >
-                      {when} commute
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontSize: 12.5,
-                        fontWeight: 500,
-                        letterSpacing: "-0.01em"
-                      }}
-                    >
-                      {idx === 0 ? "Home → Office" : "Office → Home"}
-                    </Typography>
-                  </Box>
-                  <Chip
-                    size="small"
-                    label="Book"
-                    onClick={() => setHelperState("book-commute")}
-                    sx={{
-                      borderRadius: 999,
-                      fontSize: 10,
-                      height: 22,
-                      bgcolor: (t) =>
-                        t.palette.mode === "light"
-                          ? "#F3F4F6"
-                          : "rgba(15,23,42,0.96)",
-                      color: (t) => t.palette.text.primary
+            {loadingCommutes ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : dailyCommutes.length > 0 ? (
+              <Box sx={{ maxHeight: "60vh", overflowY: "auto" }}>
+                {dailyCommutes.map((commute) => (
+                  <CommuteCard
+                    key={commute.id}
+                    commute={commute}
+                    onSelect={() => {
+                      // Update map to show commute route
+                      setCurrentLocation(commute.origin.coordinates);
+                      setDestinationCoords(commute.destination.coordinates);
+                      setWhereTo(commute.destination.address);
+                    }}
+                    onRequest={() => {
+                      handleCommuteRequest(commute);
                     }}
                   />
-                </Box>
-              ))}
-            </CardContent>
-          </Card>
+                ))}
+              </Box>
+            ) : (
+              <Card
+                elevation={0}
+                sx={{
+                  borderRadius: 2,
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+                  border: (t) =>
+                    t.palette.mode === "light"
+                      ? "1px solid rgba(209,213,219,0.9)"
+                      : "1px solid rgba(51,65,85,0.9)"
+                }}
+              >
+                <CardContent sx={{ py: 4, textAlign: "center" }}>
+                  <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
+                    No commutes saved
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
+                    Create a new scheduled route to get started
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
+          </Box>
         )}
 
         {tab === "upcoming" && (
-          <Card
-            elevation={0}
-            sx={{
-              mt: 1,
-              mb: 1.5,
-              borderRadius: 2,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
-            }}
-          >
-            <CardContent sx={{ px: 1.75, py: 1.6 }}>
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-                sx={{ mb: 1 }}
+          <Box sx={{ mt: 1 }}>
+            {loadingUpcomingRides ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : upcomingRides.length > 0 ? (
+              <Box sx={{ maxHeight: "60vh", overflowY: "auto" }}>
+                {upcomingRides.map((ride) => (
+                  <UpcomingRideCard
+                    key={ride.id}
+                    ride={ride}
+                    onSelect={() => {
+                      // Update map to show ride route
+                      setCurrentLocation(ride.origin.coordinates);
+                      setDestinationCoords(ride.destination.coordinates);
+                      setWhereTo(ride.destination.address);
+                    }}
+                    onCancel={handleCancelRide}
+                    onChangeDate={handleChangeDate}
+                  />
+                ))}
+              </Box>
+            ) : (
+              <Card
+                elevation={0}
+                sx={{
+                  borderRadius: 2,
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+                  border: (t) =>
+                    t.palette.mode === "light"
+                      ? "1px solid rgba(209,213,219,0.9)"
+                      : "1px solid rgba(51,65,85,0.9)"
+                }}
               >
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-                >
-                  Upcoming rides
-                </Typography>
-                <Typography
-                  variant="caption"
-                  onClick={() => setHelperState("upcoming-all")}
-                  sx={{
-                    fontSize: 10.5,
-                    color: (t) => t.palette.text.secondary,
-                    cursor: "pointer"
-                  }}
-                >
-                  See all
-                </Typography>
-              </Stack>
-              <Divider sx={{ mb: 1.1, borderColor: (t) => t.palette.divider }} />
-
-              {["Today · 21:00", "Tomorrow · 08:15", "Fri · 17:30"].map(
-                (when, idx) => (
-                  <Box
-                    key={idx}
+                <CardContent sx={{ py: 4, textAlign: "center" }}>
+                  <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
+                    No upcoming rides scheduled
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate("/rides/enter")}
                     sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      py: 0.6,
-                      "&:not(:last-of-type)": {
-                        borderBottom: (t) => `1px dashed ${t.palette.divider}`
-                      }
+                      mt: 1.5,
+                      borderRadius: 2,
+                      textTransform: "none",
+                      borderColor: "#3b82f6",
+                      color: "#3b82f6"
                     }}
                   >
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-                      >
-                        {when}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontSize: 12.5,
-                          fontWeight: 500,
-                          letterSpacing: "-0.01em"
-                        }}
-                      >
-                        Nsambya →{" "}
-                        {idx === 0
-                          ? "Kansanga"
-                          : idx === 1
-                          ? "City centre"
-                          : "Airport"}
-                      </Typography>
-                    </Box>
-                    <Chip
-                      size="small"
-                      label={
-                        idx === 0
-                          ? "Tonight"
-                          : idx === 1
-                          ? "Morning"
-                          : "Weekend"
-                      }
-                      sx={{
-                        borderRadius: 999,
-                        fontSize: 10,
-                        height: 22,
-                        bgcolor: (t) =>
-                          t.palette.mode === "light"
-                            ? "#F3F4F6"
-                            : "rgba(15,23,42,0.96)",
-                        color: (t) => t.palette.text.primary
-                      }}
-                    />
-                  </Box>
-                )
-              )}
-            </CardContent>
-          </Card>
+                    Book a New Ride
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </Box>
         )}
       </Box>
 
@@ -693,6 +1825,7 @@ function EnterDestinationMainScreen() {
           </CardContent>
         </Card>
       )}
+      </Box>
     </Box>
   );
 }

@@ -13,9 +13,9 @@ export default function DarkModeToggle() {
       onClick={toggleMode}
       sx={{
         position: "fixed",
-        top: 10,
-        right: 10,
-        zIndex: 50,
+        bottom: { xs: "calc(80px + env(safe-area-inset-bottom))", sm: 90 },
+        right: { xs: 16, sm: 24 },
+        zIndex: 2100, // Above navigation and modals
         bgcolor: (t) =>
           t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
         border: (t) =>
@@ -23,6 +23,8 @@ export default function DarkModeToggle() {
             ? "1px solid rgba(209,213,219,0.9)"
             : "1px solid rgba(30,64,175,0.7)",
         boxShadow: 3,
+        width: 40,
+        height: 40,
         "&:hover": {
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.98)"
@@ -31,9 +33,9 @@ export default function DarkModeToggle() {
       aria-label="Toggle light/dark mode"
     >
       {mode === "light" ? (
-        <DarkModeRoundedIcon sx={{ fontSize: 18 }} />
+        <DarkModeRoundedIcon sx={{ fontSize: 20 }} />
       ) : (
-        <LightModeRoundedIcon sx={{ fontSize: 18 }} />
+        <LightModeRoundedIcon sx={{ fontSize: 20 }} />
       )}
     </IconButton>
   );

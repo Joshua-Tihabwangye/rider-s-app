@@ -21,14 +21,6 @@ import MobileShell from "../components/MobileShell";
 
 const DELIVERING_ORDERS = [
   {
-    id: "DLV-2025-10-07-001",
-    toName: "Mary Immaculate",
-    toAddress: "Bugolobi Village, Kampala",
-    fromAddress: "Nsambya Road 472, Kampala",
-    status: "Out for pickup",
-    eta: "10 min"
-  },
-  {
     id: "DLV-2025-10-07-002",
     toName: "John Doe",
     toAddress: "Acacia Mall, Kololo",

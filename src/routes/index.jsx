@@ -112,6 +112,7 @@ export default function AppRouter() {
           <Route index element={<Navigate to="/rides/enter" replace />} />
           <Route path="enter" element={<RidesDashboard />} />
           <Route path="enter/details" element={<RA05 />} />
+          <Route path="enter/preferences" element={<RA59 />} />
           <Route path="enter/simple" element={<RA07 />} />
           <Route path="enter/map" element={<RA06 />} />
           <Route path="enter/alt" element={<RA44 />} />
@@ -147,7 +148,8 @@ export default function AppRouter() {
           <Route path="trip/driver-profile" element={<RA28 />} />
           <Route path="trip/completed" element={<RA29 />} />
           <Route path="trip/share" element={<RA30 />} />
-          <Route path="rating" element={<RA31 />} />
+          <Route path="trip/sharing" element={<RA31 />} />
+          <Route path="rating" element={<RA35 />} />
           <Route path="rating/tip" element={<RA32 />} />
           <Route path="rating/driver" element={<RA35 />} />
           <Route path="shared-passengers" element={<RA36 />} />
@@ -156,6 +158,7 @@ export default function AppRouter() {
           <Route path="history/:rideId" element={<RA37 />} />
           <Route path="details" element={<RA42 />} />
           <Route path="details/variant" element={<RA46 />} />
+          <Route path="details/confirm" element={<RA47 />} />
           <Route path="booking/confirmation" element={<RA47 />} />
           <Route path="booking/thank-you" element={<RA48 />} />
         </Route>
@@ -218,6 +221,7 @@ export default function AppRouter() {
 
         {/* Placeholder routes - Wallet is marked as "future work" in routing guide */}
         <Route path="wallet" element={<Wallet />} />
+        <Route path="manager" element={<MoreMenu />} /> {/* Manager placeholder - using MoreMenu for now */}
         <Route path="more" element={<MoreMenu />} />
         <Route path="settings" element={<Settings />} />
         <Route path="help" element={<Help />} />

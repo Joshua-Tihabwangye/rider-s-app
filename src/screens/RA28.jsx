@@ -26,6 +26,7 @@ import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import MobileShell from "../components/MobileShell";
 
 function DriverProfileDuringTripScreen() {
@@ -297,6 +298,23 @@ function DriverProfileDuringTripScreen() {
           Share trip
         </Button>
       </Stack>
+
+      {/* Preferences Button */}
+      <Button
+        fullWidth
+        variant="outlined"
+        startIcon={<SettingsRoundedIcon sx={{ fontSize: 18 }} />}
+        onClick={() => navigate("/rides/preferences/driver", { state: { isModal: true } })}
+        sx={{
+          borderRadius: 999,
+          py: 0.9,
+          fontSize: 13,
+          textTransform: "none",
+          mb: 1.5
+        }}
+      >
+        View Preferences
+      </Button>
 
       <Card
         elevation={0}
