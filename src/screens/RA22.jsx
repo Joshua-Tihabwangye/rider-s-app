@@ -81,7 +81,7 @@ function SearchingForDriverScreen() {
           height: "40vh",
           background: (theme) =>
             theme.palette.mode === "light"
-              ? "linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 50%, #93C5FD 100%)"
+              ? "linear-gradient(135deg, #E0F2FE 0%, rgba(3,205,140,0.15) 50%, #93C5FD 100%)"
               : "linear-gradient(135deg, rgba(15,118,205,0.3), #020617 60%, #020617 100%)",
           overflow: "hidden"
         }}
@@ -107,7 +107,7 @@ function SearchingForDriverScreen() {
             transform: "translateX(-50%)",
             fontSize: 12,
             fontWeight: 600,
-            color: "#1E40AF",
+            color: "#03CD8C",
             textShadow: "0 1px 2px rgba(255,255,255,0.8)"
           }}
         >
@@ -122,7 +122,7 @@ function SearchingForDriverScreen() {
             left: "10%",
             fontSize: 11,
             fontWeight: 500,
-            color: "#1E40AF"
+            color: "#03CD8C"
           }}
         >
           KITORO
@@ -136,7 +136,7 @@ function SearchingForDriverScreen() {
             right: "8%",
             fontSize: 10,
             fontWeight: 500,
-            color: "#1E40AF",
+            color: "#03CD8C",
             maxWidth: "30%",
             textAlign: "right"
           }}
@@ -153,7 +153,7 @@ function SearchingForDriverScreen() {
             position: "absolute",
             top: 16,
             left: 16,
-            bgcolor: "#2196F3",
+            bgcolor: "#03CD8C",
             color: "#FFFFFF",
             width: 40,
             height: 40,
@@ -174,7 +174,7 @@ function SearchingForDriverScreen() {
             width: 36,
             height: 36,
             borderRadius: "50%",
-            bgcolor: "#2196F3",
+            bgcolor: "#03CD8C",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

@@ -21,6 +21,7 @@ import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import HelpRoundedIcon from "@mui/icons-material/HelpRounded";
 import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+import MailRoundedIcon from "@mui/icons-material/MailRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
@@ -34,6 +35,12 @@ export default function MoreMenu() {
       label: "All Orders History",
       description: "View all rides, deliveries, rentals, tours & ambulance",
       route: "/history/all"
+    },
+    {
+      icon: <MailRoundedIcon />,
+      label: "Invitations",
+      description: "Manage sent and received invitations",
+      route: "/deliveries/invitations"
     },
     {
       icon: <SchoolRoundedIcon />,

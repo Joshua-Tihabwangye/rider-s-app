@@ -300,20 +300,20 @@ function WalletContent({ onBack }) {
               </Typography>
               {hasBalance ? (
                 <>
-                  <Typography
-                    variant="h5"
-                    sx={{
-                      mt: 0.4,
-                      fontWeight: 700,
-                      letterSpacing: "-0.04em",
+              <Typography
+                variant="h5"
+                sx={{
+                  mt: 0.4,
+                  fontWeight: 700,
+                  letterSpacing: "-0.04em",
                       color: (t) => t.palette.mode === "light" ? "#022C22" : "#ECFDF5",
                       fontSize: { xs: "1.5rem", sm: "1.75rem" }
-                    }}
-                  >
-                    UGX {balance.toLocaleString()}
-                  </Typography>
-                  <Typography
-                    variant="caption"
+                }}
+              >
+                UGX {balance.toLocaleString()}
+              </Typography>
+              <Typography
+                variant="caption"
                     sx={{ fontSize: { xs: 9.5, sm: 10 }, color: (t) => t.palette.mode === "light" ? "rgba(15,23,42,0.6)" : "rgba(255,255,255,0.6)", mt: 0.3, display: "block" }}
                   >
                     Available for rides, deliveries, rentals & tours
@@ -335,9 +335,9 @@ function WalletContent({ onBack }) {
                         color: (t) => t.palette.mode === "light" ? "rgba(15,23,42,0.9)" : "rgba(255,255,255,0.9)"
                       }
                     }}
-                  >
-                    Reserved & holds: UGX {reserved.toLocaleString()}
-                  </Typography>
+              >
+                Reserved & holds: UGX {reserved.toLocaleString()}
+              </Typography>
                 </>
               ) : (
                 <Box sx={{ mt: 2, textAlign: { xs: "center", sm: "left" } }}>
@@ -365,7 +365,7 @@ function WalletContent({ onBack }) {
                   >
                     Add money
                   </Button>
-                </Box>
+            </Box>
               )}
             </Box>
             {hasBalance && (
@@ -374,48 +374,48 @@ function WalletContent({ onBack }) {
                 alignItems={{ xs: "flex-start", sm: "flex-end" }}
                 sx={{ width: { xs: "100%", sm: "auto" } }}
               >
-                <Chip
-                  size="small"
+              <Chip
+                size="small"
                   icon={<PaymentRoundedIcon sx={{ fontSize: { xs: 12, sm: 14 } }} />}
-                  label="EV-first payments"
+                label="EV-first payments"
                   onClick={() => {
                     alert(`EV-first payments: part of your balance may be reserved for ongoing trips and deliveries.\n\nFree: UGX ${balance.toLocaleString()}\nReserved: UGX ${reserved.toLocaleString()}`);
                   }}
-                  sx={{
-                    borderRadius: 999,
+                sx={{
+                  borderRadius: 999,
                     fontSize: { xs: 9, sm: 10 },
                     height: { xs: 20, sm: 22 },
-                    bgcolor: "rgba(255,255,255,0.85)",
+                  bgcolor: "rgba(255,255,255,0.85)",
                     color: "#064E3B",
                     cursor: "pointer",
                     "&:hover": {
                       bgcolor: "rgba(255,255,255,0.95)"
                     }
-                  }}
-                />
+                }}
+              />
                 <Box
                   onClick={() => {
                     alert(`Balance breakdown:\nFree: UGX ${balance.toLocaleString()}\nReserved: UGX ${reserved.toLocaleString()}\n\nReserved funds are held for:\n- Ongoing trips\n- Active deliveries`);
                   }}
                   sx={{ cursor: "pointer", width: { xs: "100%", sm: 96 } }}
                 >
-                  <LinearProgress
-                    variant="determinate"
-                    value={Math.min(100, (balance / (balance + reserved)) * 100)}
-                    sx={{
-                      mt: 0.3,
+              <LinearProgress
+                variant="determinate"
+                value={Math.min(100, (balance / (balance + reserved)) * 100)}
+                sx={{
+                  mt: 0.3,
                       width: "100%",
-                      height: 5,
-                      borderRadius: 999,
-                      bgcolor: "rgba(15,23,42,0.15)",
-                      "& .MuiLinearProgress-bar": {
-                        borderRadius: 999,
-                        bgcolor: "#059669"
-                      }
-                    }}
-                  />
-                <Typography
-                  variant="caption"
+                  height: 5,
+                  borderRadius: 999,
+                  bgcolor: "rgba(15,23,42,0.15)",
+                  "& .MuiLinearProgress-bar": {
+                    borderRadius: 999,
+                    bgcolor: "#059669"
+                  }
+                }}
+              />
+              <Typography
+                variant="caption"
                   sx={{
                     fontSize: { xs: 9.5, sm: 10 },
                     color: (t) => t.palette.mode === "light" ? "rgba(15,23,42,0.7)" : "rgba(255,255,255,0.7)",
@@ -423,11 +423,11 @@ function WalletContent({ onBack }) {
                     mt: 0.25,
                     textAlign: { xs: "left", sm: "center" }
                   }}
-                >
-                  80% free • 20% reserved
-                </Typography>
+              >
+                80% free • 20% reserved
+              </Typography>
                 </Box>
-              </Stack>
+            </Stack>
             )}
           </Stack>
 
@@ -437,45 +437,45 @@ function WalletContent({ onBack }) {
               spacing={1.25} 
               sx={{ mt: 1.7 }}
             >
-              <Button
-                fullWidth
-                variant="contained"
+            <Button
+              fullWidth
+              variant="contained"
                 startIcon={<AddCircleRoundedIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />}
-                onClick={handleAddMoney}
-                sx={{
-                  borderRadius: 999,
+              onClick={handleAddMoney}
+              sx={{
+                borderRadius: 999,
                   py: { xs: 0.75, sm: 0.9 },
                   fontSize: { xs: 12, sm: 13 },
-                  fontWeight: 600,
-                  textTransform: "none",
+                fontWeight: 600,
+                textTransform: "none",
                   bgcolor: (t) => t.palette.mode === "light" ? "#022C22" : "#03CD8C",
                   color: (t) => t.palette.mode === "light" ? "#ECFDF5" : "#020617",
                   "&:hover": { bgcolor: (t) => t.palette.mode === "light" ? "#064E3B" : "#02B87A" }
-                }}
-              >
-                Add money
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
+              }}
+            >
+              Add money
+            </Button>
+            <Button
+              fullWidth
+              variant="outlined"
                 startIcon={<ArrowUpwardRoundedIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />}
-                onClick={handleWithdraw}
-                sx={{
-                  borderRadius: 999,
+              onClick={handleWithdraw}
+              sx={{
+                borderRadius: 999,
                   py: { xs: 0.75, sm: 0.9 },
                   fontSize: { xs: 12, sm: 13 },
-                  textTransform: "none",
+                textTransform: "none",
                   borderColor: (t) => t.palette.mode === "light" ? "rgba(15,23,42,0.35)" : "rgba(255,255,255,0.35)",
                   color: (t) => t.palette.mode === "light" ? "rgba(15,23,42,0.85)" : "rgba(255,255,255,0.85)",
-                  "&:hover": {
+                "&:hover": {
                     borderColor: (t) => t.palette.mode === "light" ? "rgba(15,23,42,0.6)" : "rgba(255,255,255,0.6)",
                     bgcolor: (t) => t.palette.mode === "light" ? "rgba(15,23,42,0.04)" : "rgba(255,255,255,0.04)"
-                  }
-                }}
-              >
-                Withdraw
-              </Button>
-            </Stack>
+                }
+              }}
+            >
+              Withdraw
+            </Button>
+          </Stack>
           )}
         </CardContent>
       </Card>
@@ -511,10 +511,10 @@ function WalletContent({ onBack }) {
               variant="text"
               size="small"
               onClick={handleManagePaymentMethods}
-              sx={{
-                fontSize: 10.5,
+              sx={{ 
+                fontSize: 10.5, 
                 fontWeight: 600,
-                color: (t) => t.palette.text.secondary,
+                color: (t) => t.palette.text.secondary, 
                 textTransform: "none",
                 minWidth: "auto",
                 px: 1,
@@ -718,81 +718,81 @@ function WalletContent({ onBack }) {
               </Typography>
             </Box>
           ) : hasTransactions ? (
-            <List dense sx={{ mt: 0, py: 0 }}>
-              {TRANSACTIONS.map((tx) => (
-                <ListItem
-                  key={tx.id}
-                  disableGutters
-                  onClick={() => handleTransactionClick(tx)}
-                  sx={{
+          <List dense sx={{ mt: 0, py: 0 }}>
+            {TRANSACTIONS.map((tx) => (
+              <ListItem
+                key={tx.id}
+                disableGutters
+                onClick={() => handleTransactionClick(tx)}
+                sx={{
                     py: { xs: 0.5, sm: 0.4 },
-                    cursor: "pointer",
-                    borderRadius: 1,
-                    transition: "background-color 0.15s ease",
-                    "&:hover": {
-                      bgcolor: (t) => t.palette.mode === "light" ? "rgba(0,0,0,0.02)" : "rgba(255,255,255,0.02)"
-                    },
-                    "&:not(:last-of-type)": {
-                      borderBottom: (t) => `1px dashed ${t.palette.divider}`
-                    }
-                  }}
-                >
-                  <ListItemAvatar>
-                    <Avatar
-                      sx={{
+                  cursor: "pointer",
+                  borderRadius: 1,
+                  transition: "background-color 0.15s ease",
+                  "&:hover": {
+                    bgcolor: (t) => t.palette.mode === "light" ? "rgba(0,0,0,0.02)" : "rgba(255,255,255,0.02)"
+                  },
+                  "&:not(:last-of-type)": {
+                    borderBottom: (t) => `1px dashed ${t.palette.divider}`
+                  }
+                }}
+              >
+                <ListItemAvatar>
+                  <Avatar
+                    sx={{
                         width: { xs: 28, sm: 30 },
                         height: { xs: 28, sm: 30 },
-                        bgcolor:
-                          tx.type === "topup"
-                            ? "rgba(22,163,74,0.12)"
-                            : tx.type === "ride"
-                            ? "rgba(37,99,235,0.12)"
-                            : "rgba(234,88,12,0.12)",
-                        color:
-                          tx.type === "topup"
-                            ? "#16A34A"
-                            : tx.type === "ride"
-                            ? "#1D4ED8"
-                            : "#EA580C"
-                      }}
-                    >
-                      {tx.icon}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Typography
-                        variant="caption"
-                        sx={{ fontSize: { xs: 11, sm: 11.5 }, fontWeight: 500 }}
-                      >
-                        {tx.title}
-                      </Typography>
-                    }
-                    secondary={
-                      <Typography
-                        variant="caption"
-                        sx={{ fontSize: { xs: 10, sm: 10.5 }, color: (t) => t.palette.text.secondary }}
-                      >
-                        {tx.source} • {tx.time}
-                      </Typography>
-                    }
-                  />
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontSize: { xs: 10.5, sm: 11 },
-                      fontWeight: 600,
+                      bgcolor:
+                        tx.type === "topup"
+                          ? "rgba(22,163,74,0.12)"
+                          : tx.type === "ride"
+                          ? "rgba(37,99,235,0.12)"
+                          : "rgba(234,88,12,0.12)",
                       color:
                         tx.type === "topup"
                           ? "#16A34A"
-                          : "rgba(15,23,42,0.85)"
+                          : tx.type === "ride"
+                          ? "#1D4ED8"
+                          : "#EA580C"
                     }}
                   >
-                    {tx.amount}
-                  </Typography>
-                </ListItem>
-              ))}
-            </List>
+                    {tx.icon}
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={
+                    <Typography
+                      variant="caption"
+                        sx={{ fontSize: { xs: 11, sm: 11.5 }, fontWeight: 500 }}
+                    >
+                      {tx.title}
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography
+                      variant="caption"
+                        sx={{ fontSize: { xs: 10, sm: 10.5 }, color: (t) => t.palette.text.secondary }}
+                    >
+                      {tx.source} • {tx.time}
+                    </Typography>
+                  }
+                />
+                <Typography
+                  variant="caption"
+                  sx={{
+                      fontSize: { xs: 10.5, sm: 11 },
+                    fontWeight: 600,
+                    color:
+                      tx.type === "topup"
+                        ? "#16A34A"
+                        : "rgba(15,23,42,0.85)"
+                  }}
+                >
+                  {tx.amount}
+                </Typography>
+              </ListItem>
+            ))}
+          </List>
           ) : (
             <Box sx={{ py: 4, textAlign: "center" }}>
               <Typography

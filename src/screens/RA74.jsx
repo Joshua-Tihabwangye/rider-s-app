@@ -296,7 +296,7 @@ function RentalBookingSummaryPaymentScreen() {
                         t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 border:
                   paymentMethod === "card"
-                    ? "1px solid #0EA5E9"
+                    ? "1px solid #03CD8C"
                     : (t) =>
                         t.palette.mode === "light"
                           ? "1px solid rgba(209,213,219,0.9)"

@@ -341,7 +341,7 @@ function PickDestinationMapScreen() {
                   : "rgba(255,255,255,0.3)"
               },
               "&.Mui-focused fieldset": {
-                borderColor: "#00AEEF"
+                borderColor: "#03CD8C"
               }
             },
             "& .MuiInputBase-input": {
@@ -530,7 +530,7 @@ function PickDestinationMapScreen() {
               fontWeight: 600,
               textTransform: "none",
             bgcolor: theme.palette.mode === "light"
-              ? "#00AEEF"
+              ? "#03CD8C"
               : "rgba(255,255,255,0.1)",
             color: "#FFFFFF",
             border: theme.palette.mode === "light"
@@ -539,7 +539,7 @@ function PickDestinationMapScreen() {
             boxShadow: "none",
             "&:hover": {
               bgcolor: theme.palette.mode === "light"
-                ? "#0099CC"
+                ? "#22C55E"
                 : "rgba(255,255,255,0.15)",
               boxShadow: "none"
             }

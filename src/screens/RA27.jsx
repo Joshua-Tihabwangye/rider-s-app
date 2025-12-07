@@ -123,7 +123,7 @@ function TripInProgressExpandedDetailsScreen() {
             position: "absolute",
             top: 16,
             left: 16,
-            bgcolor: "#2196F3",
+            bgcolor: "#03CD8C",
             color: "#FFFFFF",
             width: 40,
             height: 40,
@@ -182,7 +182,7 @@ function TripInProgressExpandedDetailsScreen() {
           <DirectionsCarFilledRoundedIcon
             sx={{
               fontSize: 32,
-              color: "#2196F3",
+              color: "#03CD8C",
               filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
             }}
           />
@@ -236,7 +236,7 @@ function TripInProgressExpandedDetailsScreen() {
             position: "absolute",
             bottom: 16,
             right: 16,
-            bgcolor: "#2196F3",
+            bgcolor: "#03CD8C",
             color: "#FFFFFF",
             width: 48,
             height: 48,
@@ -287,7 +287,7 @@ function TripInProgressExpandedDetailsScreen() {
                 sx={{
                   bgcolor: (theme) =>
                     theme.palette.mode === "light" ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)",
-                  color: "#2196F3"
+                  color: "#03CD8C"
                 }}
               >
                 <ShareRoundedIcon sx={{ fontSize: 20 }} />
@@ -359,7 +359,7 @@ function TripInProgressExpandedDetailsScreen() {
                     bgcolor: "rgba(255,255,255,0.2)",
                     "& .MuiLinearProgress-bar": {
                       borderRadius: 999,
-                      bgcolor: "#2196F3"
+                      bgcolor: "#03CD8C"
                     }
                   }}
                 />
@@ -376,7 +376,7 @@ function TripInProgressExpandedDetailsScreen() {
                   <DirectionsCarFilledRoundedIcon
                     sx={{
                       fontSize: 20,
-                      color: "#2196F3",
+                      color: "#03CD8C",
                       filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))"
                     }}
                   />
@@ -488,7 +488,7 @@ function TripInProgressExpandedDetailsScreen() {
                   sx={{
                     width: 48,
                     height: 48,
-                    bgcolor: "#2196F3",
+                    bgcolor: "#03CD8C",
                     fontSize: 20,
                     fontWeight: 600
                   }}

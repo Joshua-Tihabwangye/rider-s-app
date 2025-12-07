@@ -52,11 +52,11 @@ function EnterDestinationMultipleStopsScreen() {
   const [showError, setShowError] = useState(false);
 
   // Theme-aware colors
-  const headerBg = "#0B1E3A"; // Deep navy
+  const headerBg = "#03CD8C"; // Green header
   const headerText = "#FFFFFF";
   const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
-  const accentBlue = "#00B7FF"; // Teal/blue
-  const lightBlue = "#E3F2FD"; // Light blue for active passenger
+  const accentGreen = "#03CD8C"; // Green
+  const lightGreen = "rgba(3,205,140,0.1)"; // Light green for active passenger
 
   const passengerOptions = [1, 2, 3, 4, 5, 6];
 
@@ -140,7 +140,7 @@ function EnterDestinationMultipleStopsScreen() {
     <Box
       sx={{
         minHeight: "100vh",
-        bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "#0B1E3A",
+        bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "#03CD8C",
         paddingBottom: { 
           xs: "calc(100px + env(safe-area-inset-bottom))", 
           sm: "120px"
@@ -232,7 +232,7 @@ function EnterDestinationMultipleStopsScreen() {
                 }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: 999,
+          borderRadius: 999,
                     bgcolor: theme.palette.mode === "light"
                       ? "rgba(0,0,0,0.05)"
                       : "rgba(255,255,255,0.05)",
@@ -243,10 +243,10 @@ function EnterDestinationMultipleStopsScreen() {
                         : "rgba(255,255,255,0.2)"
                     },
                     "&:hover fieldset": {
-                      borderColor: accentBlue
+                      borderColor: accentGreen
                     },
                     "&.Mui-focused fieldset": {
-                      borderColor: accentBlue
+                      borderColor: accentGreen
                     }
                   }
                 }}
@@ -274,15 +274,15 @@ function EnterDestinationMultipleStopsScreen() {
                                 borderRadius: isSquare ? 1 : "50%", // Square for B, circular for others
                                 bgcolor: "rgba(15,23,42,0.9)",
                                 color: "#F9FAFB",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: 12,
-                                fontWeight: 600
-                              }}
-                            >
-                              {stop.id}
-                            </Box>
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 12,
+          fontWeight: 600
+        }}
+      >
+        {stop.id}
+      </Box>
                           </InputAdornment>
                         ),
                         endAdornment: (
@@ -317,10 +317,10 @@ function EnterDestinationMultipleStopsScreen() {
                               : "rgba(255,255,255,0.2)"
                           },
                           "&:hover fieldset": {
-                            borderColor: accentBlue
+                            borderColor: accentGreen
                           },
                           "&.Mui-focused fieldset": {
-                            borderColor: accentBlue
+                            borderColor: accentGreen
                           }
                         }
                       }}
@@ -331,38 +331,38 @@ function EnterDestinationMultipleStopsScreen() {
 
               {/* Add Stop Field */}
               {stops.length < MAX_STOPS && (
-                <TextField
-                  fullWidth
-                  size="small"
+      <TextField
+        fullWidth
+        size="small"
                   variant="outlined"
                   placeholder="Add stop."
                   onClick={handleAddStop}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
                         <PlaceRoundedIcon sx={{ fontSize: 20, color: "#FF9800" }} />
-                      </InputAdornment>
-                    )
-                  }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 999,
+            </InputAdornment>
+          )
+        }}
+        sx={{
+          "& .MuiOutlinedInput-root": {
+            borderRadius: 999,
                       bgcolor: theme.palette.mode === "light"
                         ? "rgba(0,0,0,0.05)"
                         : "rgba(255,255,255,0.05)",
                       color: theme.palette.text.primary,
                       cursor: "pointer",
-                      "& fieldset": {
+            "& fieldset": {
                         borderColor: theme.palette.mode === "light"
                           ? "rgba(0,0,0,0.15)"
                           : "rgba(255,255,255,0.2)"
-                      },
+            },
                       "&:hover fieldset": {
                         borderColor: "#FF9800"
                       }
-                    }
-                  }}
-                />
+          }
+        }}
+      />
               )}
 
               {/* Date & Time Selector */}
@@ -381,8 +381,8 @@ function EnterDestinationMultipleStopsScreen() {
                     ? "rgba(0,0,0,0.05)"
                     : "rgba(255,255,255,0.05)",
                   "&:hover": {
-                    borderColor: accentBlue,
-                    bgcolor: `${accentBlue}10`
+                    borderColor: accentGreen,
+                    bgcolor: "rgba(3,205,140,0.1)"
                   },
                   justifyContent: "flex-start"
                 }}
@@ -392,7 +392,7 @@ function EnterDestinationMultipleStopsScreen() {
             </Stack>
           </CardContent>
         </Card>
-      </Box>
+    </Box>
 
       {/* Lower Section */}
       <Box
@@ -434,12 +434,12 @@ function EnterDestinationMultipleStopsScreen() {
                   onChange={(e) => setRideType(e.target.value)}
                   renderValue={(value) => (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <PersonRoundedIcon sx={{ fontSize: 18, color: accentBlue }} />
+                      <PersonRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
                       <Typography>{value}</Typography>
                     </Box>
                   )}
-                  sx={{
-                    borderRadius: 999,
+            sx={{
+              borderRadius: 999,
                     bgcolor: theme.palette.mode === "light"
                       ? "rgba(0,0,0,0.05)"
                       : "rgba(255,255,255,0.05)",
@@ -450,10 +450,10 @@ function EnterDestinationMultipleStopsScreen() {
                         : "rgba(255,255,255,0.2)"
                     },
                     "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: accentBlue
+                      borderColor: accentGreen
                     },
                     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      borderColor: accentBlue
+                      borderColor: accentGreen
                     }
                   }}
                 >
@@ -504,7 +504,7 @@ function EnterDestinationMultipleStopsScreen() {
                   onChange={(e) => setTripDirection(e.target.value)}
                   renderValue={(value) => (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <DirectionsCarRoundedIcon sx={{ fontSize: 18, color: accentBlue }} />
+                      <DirectionsCarRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
                       <Typography>{value}</Typography>
                     </Box>
                   )}
@@ -520,10 +520,10 @@ function EnterDestinationMultipleStopsScreen() {
                         : "rgba(255,255,255,0.2)"
                     },
                     "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: accentBlue
+                      borderColor: accentGreen
                     },
                     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      borderColor: accentBlue
+                      borderColor: accentGreen
                     }
                   }}
                 >
@@ -531,19 +531,19 @@ function EnterDestinationMultipleStopsScreen() {
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <DirectionsCarRoundedIcon sx={{ fontSize: 18 }} />
                       One Way
-                    </Box>
+          </Box>
                   </MenuItem>
                   <MenuItem value="Round Trip">
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <DirectionsCarRoundedIcon sx={{ fontSize: 18 }} />
                       Round Trip
-                    </Box>
+        </Box>
                   </MenuItem>
                   <MenuItem value="Multi-stop">
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <DirectionsCarRoundedIcon sx={{ fontSize: 18 }} />
                       Multi-stop
-                    </Box>
+      </Box>
                   </MenuItem>
                 </Select>
               </FormControl>
@@ -552,28 +552,28 @@ function EnterDestinationMultipleStopsScreen() {
         </Stack>
 
         {/* Passenger Selection */}
-        <Card
-          elevation={0}
-          sx={{
-            mb: 2.5,
-            borderRadius: 2,
+      <Card
+        elevation={0}
+        sx={{
+          mb: 2.5,
+          borderRadius: 2,
             bgcolor: contentBg,
             border: theme.palette.mode === "light"
               ? "1px solid rgba(0,0,0,0.1)"
               : "1px solid rgba(255,255,255,0.1)"
-          }}
-        >
+        }}
+      >
           <CardContent sx={{ px: 2, py: 1.5 }}>
-            <Typography
+          <Typography
               variant="subtitle2"
               sx={{ 
                 fontWeight: 600, 
                 mb: 1.5, 
                 color: theme.palette.text.primary 
               }}
-            >
+          >
               Passengers
-            </Typography>
+          </Typography>
             <Stack 
               direction="row" 
               spacing={1} 
@@ -603,12 +603,12 @@ function EnterDestinationMultipleStopsScreen() {
                     fontWeight: 600,
                     flexShrink: 0,
                     bgcolor: passengers === pax && !customPassengers
-                      ? lightBlue
+                      ? lightGreen
                       : theme.palette.mode === "light"
                         ? "rgba(0,0,0,0.05)"
                         : "rgba(255,255,255,0.05)",
                     color: passengers === pax && !customPassengers
-                      ? accentBlue
+                      ? accentGreen
                       : theme.palette.text.primary,
                     border: passengers === pax && !customPassengers
                       ? "none"
@@ -619,7 +619,7 @@ function EnterDestinationMultipleStopsScreen() {
                     transition: "all 0.2s ease",
                     "&:hover": {
                       bgcolor: passengers === pax && !customPassengers
-                        ? lightBlue
+                        ? lightGreen
                         : theme.palette.mode === "light"
                           ? "rgba(0,0,0,0.1)"
                           : "rgba(255,255,255,0.1)"
@@ -628,8 +628,8 @@ function EnterDestinationMultipleStopsScreen() {
                 />
               ))}
             </Stack>
-            <TextField
-              fullWidth
+          <TextField
+            fullWidth
               type="number"
               placeholder="Enter number of passengers (more than 6)"
               value={customPassengers}
@@ -645,46 +645,46 @@ function EnterDestinationMultipleStopsScreen() {
               onFocus={() => {
                 setPassengers(customPassengers ? parseInt(customPassengers) : 1);
               }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
                     <PersonRoundedIcon 
                       sx={{ 
                         fontSize: 18, 
                         color: theme.palette.text.secondary 
                       }} 
                     />
-                  </InputAdornment>
+                </InputAdornment>
                 ),
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
                   bgcolor: theme.palette.mode === "light"
                     ? "rgba(0,0,0,0.02)"
                     : "rgba(255,255,255,0.05)",
-                  "& fieldset": {
+                "& fieldset": {
                     borderColor: theme.palette.mode === "light"
                       ? "rgba(0,0,0,0.15)"
                       : "rgba(255,255,255,0.2)"
-                  },
+                },
                   "&:hover fieldset": {
                     borderColor: theme.palette.mode === "light"
                       ? "rgba(0,0,0,0.3)"
                       : "rgba(255,255,255,0.3)"
                   },
                   "&.Mui-focused fieldset": {
-                    borderColor: accentBlue
+                    borderColor: accentGreen
                   }
                 },
                 "& .MuiInputBase-input": {
                   fontSize: 14,
                   py: 1.25
-                }
-              }}
-            />
-          </CardContent>
-        </Card>
+              }
+            }}
+          />
+        </CardContent>
+      </Card>
       </Box>
 
       {/* Fixed Bottom Section */}
@@ -704,38 +704,38 @@ function EnterDestinationMultipleStopsScreen() {
           maxWidth: { lg: 600, xl: 600 },
           margin: { lg: "0 auto", xl: "0 auto" }
         }}
-      >
+          >
         {/* Locate on Map Button */}
-        <Button
+          <Button
           fullWidth
           onClick={handleLocateOnMap}
-          sx={{
+            sx={{
             mb: 1.5,
-            color: accentBlue,
-            textTransform: "none",
+            color: accentGreen,
+              textTransform: "none",
             fontSize: 14,
             fontWeight: 500,
             "&:hover": {
-              bgcolor: `${accentBlue}10`
+              bgcolor: rgba(3,205,140,0.1)
             }
-          }}
+            }}
           startIcon={<MapRoundedIcon />}
         >
           Locate on Map
-        </Button>
+          </Button>
 
         {/* Continue Button */}
-        <Button
-          fullWidth
-          variant="contained"
+      <Button
+        fullWidth
+        variant="contained"
           onClick={handleContinue}
           disabled={!canContinue}
-          sx={{
+        sx={{
             borderRadius: 2,
             py: 1.5,
             fontSize: 16,
-            fontWeight: 600,
-            textTransform: "none",
+          fontWeight: 600,
+          textTransform: "none",
             bgcolor: canContinue ? "#000000" : "rgba(0,0,0,0.2)",
             color: "#FFFFFF",
             boxShadow: "none",
@@ -748,24 +748,24 @@ function EnterDestinationMultipleStopsScreen() {
               color: "#FFFFFF",
               opacity: 1
             }
-          }}
-        >
-          Continue
-        </Button>
+        }}
+      >
+        Continue
+      </Button>
       </Box>
     </Box>
   );
 }
 
 export default function RiderScreen39EnterDestinationMultipleStopsCanvas_v2() {
-  return (
-    <Box
-      sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}
-    >
-      <DarkModeToggle />
-      <MobileShell>
-        <EnterDestinationMultipleStopsScreen />
-      </MobileShell>
-    </Box>
+      return (
+      <Box
+        sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}
+      >
+        <DarkModeToggle />
+        <MobileShell>
+          <EnterDestinationMultipleStopsScreen />
+        </MobileShell>
+      </Box>
   );
 }

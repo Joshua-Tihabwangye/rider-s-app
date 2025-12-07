@@ -103,7 +103,7 @@ function UpcomingRideCard({ ride }) {
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.3 }}>
-            <PlaceRoundedIcon sx={{ fontSize: 16, color: "#3b82f6" }} />
+            <PlaceRoundedIcon sx={{ fontSize: 16, color: "#03CD8C" }} />
             <Typography
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}

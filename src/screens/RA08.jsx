@@ -139,7 +139,7 @@ function ScheduleRideScreen() {
   const canDone = rideLater && selectedDate && selectedTime;
   
   // Theme-aware colors
-  const accentBlue = "#007BFF";
+  const accentGreen = "#03CD8C";
   const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
   
   return (
@@ -179,8 +179,8 @@ function ScheduleRideScreen() {
                 <Checkbox
                   checked={rideLater}
                   onChange={(e) => setRideLater(e.target.checked)}
-                  icon={<CircleOutlinedIcon sx={{ color: accentBlue }} />}
-                  checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentBlue }} />}
+                  icon={<CircleOutlinedIcon sx={{ color: accentGreen }} />}
+                  checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentGreen }} />}
                   sx={{ p: 0 }}
                 />
                 <Typography
@@ -253,7 +253,7 @@ function ScheduleRideScreen() {
                             borderRadius: 2,
                             cursor: "pointer",
                             bgcolor: isSelected
-                              ? accentBlue
+                              ? accentGreen
                               : theme.palette.mode === "light"
                                 ? "rgba(0,0,0,0.05)"
                                 : "rgba(255,255,255,0.05)",
@@ -263,7 +263,7 @@ function ScheduleRideScreen() {
                             transition: "all 0.2s ease",
                             "&:hover": {
                               bgcolor: isSelected
-                                ? accentBlue
+                                ? accentGreen
                                 : theme.palette.mode === "light"
                                   ? "rgba(0,0,0,0.1)"
                                   : "rgba(255,255,255,0.1)"
@@ -346,7 +346,7 @@ function ScheduleRideScreen() {
                           width: 4
                         },
                         "&::-webkit-scrollbar-thumb": {
-                          bgcolor: accentBlue,
+                          bgcolor: accentGreen,
                           borderRadius: 2
                         }
                       }}
@@ -364,7 +364,7 @@ function ScheduleRideScreen() {
                               textAlign: "center",
                               cursor: "pointer",
                               bgcolor: isSelected
-                                ? accentBlue
+                                ? accentGreen
                                 : "transparent",
                               color: isSelected
                                 ? "#FFFFFF"
@@ -372,7 +372,7 @@ function ScheduleRideScreen() {
                               transition: "all 0.2s ease",
                               "&:hover": {
                                 bgcolor: isSelected
-                                  ? accentBlue
+                                  ? accentGreen
                                   : theme.palette.mode === "light"
                                     ? "rgba(0,0,0,0.05)"
                                     : "rgba(255,255,255,0.05)"
@@ -402,7 +402,7 @@ function ScheduleRideScreen() {
                           width: 4
                         },
                         "&::-webkit-scrollbar-thumb": {
-                          bgcolor: accentBlue,
+                          bgcolor: accentGreen,
                           borderRadius: 2
                         }
                       }}
@@ -420,7 +420,7 @@ function ScheduleRideScreen() {
                               textAlign: "center",
                               cursor: "pointer",
                               bgcolor: isSelected
-                                ? accentBlue
+                                ? accentGreen
                                 : "transparent",
                               color: isSelected
                                 ? "#FFFFFF"
@@ -428,7 +428,7 @@ function ScheduleRideScreen() {
                               transition: "all 0.2s ease",
                               "&:hover": {
                                 bgcolor: isSelected
-                                  ? accentBlue
+                                  ? accentGreen
                                   : theme.palette.mode === "light"
                                     ? "rgba(0,0,0,0.05)"
                                     : "rgba(255,255,255,0.05)"
@@ -464,7 +464,7 @@ function ScheduleRideScreen() {
                               textAlign: "center",
                               cursor: "pointer",
                               bgcolor: isSelected
-                                ? accentBlue
+                                ? accentGreen
                                 : "transparent",
                               color: isSelected
                                 ? "#FFFFFF"
@@ -472,7 +472,7 @@ function ScheduleRideScreen() {
                               transition: "all 0.2s ease",
                               "&:hover": {
                                 bgcolor: isSelected
-                                  ? accentBlue
+                                  ? accentGreen
                                   : theme.palette.mode === "light"
                                     ? "rgba(0,0,0,0.05)"
                                     : "rgba(255,255,255,0.05)"

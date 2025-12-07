@@ -98,7 +98,7 @@ function SwitchRiderChooserScreen() {
   const canContinue = riderType !== "";
   
   // Theme-aware colors
-  const accentBlue = "#007BFF";
+  const accentGreen = "#03CD8C";
   const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
   const headerBg = theme.palette.mode === "light" ? "#1E2A47" : "#1E2A47";
   const headerText = theme.palette.mode === "light" ? "#FFFFFF" : "#FFFFFF";
@@ -234,7 +234,7 @@ function SwitchRiderChooserScreen() {
                         value={rideType}
                         renderValue={(value) => (
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <PersonRoundedIcon sx={{ fontSize: 18, color: accentBlue }} />
+                            <PersonRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
                             <Typography>{value}</Typography>
                           </Box>
                         )}
@@ -268,7 +268,7 @@ function SwitchRiderChooserScreen() {
                         value={tripType}
                         renderValue={(value) => (
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <DirectionsCarRoundedIcon sx={{ fontSize: 18, color: accentBlue }} />
+                            <DirectionsCarRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
                             <Typography>{value}</Typography>
                           </Box>
                         )}
@@ -331,7 +331,7 @@ function SwitchRiderChooserScreen() {
                               fontSize: 14,
                               fontWeight: 600,
                               bgcolor: passengers === pax
-                                ? accentBlue
+                                ? accentGreen
                                 : theme.palette.mode === "light"
                                   ? "rgba(0,0,0,0.05)"
                                   : "rgba(255,255,255,0.05)",
@@ -347,7 +347,7 @@ function SwitchRiderChooserScreen() {
                               transition: "all 0.2s ease",
                               "&:hover": {
                                 bgcolor: passengers === pax
-                                  ? accentBlue
+                                  ? accentGreen
                                   : theme.palette.mode === "light"
                                     ? "rgba(0,0,0,0.1)"
                                     : "rgba(255,255,255,0.1)"
@@ -393,8 +393,8 @@ function SwitchRiderChooserScreen() {
                   value="personal"
                   control={
                     <Radio
-                      icon={<CircleOutlinedIcon sx={{ color: accentBlue }} />}
-                      checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentBlue }} />}
+                      icon={<CircleOutlinedIcon sx={{ color: accentGreen }} />}
+                      checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentGreen }} />}
                     />
                   }
                   label={
@@ -411,13 +411,13 @@ function SwitchRiderChooserScreen() {
                     borderRadius: 2,
                     bgcolor: riderType === "personal"
                       ? theme.palette.mode === "light"
-                        ? `${accentBlue}10`
-                        : `${accentBlue}20`
+                        ? rgba(3,205,140,0.1)
+                        : rgba(3,205,140,0.2)
                       : "transparent",
-                    border: riderType === "personal"
-                      ? `1px solid ${accentBlue}`
-                      : theme.palette.mode === "light"
-                        ? "1px solid rgba(0,0,0,0.1)"
+                      border: riderType === "personal"
+                        ? "1px solid #03CD8C"
+                        : theme.palette.mode === "light"
+                          ? "1px solid rgba(0,0,0,0.1)"
                         : "1px solid rgba(255,255,255,0.1)",
                     cursor: "pointer",
                     "&:hover": {
@@ -433,8 +433,8 @@ function SwitchRiderChooserScreen() {
                   value="contact"
                   control={
                     <Radio
-                      icon={<CircleOutlinedIcon sx={{ color: accentBlue }} />}
-                      checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentBlue }} />}
+                      icon={<CircleOutlinedIcon sx={{ color: accentGreen }} />}
+                      checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentGreen }} />}
                     />
                   }
                   label={
@@ -451,13 +451,13 @@ function SwitchRiderChooserScreen() {
                     borderRadius: 2,
                     bgcolor: riderType === "contact"
                       ? theme.palette.mode === "light"
-                        ? `${accentBlue}10`
-                        : `${accentBlue}20`
+                        ? rgba(3,205,140,0.1)
+                        : rgba(3,205,140,0.2)
                       : "transparent",
-                    border: riderType === "contact"
-                      ? `1px solid ${accentBlue}`
-                      : theme.palette.mode === "light"
-                        ? "1px solid rgba(0,0,0,0.1)"
+                      border: riderType === "contact"
+                        ? "1px solid #03CD8C"
+                        : theme.palette.mode === "light"
+                          ? "1px solid rgba(0,0,0,0.1)"
                         : "1px solid rgba(255,255,255,0.1)",
                     cursor: "pointer",
                     "&:hover": {
@@ -473,8 +473,8 @@ function SwitchRiderChooserScreen() {
                   value="manual"
                   control={
                     <Radio
-                      icon={<CircleOutlinedIcon sx={{ color: accentBlue }} />}
-                      checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentBlue }} />}
+                      icon={<CircleOutlinedIcon sx={{ color: accentGreen }} />}
+                      checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentGreen }} />}
                     />
                   }
                   label={
@@ -491,11 +491,11 @@ function SwitchRiderChooserScreen() {
                     borderRadius: 2,
                     bgcolor: riderType === "manual"
                       ? theme.palette.mode === "light"
-                        ? `${accentBlue}10`
-                        : `${accentBlue}20`
+                        ? rgba(3,205,140,0.1)
+                        : rgba(3,205,140,0.2)
                       : "transparent",
                     border: riderType === "manual"
-                      ? `1px solid ${accentBlue}`
+                      ? "1px solid #03CD8C"
                       : theme.palette.mode === "light"
                         ? "1px solid rgba(0,0,0,0.1)"
                         : "1px solid rgba(255,255,255,0.1)",

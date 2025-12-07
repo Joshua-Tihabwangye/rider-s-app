@@ -83,7 +83,7 @@ function AmbulanceLiveTrackingScreen() {
           mb: 2.5,
           background: (t) =>
             t.palette.mode === "light"
-              ? "radial-gradient(circle at top, #FECACA 0, #F3F4F6 55%, #CBD5F5 100%)"
+              ? "radial-gradient(circle at top, #FECACA 0, #F3F4F6 55%, rgba(3,205,140,0.1) 100%)"
               : "radial-gradient(circle at top, rgba(185,28,28,0.7), #020617 60%, #020617 100%)"
         }}
       >

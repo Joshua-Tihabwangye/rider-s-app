@@ -72,7 +72,7 @@ function DriverAssignedOnTheWayScreen() {
           height: "45vh",
           background: (theme) =>
             theme.palette.mode === "light"
-              ? "linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 50%, #93C5FD 100%)"
+              ? "linear-gradient(135deg, #E0F2FE 0%, rgba(3,205,140,0.15) 50%, #93C5FD 100%)"
               : "linear-gradient(135deg, rgba(15,118,205,0.3), #020617 60%, #020617 100%)",
           overflow: "hidden"
         }}
@@ -97,7 +97,7 @@ function DriverAssignedOnTheWayScreen() {
             left: "25%",
             fontSize: 10,
             fontWeight: 600,
-            color: "#1E40AF"
+            color: "#03CD8C"
           }}
         >
           Faz 41
@@ -110,7 +110,7 @@ function DriverAssignedOnTheWayScreen() {
             left: "30%",
             fontSize: 10,
             fontWeight: 600,
-            color: "#1E40AF"
+            color: "#03CD8C"
           }}
         >
           BUGONGA
@@ -123,7 +123,7 @@ function DriverAssignedOnTheWayScreen() {
             right: "20%",
             fontSize: 10,
             fontWeight: 500,
-            color: "#1E40AF"
+            color: "#03CD8C"
           }}
         >
           aero beach
@@ -138,7 +138,7 @@ function DriverAssignedOnTheWayScreen() {
             position: "absolute",
             top: 16,
             left: 16,
-            bgcolor: "#2196F3",
+            bgcolor: "#03CD8C",
             color: "#FFFFFF",
             width: 40,
             height: 40,
@@ -249,7 +249,7 @@ function DriverAssignedOnTheWayScreen() {
               height: 100,
               mx: "auto",
               mb: 1.5,
-              bgcolor: "#2196F3",
+              bgcolor: "#03CD8C",
               fontSize: 36,
               fontWeight: 600,
               border: "4px solid white",
@@ -392,7 +392,7 @@ function DriverAssignedOnTheWayScreen() {
             fontSize: 15,
             fontWeight: 600,
             textTransform: "none",
-            bgcolor: "#2196F3",
+            bgcolor: "#03CD8C",
             color: "#FFFFFF",
             "&:hover": {
               bgcolor: "#1976D2"

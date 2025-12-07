@@ -136,7 +136,7 @@ function RideLaterSummaryScreen() {
 
             <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.2 }}>
               <PlaceRoundedIcon
-                sx={{ fontSize: 18, color: "#3b82f6", mt: 0.2 }}
+                sx={{ fontSize: 18, color: "#03CD8C", mt: 0.2 }}
               />
               <Box sx={{ flex: 1 }}>
                 <Typography
@@ -235,7 +235,7 @@ function RideLaterSummaryScreen() {
 
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
                 <AutorenewRoundedIcon
-                  sx={{ fontSize: 18, color: "#0EA5E9" }}
+                  sx={{ fontSize: 18, color: "#03CD8C" }}
                 />
                 <Box>
                   <Typography

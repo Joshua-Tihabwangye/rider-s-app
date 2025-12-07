@@ -301,7 +301,7 @@ function TourBookingSummaryPaymentScreen() {
                     : "rgba(15,23,42,0.96)",
                 border: (t) =>
                   paymentMethod === "card"
-                    ? "1px solid #3B82F6"
+                    ? "1px solid #03CD8C"
                     : t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
                     : "1px solid rgba(51,65,85,0.9)"

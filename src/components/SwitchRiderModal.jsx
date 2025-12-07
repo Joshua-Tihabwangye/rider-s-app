@@ -161,7 +161,7 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }) {
   );
   
   // Theme-aware colors
-  const accentBlue = "#007BFF";
+  const accentGreen = "#03CD8C";
   const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
   
   return (
@@ -295,7 +295,7 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }) {
                         value={rideType}
                         renderValue={(value) => (
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <PersonRoundedIcon sx={{ fontSize: 18, color: accentBlue }} />
+                            <PersonRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
                             <Typography>{value}</Typography>
                           </Box>
                         )}
@@ -329,7 +329,7 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }) {
                         value={tripType}
                         renderValue={(value) => (
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <DirectionsCarRoundedIcon sx={{ fontSize: 18, color: accentBlue }} />
+                            <DirectionsCarRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
                             <Typography>{value}</Typography>
                           </Box>
                         )}
@@ -393,7 +393,7 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }) {
                               fontSize: 14,
                               fontWeight: 600,
                               bgcolor: passengers === pax
-                                ? accentBlue
+                                ? accentGreen
                                 : theme.palette.mode === "light"
                                   ? "rgba(0,0,0,0.05)"
                                   : "rgba(255,255,255,0.05)",
@@ -409,7 +409,7 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }) {
                               transition: "all 0.2s ease",
                               "&:hover": {
                                 bgcolor: passengers === pax
-                                  ? accentBlue
+                                  ? accentGreen
                                   : theme.palette.mode === "light"
                                     ? "rgba(0,0,0,0.1)"
                                     : "rgba(255,255,255,0.1)"
@@ -466,8 +466,8 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }) {
                   value="personal"
                   control={
                     <Radio
-                      icon={<CircleOutlinedIcon sx={{ color: accentBlue }} />}
-                      checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentBlue }} />}
+                      icon={<CircleOutlinedIcon sx={{ color: accentGreen }} />}
+                      checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentGreen }} />}
                     />
                   }
                   label={
@@ -484,11 +484,11 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }) {
                     borderRadius: 2,
                     bgcolor: riderType === "personal"
                       ? theme.palette.mode === "light"
-                        ? `${accentBlue}10`
-                        : `${accentBlue}20`
+                        ? rgba(3,205,140,0.1)
+                        : rgba(3,205,140,0.2)
                       : contentBg,
                     border: riderType === "personal"
-                      ? `1px solid ${accentBlue}`
+                      ? "1px solid #03CD8C"
                       : theme.palette.mode === "light"
                         ? "1px solid rgba(0,0,0,0.1)"
                         : "1px solid rgba(255,255,255,0.1)",
@@ -511,8 +511,8 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }) {
                       value={contactValue}
                       control={
                         <Radio
-                          icon={<CircleOutlinedIcon sx={{ color: accentBlue }} />}
-                          checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentBlue }} />}
+                          icon={<CircleOutlinedIcon sx={{ color: accentGreen }} />}
+                          checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentGreen }} />}
                         />
                       }
                       onClick={() => handleContactSelect(contact)}
@@ -541,11 +541,11 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }) {
                         borderRadius: 2,
                         bgcolor: isSelected
                           ? theme.palette.mode === "light"
-                            ? `${accentBlue}10`
-                            : `${accentBlue}20`
+                            ? rgba(3,205,140,0.1)
+                            : rgba(3,205,140,0.2)
                           : contentBg,
                         border: isSelected
-                          ? `1px solid ${accentBlue}`
+                          ? "1px solid #03CD8C"
                           : theme.palette.mode === "light"
                             ? "1px solid rgba(0,0,0,0.1)"
                             : "1px solid rgba(255,255,255,0.1)",
@@ -565,8 +565,8 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }) {
                   value="add-contact"
                   control={
                     <Radio
-                      icon={<CircleOutlinedIcon sx={{ color: accentBlue }} />}
-                      checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentBlue }} />}
+                      icon={<CircleOutlinedIcon sx={{ color: accentGreen }} />}
+                      checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentGreen }} />}
                     />
                   }
                   label={
@@ -586,11 +586,11 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }) {
                     borderRadius: 2,
                     bgcolor: riderType === "add-contact"
                       ? theme.palette.mode === "light"
-                        ? `${accentBlue}10`
-                        : `${accentBlue}20`
+                        ? rgba(3,205,140,0.1)
+                        : rgba(3,205,140,0.2)
                       : contentBg,
                     border: riderType === "add-contact"
-                      ? `1px solid ${accentBlue}`
+                      ? "1px solid #03CD8C"
                       : theme.palette.mode === "light"
                         ? "1px solid rgba(0,0,0,0.1)"
                         : "1px solid rgba(255,255,255,0.1)",
@@ -608,8 +608,8 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }) {
                   value="manual"
                   control={
                     <Radio
-                      icon={<CircleOutlinedIcon sx={{ color: accentBlue }} />}
-                      checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentBlue }} />}
+                      icon={<CircleOutlinedIcon sx={{ color: accentGreen }} />}
+                      checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentGreen }} />}
                     />
                   }
                   label={
@@ -626,11 +626,11 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }) {
                     borderRadius: 2,
                     bgcolor: riderType === "manual"
                       ? theme.palette.mode === "light"
-                        ? `${accentBlue}10`
-                        : `${accentBlue}20`
+                        ? rgba(3,205,140,0.1)
+                        : rgba(3,205,140,0.2)
                       : contentBg,
                     border: riderType === "manual"
-                      ? `1px solid ${accentBlue}`
+                      ? "1px solid #03CD8C"
                       : theme.palette.mode === "light"
                         ? "1px solid rgba(0,0,0,0.1)"
                         : "1px solid rgba(255,255,255,0.1)",
@@ -677,10 +677,10 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }) {
                             : "rgba(255,255,255,0.2)"
                         },
                         "&:hover fieldset": {
-                          borderColor: accentBlue
+                          borderColor: accentGreen
                         },
                         "&.Mui-focused fieldset": {
-                          borderColor: accentBlue
+                          borderColor: accentGreen
                         }
                       },
                       "& .MuiInputBase-input::placeholder": {

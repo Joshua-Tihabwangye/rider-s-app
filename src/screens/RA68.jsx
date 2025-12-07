@@ -31,7 +31,7 @@ const TIMELINE_STEPS = [
 function TimelineRow({ step, isLast }) {
   const isDone = step.status === "done";
   const isCurrent = step.status === "current";
-  const dotColor = isDone ? "#22c55e" : isCurrent ? "#0EA5E9" : "#CBD5F5";
+  const dotColor = isDone ? "#22c55e" : isCurrent ? "#03CD8C" : "rgba(3,205,140,0.1)";
 
   return (
     <Box sx={{ display: "flex", alignItems: "flex-start", mb: isLast ? 0 : 1.4 }}>

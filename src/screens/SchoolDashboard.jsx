@@ -105,7 +105,7 @@ function SchoolDashboardHomeScreen() {
                 textTransform: "none",
                 bgcolor: "#1D4ED8",
                 color: "#EFF6FF",
-                "&:hover": { bgcolor: "#1E40AF" }
+                "&:hover": { bgcolor: "#03CD8C" }
               }}
             >
               Open EVzone School app
@@ -215,7 +215,7 @@ function SchoolDashboardHomeScreen() {
                         ? "#16A34A"
                         : "#22C55E"
                       : t.palette.mode === "light"
-                      ? "#0284C7"
+                      ? "#03CD8C"
                       : "#38BDF8"
                 }}
               />

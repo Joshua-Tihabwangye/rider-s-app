@@ -143,22 +143,16 @@ const fetchDailyCommutes = async () => {
   return [
     {
       id: "commute-1",
-      driver: {
-        name: "Bwanbale",
-        avatar: "B",
-        vehicle: "Tesla Model X",
-        licensePlate: "UPL 630",
-        rating: 4.0
-      },
+      route: "Home → Office",
+      schedule: "Weekdays · 8:00 AM",
       origin: {
-        address: "New School, JJ Street, Kampala",
+        address: "Home",
         coordinates: { lat: 0.3476, lng: 32.5825 }
       },
       destination: {
-        address: "New School, JJ Street, Kampala",
+        address: "Office",
         coordinates: { lat: 0.3136, lng: 32.5811 }
       },
-      date: "Tomorrow",
       distance: "12 km",
       fare: "UGX 20,000"
     }
@@ -172,22 +166,18 @@ const fetchUpcomingRides = async () => {
   return [
     {
       id: "upcoming-1",
-      driver: {
-        name: "Bwanbale",
-        avatar: "B",
-        vehicle: "Tesla Model X",
-        licensePlate: "UPL 630",
-        rating: 4.0
-      },
+      time: "Today · 7:30 AM",
+      route: "Home → Office",
+      status: "Scheduled",
+      vehicle: "EV Sedan",
       origin: {
-        address: "New School, JJ Street, Kampala",
+        address: "Home",
         coordinates: { lat: 0.3476, lng: 32.5825 }
       },
       destination: {
-        address: "New School, JJ Street, Kampala",
+        address: "Office",
         coordinates: { lat: 0.3136, lng: 32.5811 }
       },
-      date: "Tomorrow",
       distance: "12 km",
       fare: "UGX 20,000"
     }
@@ -258,186 +248,42 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onSelect }) {
         }}
       >
         <CardContent sx={{ px: 1.75, py: 1.6 }}>
-          {/* Driver Profile Section */}
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <Avatar
-                sx={{
-                  width: 44,
-                  height: 44,
-                  bgcolor: "#03CD8C",
-                  color: "#020617",
-                  fontSize: 18,
-                  fontWeight: 600
+          {/* Time and Route */}
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant="subtitle2"
+                sx={{ 
+                  fontSize: 13, 
+                  fontWeight: 600, 
+                  letterSpacing: "-0.01em", 
+                  mb: 0.25
                 }}
               >
-                {ride.driver.avatar}
-              </Avatar>
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
-                >
-                  {ride.driver.name}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
-                >
-                  {ride.driver.vehicle} – {ride.driver.licensePlate}
-                </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.25 }}>
-                  <StarRating rating={ride.driver.rating} />
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* Route Information */}
-          <Box sx={{ mb: 2 }}>
-            {/* Origin */}
-            <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5, mb: 1.5 }}>
-              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", pt: 0.5 }}>
-                <Box
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: "50%",
-                    bgcolor: "#10B981",
-                    border: "2px solid white",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
-                  }}
-                />
-                <Box
-                  sx={{
-                    width: 2,
-                    height: 24,
-                    bgcolor: (t) => t.palette.mode === "light" ? "#E5E7EB" : "#374151",
-                    mt: 0.5
-                  }}
-                />
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, mb: 0.25, display: "block" }}
-                >
-                  Origin
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
-                >
-                  {ride.origin.address}
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Destination */}
-            <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
-              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", pt: 0.5 }}>
-                <Box
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: "50%",
-                    bgcolor: "#F97316",
-                    border: "2px solid white",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
-                  }}
-                />
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, mb: 0.25, display: "block" }}
-                >
-                  Destination
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
-                >
-                  {ride.destination.address}
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* Additional Details */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              mb: 2,
-              pb: 2,
-              borderBottom: (t) => `1px solid ${t.palette.divider}`
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <CalendarTodayRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                {ride.date}
+                {ride.time} – {ride.route}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ 
+                  fontSize: 10.5, 
+                  color: (t) => t.palette.text.secondary
+                }}
+              >
+                {ride.status} · {ride.vehicle}
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <DirectionsCarFilledRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                {ride.distance}
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <AttachMoneyRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                {ride.fare}
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Action Buttons */}
-          <Stack direction="row" spacing={1.5}>
-            <Button
-              fullWidth
-              variant="contained"
-              startIcon={<CancelRoundedIcon />}
-              onClick={handleCancelClick}
+            <Chip
+              label={ride.status}
+              size="small"
               sx={{
-                borderRadius: 2,
-                py: 1.2,
-                bgcolor: "#FFECEC",
-                color: "#FF4C4C",
+                height: 20,
+                fontSize: 9,
                 fontWeight: 600,
-                textTransform: "none",
-                fontSize: 14,
-                "&:hover": {
-                  bgcolor: "#FFD6D6"
-                }
+                bgcolor: ride.status === "Scheduled" ? "#D1FAE5" : "#FEF3C7",
+                color: ride.status === "Scheduled" ? "#064E3B" : "#78350F",
+                flexShrink: 0
               }}
-            >
-              Cancel Ride
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              startIcon={<EditCalendarRoundedIcon />}
-              onClick={handleChangeDateClick}
-              sx={{
-                borderRadius: 2,
-                py: 1.2,
-                borderColor: "#007BFF",
-                color: "#007BFF",
-                fontWeight: 600,
-                textTransform: "none",
-                fontSize: 14,
-                "&:hover": {
-                  borderColor: "#0056B3",
-                  bgcolor: "rgba(0,123,255,0.05)"
-                }
-              }}
-            >
-              Change Date
-            </Button>
+            />
           </Stack>
         </CardContent>
       </Card>
@@ -512,167 +358,67 @@ function CommuteCard({ commute, onRequest, onSelect }) {
       }}
     >
       <CardContent sx={{ px: 1.75, py: 1.6 }}>
-        {/* Driver Profile Section */}
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            <Avatar
-              sx={{
-                width: 44,
-                height: 44,
-                bgcolor: "#03CD8C",
-                color: "#020617",
-                fontSize: 18,
-                fontWeight: 600
-              }}
+        {/* Route Line */}
+        <Typography
+          variant="subtitle2"
+          sx={{ 
+            fontSize: 14, 
+            fontWeight: 600, 
+            letterSpacing: "-0.01em", 
+            mb: 0.5,
+            color: (t) => t.palette.text.primary
+          }}
+        >
+          {commute.route}
+        </Typography>
+
+        {/* Schedule Line */}
+        <Typography
+          variant="caption"
+          sx={{ 
+            fontSize: 11, 
+            color: (t) => t.palette.text.secondary,
+            mb: 1.5,
+            display: "block"
+          }}
+        >
+          {commute.schedule}
+        </Typography>
+
+        {/* Action Button on Right */}
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Box>
+            <Typography
+              variant="caption"
+              sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
             >
-              {commute.driver.avatar}
-            </Avatar>
-            <Box>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
-              >
-                {commute.driver.name}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
-              >
-                {commute.driver.vehicle} – {commute.driver.licensePlate}
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.25 }}>
-                <StarRating rating={commute.driver.rating} />
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-
-        {/* Route Information */}
-        <Box sx={{ mb: 2 }}>
-          {/* Origin */}
-          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5, mb: 1.5 }}>
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", pt: 0.5 }}>
-              <Box
-                sx={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: "50%",
-                  bgcolor: "#10B981",
-                  border: "2px solid white",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
-                }}
-              />
-              <Box
-                sx={{
-                  width: 2,
-                  height: 24,
-                  bgcolor: (t) => t.palette.mode === "light" ? "#E5E7EB" : "#374151",
-                  mt: 0.5
-                }}
-              />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, mb: 0.25, display: "block" }}
-              >
-                Origin
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
-              >
-                {commute.origin.address}
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Destination */}
-          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", pt: 0.5 }}>
-              <Box
-                sx={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: "50%",
-                  bgcolor: "#F97316",
-                  border: "2px solid white",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
-                }}
-              />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, mb: 0.25, display: "block" }}
-              >
-                Destination
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
-              >
-                {commute.destination.address}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-
-        {/* Additional Details */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-            mb: 2,
-            pb: 2,
-            borderBottom: (t) => `1px solid ${t.palette.divider}`
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <CalendarTodayRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
-            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-              {commute.date}
+              {commute.distance} • {commute.fare}
             </Typography>
           </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <DirectionsCarFilledRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
-            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-              {commute.distance}
-            </Typography>
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <AttachMoneyRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
-            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-              {commute.fare}
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* Request Button */}
-        <Button
-          fullWidth
-          variant="outlined"
-          onClick={(e) => {
-            e.stopPropagation(); // Prevent card click when button is clicked
-            onRequest();
-          }}
-          sx={{
-            borderRadius: 2,
-            py: 1.2,
-            borderColor: "#3b82f6",
-            color: "#3b82f6",
-            fontWeight: 600,
-            textTransform: "none",
-            fontSize: 14,
-            "&:hover": {
-              borderColor: "#2563eb",
-              bgcolor: "rgba(59,130,246,0.05)"
-            }
-          }}
-        >
-          Request
-        </Button>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRequest();
+            }}
+            sx={{
+              borderRadius: 999,
+              px: 2,
+              py: 0.5,
+              bgcolor: "#03CD8C",
+              color: "#FFFFFF",
+              fontWeight: 600,
+              textTransform: "none",
+              fontSize: 11,
+              "&:hover": {
+                bgcolor: "#22C55E"
+              }
+            }}
+          >
+            Book now
+          </Button>
+        </Stack>
       </CardContent>
     </Card>
   );
@@ -1175,10 +921,10 @@ function EnterDestinationMainScreen() {
         </List>
       </Drawer>
 
-      {/* Header with dark blue background */}
+      {/* Header with green background */}
       <Box
         sx={{
-          bgcolor: "#1E3A8A",
+          bgcolor: "#03CD8C",
           px: 2.5,
           pt: 2.5,
           pb: 2.5,
@@ -1319,7 +1065,7 @@ function EnterDestinationMainScreen() {
           overflow: "hidden",
           background: (theme) =>
             theme.palette.mode === "light"
-              ? "radial-gradient(circle at top, #BAE6FD 0, #EFF6FF 55%, #DBEAFE 100%)"
+              ? "radial-gradient(circle at top, rgba(3,205,140,0.15) 0, rgba(34,197,94,0.08) 55%, rgba(3,205,140,0.05) 100%)"
               : "radial-gradient(circle at top, rgba(15,118,205,0.6), rgba(15,23,42,1))"
         }}
       >
@@ -1351,7 +1097,7 @@ function EnterDestinationMainScreen() {
             <polyline
               points={routeData.polyline.map(p => `${p.x},${p.y}`).join(" ")}
               fill="none"
-              stroke="#3b82f6"
+              stroke="#03CD8C"
               strokeWidth="0.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -1377,7 +1123,7 @@ function EnterDestinationMainScreen() {
                 width: 14,
                 height: 14,
                 borderRadius: "999px",
-                bgcolor: "#3b82f6",
+                bgcolor: "#03CD8C",
                 border: "2px solid white",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
               }}
@@ -1472,7 +1218,23 @@ function EnterDestinationMainScreen() {
               Quick actions
             </Typography>
           </Stack>
-          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+          <Box
+            sx={{
+              display: "flex",
+              overflowX: "auto",
+              overflowY: "hidden",
+              gap: 1,
+              pb: 0.5,
+              "&::-webkit-scrollbar": {
+                height: 4
+              },
+              "&::-webkit-scrollbar-thumb": {
+                bgcolor: (t) => t.palette.mode === "light" ? "#D1D5DB" : "#4B5563",
+                borderRadius: 2
+              },
+              WebkitOverflowScrolling: "touch"
+            }}
+          >
             <Chip
               label="Book ride now"
               size="small"
@@ -1481,13 +1243,19 @@ function EnterDestinationMainScreen() {
               sx={{
                 borderRadius: 999,
                 fontSize: 11,
-                height: 26,
+                height: 28,
+                flexShrink: 0,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 border: (t) =>
                   t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)",
+                cursor: "pointer",
+                "&:hover": {
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
+                }
               }}
             />
             <Chip
@@ -1498,13 +1266,19 @@ function EnterDestinationMainScreen() {
               sx={{
                 borderRadius: 999,
                 fontSize: 11,
-                height: 26,
+                height: 28,
+                flexShrink: 0,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 border: (t) =>
                   t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)",
+                cursor: "pointer",
+                "&:hover": {
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
+                }
               }}
             />
             <Chip
@@ -1514,13 +1288,19 @@ function EnterDestinationMainScreen() {
               sx={{
                 borderRadius: 999,
                 fontSize: 11,
-                height: 26,
+                height: 28,
+                flexShrink: 0,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 border: (t) =>
                   t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)",
+                cursor: "pointer",
+                "&:hover": {
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
+                }
               }}
             />
             <Chip
@@ -1530,13 +1310,19 @@ function EnterDestinationMainScreen() {
               sx={{
                 borderRadius: 999,
                 fontSize: 11,
-                height: 26,
+                height: 28,
+                flexShrink: 0,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 border: (t) =>
                   t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)",
+                cursor: "pointer",
+                "&:hover": {
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
+                }
               }}
             />
             <Chip
@@ -1547,13 +1333,19 @@ function EnterDestinationMainScreen() {
               sx={{
                 borderRadius: 999,
                 fontSize: 11,
-                height: 26,
+                height: 28,
+                flexShrink: 0,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 border: (t) =>
                   t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)",
+                cursor: "pointer",
+                "&:hover": {
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
+                }
               }}
             />
             <Chip
@@ -1564,16 +1356,22 @@ function EnterDestinationMainScreen() {
               sx={{
                 borderRadius: 999,
                 fontSize: 11,
-                height: 26,
+                height: 28,
+                flexShrink: 0,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 border: (t) =>
                   t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)",
+                cursor: "pointer",
+                "&:hover": {
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
+                }
               }}
             />
-          </Stack>
+          </Box>
         </CardContent>
       </Card>
 
@@ -1600,7 +1398,7 @@ function EnterDestinationMainScreen() {
           "& .MuiTabs-indicator": {
             height: 2,
             borderRadius: 999,
-            bgcolor: "#3b82f6"
+            bgcolor: "#03CD8C"
           }
         }}
       >
@@ -1779,8 +1577,8 @@ function EnterDestinationMainScreen() {
                       mt: 1.5,
                       borderRadius: 2,
                       textTransform: "none",
-                      borderColor: "#3b82f6",
-                      color: "#3b82f6"
+                      borderColor: "#F77F00",
+                      color: "#F77F00"
                     }}
                   >
                     Book a New Ride
@@ -1883,7 +1681,7 @@ function EnterDestinationMainScreen() {
                         width: 8,
                         height: 8,
                         borderRadius: "50%",
-                        bgcolor: "#3b82f6",
+                        bgcolor: "#03CD8C",
                         border: "2px solid white",
                         boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
                       }}
@@ -1981,7 +1779,7 @@ function EnterDestinationMainScreen() {
                       });
                     }}
                     sx={{
-                      bgcolor: "#3b82f6",
+                      bgcolor: "#03CD8C",
                       color: "#FFFFFF",
                       fontSize: 12,
                       fontWeight: 600,
@@ -1990,7 +1788,7 @@ function EnterDestinationMainScreen() {
                       borderRadius: 1.5,
                       textTransform: "none",
                       "&:hover": {
-                        bgcolor: "#2563eb"
+                        bgcolor: "#22C55E"
                       }
                     }}
                   >

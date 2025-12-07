@@ -31,7 +31,7 @@ export default function MobileShell({ children }) {
     const path = location.pathname;
     let currentTab = "home";
     
-    if (path === "/" || path === "/home") {
+    if (path === "/" || path === "/home" || path === "/rides/booking/confirmation") {
       currentTab = "home";
     } else if (path.startsWith("/rides")) {
       currentTab = "rides";

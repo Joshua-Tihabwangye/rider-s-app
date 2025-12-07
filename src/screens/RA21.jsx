@@ -44,7 +44,7 @@ function MapBackground({ onBackClick }) {
           right: "5%",
           width: "30%",
           height: "40%",
-          bgcolor: "#87CEEB", // Light blue water
+          bgcolor: "rgba(3,205,140,0.15)", // Light green background
           borderRadius: "50%",
           opacity: 0.6
         }}
@@ -161,7 +161,7 @@ function PaymentMethodCard({ method, selected, onSelect }) {
           ? "#FFFFFF"
           : "rgba(15,23,42,0.98)",
         border: isActive
-          ? "1px solid #2196F3"
+          ? "1px solid #03CD8C"
           : theme.palette.mode === "light"
           ? "1px solid rgba(209,213,219,0.9)"
           : "1px solid rgba(51,65,85,0.9)"
@@ -196,7 +196,7 @@ function PaymentMethodCard({ method, selected, onSelect }) {
             sx={{
               color: theme.palette.mode === "light" ? "#9E9E9E" : "#616161",
               "&.Mui-checked": {
-                color: "#2196F3"
+                color: "#03CD8C"
               }
             }}
           />
