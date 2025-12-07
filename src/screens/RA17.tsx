@@ -45,7 +45,19 @@ const INLINE_PREFS = [
   }
 ];
 
-function InlinePreferencePill({ option, active, onToggle }): JSX.Element {
+interface PreferenceOption {
+  id: string;
+  label: string;
+  icon: React.ReactElement;
+}
+
+interface InlinePreferencePillProps {
+  option: PreferenceOption;
+  active: boolean;
+  onToggle: (id: string) => void;
+}
+
+function InlinePreferencePill({ option, active, onToggle }: InlinePreferencePillProps): React.JSX.Element {
   return (
     <Chip
       onClick={() => onToggle(option.id)}
@@ -76,11 +88,11 @@ function InlinePreferencePill({ option, active, onToggle }): JSX.Element {
   );
 }
 
-function PreferenceSelectionInlineScreen(): JSX.Element {
+function PreferenceSelectionInlineScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [activePrefs, setActivePrefs] = useState(["quiet", "ac"]);
 
-  const togglePref = (id) => {
+  const togglePref = (id: string): void => {
     setActivePrefs((prev) =>
       prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
     );

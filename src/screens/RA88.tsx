@@ -43,7 +43,19 @@ const AMBULANCE_REQUESTS = [
   }
 ];
 
-function AmbulanceRequestCard({ req }): JSX.Element {
+interface AmbulanceRequest {
+  id: string;
+  date: string;
+  from: string;
+  to: string;
+  status: string;
+}
+
+interface AmbulanceRequestCardProps {
+  req: AmbulanceRequest;
+}
+
+function AmbulanceRequestCard({ req }: AmbulanceRequestCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -155,7 +167,7 @@ function AmbulanceRequestCard({ req }): JSX.Element {
   );
 }
 
-function AmbulanceRequestsHistoryScreen(): JSX.Element {
+function AmbulanceRequestsHistoryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [tab, setTab] = useState("all");
 

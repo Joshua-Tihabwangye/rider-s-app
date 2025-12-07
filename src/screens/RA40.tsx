@@ -34,14 +34,19 @@ import MobileShell from "../components/MobileShell";
 
 const MAX_STOPS = 6; // A-F
 
-function EnterDestinationMaxStopsScreen(): JSX.Element {
+function EnterDestinationMaxStopsScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
   const initialState = location.state || {};
 
+  interface Stop {
+    id: string;
+    value: string;
+  }
+
   const [pickup] = useState(initialState.pickup || "Entebbe International Airport");
-  const [stops, setStops] = useState(initialState.stops || [
+  const [stops, setStops] = useState<Stop[]>(initialState.stops || [
     { id: "A", value: "Abayita Ababiri, Lyamu..." },
     { id: "B", value: "Belle Vue Rooftop" },
     { id: "C", value: "Freedom City Mall" },
@@ -67,15 +72,15 @@ function EnterDestinationMaxStopsScreen(): JSX.Element {
   const passengerOptions = [1, 2, 3, 4, 5, 6];
 
   // Re-index stops alphabetically when one is removed
-  const reindexStops = (stopsList) => {
-    return stopsList.map((stop, index) => ({
+  const reindexStops = (stopsList: Stop[]): Stop[] => {
+    return stopsList.map((stop: Stop, index: number) => ({
       ...stop,
       id: String.fromCharCode(65 + index) // A, B, C, D, E, F
     }));
   };
 
-  const handleRemoveStop = (stopId) => {
-    const newStops = stops.filter(stop => stop.id !== stopId);
+  const handleRemoveStop = (stopId: string): void => {
+    const newStops = stops.filter((stop: Stop) => stop.id !== stopId);
     setStops(reindexStops(newStops));
     setShowMaxStopsMessage(false);
   };
@@ -91,8 +96,8 @@ function EnterDestinationMaxStopsScreen(): JSX.Element {
     }
   };
 
-  const handleStopChange = (stopId, value) => {
-    setStops(stops.map(stop => 
+  const handleStopChange = (stopId: string, value: string): void => {
+    setStops(stops.map((stop: Stop) => 
       stop.id === stopId ? { ...stop, value } : stop
     ));
   };
@@ -113,10 +118,10 @@ function EnterDestinationMaxStopsScreen(): JSX.Element {
 
   const handleContinue = () => {
     // Validation: pickup and at least one stop with value required
-    const hasValidStops = stops.some(stop => stop.value.trim() !== "");
+    const hasValidStops = stops.some((stop: Stop) => stop.value.trim() !== "");
     
     // Check for duplicate addresses
-    const addresses = stops.map(s => s.value.trim().toLowerCase()).filter(a => a !== "");
+    const addresses = stops.map((s: Stop) => s.value.trim().toLowerCase()).filter((a: string) => a !== "");
     const hasDuplicates = addresses.length !== new Set(addresses).size;
     
     if (!pickup.trim() || !hasValidStops) {
@@ -132,7 +137,7 @@ function EnterDestinationMaxStopsScreen(): JSX.Element {
     navigate("/rides/options", {
       state: {
         pickup,
-        stops: stops.filter(stop => stop.value.trim() !== ""),
+        stops: stops.filter((stop: Stop) => stop.value.trim() !== ""),
         ridePurpose,
         tripDirection,
         passengers,
@@ -142,7 +147,7 @@ function EnterDestinationMaxStopsScreen(): JSX.Element {
     });
   };
 
-  const canContinue = pickup.trim() !== "" && stops.some(stop => stop.value.trim() !== "");
+  const canContinue = pickup.trim() !== "" && stops.some((stop: Stop) => stop.value.trim() !== "");
 
   return (
     <Box
@@ -253,7 +258,7 @@ function EnterDestinationMaxStopsScreen(): JSX.Element {
               />
 
               {/* Destination Fields A-F */}
-              {stops.map((stop, index) => {
+              {stops.map((stop: Stop, index: number) => {
                 const isLast = index === stops.length - 1;
                 return (
                   <Box key={stop.id} sx={{ display: "flex", gap: 1, alignItems: "center" }}>
@@ -737,7 +742,7 @@ function EnterDestinationMaxStopsScreen(): JSX.Element {
             fontSize: 14,
             fontWeight: 500,
             "&:hover": {
-              bgcolor: rgba(3,205,140,0.1)
+              bgcolor: "rgba(3,205,140,0.1)"
             }
             }}
           startIcon={<MapRoundedIcon />}

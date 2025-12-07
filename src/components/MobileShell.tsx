@@ -16,7 +16,7 @@ import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 interface NavTab {
   value: string;
   label: string;
-  icon: JSX.Element;
+  icon: React.ReactElement;
   route: string;
 }
 
@@ -32,7 +32,7 @@ interface MobileShellProps {
   children: React.ReactNode;
 }
 
-export default function MobileShell({ children }: MobileShellProps): JSX.Element {
+export default function MobileShell({ children }: MobileShellProps): React.JSX.Element {
   const location = useLocation();
   const navigate = useNavigate();
   const [navValue, setNavValue] = useState<string>("home");

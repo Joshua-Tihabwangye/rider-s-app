@@ -27,7 +27,7 @@ const TIP_OPTIONS = [
   { label: "UGX 2,000", value: 2000 }
 ];
 
-function RideRatingTipScreen(): JSX.Element {
+function RideRatingTipScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -40,7 +40,7 @@ function RideRatingTipScreen(): JSX.Element {
   
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
-  const [selectedTip, setSelectedTip] = useState(null);
+  const [selectedTip, setSelectedTip] = useState<number | null>(null);
   const [customTip, setCustomTip] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,7 +54,7 @@ function RideRatingTipScreen(): JSX.Element {
     ? (parseInt(customTip.replace(/[^0-9]/g, "")) || 0)
     : (selectedTip || 0);
 
-  const handleTipSelect = (tipValue) => {
+  const handleTipSelect = (tipValue: number): void => {
     setSelectedTip(tipValue);
     setCustomTip(""); // Clear custom tip when selecting preset
     setShowCustomInput(false); // Hide custom input
@@ -68,7 +68,7 @@ function RideRatingTipScreen(): JSX.Element {
     }
   };
 
-  const handleCustomTipChange = (e) => {
+  const handleCustomTipChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     // Only allow positive integers
     const value = e.target.value.replace(/[^0-9]/g, "");
     setCustomTip(value);

@@ -23,7 +23,7 @@ import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
 
 import MobileShell from "../components/MobileShell";
 
-function RentalVehicleDetailsScreen(): JSX.Element {
+function RentalVehicleDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [modeSelection, setModeSelection] = useState("self");
 

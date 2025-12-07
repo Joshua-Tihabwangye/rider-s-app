@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -47,7 +48,22 @@ const PENDING_INVITATIONS_V2 = [
   }
 ];
 
-function InvitationCardV2({ invitation }): JSX.Element {
+interface Invitation {
+  id: string;
+  fromName: string;
+  initials: string;
+  type: string;
+  context?: string;
+  createdAt?: string;
+  profileImage?: string | null;
+  status?: string;
+}
+
+interface InvitationCardV2Props {
+  invitation: Invitation;
+}
+
+function InvitationCardV2({ invitation }: InvitationCardV2Props): React.JSX.Element {
   const isDelivery = invitation.type === "Shared delivery";
 
   return (
@@ -174,7 +190,7 @@ function InvitationCardV2({ invitation }): JSX.Element {
   );
 }
 
-function InvitationsPendingV2Screen(): JSX.Element {
+function InvitationsPendingV2Screen(): React.JSX.Element {
   const navigate = useNavigate();
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>

@@ -31,15 +31,15 @@ const TAGS = [
   "Would use again"
 ];
 
-function OrderCompletionRatingPromptScreen(): JSX.Element {
+function OrderCompletionRatingPromptScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [rating, setRating] = useState(0);
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [comment, setComment] = useState("");
 
-  const toggleTag = (tag) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+  const toggleTag = (tag: string): void => {
+    setSelectedTags((prev: string[]) =>
+      prev.includes(tag) ? prev.filter((t: string) => t !== tag) : [...prev, tag]
     );
   };
 
@@ -176,7 +176,7 @@ function OrderCompletionRatingPromptScreen(): JSX.Element {
             </Typography>
             <Rating
               value={rating}
-              onChange={(e, value) => setRating(value)}
+              onChange={(_e, value) => setRating(value || 0)}
               precision={1}
               size="large"
               sx={{ mt: 0.5 }}

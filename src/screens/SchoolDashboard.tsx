@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   Box,
   Typography,
@@ -19,7 +20,7 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 
-function SchoolDashboardHomeScreen(): JSX.Element {
+function SchoolDashboardHomeScreen(): React.JSX.Element {
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
       {/* Header */}
@@ -306,7 +307,7 @@ function SchoolDashboardHomeScreen(): JSX.Element {
   );
 }
 
-export default function SchoolDashboard(): JSX.Element {
+export default function SchoolDashboard(): React.JSX.Element {
   return (
     <>
       <DarkModeToggle />

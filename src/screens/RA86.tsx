@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -21,7 +22,7 @@ import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 
 import MobileShell from "../components/MobileShell";
 
-function AmbulanceRequestConfirmationETAScreen(): JSX.Element {
+function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const requestId = "AMB-REQ-2025-10-07-001";
   const eta = "8 min";

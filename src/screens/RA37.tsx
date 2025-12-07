@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -22,7 +23,7 @@ import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import StraightenRoundedIcon from "@mui/icons-material/StraightenRounded";
 import MobileShell from "../components/MobileShell";
 
-function CompletedTripSummaryScreen(): JSX.Element {
+function CompletedTripSummaryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { rideId } = useParams();
 

@@ -21,7 +21,13 @@ import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
 import MobileShell from "../components/MobileShell";
 
-function CommonPlaceCard({ icon, label, address }): JSX.Element {
+interface CommonPlaceCardProps {
+  icon: React.ReactElement;
+  label: string;
+  address: string;
+}
+
+function CommonPlaceCard({ icon, label, address }: CommonPlaceCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -74,11 +80,11 @@ function CommonPlaceCard({ icon, label, address }): JSX.Element {
   );
 }
 
-function EnterDestinationMainScreen(): JSX.Element {
+function EnterDestinationMainScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [tab, setTab] = useState("common");
 
-  const handleTabChange = (event, value) => {
+  const handleTabChange = (_event: React.SyntheticEvent, value: string): void => {
     setTab(value);
   };
 

@@ -36,7 +36,7 @@ const generateDateOptions = () => {
   return dates;
 };
 
-function ScheduleRideScreen(): JSX.Element {
+function ScheduleRideScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -49,7 +49,14 @@ function ScheduleRideScreen(): JSX.Element {
   
   // Get current date/time or default
   const now = new Date();
-  const defaultDate = generateDateOptions()[0];
+  const dateOptionsArray = generateDateOptions();
+  const defaultDate = dateOptionsArray[0] || {
+    day: now.getDate(),
+    month: now.toLocaleString('default', { month: 'short' }),
+    monthNum: now.getMonth() + 1,
+    year: now.getFullYear(),
+    fullDate: now
+  };
   
   // Round minutes to nearest 5 and ensure future time
   const currentMinutes = now.getMinutes();
@@ -63,7 +70,13 @@ function ScheduleRideScreen(): JSX.Element {
     period: futureHour >= 12 ? 'PM' : 'AM'
   };
   
-  const [selectedDate, setSelectedDate] = useState(defaultDate);
+  const [selectedDate, setSelectedDate] = useState<{
+    day: number;
+    month: string;
+    monthNum: number;
+    year: number;
+    fullDate: Date;
+  }>(defaultDate);
   const [selectedTime, setSelectedTime] = useState({
     hour: String(defaultTime.hour).padStart(2, '0'),
     minute: String(defaultTime.minute).padStart(2, '0'),
@@ -79,7 +92,7 @@ function ScheduleRideScreen(): JSX.Element {
     }, 300);
   };
   
-  const handleBackdropClick = (e) => {
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>): void => {
     if (e.target === e.currentTarget) {
       handleClose();
     }
@@ -98,6 +111,11 @@ function ScheduleRideScreen(): JSX.Element {
     }
     
     // Validate future date/time
+    if (!selectedDate) {
+      alert("Please select a date.");
+      return;
+    }
+    
     const selectedDateTime = new Date(
       selectedDate.fullDate.getFullYear(),
       selectedDate.fullDate.getMonth(),
@@ -119,6 +137,11 @@ function ScheduleRideScreen(): JSX.Element {
     const timeString = `${selectedTime.hour}:${selectedTime.minute} ${selectedTime.period}`;
     
     // Format date with day name: "Mon, 30 Sep 2024"
+    if (!selectedDate) {
+      alert("Please select a date.");
+      return;
+    }
+    
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const dayName = dayNames[selectedDate.fullDate.getDay()];
     const dateString = `${dayName}, ${selectedDate.day} ${selectedDate.month} ${selectedDate.year}`;

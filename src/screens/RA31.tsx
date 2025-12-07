@@ -58,7 +58,22 @@ const PASSENGERS = [
   }
 ];
 
-function PassengerCard({ passenger }): JSX.Element {
+interface Passenger {
+  id: number;
+  name: string;
+  initials: string;
+  isOwner?: boolean;
+  joined?: boolean;
+  isMain?: boolean;
+  dropOff?: string;
+  fare?: string;
+}
+
+interface PassengerCardProps {
+  passenger: Passenger;
+}
+
+function PassengerCard({ passenger }: PassengerCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -135,12 +150,12 @@ function PassengerCard({ passenger }): JSX.Element {
   );
 }
 
-function SharingPassengersScreen(): JSX.Element {
+function SharingPassengersScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const theme = useTheme();
   const [isActivated, setIsActivated] = useState(true);
 
-  const handleToggleActivation = (event) => {
+  const handleToggleActivation = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const newValue = event.target.checked;
     setIsActivated(newValue);
     // Toggle state (ON/OFF) updates the trip_sharing_status field in the backend
@@ -152,7 +167,7 @@ function SharingPassengersScreen(): JSX.Element {
 
   // Filter passengers based on activation state
   // When switched off, only the main passenger remains on the trip
-  const mainPassenger = PASSENGERS.find((p) => p.isMain);
+  const mainPassenger = PASSENGERS.find((p) => p.isMain) || PASSENGERS[0];
   const sharingPassengers = isActivated
     ? PASSENGERS.filter((p) => !p.isMain)
     : [];
@@ -482,7 +497,7 @@ function SharingPassengersScreen(): JSX.Element {
         >
             Main Passenger
           </Typography>
-          <PassengerCard passenger={mainPassenger} />
+          {mainPassenger && <PassengerCard passenger={mainPassenger} />}
         </Box>
 
         {/* Sharing Passengers Section */}

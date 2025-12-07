@@ -21,7 +21,7 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import MobileShell from "../components/MobileShell";
 
-function EnterDestinationVariantLayoutScreen(): JSX.Element {
+function EnterDestinationVariantLayoutScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [pickup, setPickup] = useState("Current location");
   const [destination, setDestination] = useState("");
@@ -51,7 +51,7 @@ function EnterDestinationVariantLayoutScreen(): JSX.Element {
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)" (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)")}}
+                  : "1px solid rgba(51,65,85,0.9)"}}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>

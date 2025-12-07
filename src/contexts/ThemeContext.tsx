@@ -1,7 +1,9 @@
-import React, { createContext, useContext, useState, useMemo, useEffect, ReactNode } from "react";
-import { ThemeProvider, createTheme, Theme, PaletteMode } from "@mui/material/styles";
+import { createContext, useContext, useState, useMemo, useEffect, ReactNode } from "react";
+import { ThemeProvider, createTheme, Theme } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
 import { getDesignTokens } from "../theme";
+
+type PaletteMode = "light" | "dark";
 
 interface ThemeContextValue {
   mode: PaletteMode;
@@ -15,7 +17,7 @@ interface GlobalThemeProviderProps {
   children: ReactNode;
 }
 
-export function GlobalThemeProvider({ children }: GlobalThemeProviderProps): JSX.Element {
+export function GlobalThemeProvider({ children }: GlobalThemeProviderProps): React.JSX.Element {
   // Load mode from localStorage or default to "light"
   const [mode, setMode] = useState<PaletteMode>(() => {
     const savedMode = localStorage.getItem("themeMode");
@@ -30,7 +32,7 @@ export function GlobalThemeProvider({ children }: GlobalThemeProviderProps): JSX
   const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
 
   const toggleMode = (): void => {
-    setMode((prev) => (prev === "light" ? "dark" : "light"));
+    setMode((prev: PaletteMode) => (prev === "light" ? "dark" : "light"));
   };
 
   const value: ThemeContextValue = {

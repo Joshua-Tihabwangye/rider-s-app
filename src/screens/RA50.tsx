@@ -30,7 +30,37 @@ const DELIVERING_ORDERS = [
   }
 ];
 
-function DeliveringOrderCard({ order }): JSX.Element {
+interface Order {
+  id: string;
+  status: string;
+  toName?: string;
+  toAddress?: string;
+  fromAddress?: string;
+  eta?: string;
+  packageName?: string;
+  sender?: {
+    name: string;
+    city: string;
+    code: string;
+    icon: string;
+    avatar: string;
+    profileImage: string | null;
+  };
+  receiver?: {
+    city: string;
+    code: string;
+    icon: string;
+  };
+  time?: string;
+  progress?: number;
+  needsPayment?: boolean;
+}
+
+interface DeliveringOrderCardProps {
+  order: Order;
+}
+
+function DeliveringOrderCard({ order }: DeliveringOrderCardProps): React.JSX.Element {
   const isOutForPickup = order.status === "Out for pickup";
   const statusColor = isOutForPickup ? "#F97316" : "#16A34A";
   const statusBg = isOutForPickup
@@ -133,7 +163,7 @@ function DeliveringOrderCard({ order }): JSX.Element {
   );
 }
 
-function DeliveriesDashboardDeliveringScreen(): JSX.Element {
+function DeliveriesDashboardDeliveringScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("all");
 

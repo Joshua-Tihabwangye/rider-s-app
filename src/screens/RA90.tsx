@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -22,7 +23,7 @@ import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
 
 import MobileShell from "../components/MobileShell";
 
-function RentalBookingDetailViewScreen(): JSX.Element {
+function RentalBookingDetailViewScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const bookingId = "RENT-2025-10-07-001";
   const status = "Upcoming";

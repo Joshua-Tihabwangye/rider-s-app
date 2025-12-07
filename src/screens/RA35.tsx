@@ -20,7 +20,7 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import MobileShell from "../components/MobileShell";
 
-function RideRatingFeedbackScreen(): JSX.Element {
+function RideRatingFeedbackScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();

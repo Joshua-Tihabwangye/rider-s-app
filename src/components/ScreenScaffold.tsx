@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Typography, Chip, Paper } from "@mui/material";
 
 interface ScreenScaffoldProps {
@@ -13,7 +12,7 @@ export default function ScreenScaffold({
   title,
   subtitle,
   badge
-}: ScreenScaffoldProps): JSX.Element {
+}: ScreenScaffoldProps): React.JSX.Element {
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
       <Box

@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Box,
   IconButton,
@@ -14,7 +13,31 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 
-function SharedPassengersModal({ open, onClose, rideData }): JSX.Element {
+interface Passenger {
+  id?: string | number;
+  name?: string;
+  initials?: string;
+  dropOff?: string;
+  dropoff?: string;
+  fare?: string | number;
+  fareContribution?: string | number;
+  isMain?: boolean;
+  rating?: number;
+}
+
+interface RideData {
+  passengers?: Passenger[];
+  mainPassenger?: Passenger;
+  sharingPassengers?: Passenger[];
+}
+
+interface SharedPassengersModalProps {
+  open: boolean;
+  onClose: () => void;
+  rideData?: RideData | null;
+}
+
+function SharedPassengersModal({ open, onClose, rideData }: SharedPassengersModalProps): React.JSX.Element | null {
   if (!rideData) return null;
 
   // Separate main passenger from sharing passengers

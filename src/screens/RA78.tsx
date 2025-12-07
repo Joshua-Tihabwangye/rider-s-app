@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -21,7 +22,7 @@ import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 
 import MobileShell from "../components/MobileShell";
 
-function TourDetailsScreen(): JSX.Element {
+function TourDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>

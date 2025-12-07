@@ -23,7 +23,7 @@ import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 
 import MobileShell from "../components/MobileShell";
 
-function AmbulanceLocationPatientDetailsScreen(): JSX.Element {
+function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [location, setLocation] = useState("Nsambya Road 472, Kampala");
   const [patientName, setPatientName] = useState("");

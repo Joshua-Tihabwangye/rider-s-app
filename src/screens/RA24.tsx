@@ -23,7 +23,7 @@ import KeyboardDoubleArrowRightRoundedIcon from "@mui/icons-material/KeyboardDou
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import MobileShell from "../components/MobileShell";
 
-function DriverHasArrivedScreen(): JSX.Element {
+function DriverHasArrivedScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [sliderPosition, setSliderPosition] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
@@ -39,18 +39,18 @@ function DriverHasArrivedScreen(): JSX.Element {
     // In production: navigate to chat screen
   };
 
-  const handleSliderStart = (e) => {
+  const handleSliderStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>): void => {
     setIsSliding(true);
     e.preventDefault();
   };
 
-  const handleSliderMove = (e) => {
+  const handleSliderMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>): void => {
     if (!isSliding) return;
     e.preventDefault();
     
     const slider = e.currentTarget;
     const rect = slider.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientX = ('touches' in e && e.touches && e.touches[0]) ? e.touches[0].clientX : ('clientX' in e ? e.clientX : 0);
     const x = clientX - rect.left;
     const maxX = rect.width - 61; // 60px thumb + 1px margin
     
@@ -63,7 +63,7 @@ function DriverHasArrivedScreen(): JSX.Element {
     }
   };
 
-  const handleSliderEnd = (e) => {
+  const handleSliderEnd = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>): void => {
     if (!isSliding) return;
     setIsSliding(false);
     e.preventDefault();

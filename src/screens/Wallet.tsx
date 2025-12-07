@@ -24,9 +24,7 @@ import {
   MenuItem,
   Divider,
   Snackbar,
-  Alert,
-  useMediaQuery,
-  useTheme
+  Alert
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
@@ -44,7 +42,6 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
@@ -79,19 +76,30 @@ const TRANSACTIONS = [
   }
 ];
 
-function WalletContent({ onBack }): JSX.Element {
+interface WalletContentProps {
+  onBack?: () => void;
+}
+
+interface Transaction {
+  id: number;
+  type: string;
+  title: string;
+  source: string;
+  amount: string;
+  time: string;
+  icon: React.ReactElement;
+}
+
+function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   
   const balance = 520000; // demo
   const reserved = 180000; // e.g. deposits / holds
   const [showAddMoneyDialog, setShowAddMoneyDialog] = useState(false);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
   const [showPaymentMethodsDialog, setShowPaymentMethodsDialog] = useState(false);
-  const [paymentMethodMenu, setPaymentMethodMenu] = useState({ open: false, anchorEl: null, method: null });
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [paymentMethodMenu, setPaymentMethodMenu] = useState<{ open: boolean; anchorEl: HTMLElement | null; method: string | null }>({ open: false, anchorEl: null, method: null });
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" | "warning" | "info" }>({ open: false, message: "", severity: "success" });
   const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [transactionError, setTransactionError] = useState(false);
   
@@ -152,7 +160,7 @@ function WalletContent({ onBack }): JSX.Element {
     navigate("/wallet/transactions");
   };
 
-  const handlePaymentMethodClick = (event, method) => {
+  const handlePaymentMethodClick = (event: React.MouseEvent<HTMLElement>, method: string): void => {
     setPaymentMethodMenu({
       open: true,
       anchorEl: event.currentTarget,
@@ -170,7 +178,7 @@ function WalletContent({ onBack }): JSX.Element {
     handlePaymentMethodMenuClose();
   };
 
-  const handleEditPaymentMethod = (method = null) => {
+  const handleEditPaymentMethod = (method?: string | null): void => {
     // Edit payment method
     const methodToEdit = method || paymentMethodMenu.method;
     console.log("Edit:", methodToEdit);
@@ -187,7 +195,7 @@ function WalletContent({ onBack }): JSX.Element {
     // Could show confirmation dialog first
   };
 
-  const handleTransactionClick = (transaction) => {
+  const handleTransactionClick = (transaction: Transaction): void => {
     // Navigate to transaction details
     if (transaction.type === "ride") {
       navigate(`/rides/history/${transaction.source.split(" ")[1]}`);
@@ -1094,7 +1102,7 @@ function WalletContent({ onBack }): JSX.Element {
             Set as default
           </MenuItem>
         )}
-        <MenuItem onClick={handleEditPaymentMethod}>
+        <MenuItem onClick={() => handleEditPaymentMethod()}>
           <EditRoundedIcon sx={{ fontSize: 18, mr: 1.5 }} />
           Edit
         </MenuItem>
@@ -1140,7 +1148,7 @@ function WalletContent({ onBack }): JSX.Element {
   );
 }
 
-export default function Wallet(): JSX.Element {
+export default function Wallet(): React.JSX.Element {
   const navigate = useNavigate();
 
   return (

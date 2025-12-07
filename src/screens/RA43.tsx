@@ -37,9 +37,9 @@ const MOCK_RESULTS = [
   }
 ];
 
-function AddStopSearchResultsScreen(): JSX.Element {
+function AddStopSearchResultsScreen(): React.JSX.Element {
   const [query, setQuery] = useState("");
-  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const filtered = !query
     ? MOCK_RESULTS

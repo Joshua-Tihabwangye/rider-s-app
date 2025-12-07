@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -26,7 +27,7 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 
-export default function MoreMenu(): JSX.Element {
+export default function MoreMenu(): React.JSX.Element {
   const navigate = useNavigate();
 
   const accountItems = [

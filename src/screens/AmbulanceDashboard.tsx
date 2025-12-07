@@ -19,7 +19,7 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 
-function AmbulanceDashboardHomeScreen(): JSX.Element {
+function AmbulanceDashboardHomeScreen(): React.JSX.Element {
   const [ctaState, setCtaState] = useState("idle");
   const [forWhom, setForWhom] = useState("me");
 
@@ -31,7 +31,7 @@ function AmbulanceDashboardHomeScreen(): JSX.Element {
     setCtaState("planned");
   };
 
-  const handleSetForWhom = (value) => {
+  const handleSetForWhom = (value: string): void => {
     setForWhom(value);
     setCtaState(`for-${value}`);
   };
@@ -439,7 +439,7 @@ function AmbulanceDashboardHomeScreen(): JSX.Element {
   );
 }
 
-export default function AmbulanceDashboard(): JSX.Element {
+export default function AmbulanceDashboard(): React.JSX.Element {
   return (
     <>
       <DarkModeToggle />

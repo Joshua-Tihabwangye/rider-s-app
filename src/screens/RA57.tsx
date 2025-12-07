@@ -75,11 +75,11 @@ const INVITATIONS = [
   }
 ];
 
-function InvitationsPendingScreen(): JSX.Element {
+function InvitationsPendingScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("pending");
   const [invitations, setInvitations] = useState(INVITATIONS);
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" | "warning" | "info" }>({ open: false, message: "", severity: "success" });
   const greenPrimary = COLORS.green.primary;
 
   // Filter invitations based on active tab
@@ -89,7 +89,7 @@ function InvitationsPendingScreen(): JSX.Element {
     ? invitations.filter((inv) => inv.status === "pending")
     : invitations.filter((inv) => inv.status === "accepted" || inv.status === "rejected");
 
-  const handleWithdraw = (invitationId) => {
+  const handleWithdraw = (invitationId: string): void => {
     // Remove the invitation from the list
     setInvitations((prevInvitations) =>
       prevInvitations.filter((inv) => inv.id !== invitationId)
@@ -248,7 +248,7 @@ function InvitationsPendingScreen(): JSX.Element {
               <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
                 {/* Profile Picture */}
                 <Avatar
-                  src={invitation.profileImage}
+                  src={invitation.profileImage || undefined}
                   sx={{
                     width: 48,
                     height: 48,

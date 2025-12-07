@@ -56,7 +56,7 @@ const ROUTE_PREFERENCES = [
   }
 ];
 
-function PreferenceSelectionScreen(): JSX.Element {
+function PreferenceSelectionScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -84,10 +84,10 @@ function PreferenceSelectionScreen(): JSX.Element {
     return "Now";
   };
   
-  const togglePreference = (prefId) => {
-    setSelectedPreferences((prev) =>
+  const togglePreference = (prefId: string): void => {
+    setSelectedPreferences((prev: string[]) =>
       prev.includes(prefId)
-        ? prev.filter((id) => id !== prefId)
+        ? prev.filter((id: string) => id !== prefId)
         : [...prev, prefId]
     );
   };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTheme } from "@mui/material/styles";
 import {
   Box,
@@ -66,7 +66,7 @@ const generateDateOptions = (): DateOption[] => {
   return dates;
 };
 
-function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate, departureTime, existingReturnDate, existingReturnTime }: TripTypeModalProps): JSX.Element {
+function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate, departureTime, existingReturnDate, existingReturnTime }: TripTypeModalProps): React.JSX.Element {
   const theme = useTheme();
   const dateScrollRef = useRef<HTMLDivElement>(null);
   const timeScrollRef = useRef<HTMLDivElement>(null);
@@ -88,8 +88,10 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
       if (currentTripType === "Round Trip" && existingReturnDate && existingReturnTime) {
         // Parse existing return date string (e.g., "Wed, 26 Sep 2024")
         const dateMatch = existingReturnDate.match(/(\w+),\s*(\d+)\s*(\w+)\s*(\d+)/);
-        if (dateMatch) {
-          const [, , day, month, year] = dateMatch;
+        if (dateMatch && dateMatch[2] && dateMatch[3] && dateMatch[4]) {
+          const day = dateMatch[2];
+          const month = dateMatch[3];
+          const year = dateMatch[4];
           const foundDate = dateOptions.find(d => 
             d.day === parseInt(day) && 
             d.month === month && 
@@ -101,8 +103,10 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
         }
         // Parse existing return time string (e.g., "11:35 PM")
         const timeMatch = existingReturnTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-        if (timeMatch) {
-          const [, hour, minute, period] = timeMatch;
+        if (timeMatch && timeMatch[1] && timeMatch[2] && timeMatch[3]) {
+          const hour = timeMatch[1];
+          const minute = timeMatch[2];
+          const period = timeMatch[3];
           setReturnTime({
             hour: String(parseInt(hour)).padStart(2, '0'),
             minute: minute,
@@ -146,14 +150,14 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
   const accentGreen = "#03CD8C";
   const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
 
-  const handleBackdropClick = (e) => {
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>): void => {
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
 
   // Validate return date/time is after departure
-  const validateReturnDateTime = () => {
+  const validateReturnDateTime = (): boolean => {
     if (selectedTripType !== "Round Trip") {
       return true;
     }
@@ -164,13 +168,15 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
     }
 
     // Parse departure date/time
-    let departureDateTime = null;
+    let departureDateTime: Date | null = null;
     if (departureDate && departureTime) {
       const depDate = departureDate instanceof Date ? departureDate : new Date(departureDate);
       // Handle time format: "05:54 PM" or "11:35 PM"
       const timeMatch = departureTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-      if (timeMatch) {
-        const [, depHour, depMinute, depPeriod] = timeMatch;
+      if (timeMatch && timeMatch[1] && timeMatch[2] && timeMatch[3]) {
+        const depHour = timeMatch[1];
+        const depMinute = timeMatch[2];
+        const depPeriod = timeMatch[3];
         const depHour24 = depPeriod.toUpperCase() === 'PM' && parseInt(depHour) !== 12 
           ? parseInt(depHour) + 12 
           : depPeriod.toUpperCase() === 'AM' && parseInt(depHour) === 12
@@ -192,6 +198,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
       departureDateTime = new Date();
     }
 
+    // At this point, we know returnDate and returnTime are not null due to the check above
     // Parse return date/time
     const returnHour24 = returnTime.period === 'PM' && parseInt(returnTime.hour) !== 12 
       ? parseInt(returnTime.hour) + 12 
@@ -216,9 +223,9 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
     return true;
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = (): void => {
     if (selectedTripType === "Round Trip") {
-      if (!validateReturnDateTime()) {
+      if (!validateReturnDateTime() || !returnDate || !returnTime) {
         return;
       }
       

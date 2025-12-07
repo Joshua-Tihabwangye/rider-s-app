@@ -50,7 +50,21 @@ const TOURS = [
   }
 ];
 
-function TourCard({ tour }): JSX.Element {
+interface Tour {
+  id: string;
+  title: string;
+  location: string;
+  duration: string;
+  price: string;
+  tag?: string;
+  summary: string;
+}
+
+interface TourCardProps {
+  tour: Tour;
+}
+
+function TourCard({ tour }: TourCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -155,7 +169,7 @@ function TourCard({ tour }): JSX.Element {
   );
 }
 
-function ToursHomeBrowseScreen(): JSX.Element {
+function ToursHomeBrowseScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");

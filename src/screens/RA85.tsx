@@ -28,7 +28,7 @@ const HOSPITALS = [
   "International Hospital Kampala (IHK)"
 ];
 
-function AmbulanceDestinationHospitalSelectionScreen(): JSX.Element {
+function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [destinationMode, setDestinationMode] = useState("nearest");
   const [selectedHospital, setSelectedHospital] = useState("Mulago National Referral Hospital");

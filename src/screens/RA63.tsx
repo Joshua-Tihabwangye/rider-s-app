@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -24,7 +25,7 @@ import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import MobileShell from "../components/MobileShell";
 
-function ActiveDeliveryDriverInfoLiveTrackingScreen(): JSX.Element {
+function ActiveDeliveryDriverInfoLiveTrackingScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const eta = "14 min";
 

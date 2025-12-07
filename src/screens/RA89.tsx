@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useNavigate } from "react-router-dom";
 import DarkModeToggle from "../components/DarkModeToggle";
 import { Box,
@@ -13,7 +14,7 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 
 import MobileShell from "../components/MobileShell";
 
-function SchoolShuttlesHandoffScreen(): JSX.Element {
+function SchoolShuttlesHandoffScreen(): React.JSX.Element {
   const navigate = useNavigate();
 
   return (

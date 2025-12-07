@@ -70,7 +70,20 @@ const PREF_OPTIONS = [
   }
 ];
 
-function PreferenceChip({ option, active, onToggle }): JSX.Element {
+interface PreferenceOption {
+  id: string;
+  label: string;
+  description: string;
+  icon: React.ReactElement;
+}
+
+interface PreferenceChipProps {
+  option: PreferenceOption;
+  active: boolean;
+  onToggle: (id: string) => void;
+}
+
+function PreferenceChip({ option, active, onToggle }: PreferenceChipProps): React.JSX.Element {
   return (
     <Chip
       onClick={() => onToggle(option.id)}
@@ -101,11 +114,11 @@ function PreferenceChip({ option, active, onToggle }): JSX.Element {
   );
 }
 
-function RidePreferencesScreen(): JSX.Element {
+function RidePreferencesScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [activePrefs, setActivePrefs] = useState(["quiet", "ac"]);
 
-  const togglePref = (id) => {
+  const togglePref = (id: string): void => {
     setActivePrefs((prev) =>
       prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
     );

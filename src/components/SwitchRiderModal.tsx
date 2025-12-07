@@ -37,8 +37,40 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 import Avatar from "@mui/material/Avatar";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 
+interface Contact {
+  id: number;
+  name: string;
+  relation: string;
+  phone: string;
+  initials: string;
+}
+
+interface TripData {
+  pickup?: string;
+  destination?: string;
+  schedule?: string;
+  scheduleTime?: string;
+  isScheduled?: boolean;
+  rideType?: string;
+  tripType?: string;
+  passengers?: number;
+  scheduledDateTime?: Date | string;
+  [key: string]: unknown;
+}
+
+interface SwitchRiderModalProps {
+  open: boolean;
+  onClose: () => void;
+  tripData?: TripData;
+  onContinue?: (data: TripData & {
+    riderType: string;
+    selectedContact: Contact | null;
+    manualPhone?: string;
+  }) => void;
+}
+
 // Mock saved contacts - in production, this would come from user's saved contacts
-const SAVED_CONTACTS = [
+const SAVED_CONTACTS: Contact[] = [
   {
     id: 1,
     name: "John Doe",
@@ -48,13 +80,13 @@ const SAVED_CONTACTS = [
   }
 ];
 
-function SwitchRiderModal({ open, onClose, tripData, onContinue }): JSX.Element {
+function SwitchRiderModal({ open, onClose, tripData, onContinue }: SwitchRiderModalProps): React.JSX.Element {
   const navigate = useNavigate();
   const theme = useTheme();
-  const [riderType, setRiderType] = useState("personal");
-  const [selectedContact, setSelectedContact] = useState(null);
-  const [manualPhone, setManualPhone] = useState("");
-  const [passengers, setPassengers] = useState(tripData?.passengers || 1);
+  const [riderType, setRiderType] = useState<string>("personal");
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [manualPhone, setManualPhone] = useState<string>("");
+  const [passengers, setPassengers] = useState<number>(tripData?.passengers || 1);
   
   // Get trip details from props
   const pickup = tripData?.pickup || "Entebbe International Airport";
@@ -75,18 +107,18 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }): JSX.Element 
     }
   }, [tripData?.passengers]);
   
-  const handleBackdropClick = (e) => {
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>): void => {
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
   
-  const handleContactSelect = (contact) => {
+  const handleContactSelect = (contact: Contact): void => {
     setSelectedContact(contact);
     setRiderType(`contact-${contact.id}`);
   };
 
-  const handleContinue = () => {
+  const handleContinue = (): void => {
     // Create a clean, serializable data object
     const cleanContact = selectedContact 
       ? {
@@ -484,8 +516,8 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }): JSX.Element 
                     borderRadius: 2,
                     bgcolor: riderType === "personal"
                       ? theme.palette.mode === "light"
-                        ? rgba(3,205,140,0.1)
-                        : rgba(3,205,140,0.2)
+                        ? "rgba(3,205,140,0.1)"
+                        : "rgba(3,205,140,0.2)"
                       : contentBg,
                     border: riderType === "personal"
                       ? "1px solid #03CD8C"
@@ -541,8 +573,8 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }): JSX.Element 
                         borderRadius: 2,
                         bgcolor: isSelected
                           ? theme.palette.mode === "light"
-                            ? rgba(3,205,140,0.1)
-                            : rgba(3,205,140,0.2)
+                            ? "rgba(3,205,140,0.1)"
+                            : "rgba(3,205,140,0.2)"
                           : contentBg,
                         border: isSelected
                           ? "1px solid #03CD8C"
@@ -586,8 +618,8 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }): JSX.Element 
                     borderRadius: 2,
                     bgcolor: riderType === "add-contact"
                       ? theme.palette.mode === "light"
-                        ? rgba(3,205,140,0.1)
-                        : rgba(3,205,140,0.2)
+                        ? "rgba(3,205,140,0.1)"
+                        : "rgba(3,205,140,0.2)"
                       : contentBg,
                     border: riderType === "add-contact"
                       ? "1px solid #03CD8C"
@@ -626,8 +658,8 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }): JSX.Element 
                     borderRadius: 2,
                     bgcolor: riderType === "manual"
                       ? theme.palette.mode === "light"
-                        ? rgba(3,205,140,0.1)
-                        : rgba(3,205,140,0.2)
+                        ? "rgba(3,205,140,0.1)"
+                        : "rgba(3,205,140,0.2)"
                       : contentBg,
                     border: riderType === "manual"
                       ? "1px solid #03CD8C"

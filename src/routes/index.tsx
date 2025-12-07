@@ -97,7 +97,7 @@ import ToursDashboard from "../screens/ToursDashboard";
 import AmbulanceDashboard from "../screens/AmbulanceDashboard";
 import SchoolDashboard from "../screens/SchoolDashboard";
 
-export default function AppRouter(): JSX.Element {
+export default function AppRouter(): React.JSX.Element {
   return (
     <BrowserRouter>
       <Routes>

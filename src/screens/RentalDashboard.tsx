@@ -17,7 +17,7 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 
-function RentalDashboardHomeScreen(): JSX.Element {
+function RentalDashboardHomeScreen(): React.JSX.Element {
   const [ctaState, setCtaState] = useState("idle");
   const [modeSelection, setModeSelection] = useState("self");
 
@@ -499,7 +499,7 @@ function RentalDashboardHomeScreen(): JSX.Element {
   );
 }
 
-export default function RentalDashboard(): JSX.Element {
+export default function RentalDashboard(): React.JSX.Element {
   return (
     <>
       <DarkModeToggle />

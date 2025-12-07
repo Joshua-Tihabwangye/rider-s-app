@@ -25,7 +25,7 @@ import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
 import BeachAccessRoundedIcon from "@mui/icons-material/BeachAccessRounded";
 import MobileShell from "../components/MobileShell";
 
-function TripInProgressBasicScreen(): JSX.Element {
+function TripInProgressBasicScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [progress, setProgress] = useState(40); // 40% of trip completed
   const [eta, setEta] = useState({ hours: 1, minutes: 20 });

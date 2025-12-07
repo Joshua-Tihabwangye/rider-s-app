@@ -20,7 +20,7 @@ import EventRoundedIcon from "@mui/icons-material/EventRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import MobileShell from "../components/MobileShell";
 
-function TripTypeRoundTripScreen(): JSX.Element {
+function TripTypeRoundTripScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [tripType, setTripType] = useState("oneway");
   const [returnSameDay, setReturnSameDay] = useState(true);

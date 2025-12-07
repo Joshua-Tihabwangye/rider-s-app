@@ -15,7 +15,7 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import MobileShell from "../components/MobileShell";
 
 // Mock geocoding service
-const geocodeAddress = async (address) => {
+const geocodeAddress = async (address: string): Promise<{ lat: number; lng: number }> => {
   // Simulate API call
   await new Promise(resolve => setTimeout(resolve, 300));
   
@@ -39,7 +39,7 @@ const geocodeAddress = async (address) => {
 };
 
 // Reverse geocoding - get address from coordinates
-const reverseGeocode = async (lat, lng) => {
+const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
   await new Promise(resolve => setTimeout(resolve, 200));
   // Mock address based on coordinates
   if (Math.abs(lat - 0.3476) < 0.1 && Math.abs(lng - 32.5825) < 0.1) {
@@ -48,16 +48,16 @@ const reverseGeocode = async (lat, lng) => {
   return `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
 };
 
-function PickDestinationMapScreen(): JSX.Element {
+function PickDestinationMapScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const mapRef = useRef(null);
-  const isDraggingRef = useRef(false);
-  const lastPanRef = useRef({ x: 0, y: 0 });
-  const dragStartRef = useRef({ x: 0, y: 0 });
-  const hasMovedRef = useRef(false);
-  const clickTimeoutRef = useRef(null);
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const isDraggingRef = useRef<boolean>(false);
+  const lastPanRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const hasMovedRef = useRef<boolean>(false);
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Get initial destination from navigation state
   const initialState = location.state || {};
@@ -78,7 +78,7 @@ function PickDestinationMapScreen(): JSX.Element {
   }, [coordinates]);
   
   // Handle geocoding when user types in destination field
-  const handleDestinationChange = async (e) => {
+  const handleDestinationChange = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const value = e.target.value;
     setDestination(value);
     
@@ -91,25 +91,37 @@ function PickDestinationMapScreen(): JSX.Element {
     }
   };
   
+  // Helper to get coordinates from mouse or touch event
+  const getEventCoordinates = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>): { x: number; y: number } => {
+    if ('touches' in e && e.touches && e.touches.length > 0 && e.touches[0]) {
+      return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    } else if ('changedTouches' in e && e.changedTouches && e.changedTouches.length > 0 && e.changedTouches[0]) {
+      return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    } else if ('clientX' in e && 'clientY' in e) {
+      return { x: e.clientX, y: e.clientY };
+    }
+    return { x: 0, y: 0 };
+  };
+  
   // Handle map drag start
-  const handleMouseDown = useCallback((e) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     if (mapRef.current) {
       isDraggingRef.current = true;
       setIsDragging(true);
       hasMovedRef.current = false;
-      const startX = e.clientX || e.touches?.[0]?.clientX || 0;
-      const startY = e.clientY || e.touches?.[0]?.clientY || 0;
-      dragStartRef.current = { x: startX, y: startY };
-      lastPanRef.current = { x: startX, y: startY };
+      const coords = getEventCoordinates(e);
+      dragStartRef.current = { x: coords.x, y: coords.y };
+      lastPanRef.current = { x: coords.x, y: coords.y };
       mapRef.current.style.cursor = "grabbing";
     }
   }, []);
   
   // Handle map drag
-  const handleMouseMove = useCallback((e) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     if (isDraggingRef.current && mapRef.current) {
-      const currentX = e.clientX || e.touches?.[0]?.clientX || 0;
-      const currentY = e.clientY || e.touches?.[0]?.clientY || 0;
+      const coords = getEventCoordinates(e);
+      const currentX = coords.x;
+      const currentY = coords.y;
       
       // Check if mouse has moved significantly (more than 5px) to distinguish drag from click
       const deltaFromStart = Math.sqrt(
@@ -131,7 +143,7 @@ function PickDestinationMapScreen(): JSX.Element {
       // Update coordinates based on drag distance
       // Rough conversion: 1px ≈ 0.0001 degrees (adjust based on zoom level)
       const scale = 0.0001;
-      setCoordinates(prev => ({
+      setCoordinates((prev: { lat: number; lng: number }) => ({
         lat: prev.lat - (deltaY * scale),
         lng: prev.lng + (deltaX * scale)
       }));
@@ -141,7 +153,7 @@ function PickDestinationMapScreen(): JSX.Element {
   }, []);
   
   // Handle map click/tap to move pin
-  const handleMapClick = useCallback(async (e) => {
+  const handleMapClick = useCallback(async (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     if (!mapRef.current) {
       return;
     }
@@ -156,8 +168,9 @@ function PickDestinationMapScreen(): JSX.Element {
     e.stopPropagation();
     
     const rect = mapRef.current.getBoundingClientRect();
-    const clickX = (e.clientX || e.changedTouches?.[0]?.clientX || 0) - rect.left;
-    const clickY = (e.clientY || e.changedTouches?.[0]?.clientY || 0) - rect.top;
+    const coords = getEventCoordinates(e);
+    const clickX = coords.x - rect.left;
+    const clickY = coords.y - rect.top;
     
     // Get center of map
     const centerX = rect.width / 2;
@@ -192,7 +205,7 @@ function PickDestinationMapScreen(): JSX.Element {
   }, [coordinates]);
   
   // Handle map drag end
-  const handleMouseUp = useCallback((e) => {
+  const handleMouseUp = useCallback((e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     const wasDragging = isDraggingRef.current;
     const didMove = hasMovedRef.current;
     
@@ -200,8 +213,8 @@ function PickDestinationMapScreen(): JSX.Element {
       // It was a click/tap, not a drag - move pin to click location
       // Use a small timeout to allow double-click to be detected first
       clickTimeoutRef.current = setTimeout(() => {
-        handleMapClick(e);
-      }, 250);
+        handleMapClick(e as React.MouseEvent<HTMLDivElement>);
+      }, 250) as NodeJS.Timeout;
     }
     
     isDraggingRef.current = false;
@@ -228,28 +241,33 @@ function PickDestinationMapScreen(): JSX.Element {
   useEffect(() => {
     const mapElement = mapRef.current;
     if (mapElement) {
-      mapElement.addEventListener("mousedown", handleMouseDown);
-      mapElement.addEventListener("mousemove", handleMouseMove);
-      mapElement.addEventListener("mouseup", handleMouseUp);
-      mapElement.addEventListener("mouseleave", handleMouseUp);
-      mapElement.addEventListener("touchstart", handleMouseDown, { passive: true });
-      mapElement.addEventListener("touchmove", handleMouseMove, { passive: true });
-      mapElement.addEventListener("touchend", handleMouseUp);
+      const mouseDownHandler = (e: MouseEvent | TouchEvent) => handleMouseDown(e as unknown as React.MouseEvent<HTMLDivElement>);
+      const mouseMoveHandler = (e: MouseEvent | TouchEvent) => handleMouseMove(e as unknown as React.MouseEvent<HTMLDivElement>);
+      const mouseUpHandler = (e: MouseEvent | TouchEvent) => handleMouseUp(e as unknown as React.MouseEvent<HTMLDivElement>);
+      const mapClickHandler = (e: MouseEvent) => handleMapClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+      
+      mapElement.addEventListener("mousedown", mouseDownHandler);
+      mapElement.addEventListener("mousemove", mouseMoveHandler);
+      mapElement.addEventListener("mouseup", mouseUpHandler);
+      mapElement.addEventListener("mouseleave", mouseUpHandler);
+      mapElement.addEventListener("touchstart", mouseDownHandler, { passive: true });
+      mapElement.addEventListener("touchmove", mouseMoveHandler, { passive: true });
+      mapElement.addEventListener("touchend", mouseUpHandler);
       // Also handle double-click for moving pin
-      mapElement.addEventListener("dblclick", handleMapClick);
+      mapElement.addEventListener("dblclick", mapClickHandler);
       
       return () => {
         if (clickTimeoutRef.current) {
           clearTimeout(clickTimeoutRef.current);
         }
-        mapElement.removeEventListener("mousedown", handleMouseDown);
-        mapElement.removeEventListener("mousemove", handleMouseMove);
-        mapElement.removeEventListener("mouseup", handleMouseUp);
-        mapElement.removeEventListener("mouseleave", handleMouseUp);
-        mapElement.removeEventListener("touchstart", handleMouseDown);
-        mapElement.removeEventListener("touchmove", handleMouseMove);
-        mapElement.removeEventListener("touchend", handleMouseUp);
-        mapElement.removeEventListener("dblclick", handleMapClick);
+        mapElement.removeEventListener("mousedown", mouseDownHandler);
+        mapElement.removeEventListener("mousemove", mouseMoveHandler);
+        mapElement.removeEventListener("mouseup", mouseUpHandler);
+        mapElement.removeEventListener("mouseleave", mouseUpHandler);
+        mapElement.removeEventListener("touchstart", mouseDownHandler);
+        mapElement.removeEventListener("touchmove", mouseMoveHandler);
+        mapElement.removeEventListener("touchend", mouseUpHandler);
+        mapElement.removeEventListener("dblclick", mapClickHandler);
       };
     }
   }, [handleMouseDown, handleMouseMove, handleMouseUp, handleMapClick]);

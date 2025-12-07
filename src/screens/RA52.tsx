@@ -37,8 +37,21 @@ const DELIVERING_ORDERS = [
   }
 ];
 
-function DeliveringOrderRow({ order }): JSX.Element {
-  const statusColorMap = {
+interface Order {
+  id: string;
+  toName: string;
+  toAddress: string;
+  fromAddress: string;
+  status: "Out for pickup" | "In transit" | "Label created" | string;
+  eta?: string;
+}
+
+interface DeliveringOrderRowProps {
+  order: Order;
+}
+
+function DeliveringOrderRow({ order }: DeliveringOrderRowProps): React.JSX.Element {
+  const statusColorMap: { [key: string]: string } = {
     "Out for pickup": "#F97316",
     "In transit": "#16A34A",
     "Label created": "#4B5563"
@@ -93,7 +106,7 @@ function DeliveringOrderRow({ order }): JSX.Element {
   );
 }
 
-function DeliveriesDashboardDeliveringV2Screen(): JSX.Element {
+function DeliveriesDashboardDeliveringV2Screen(): React.JSX.Element {
   const navigate = useNavigate();
   const [segment, setSegment] = useState("today");
 
@@ -113,7 +126,7 @@ function DeliveriesDashboardDeliveringV2Screen(): JSX.Element {
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)" (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)")}}
+                  : "1px solid rgba(51,65,85,0.9)"}}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>

@@ -37,7 +37,7 @@ import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
 import LocalAtmRoundedIcon from "@mui/icons-material/LocalAtmRounded";
 import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
 
-const getDesignTokens = (mode) => ({
+const getDesignTokens = (mode: "light" | "dark") => ({
   palette: {
     mode,
     primary: { main: "#03CD8C" },
@@ -71,10 +71,16 @@ const NAV_TABS = [
   { value: "more", label: "More", icon: <MoreHorizRoundedIcon /> }
 ];
 
-function MobileShell(): JSX.Element { children, activeTab = "wallet", onTabChange }) {
-  const [navValue, setNavValue] = useState(activeTab);
+interface MobileShellProps {
+  children: React.ReactNode;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+}
 
-  const handleChange = (event, newValue) => {
+function MobileShell({ children, activeTab = "wallet", onTabChange }: MobileShellProps): React.JSX.Element {
+  const [navValue, setNavValue] = useState<string>(activeTab);
+
+  const handleChange = (_event: React.SyntheticEvent, newValue: string): void => {
     setNavValue(newValue);
     if (onTabChange) onTabChange(newValue);
   };
@@ -208,7 +214,7 @@ const TRANSACTIONS = [
   }
 ];
 
-function WalletHomeScreen(): JSX.Element {
+function WalletHomeScreen(): React.JSX.Element {
   const balance = 520000; // demo
   const reserved = 180000; // e.g. deposits / holds
 
@@ -618,8 +624,8 @@ function WalletHomeScreen(): JSX.Element {
   );
 }
 
-export default function RiderWalletHomeCanvas_v2() {
-  const [mode, setMode] = useState("light");
+export default function RiderWalletHomeCanvas_v2(): React.JSX.Element {
+  const [mode, setMode] = useState<"light" | "dark">("light");
   const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
 
   return (

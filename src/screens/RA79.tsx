@@ -21,7 +21,7 @@ import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 
 import MobileShell from "../components/MobileShell";
 
-function TourDateGuestsScreen(): JSX.Element {
+function TourDateGuestsScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [date, setDate] = useState("Sat, 12 Oct 2025");
   const [timeSlot, setTimeSlot] = useState("Afternoon (14:00)");
@@ -30,8 +30,8 @@ function TourDateGuestsScreen(): JSX.Element {
 
   const canContinue = Boolean(date.trim() && timeSlot.trim() && adults > 0);
 
-  const adjust = (setter, delta, min = 0, max = 10) => {
-    setter((prev) => {
+  const adjust = (setter: React.Dispatch<React.SetStateAction<number>>, delta: number, min = 0, max = 10): void => {
+    setter((prev: number) => {
       const next = prev + delta;
       if (next < min) return min;
       if (next > max) return max;

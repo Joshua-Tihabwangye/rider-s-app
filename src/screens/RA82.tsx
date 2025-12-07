@@ -42,7 +42,21 @@ const PAST_TOURS = [
   }
 ];
 
-function TourBookingCard({ booking }): JSX.Element {
+interface Booking {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  guests: string;
+  status: string;
+}
+
+interface TourBookingCardProps {
+  booking: Booking;
+}
+
+function TourBookingCard({ booking }: TourBookingCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -141,7 +155,7 @@ function TourBookingCard({ booking }): JSX.Element {
   );
 }
 
-function TourBookingsUpcomingHistoryScreen(): JSX.Element {
+function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [tab, setTab] = useState("upcoming");
   const bookings = tab === "upcoming" ? UPCOMING_TOURS : PAST_TOURS;
