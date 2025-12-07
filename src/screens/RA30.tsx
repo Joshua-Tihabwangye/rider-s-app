@@ -32,7 +32,19 @@ const PASSENGERS = [
   { id: 3, name: "John", initials: "J", joined: false }
 ];
 
-function PassengerChip({ passenger }): JSX.Element {
+interface Passenger {
+  id: number;
+  name: string;
+  initials: string;
+  isOwner?: boolean;
+  joined: boolean;
+}
+
+interface PassengerChipProps {
+  passenger: Passenger;
+}
+
+function PassengerChip({ passenger }: PassengerChipProps): React.JSX.Element {
   const bg = passenger.joined ? "rgba(34,197,94,0.1)" : "rgba(148,163,184,0.12)";
   const fg = passenger.joined ? "#16A34A" : "#6B7280";
   return (
@@ -68,7 +80,7 @@ function PassengerChip({ passenger }): JSX.Element {
   );
 }
 
-function ShareRidePassengersScreen(): JSX.Element {
+function ShareRidePassengersScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [shareUrl] = useState("https://ev.zone/r/ABC123");
   const [splitFare, setSplitFare] = useState(true);

@@ -30,7 +30,7 @@ import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
 import MobileShell from "../components/MobileShell";
 
-function TripInProgressWithDriverScreen(): JSX.Element {
+function TripInProgressWithDriverScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const theme = useTheme();
   const [progress, setProgress] = useState(40); // 40% of trip completed

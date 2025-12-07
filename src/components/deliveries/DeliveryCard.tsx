@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Box,
   Typography,
@@ -20,19 +19,57 @@ import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import { COLORS } from "../../constants/colors";
 import { formatDeliveryDateParts } from "../../utils/dateUtils";
 
+interface SenderInfo {
+  name?: string;
+  city?: string;
+  code?: string;
+  address?: string;
+  profileImage?: string | null;
+  avatar?: string;
+  icon?: string;
+}
+
+interface ReceiverInfo {
+  city?: string;
+  code?: string;
+  icon?: string;
+}
+
+interface DeliveryOrder {
+  id: string;
+  packageName: string;
+  status: string;
+  progress?: number;
+  date?: Date;
+  time?: string;
+  sender?: SenderInfo;
+  receiver?: ReceiverInfo;
+  needsPayment?: boolean;
+}
+
+interface DeliveryCardProps {
+  order: DeliveryOrder;
+  variant?: "delivering" | "received";
+  onMenuClick?: (event: React.MouseEvent<HTMLButtonElement>, orderId: string) => void;
+  onAccept?: (orderId: string) => void;
+  onReject?: (orderId: string) => void;
+  onMakePayment?: (orderId: string) => void;
+  showTruckIcon?: boolean;
+}
+
 /**
  * Reusable Delivery Card Component
  * Displays delivery information in a consistent card format
  */
 export default function DeliveryCard({
   order,
-  variant = "delivering", // "delivering" | "received"
+  variant = "delivering",
   onMenuClick,
   onAccept,
   onReject,
   onMakePayment,
   showTruckIcon = false
-}) {
+}: DeliveryCardProps): React.JSX.Element {
   const greenPrimary = COLORS.green.primary;
   const greenSecondary = COLORS.green.secondary;
   const isReceived = variant === "received";
@@ -107,7 +144,7 @@ export default function DeliveryCard({
         {isReceived ? (
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
             <Avatar
-              src={order.sender?.profileImage}
+              src={order.sender?.profileImage || undefined}
               sx={{
                 width: 32,
                 height: 32,

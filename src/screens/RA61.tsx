@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -21,7 +22,7 @@ import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import CancelRoundedIcon from "@mui/icons-material/CancelRounded";
 import MobileShell from "../components/MobileShell";
 
-function ActiveDeliveryWithCancelScreen(): JSX.Element {
+function ActiveDeliveryWithCancelScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const trackingId = "DLV-2025-10-07-001";
   const eta = "18 min";

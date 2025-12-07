@@ -1,10 +1,9 @@
-import React from "react";
 import { IconButton } from "@mui/material";
 import { useThemeMode } from "../contexts/ThemeContext";
 import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
 import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
 
-export default function DarkModeToggle(): JSX.Element {
+export default function DarkModeToggle(): React.JSX.Element {
   const { mode, toggleMode } = useThemeMode();
 
   return (

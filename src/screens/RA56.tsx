@@ -87,11 +87,11 @@ const INCOMING_TRACKING_REQUESTS = [
   }
 ];
 
-function IncomingTrackingRequestsScreen(): JSX.Element {
+function IncomingTrackingRequestsScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("received");
   const [requests, setRequests] = useState(INCOMING_TRACKING_REQUESTS);
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" | "warning" | "info" }>({ open: false, message: "", severity: "success" });
   const greenPrimary = COLORS.green.primary;
 
   // Filter requests based on active tab
@@ -99,7 +99,7 @@ function IncomingTrackingRequestsScreen(): JSX.Element {
     (request) => request.status === activeTab
   );
 
-  const handleAccept = (requestId) => {
+  const handleAccept = (requestId: string): void => {
     // Update request status to "received"
     setRequests((prevRequests) =>
       prevRequests.map((req) =>
@@ -125,7 +125,7 @@ function IncomingTrackingRequestsScreen(): JSX.Element {
     }
   };
 
-  const handleDecline = (requestId) => {
+  const handleDecline = (requestId: string): void => {
     // Remove the request from the list
     setRequests((prevRequests) =>
       prevRequests.filter((req) => req.id !== requestId)
@@ -294,7 +294,7 @@ function IncomingTrackingRequestsScreen(): JSX.Element {
               <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
                 {/* Profile Picture */}
                 <Avatar
-                  src={request.profileImage}
+                  src={request.profileImage || undefined}
                   sx={{
                     width: 48,
                     height: 48,

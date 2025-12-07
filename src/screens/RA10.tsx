@@ -34,7 +34,7 @@ import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import MobileShell from "../components/MobileShell";
 
-function SwitchRiderChooserScreen(): JSX.Element {
+function SwitchRiderChooserScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -63,7 +63,7 @@ function SwitchRiderChooserScreen(): JSX.Element {
     }, 300);
   };
   
-  const handleBackdropClick = (e) => {
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>): void => {
     if (e.target === e.currentTarget) {
       handleClose();
     }
@@ -411,8 +411,8 @@ function SwitchRiderChooserScreen(): JSX.Element {
                     borderRadius: 2,
                     bgcolor: riderType === "personal"
                       ? theme.palette.mode === "light"
-                        ? rgba(3,205,140,0.1)
-                        : rgba(3,205,140,0.2)
+                        ? "rgba(3,205,140,0.1)"
+                        : "rgba(3,205,140,0.2)"
                       : "transparent",
                       border: riderType === "personal"
                         ? "1px solid #03CD8C"
@@ -451,8 +451,8 @@ function SwitchRiderChooserScreen(): JSX.Element {
                     borderRadius: 2,
                     bgcolor: riderType === "contact"
                       ? theme.palette.mode === "light"
-                        ? rgba(3,205,140,0.1)
-                        : rgba(3,205,140,0.2)
+                        ? "rgba(3,205,140,0.1)"
+                        : "rgba(3,205,140,0.2)"
                       : "transparent",
                       border: riderType === "contact"
                         ? "1px solid #03CD8C"
@@ -491,8 +491,8 @@ function SwitchRiderChooserScreen(): JSX.Element {
                     borderRadius: 2,
                     bgcolor: riderType === "manual"
                       ? theme.palette.mode === "light"
-                        ? rgba(3,205,140,0.1)
-                        : rgba(3,205,140,0.2)
+                        ? "rgba(3,205,140,0.1)"
+                        : "rgba(3,205,140,0.2)"
                       : "transparent",
                     border: riderType === "manual"
                       ? "1px solid #03CD8C"

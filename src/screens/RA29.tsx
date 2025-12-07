@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
@@ -23,7 +24,7 @@ import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import MobileShell from "../components/MobileShell";
 
-function TripCompletedArrivalSummaryScreen(): JSX.Element {
+function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const theme = useTheme();
   

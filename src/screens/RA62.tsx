@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -20,7 +21,7 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import MobileShell from "../components/MobileShell";
 
-function ActiveDeliveryLivePackageTrackingScreen(): JSX.Element {
+function ActiveDeliveryLivePackageTrackingScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const eta = "22 min";
   const distance = "9.6 km";

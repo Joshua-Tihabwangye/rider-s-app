@@ -22,7 +22,7 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import MobileShell from "../components/MobileShell";
 
-function SimpleEnterDestinationScreen(): JSX.Element {
+function SimpleEnterDestinationScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [pickup, setPickup] = useState("Current location");
   const [destination, setDestination] = useState("");

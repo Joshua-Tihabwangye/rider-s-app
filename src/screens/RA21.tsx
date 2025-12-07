@@ -17,8 +17,12 @@ import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceW
 import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
 import MobileShell from "../components/MobileShell";
 
+interface MapBackgroundProps {
+  onBackClick?: () => void;
+}
+
 // Map background component with route visualization
-function MapBackground({ onBackClick }): JSX.Element {
+function MapBackground({ onBackClick }: MapBackgroundProps): React.JSX.Element {
   const theme = useTheme();
   
   return (
@@ -144,7 +148,20 @@ const PAYMENT_METHODS = [
   }
 ];
 
-function PaymentMethodCard({ method, selected, onSelect }): JSX.Element {
+interface PaymentMethod {
+  id: string;
+  name: string;
+  description?: string;
+  icon: React.ReactElement;
+}
+
+interface PaymentMethodCardProps {
+  method: PaymentMethod;
+  selected: string;
+  onSelect: (id: string) => void;
+}
+
+function PaymentMethodCard({ method, selected, onSelect }: PaymentMethodCardProps): React.JSX.Element {
   const theme = useTheme();
   const isActive = selected === method.id;
   
@@ -206,7 +223,7 @@ function PaymentMethodCard({ method, selected, onSelect }): JSX.Element {
   );
 }
 
-function PaymentMethodSelectionScreen(): JSX.Element {
+function PaymentMethodSelectionScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();

@@ -41,7 +41,23 @@ const UPCOMING_RIDES = [
   }
 ];
 
-function UpcomingRideCard({ ride }): JSX.Element {
+interface Ride {
+  id: string;
+  date: string;
+  time: string;
+  origin?: string;
+  destination?: string;
+  from?: string;
+  to?: string;
+  type?: string;
+  status: string;
+}
+
+interface UpcomingRideCardProps {
+  ride: Ride;
+}
+
+function UpcomingRideCard({ ride }: UpcomingRideCardProps): React.JSX.Element {
   const confirmed = ride.status === "Confirmed";
   const statusColor = confirmed ? "#16A34A" : "#CA8A04";
   const statusBg = confirmed
@@ -160,11 +176,11 @@ function UpcomingRideCard({ ride }): JSX.Element {
   );
 }
 
-function RideHistoryUpcomingScreen(): JSX.Element {
+function RideHistoryUpcomingScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [tab, setTab] = useState("upcoming");
 
-  const handleTabChange = (e, value) => setTab(value);
+  const handleTabChange = (_e: React.SyntheticEvent, value: string): void => setTab(value);
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>

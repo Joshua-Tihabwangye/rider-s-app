@@ -53,7 +53,24 @@ const RIDE_TYPES = [
   }
 ];
 
-function RideTypeCard({ type, selected, onSelect }): JSX.Element {
+interface RideType {
+  id: string;
+  name: string;
+  description?: string;
+  icon: React.ReactElement;
+  eta?: string;
+  price: string;
+  tag: string | null;
+  capacity: string;
+}
+
+interface RideTypeCardProps {
+  type: RideType;
+  selected: string;
+  onSelect: (id: string) => void;
+}
+
+function RideTypeCard({ type, selected, onSelect }: RideTypeCardProps): React.JSX.Element {
   const isActive = selected === type.id;
   return (
     <Card
@@ -153,7 +170,7 @@ function RideTypeCard({ type, selected, onSelect }): JSX.Element {
   );
 }
 
-function SelectRideTypeScreen(): JSX.Element {
+function SelectRideTypeScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [selected, setSelected] = useState("eco");
 

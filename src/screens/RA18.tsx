@@ -160,8 +160,21 @@ const ACCESSIBILITY_OPTIONS = {
   ]
 };
 
+interface PreferenceOption {
+  id: string;
+  label: string;
+  description?: string;
+}
+
+interface PreferenceChipProps {
+  option: PreferenceOption;
+  active: boolean;
+  onToggle: (id: string) => void;
+  description?: string;
+}
+
 // Preference Chip Component
-function PreferenceChip({ option, active, onToggle, description }): JSX.Element {
+function PreferenceChip({ option, active, onToggle, description }: PreferenceChipProps): React.JSX.Element {
   const theme = useTheme();
   
   return (
@@ -178,7 +191,7 @@ function PreferenceChip({ option, active, onToggle, description }): JSX.Element 
           fontWeight: 500,
           cursor: "pointer",
           bgcolor: active
-            ? rgba(3,205,140,0.15)
+            ? "rgba(3,205,140,0.15)"
             : theme.palette.mode === "light"
               ? "#FFFFFF"
               : "rgba(255,255,255,0.05)",
@@ -194,7 +207,7 @@ function PreferenceChip({ option, active, onToggle, description }): JSX.Element 
           "&:hover": {
             borderColor: accentGreen,
             bgcolor: active
-              ? rgba(3,205,140,0.15)
+              ? "rgba(3,205,140,0.15)"
               : theme.palette.mode === "light"
                 ? "rgba(0,0,0,0.05)"
                 : "rgba(255,255,255,0.1)"
@@ -220,25 +233,41 @@ function PreferenceChip({ option, active, onToggle, description }): JSX.Element 
   );
 }
 
-function RidePreferenceSetupScreen(): JSX.Element {
+function RidePreferenceSetupScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const theme = useTheme();
   
   const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
   
   // State for all preferences
-  const [routeTypes, setRouteTypes] = useState([]);
-  const [rideTypes, setRideTypes] = useState({
+  const [routeTypes, setRouteTypes] = useState<string[]>([]);
+  const [rideTypes, setRideTypes] = useState<{
+    modes: string[];
+    occasions: string[];
+    transportationNeeds: string[];
+    types: string[];
+  }>({
     modes: [],
     occasions: [],
     transportationNeeds: [],
     types: []
   });
-  const [vehiclePrefs, setVehiclePrefs] = useState({
+  const [vehiclePrefs, setVehiclePrefs] = useState<{
+    transmission: string[];
+    vehicleType: string[];
+  }>({
     transmission: [],
     vehicleType: []
   });
-  const [driverPersonality, setDriverPersonality] = useState({
+  const [driverPersonality, setDriverPersonality] = useState<{
+    communicationStyle: string[];
+    culturalBackground: string;
+    languages: string[];
+    hobbies: string[];
+    professionalBackground: string[];
+    drivingStyle: string[];
+    personalityMatch: string[];
+  }>({
     communicationStyle: [],
     culturalBackground: "",
     languages: [],
@@ -247,7 +276,12 @@ function RidePreferenceSetupScreen(): JSX.Element {
     drivingStyle: [],
     personalityMatch: []
   });
-  const [accessibility, setAccessibility] = useState({
+  const [accessibility, setAccessibility] = useState<{
+    accessibilityOptions: string[];
+    medicalTransport: string[];
+    driverTraining: string[];
+    seatsDesign: string[];
+  }>({
     accessibilityOptions: [],
     medicalTransport: [],
     driverTraining: [],
@@ -255,7 +289,13 @@ function RidePreferenceSetupScreen(): JSX.Element {
   });
   
   // Accordion state
-  const [expandedSections, setExpandedSections] = useState({
+  const [expandedSections, setExpandedSections] = useState<{
+    routeType: boolean;
+    rideType: boolean;
+    vehicle: boolean;
+    driver: boolean;
+    accessibility: boolean;
+  }>({
     routeType: true,
     rideType: false,
     vehicle: false,
@@ -263,7 +303,7 @@ function RidePreferenceSetupScreen(): JSX.Element {
     accessibility: false
   });
   
-  const toggleSection = (section) => {
+  const toggleSection = (section: keyof typeof expandedSections): void => {
     setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section]
@@ -271,50 +311,57 @@ function RidePreferenceSetupScreen(): JSX.Element {
   };
   
   // Route Type Toggle
-  const toggleRouteType = (id) => {
+  const toggleRouteType = (id: string): void => {
     setRouteTypes((prev) =>
       prev.includes(id) ? prev.filter((r) => r !== id) : [...prev, id]
     );
   };
   
   // Ride Type Toggle
-  const toggleRideType = (category, id) => {
+  const toggleRideType = (category: keyof typeof rideTypes, id: string): void => {
     setRideTypes((prev) => ({
       ...prev,
       [category]: prev[category].includes(id)
-        ? prev[category].filter((r) => r !== id)
+        ? prev[category].filter((r: string) => r !== id)
         : [...prev[category], id]
     }));
   };
   
   // Vehicle Preference Toggle
-  const toggleVehiclePref = (category, id) => {
+  const toggleVehiclePref = (category: keyof typeof vehiclePrefs, id: string): void => {
     setVehiclePrefs((prev) => ({
       ...prev,
       [category]: prev[category].includes(id)
-        ? prev[category].filter((v) => v !== id)
+        ? prev[category].filter((v: string) => v !== id)
         : [...prev[category], id]
     }));
   };
   
   // Driver Personality Toggle
-  const toggleDriverPersonality = (category, id) => {
-    setDriverPersonality((prev) => ({
+  const toggleDriverPersonality = (category: keyof typeof driverPersonality, id: string): void => {
+    setDriverPersonality((prev) => {
+      const currentValue = prev[category];
+      if (Array.isArray(currentValue)) {
+        return {
       ...prev,
-      [category]: Array.isArray(prev[category])
-        ? (prev[category].includes(id)
-            ? prev[category].filter((d) => d !== id)
-            : [...prev[category], id])
-        : [id]
-    }));
+          [category]: currentValue.includes(id)
+            ? currentValue.filter((d: string) => d !== id)
+            : [...currentValue, id]
+        };
+      }
+      return {
+        ...prev,
+        [category]: [id]
+      };
+    });
   };
   
   // Accessibility Toggle
-  const toggleAccessibility = (category, id) => {
+  const toggleAccessibility = (category: keyof typeof accessibility, id: string): void => {
     setAccessibility((prev) => ({
       ...prev,
       [category]: prev[category].includes(id)
-        ? prev[category].filter((a) => a !== id)
+        ? prev[category].filter((a: string) => a !== id)
         : [...prev[category], id]
     }));
   };
@@ -747,7 +794,7 @@ function RidePreferenceSetupScreen(): JSX.Element {
                           size="small"
                           sx={{
                             borderRadius: 2,
-                            bgcolor: rgba(3,205,140,0.15),
+                            bgcolor: "rgba(3,205,140,0.15)",
                             color: accentGreen,
                             border: "1px solid #03CD8C"
                           }}

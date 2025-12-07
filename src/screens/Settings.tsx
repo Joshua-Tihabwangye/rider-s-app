@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -26,7 +27,7 @@ import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useThemeMode } from "../contexts/ThemeContext";
 
-export default function Settings(): JSX.Element {
+export default function Settings(): React.JSX.Element {
   const navigate = useNavigate();
   const { mode, toggleMode } = useThemeMode();
   const [notifications, setNotifications] = React.useState(true);

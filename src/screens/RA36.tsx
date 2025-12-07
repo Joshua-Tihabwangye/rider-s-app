@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -24,7 +25,19 @@ const SHARED_PASSENGERS = [
   { id: 3, name: "John", initials: "J", share: 0.25 }
 ];
 
-function SharedPassengerRow({ passenger }): JSX.Element {
+interface Passenger {
+  id: number;
+  name: string;
+  initials: string;
+  isOwner?: boolean;
+  share?: number;
+}
+
+interface SharedPassengerRowProps {
+  passenger: Passenger;
+}
+
+function SharedPassengerRow({ passenger }: SharedPassengerRowProps): React.JSX.Element {
   const isOwner = passenger.isOwner;
   return (
     <Box
@@ -74,7 +87,7 @@ function SharedPassengerRow({ passenger }): JSX.Element {
             variant="caption"
             sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
           >
-            {Math.round(passenger.share * 100)}% of fare
+            {passenger.share ? Math.round(passenger.share * 100) : 0}% of fare
           </Typography>
         </Box>
       </Box>
@@ -82,13 +95,13 @@ function SharedPassengerRow({ passenger }): JSX.Element {
         variant="body2"
         sx={{ fontWeight: 600, fontSize: 13, letterSpacing: "-0.01em" }}
       >
-        UGX {(14500 * passenger.share).toFixed(0)}
+        UGX {passenger.share ? (14500 * passenger.share).toFixed(0) : "0"}
       </Typography>
     </Box>
   );
 }
 
-function SharedPassengersScreen(): JSX.Element {
+function SharedPassengersScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const totalFare = 14500;
 

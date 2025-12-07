@@ -13,9 +13,7 @@ import {
   Tab,
   IconButton,
   Menu,
-  MenuItem,
-  LinearProgress,
-  Avatar
+  MenuItem
 } from "@mui/material";
 
 import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
@@ -26,8 +24,6 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
 import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
-import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import PersonAddRoundedIcon from "@mui/icons-material/PersonAddRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
@@ -39,18 +35,20 @@ import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 import DeliveryCard from "../components/deliveries/DeliveryCard";
 import { COLORS } from "../constants/colors";
-import { formatDeliveryDate } from "../utils/dateUtils";
 
-function DeliveryDashboardHomeScreen(): JSX.Element {
+function DeliveryDashboardHomeScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [ctaState, setCtaState] = useState("idle");
-  const [viewMode, setViewMode] = useState("sending");
-  const [activeTab, setActiveTab] = useState("delivering");
-  const [menuAnchor, setMenuAnchor] = useState({ open: false, anchorEl: null, orderId: null });
-  const [trackingNumber, setTrackingNumber] = useState("");
+  const [ctaState, setCtaState] = useState<string>("idle");
+  const [viewMode, setViewMode] = useState<string>("sending");
+  const [activeTab, setActiveTab] = useState<string>("delivering");
+  const [menuAnchor, setMenuAnchor] = useState<{ open: boolean; anchorEl: HTMLElement | null; orderId: string | null }>({ 
+    open: false, 
+    anchorEl: null, 
+    orderId: null 
+  });
+  const [trackingNumber, setTrackingNumber] = useState<string>("");
   // For demo - can be toggled to show empty states
   const hasRecentDeliveries = true;
-  const hasActiveDeliveries = true;
 
   const greenPrimary = COLORS.green.primary;
   const greenSecondary = COLORS.green.secondary;
@@ -145,7 +143,7 @@ function DeliveryDashboardHomeScreen(): JSX.Element {
     }
   ];
 
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: string): void => {
     setActiveTab(newValue);
   };
 
@@ -153,12 +151,12 @@ function DeliveryDashboardHomeScreen(): JSX.Element {
     navigate("/deliveries/new");
   };
 
-  const handleMenuOpen = (event, orderId) => {
+  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, orderId: string): void => {
     event.stopPropagation();
     setMenuAnchor({ open: true, anchorEl: event.currentTarget, orderId });
   };
 
-  const handleMenuClose = () => {
+  const handleMenuClose = (): void => {
     setMenuAnchor({ open: false, anchorEl: null, orderId: null });
   };
 
@@ -168,7 +166,7 @@ function DeliveryDashboardHomeScreen(): JSX.Element {
     navigate("/deliveries/invitations");
   };
 
-  const handleShare = () => {
+  const handleShare = (): void => {
     // Handle share action
     console.log("Share for order:", menuAnchor.orderId);
     handleMenuClose();
@@ -184,7 +182,7 @@ function DeliveryDashboardHomeScreen(): JSX.Element {
     }
   };
 
-  const handleMakePayment = (orderId) => {
+  const handleMakePayment = (orderId: string): void => {
     // Navigate to payment page with delivery context
     navigate("/rides/payment", {
       state: {
@@ -195,14 +193,14 @@ function DeliveryDashboardHomeScreen(): JSX.Element {
     });
   };
 
-  const handleAcceptDelivery = (orderId) => {
+  const handleAcceptDelivery = (orderId: string): void => {
     // Navigate to acceptance confirmation or tracking
     navigate(`/deliveries/tracking/${orderId}/received`, {
       state: { action: "accept", orderId }
     });
   };
 
-  const handleRejectDelivery = (orderId) => {
+  const handleRejectDelivery = (orderId: string): void => {
     // Show confirmation dialog or navigate to rejection screen
     if (window.confirm("Are you sure you want to reject this delivery?")) {
       // Navigate to rejection screen or update order status
@@ -1080,7 +1078,7 @@ function DeliveryDashboardHomeScreen(): JSX.Element {
   );
 }
 
-export default function DeliveriesDashboard(): JSX.Element {
+export default function DeliveriesDashboard(): React.JSX.Element {
   return (
     <>
       <DarkModeToggle />

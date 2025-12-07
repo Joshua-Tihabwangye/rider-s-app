@@ -21,7 +21,7 @@ import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import MobileShell from "../components/MobileShell";
 
-function TripInProgressExpandedDetailsScreen(): JSX.Element {
+function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [progress, setProgress] = useState(40); // 40% of trip completed
   const [eta, setEta] = useState({ hours: 1, minutes: 30 });

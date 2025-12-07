@@ -19,7 +19,7 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 
-function ToursDashboardHomeScreen(): JSX.Element {
+function ToursDashboardHomeScreen(): React.JSX.Element {
   const [highlightState, setHighlightState] = useState("idle");
   const [activeCategory, setActiveCategory] = useState("daytrips");
 
@@ -440,7 +440,7 @@ function ToursDashboardHomeScreen(): JSX.Element {
   );
 }
 
-export default function ToursDashboard(): JSX.Element {
+export default function ToursDashboard(): React.JSX.Element {
   return (
     <>
       <DarkModeToggle />

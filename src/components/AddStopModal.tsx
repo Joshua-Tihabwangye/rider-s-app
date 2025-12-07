@@ -110,7 +110,7 @@ const searchLocations = async (query: string): Promise<Location[]> => {
   );
 };
 
-function AddStopModal({ open, onClose, onSelectStop, currentStopCount }: AddStopModalProps): JSX.Element {
+function AddStopModal({ open, onClose, onSelectStop, currentStopCount }: AddStopModalProps): React.JSX.Element {
   const [query, setQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Location[]>([]);
   const [loadingSearch, setLoadingSearch] = useState<boolean>(false);

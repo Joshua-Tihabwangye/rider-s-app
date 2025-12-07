@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
@@ -26,7 +27,7 @@ import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceW
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import MobileShell from "../components/MobileShell";
 
-function RideDetailsScreen(): JSX.Element {
+function RideDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -683,7 +684,7 @@ function RideDetailsScreen(): JSX.Element {
           sx={{
             color: accentGreen,
             "&:hover": {
-              bgcolor: rgba(3,205,140,0.1)
+              bgcolor: "rgba(3,205,140,0.1)"
             }
           }}
         >

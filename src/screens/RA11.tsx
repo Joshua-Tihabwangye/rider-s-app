@@ -20,7 +20,16 @@ import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import MobileShell from "../components/MobileShell";
 
-const CONTACTS = [
+interface Contact {
+  id: number;
+  name: string;
+  relation: string;
+  phone: string;
+  initials: string;
+  rides?: number;
+}
+
+const CONTACTS: Contact[] = [
   {
     id: 2,
     name: "John Doe",
@@ -31,7 +40,13 @@ const CONTACTS = [
   }
 ];
 
-function ContactCard({ contact, selected, onSelect }): JSX.Element {
+interface ContactCardProps {
+  contact: Contact;
+  selected: Contact | null;
+  onSelect: (contact: Contact) => void;
+}
+
+function ContactCard({ contact, selected, onSelect }: ContactCardProps): React.JSX.Element {
   const isActive = selected?.id === contact.id;
   return (
     <Card
@@ -146,9 +161,9 @@ function ContactCard({ contact, selected, onSelect }): JSX.Element {
   );
 }
 
-function SwitchRiderContactSelectedScreen(): JSX.Element {
+function SwitchRiderContactSelectedScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [selectedContact, setSelectedContact] = useState(CONTACTS[0]);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(CONTACTS[0] ?? null);
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -196,6 +211,7 @@ function SwitchRiderContactSelectedScreen(): JSX.Element {
       </Box>
 
       {/* Selected summary */}
+      {selectedContact && (
       <Card
         elevation={0}
         sx={{
@@ -265,6 +281,7 @@ function SwitchRiderContactSelectedScreen(): JSX.Element {
           </Box>
         </CardContent>
       </Card>
+      )}
 
       {/* Contact list */}
       <Typography

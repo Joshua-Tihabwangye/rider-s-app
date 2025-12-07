@@ -21,13 +21,13 @@ import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 
 import MobileShell from "../components/MobileShell";
 
-function RentalDatesDurationScreen(): JSX.Element {
+function RentalDatesDurationScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [startDateTime, setStartDateTime] = useState("Today • 10:00");
   const [endDateTime, setEndDateTime] = useState("Tomorrow • 10:00");
   const [durationLabel, setDurationLabel] = useState("1 day");
 
-  const handleQuickDuration = (label, start, end) => {
+  const handleQuickDuration = (label: string, start: string, end: string): void => {
     setDurationLabel(label);
     setStartDateTime(start);
     setEndDateTime(end);

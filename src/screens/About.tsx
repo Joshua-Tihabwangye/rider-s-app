@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -20,7 +21,7 @@ import UpdateRoundedIcon from "@mui/icons-material/UpdateRounded";
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 
-export default function About(): JSX.Element {
+export default function About(): React.JSX.Element {
   const navigate = useNavigate();
 
   const aboutItems = [

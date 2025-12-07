@@ -40,13 +40,29 @@ import SwitchRiderModal from "../components/SwitchRiderModal";
 import TripTypeModal from "../components/TripTypeModal";
 import AddStopModal from "../components/AddStopModal";
 
+interface SearchResult {
+  id: string;
+  name: string;
+  subtext: string;
+  distance: string;
+  type: string;
+  coordinates: { lat: number; lng: number };
+}
+
+interface Stop {
+  id: string;
+  value: string;
+  coordinates?: { lat: number; lng: number };
+  address?: string;
+}
+
 // Mock service for location search
-const searchLocations = async (query) => {
+const searchLocations = async (query: string): Promise<SearchResult[]> => {
   if (!query || query.length < 3) return [];
   
   await new Promise(resolve => setTimeout(resolve, 300));
   
-  const mockResults = [
+  const mockResults: SearchResult[] = [
     {
       id: "1",
       name: `${query} City`,
@@ -80,7 +96,7 @@ const searchLocations = async (query) => {
 };
 
 // Mock recent searches
-const getRecentSearches = () => [
+const getRecentSearches = (): SearchResult[] => [
   {
     id: "recent-1",
     name: "Kampala City",
@@ -99,7 +115,7 @@ const getRecentSearches = () => [
   }
 ];
 
-function EnterDestinationScreen(): JSX.Element {
+function EnterDestinationScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -119,18 +135,18 @@ function EnterDestinationScreen(): JSX.Element {
   const [returnDate, setReturnDate] = useState(initialState.returnDate || null);
   const [returnTime, setReturnTime] = useState(initialState.returnTime || null);
   const [returnDateTime, setReturnDateTime] = useState(initialState.returnDateTime || null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [loadingSearch, setLoadingSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [loadingSearch, setLoadingSearch] = useState<boolean>(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
-  const [scheduleMenuAnchor, setScheduleMenuAnchor] = useState(null);
+  const [scheduleMenuAnchor, setScheduleMenuAnchor] = useState<HTMLElement | null>(null);
   const [showError, setShowError] = useState(false);
   const [showSwitchRiderModal, setShowSwitchRiderModal] = useState(false);
   const [showTripTypeModal, setShowTripTypeModal] = useState(false);
   const [showAddStopModal, setShowAddStopModal] = useState(false);
   const [selectedContact, setSelectedContact] = useState(initialState.selectedContact || null);
   const [riderType, setRiderType] = useState(initialState.riderType || "personal");
-  const [stops, setStops] = useState(initialState.stops || []);
+  const [stops, setStops] = useState<Stop[]>(initialState.stops || []);
   const [isMultiStopMode, setIsMultiStopMode] = useState(initialState.isMultiStopMode || tripType === "Multi-stop");
   const MAX_STOPS = 6; // Allow up to 6 stops in multi-stop mode
 
@@ -167,7 +183,7 @@ function EnterDestinationScreen(): JSX.Element {
   const scheduleOptions = ["Now", "Schedule for later"];
 
   const canContinue = isMultiStopMode
-    ? pickup.trim() !== "" && stops.some(stop => stop.value.trim() !== "") &&
+    ? pickup.trim() !== "" && stops.some((stop: Stop) => stop.value.trim() !== "") &&
       (tripType !== "Round Trip" || (returnDate && returnTime))
     : pickup.trim() !== "" && destination.trim() !== "" &&
     (tripType !== "Round Trip" || (returnDate && returnTime));
@@ -196,7 +212,7 @@ function EnterDestinationScreen(): JSX.Element {
     }
   }, [searchQuery]);
 
-  const handleDestinationSelect = (result) => {
+  const handleDestinationSelect = (result: SearchResult): void => {
     setDestination(result.name);
     setSearchQuery("");
     setShowSearchResults(false);
@@ -209,7 +225,7 @@ function EnterDestinationScreen(): JSX.Element {
     setDestination(tempPickup);
   };
 
-  const handleScheduleSelect = (option) => {
+  const handleScheduleSelect = (option: string): void => {
     if (option === "Schedule for later") {
       navigate("/rides/schedule", {
         state: {
@@ -231,7 +247,7 @@ function EnterDestinationScreen(): JSX.Element {
     setScheduleMenuAnchor(null);
   };
 
-  const handleScheduleClick = (e) => {
+  const handleScheduleClick = (e: React.MouseEvent<HTMLButtonElement>): void => {
     // If scheduled, reopen the scheduling modal
     if (isScheduled) {
       navigate("/rides/schedule", {
@@ -279,7 +295,13 @@ function EnterDestinationScreen(): JSX.Element {
     });
   };
 
-  const handleContinue = (riderData = null) => {
+  const handleContinue = (riderData: {
+    riderType?: string;
+    selectedContact?: { id: number; name: string; relation: string; phone: string; initials: string } | null;
+    manualPhone?: string;
+    passengers?: number;
+    [key: string]: unknown;
+  } | null = null): void => {
     if (!canContinue) {
       setShowError(true);
       return;
@@ -339,7 +361,7 @@ function EnterDestinationScreen(): JSX.Element {
       returnTime: baseState.returnTime || null,
       returnDateTime: baseState.returnDateTime || null,
       // Include stops data if in multi-stop mode
-      stops: isMultiStopMode ? stops.filter(stop => stop.value.trim() !== "") : [],
+      stops: isMultiStopMode ? stops.filter((stop: Stop) => stop.value.trim() !== "") : [],
       isMultiStopMode: isMultiStopMode
     };
     
@@ -348,7 +370,13 @@ function EnterDestinationScreen(): JSX.Element {
     });
   };
 
-  const handleSwitchRiderContinue = (riderData) => {
+  const handleSwitchRiderContinue = (riderData: {
+    riderType: string;
+    selectedContact: { id: number; name: string; relation: string; phone: string; initials: string } | null;
+    manualPhone?: string;
+    passengers?: number;
+    [key: string]: unknown;
+  }): void => {
     // Handle continue from Switch Rider modal
     // Update local state with selected contact
     if (riderData.selectedContact) {
@@ -624,7 +652,7 @@ function EnterDestinationScreen(): JSX.Element {
                         : "rgba(255,255,255,0.05)",
                       "&:hover": {
                         borderColor: isScheduled ? "#4CAF50" : accentGreen,
-                        bgcolor: rgba(3,205,140,0.1)
+                        bgcolor: "rgba(3,205,140,0.1)"
                       },
                       fontSize: 12,
                       px: 1.5
@@ -639,7 +667,7 @@ function EnterDestinationScreen(): JSX.Element {
               {isMultiStopMode && (
                 <>
                   {/* Stops A-F */}
-                  {stops.map((stop, index) => {
+                  {stops.map((stop: Stop, index: number) => {
                     const isLast = index === stops.length - 1;
                     const isSquare = stop.id === "B"; // Stop B is square per spec
                     return (
@@ -649,10 +677,12 @@ function EnterDestinationScreen(): JSX.Element {
                           size="small"
                           variant="outlined"
                           value={stop.value}
-                          onChange={(e) => {
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                             const newStops = [...stops];
+                            if (newStops[index]) {
                             newStops[index].value = e.target.value;
                             setStops(newStops);
+                            }
                           }}
                           placeholder={`Stop ${stop.id}`}
                           InputProps={{
@@ -696,9 +726,9 @@ function EnterDestinationScreen(): JSX.Element {
                       <IconButton
                         size="small"
                                     onClick={() => {
-                                      const newStops = stops.filter((_, i) => i !== index);
+                                      const newStops = stops.filter((_: Stop, i: number) => i !== index);
                                       // Re-index stops
-                                      const reindexed = newStops.map((s, idx) => ({
+                                      const reindexed = newStops.map((s: Stop, idx: number) => ({
                                         ...s,
                                         id: String.fromCharCode(65 + idx)
                                       }));
@@ -802,7 +832,7 @@ function EnterDestinationScreen(): JSX.Element {
                     : "rgba(255,255,255,0.05)",
                   "&:hover": {
                     borderColor: isScheduled ? "#4CAF50" : accentGreen,
-                    bgcolor: rgba(3,205,140,0.1)
+                    bgcolor: "rgba(3,205,140,0.1)"
                   },
                   justifyContent: "flex-start"
                 }}
@@ -1132,7 +1162,7 @@ function EnterDestinationScreen(): JSX.Element {
                         : "rgba(255,255,255,0.05)",
                       color: accentGreen,
                       "&:hover": {
-                        bgcolor: rgba(3,205,140,0.15)
+                        bgcolor: "rgba(3,205,140,0.15)"
                       }
                     }}
                   >
@@ -1176,7 +1206,7 @@ function EnterDestinationScreen(): JSX.Element {
                   mb: 1.5
                 }}
               >
-                {passengerOptions.map((pax) => (
+                {passengerOptions.map((pax: number) => (
                   <Chip
                     key={pax}
                     label={pax}
@@ -1293,7 +1323,7 @@ function EnterDestinationScreen(): JSX.Element {
               Search results
             </Typography>
             <Stack spacing={1}>
-              {searchResults.map((result) => (
+              {searchResults.map((result: SearchResult) => (
                 <Card
                   key={result.id}
                   elevation={0}
@@ -1401,7 +1431,7 @@ function EnterDestinationScreen(): JSX.Element {
             fontSize: 14,
             fontWeight: 500,
             "&:hover": {
-              bgcolor: rgba(3,205,140,0.1)
+              bgcolor: "rgba(3,205,140,0.1)"
             }
           }}
           startIcon={<MapRoundedIcon />}
@@ -1421,7 +1451,7 @@ function EnterDestinationScreen(): JSX.Element {
             fontWeight: 500,
             border: "1px solid #03CD8C",
             "&:hover": {
-              bgcolor: rgba(3,205,140,0.1)
+              bgcolor: "rgba(3,205,140,0.1)"
             }
           }}
           startIcon={<GroupRoundedIcon />}
@@ -1476,13 +1506,13 @@ function EnterDestinationScreen(): JSX.Element {
           }
         }}
       >
-        {scheduleOptions.map((option) => (
+        {scheduleOptions.map((option: string) => (
           <MenuItem
             key={option}
             onClick={() => handleScheduleSelect(option)}
             sx={{
               "&:hover": {
-                bgcolor: rgba(3,205,140,0.15)
+                bgcolor: "rgba(3,205,140,0.15)"
               }
             }}
           >
@@ -1526,9 +1556,9 @@ function EnterDestinationScreen(): JSX.Element {
       <AddStopModal
         open={showAddStopModal}
         onClose={() => setShowAddStopModal(false)}
-        onSelectStop={(stop) => {
+        onSelectStop={(stop: { id: string; value: string; coordinates?: { lat: number; lng: number }; address?: string }) => {
           // Re-index existing stops and add new one
-          const reindexed = stops.map((s, idx) => ({
+          const reindexed = stops.map((s: Stop, idx: number) => ({
             ...s,
             id: String.fromCharCode(65 + idx)
           }));

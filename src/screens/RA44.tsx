@@ -22,7 +22,7 @@ import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
 import MobileShell from "../components/MobileShell";
 
-function WhereToTodayAlternateScreen(): JSX.Element {
+function WhereToTodayAlternateScreen(): React.JSX.Element {
   const navigate = useNavigate();
 
   const [query, setQuery] = useState("");

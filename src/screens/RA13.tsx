@@ -20,7 +20,7 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import MobileShell from "../components/MobileShell";
 
-function RideForContactSummaryScreen(): JSX.Element {
+function RideForContactSummaryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [contact] = useState({
     name: "John Doe",

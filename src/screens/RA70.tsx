@@ -53,7 +53,25 @@ const RENTAL_VEHICLES = [
   }
 ];
 
-function RentalVehicleCard({ vehicle }): JSX.Element {
+interface Vehicle {
+  id: string;
+  name: string;
+  type: string;
+  price?: string;
+  dailyPrice?: string;
+  mode?: string;
+  seats?: number;
+  range?: string;
+  tag?: string;
+  image?: string;
+  features?: string[];
+}
+
+interface RentalVehicleCardProps {
+  vehicle: Vehicle;
+}
+
+function RentalVehicleCard({ vehicle }: RentalVehicleCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -173,7 +191,7 @@ function RentalVehicleCard({ vehicle }): JSX.Element {
   );
 }
 
-function RentalVehicleListScreen(): JSX.Element {
+function RentalVehicleListScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("all");
 

@@ -31,7 +31,7 @@ const MOCK_RESULTS = [
   }
 ];
 
-function AddStopSearchOverlayScreen(): JSX.Element {
+function AddStopSearchOverlayScreen(): React.JSX.Element {
   const [query, setQuery] = useState("");
 
   const filtered = !query

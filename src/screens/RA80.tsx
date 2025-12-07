@@ -24,7 +24,7 @@ import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 
 import MobileShell from "../components/MobileShell";
 
-function TourBookingSummaryPaymentScreen(): JSX.Element {
+function TourBookingSummaryPaymentScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState("wallet");
 

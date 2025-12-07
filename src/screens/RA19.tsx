@@ -71,8 +71,12 @@ const DRIVER_PREFERENCES = [
   }
 ];
 
+interface MapBackgroundProps {
+  onMenuClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+}
+
 // Map background component with route visualization
-function MapBackground({ onMenuClick }): JSX.Element {
+function MapBackground({ onMenuClick }: MapBackgroundProps): React.JSX.Element {
   const theme = useTheme();
   
   return (
@@ -198,11 +202,25 @@ function MapBackground({ onMenuClick }): JSX.Element {
   );
 }
 
-function PreferenceCard({ preference, onClick }): JSX.Element {
+interface Preference {
+  id: string;
+  category: string;
+  label?: string;
+  color: string;
+  value: string;
+  icon?: React.ReactElement;
+}
+
+interface PreferenceCardProps {
+  preference: Preference;
+  onClick: (preference: Preference) => void;
+}
+
+function PreferenceCard({ preference, onClick }: PreferenceCardProps): React.JSX.Element {
   const theme = useTheme();
   
   // Convert hex color to rgba with opacity for light background
-  const hexToRgba = (hex, opacity) => {
+  const hexToRgba = (hex: string, opacity: number): string => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
@@ -215,7 +233,7 @@ function PreferenceCard({ preference, onClick }): JSX.Element {
   return (
     <Card
       elevation={0}
-      onClick={onClick}
+      onClick={() => onClick(preference)}
       sx={{
         mb: 1.5,
         borderRadius: 2,
@@ -226,9 +244,9 @@ function PreferenceCard({ preference, onClick }): JSX.Element {
         boxShadow: theme.palette.mode === "light" 
           ? "0 1px 3px rgba(0,0,0,0.1)"
           : "0 1px 3px rgba(0,0,0,0.3)",
-        cursor: onClick ? "pointer" : "default",
+        cursor: "pointer",
         transition: "all 0.2s ease",
-        "&:hover": onClick ? {
+        "&:hover": {
           transform: "translateY(-2px)",
           boxShadow: theme.palette.mode === "light"
             ? "0 4px 8px rgba(0,0,0,0.15)"
@@ -236,7 +254,7 @@ function PreferenceCard({ preference, onClick }): JSX.Element {
           bgcolor: theme.palette.mode === "light" 
             ? hexToRgba(preference.color, 0.2)
             : hexToRgba(preference.color, 0.3)
-        } : {}
+        }
       }}
     >
       <CardContent sx={{ px: 2, py: 1.5 }}>
@@ -291,7 +309,7 @@ function PreferenceCard({ preference, onClick }): JSX.Element {
   );
 }
 
-function DriverPreferencesScreen(): JSX.Element {
+function DriverPreferencesScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -307,9 +325,9 @@ function DriverPreferencesScreen(): JSX.Element {
     }, 300);
   };
   
-  const handleBackdropClick = (e) => {
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>): void => {
     // Don't close if clicking on navigation or navigation-related elements
-    const target = e.target;
+    const target = e.target as HTMLElement;
     const isNavigationClick = target.closest('[role="navigation"]') || 
                              target.closest('.MuiBottomNavigation-root') ||
                              target.closest('[data-nav="true"]') ||
@@ -336,10 +354,10 @@ function DriverPreferencesScreen(): JSX.Element {
         <DarkModeToggle />
         <Modal
           open={isOpen}
-          onClose={(event, reason) => {
+          onClose={(event: object, reason: string) => {
             // Don't close if clicking on navigation
             if (reason === 'backdropClick') {
-              const target = event.target;
+              const target = (event as { target?: HTMLElement })?.target;
               const isNavigationClick = target?.closest('[role="navigation"]') || 
                                        target?.closest('.MuiBottomNavigation-root') ||
                                        target?.closest('[data-nav="true"]') ||
@@ -360,11 +378,11 @@ function DriverPreferencesScreen(): JSX.Element {
                 : 'rgba(0, 0, 0, 0.5)',
               zIndex: 1200 // Below navigation (2000)
             },
-            onClick: (e) => {
+            onClick: (e: React.MouseEvent<HTMLDivElement>) => {
               // Check if click is in navigation area
               const navHeight = window.innerWidth < 600 ? 80 : 64;
-              const clickY = e.clientY || (e.touches?.[0]?.clientY);
-              const target = e.target;
+              const clickY = e.clientY;
+              const target = e.target as HTMLElement;
               const isNavigationClick = target?.closest('[role="navigation"]') || 
                                        target?.closest('.MuiBottomNavigation-root') ||
                                        target?.closest('[data-nav="true"]') ||

@@ -170,26 +170,50 @@ const UPCOMING_RIDES = [
   }
 ];
 
-function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }): JSX.Element {
+interface UpcomingRide {
+  id: string;
+  driver: {
+    name: string;
+    photo: string;
+    rating: number;
+    carModel: string;
+    licensePlate: string;
+  };
+  date: string;
+  distance: string;
+  fare: string;
+  origin: string;
+  destination: string;
+  status: string;
+}
+
+interface UpcomingRideCardProps {
+  ride: UpcomingRide;
+  onCancel?: (rideId: string) => void;
+  onChangeDate?: (ride: UpcomingRide) => void;
+  onClick?: () => void;
+}
+
+function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRideCardProps): React.JSX.Element {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   
-  const handleCancelClick = (e) => {
+  const handleCancelClick = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.stopPropagation(); // Prevent card click
     setCancelDialogOpen(true);
   };
 
-  const handleCancelConfirm = () => {
+  const handleCancelConfirm = (): void => {
     setCancelDialogOpen(false);
     if (onCancel) {
       onCancel(ride.id);
     }
   };
 
-  const handleCancelClose = () => {
+  const handleCancelClose = (): void => {
     setCancelDialogOpen(false);
   };
 
-  const handleChangeDateClick = (e) => {
+  const handleChangeDateClick = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.stopPropagation(); // Prevent card click
     if (onChangeDate) {
       onChangeDate(ride);
@@ -476,9 +500,58 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }): JSX.Elemen
   );
 }
 
-function RideHistoryCard({ ride, onClick, onSharedPassengersClick }): JSX.Element {
+interface PastRide {
+  id: string;
+  driver: {
+    name: string;
+    photo: string;
+    rating: number;
+    carModel: string;
+    licensePlate: string;
+  };
+  status: string;
+  pickup: {
+    location: string;
+    timestamp: string;
+  };
+  dropoff: {
+    location: string;
+    timestamp: string;
+  };
+  date: string;
+  distance: string;
+  fare: string;
+  bookedAt: string;
+  sharedPassengers: Array<{
+    name: string;
+    initials: string;
+    fare?: string;
+  }>;
+}
+
+interface RideHistoryCardProps {
+  ride: PastRide;
+  onClick?: () => void;
+  onSharedPassengersClick?: (data: {
+    mainPassenger: {
+      name: string;
+      initials: string;
+      dropOff: string;
+      fare: string;
+    };
+    sharingPassengers: Array<{
+      name: string;
+      initials: string;
+      dropOff: string;
+      fare: string;
+      rating: number;
+    }>;
+  }) => void;
+}
+
+function RideHistoryCard({ ride, onClick, onSharedPassengersClick }: RideHistoryCardProps): React.JSX.Element {
   // Status tag colors
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string): { bg: string; color: string } => {
     switch (status) {
       case "Completed":
         return { bg: "#22c55e", color: "#FFFFFF" };
@@ -781,7 +854,7 @@ function RideHistoryCard({ ride, onClick, onSharedPassengersClick }): JSX.Elemen
                 Shared Passengers
               </Typography>
               <Stack direction="row" spacing={-0.75}>
-                {ride.sharedPassengers.map((passenger, index) => (
+                {ride.sharedPassengers.map((passenger: { name: string; initials: string; fare?: string }, index: number) => (
                   <Avatar
                     key={index}
                     sx={{
@@ -807,14 +880,28 @@ function RideHistoryCard({ ride, onClick, onSharedPassengersClick }): JSX.Elemen
   );
 }
 
-function RideHistoryPastTripsScreen(): JSX.Element {
+function RideHistoryPastTripsScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [tab, setTab] = useState("upcoming"); // Default to Upcoming tab
-  const [pastRides, setPastRides] = useState([]);
-  const [upcomingRides, setUpcomingRides] = useState([]);
+  const [pastRides, setPastRides] = useState<PastRide[]>([]);
+  const [upcomingRides, setUpcomingRides] = useState<UpcomingRide[]>([]);
   const [loading, setLoading] = useState(false);
   const [sharedPassengersModalOpen, setSharedPassengersModalOpen] = useState(false);
-  const [selectedRideForPassengers, setSelectedRideForPassengers] = useState(null);
+  const [selectedRideForPassengers, setSelectedRideForPassengers] = useState<{
+    mainPassenger: {
+      name: string;
+      initials: string;
+      dropOff: string;
+      fare: string;
+    };
+    sharingPassengers: Array<{
+      name: string;
+      initials: string;
+      dropOff: string;
+      fare: string;
+      rating: number;
+    }>;
+  } | null>(null);
 
   // Fetch rides from API based on selected tab
   useEffect(() => {
@@ -846,17 +933,17 @@ function RideHistoryPastTripsScreen(): JSX.Element {
     fetchRides();
   }, [tab]);
 
-  const handleTabChange = (e, newValue) => {
+  const handleTabChange = (_e: React.SyntheticEvent, newValue: string): void => {
     setTab(newValue);
     // No navigation - just switch tabs on the same screen
   };
 
-  const handleRideClick = (rideId) => {
+  const handleRideClick = (rideId: string): void => {
     // Navigate to Ride Details Screen
     navigate(`/rides/history/${rideId}`);
   };
 
-  const handleCancelRide = async (rideId) => {
+  const handleCancelRide = async (rideId: string): Promise<void> => {
     try {
       // API endpoint: /ride/cancel/:ride_id
       // In production:
@@ -865,7 +952,7 @@ function RideHistoryPastTripsScreen(): JSX.Element {
       console.log("Cancelling ride:", rideId);
       
       // Update list dynamically - remove cancelled ride
-      setUpcomingRides(prev => prev.filter(ride => ride.id !== rideId));
+      setUpcomingRides(prev => prev.filter((ride: UpcomingRide) => ride.id !== rideId));
       
       // Show success message (optional)
       // You could add a snackbar here
@@ -874,7 +961,7 @@ function RideHistoryPastTripsScreen(): JSX.Element {
     }
   };
 
-  const handleChangeDate = (ride) => {
+  const handleChangeDate = (ride: UpcomingRide): void => {
     // Navigate to schedule screen to change date/time
     navigate("/rides/schedule", {
       state: {

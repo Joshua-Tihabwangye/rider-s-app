@@ -21,7 +21,7 @@ import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
 import MobileShell from "../components/MobileShell";
 
-function DriverAssignedOnTheWayScreen(): JSX.Element {
+function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [arrivalTime, setArrivalTime] = useState(5); // minutes
   const otp = "256836"; // Would come from API

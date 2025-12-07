@@ -27,7 +27,7 @@ const BRANCHES = [
   "Kansanga EV Pickup Point"
 ];
 
-function RentalPickupReturnBranchesScreen(): JSX.Element {
+function RentalPickupReturnBranchesScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [pickupBranch, setPickupBranch] = useState("Nsambya EV Hub");
   const [returnBranch, setReturnBranch] = useState("Nsambya EV Hub");

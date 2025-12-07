@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -18,7 +19,7 @@ import PhoneEnabledRoundedIcon from "@mui/icons-material/PhoneEnabledRounded";
 
 import MobileShell from "../components/MobileShell";
 
-function AmbulanceHomeRequestTypeScreen(): JSX.Element {
+function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
   const navigate = useNavigate();
   
   return (

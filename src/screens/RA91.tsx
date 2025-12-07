@@ -72,7 +72,7 @@ const ALL_ORDERS = [
   }
 ];
 
-function getTypeIcon(type) {
+function getTypeIcon(type: string): React.ReactElement {
   switch (type) {
     case "Ride":
       return <DirectionsCarFilledRoundedIcon sx={{ fontSize: 20 }} />;
@@ -89,7 +89,21 @@ function getTypeIcon(type) {
   }
 }
 
-function AllOrdersCard({ order }): JSX.Element {
+interface Order {
+  id: string;
+  type: string;
+  title: string;
+  date: string;
+  from: string;
+  to: string;
+  status: string;
+}
+
+interface AllOrdersCardProps {
+  order: Order;
+}
+
+function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
   const navigate = useNavigate();
   
   const handleViewDetails = () => {
@@ -221,7 +235,7 @@ function AllOrdersCard({ order }): JSX.Element {
   );
 }
 
-function AllOrdersCombinedHistoryScreen(): JSX.Element {
+function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("all");
 

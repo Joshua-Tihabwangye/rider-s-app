@@ -23,8 +23,12 @@ import SmartphoneRoundedIcon from "@mui/icons-material/SmartphoneRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import MobileShell from "../components/MobileShell";
 
+interface MapBackgroundProps {
+  onBackClick: () => void;
+}
+
 // Map background component with route visualization
-function MapBackground({ onBackClick }): JSX.Element {
+function MapBackground({ onBackClick }: MapBackgroundProps): React.JSX.Element {
   const theme = useTheme();
   
   return (
@@ -118,8 +122,19 @@ function MapBackground({ onBackClick }): JSX.Element {
   );
 }
 
+interface RideOption {
+  id: string;
+  name: string;
+  description: string;
+  price?: string;
+  eta?: string;
+  fare?: string;
+  icon: React.ReactElement;
+  thumbnail?: string | null;
+}
+
 // Ride options data
-const RIDE_OPTIONS = [
+const RIDE_OPTIONS: RideOption[] = [
   {
     id: "scooter",
     name: "EV Scooter",
@@ -140,7 +155,13 @@ const RIDE_OPTIONS = [
   }
 ];
 
-function RideOptionCard({ option, selected, onSelect }): JSX.Element {
+interface RideOptionCardProps {
+  option: RideOption;
+  selected: string;
+  onSelect: (id: string) => void;
+}
+
+function RideOptionCard({ option, selected, onSelect }: RideOptionCardProps): React.JSX.Element {
   const theme = useTheme();
   const isActive = selected === option.id;
   
@@ -252,7 +273,7 @@ function RideOptionCard({ option, selected, onSelect }): JSX.Element {
   );
 }
 
-function SelectYourRideScreen(): JSX.Element {
+function SelectYourRideScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -269,7 +290,7 @@ function SelectYourRideScreen(): JSX.Element {
     }
   }, [location.state]);
   
-  const handleRideTypeChange = (event, newType) => {
+  const handleRideTypeChange = (_event: React.SyntheticEvent, newType: string | null): void => {
     if (newType !== null) {
       setRideType(newType);
     }

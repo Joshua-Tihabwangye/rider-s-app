@@ -23,7 +23,7 @@ import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 import MobileShell from "../components/MobileShell";
 
-function CommuteCard(): JSX.Element {
+function CommuteCard(): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -204,10 +204,10 @@ function CommuteCard(): JSX.Element {
   );
 }
 
-function DailyCommutesScreen(): JSX.Element {
+function DailyCommutesScreen(): React.JSX.Element {
   const [tab, setTab] = useState("commutes");
 
-  const handleTabChange = (event, value) => {
+  const handleTabChange = (_event: React.SyntheticEvent, value: string): void => {
     setTab(value);
   };
 
@@ -398,7 +398,7 @@ function DailyCommutesScreen(): JSX.Element {
   );
 }
 
-export default function RiderScreen3DailyCommutesCanvas(): JSX.Element {
+export default function RiderScreen3DailyCommutesCanvas(): React.JSX.Element {
       return (
     
       

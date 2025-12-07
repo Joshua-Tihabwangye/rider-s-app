@@ -23,7 +23,7 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
 import MobileShell from "../components/MobileShell";
 
-function RentalHomeEntryScreen(): JSX.Element {
+function RentalHomeEntryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [modeSelection, setModeSelection] = useState("self");
   const [pickupLocation, setPickupLocation] = useState("Nsambya Road 472, Kampala");

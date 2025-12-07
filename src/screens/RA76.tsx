@@ -53,7 +53,21 @@ const PAST_RENTALS = [
   }
 ];
 
-function RentalBookingCard({ booking }): JSX.Element {
+interface Booking {
+  id: string;
+  vehicle: string;
+  mode: string;
+  dates: string;
+  pickup: string;
+  returnBranch: string;
+  status: string;
+}
+
+interface RentalBookingCardProps {
+  booking: Booking;
+}
+
+function RentalBookingCard({ booking }: RentalBookingCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -177,7 +191,7 @@ function RentalBookingCard({ booking }): JSX.Element {
   );
 }
 
-function RentalBookingsUpcomingHistoryScreen(): JSX.Element {
+function RentalBookingsUpcomingHistoryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [tab, setTab] = useState("upcoming");
 

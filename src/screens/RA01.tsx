@@ -33,7 +33,7 @@ import Button from "@mui/material/Button";
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 
-function HomeMultiServiceScreen(): JSX.Element {
+function HomeMultiServiceScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentReminderIndex, setCurrentReminderIndex] = useState(0);
@@ -75,19 +75,19 @@ function HomeMultiServiceScreen(): JSX.Element {
     }
   }, [reminders.length]);
 
-  const handleReminderAction = (route) => {
+  const handleReminderAction = (route: string): void => {
     navigate(route);
   };
 
-  const handlePreviousReminder = () => {
+  const handlePreviousReminder = (): void => {
     setCurrentReminderIndex((prev) => (prev - 1 + reminders.length) % reminders.length);
   };
 
-  const handleNextReminder = () => {
+  const handleNextReminder = (): void => {
     setCurrentReminderIndex((prev) => (prev + 1) % reminders.length);
   };
   
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLDivElement>): void => {
     e.preventDefault();
     if (searchQuery.trim()) {
       // Navigate to search results or rides dashboard
@@ -134,9 +134,12 @@ function HomeMultiServiceScreen(): JSX.Element {
             placeholder="Search rides, shops, c..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => {
+            onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === "Enter") {
-                handleSearch(e);
+                e.preventDefault();
+                if (searchQuery.trim()) {
+                  navigate("/rides/enter", { state: { searchQuery: searchQuery.trim() } });
+                }
               }
             }}
             InputProps={{
@@ -298,7 +301,7 @@ function HomeMultiServiceScreen(): JSX.Element {
                   color: (t) => t.palette.text.primary
                 }}
               >
-                {reminders[currentReminderIndex].title}
+                {reminders[currentReminderIndex]?.title}
               </Typography>
 
               <Typography
@@ -311,13 +314,13 @@ function HomeMultiServiceScreen(): JSX.Element {
                   lineHeight: 1.5
                 }}
               >
-                {reminders[currentReminderIndex].description}
+                {reminders[currentReminderIndex]?.description}
               </Typography>
 
               <Button
                 variant="contained"
                 size="small"
-                onClick={() => handleReminderAction(reminders[currentReminderIndex].actionRoute)}
+                onClick={() => handleReminderAction(reminders[currentReminderIndex]?.actionRoute || "")}
                 sx={{
                   bgcolor: greenPrimary,
                   color: "#FFFFFF",

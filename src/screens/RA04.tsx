@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -19,7 +20,17 @@ import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFil
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import MobileShell from "../components/MobileShell";
 
-function UpcomingRideCard({ dateLabel, timeLabel, from, to, status, statusColor, vehicle }): JSX.Element {
+interface UpcomingRideCardProps {
+  dateLabel: string;
+  timeLabel: string;
+  from: string;
+  to: string;
+  status: string;
+  statusColor: { bg: string; fg: string };
+  vehicle: string;
+}
+
+function UpcomingRideCard({ dateLabel, timeLabel, from, to, status, statusColor, vehicle }: UpcomingRideCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -183,7 +194,7 @@ function UpcomingRideCard({ dateLabel, timeLabel, from, to, status, statusColor,
   );
 }
 
-function UpcomingRidesScreen(): JSX.Element {
+function UpcomingRidesScreen(): React.JSX.Element {
   const navigate = useNavigate();
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>

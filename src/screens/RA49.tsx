@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
@@ -23,7 +24,7 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutline";
 import MobileShell from "../components/MobileShell";
 
-function RideBookingConfirmationScreen(): JSX.Element {
+function RideBookingConfirmationScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -532,6 +533,6 @@ function RideBookingConfirmationScreen(): JSX.Element {
   );
 }
 
-export default function RiderScreen49BookingConfirmation(): JSX.Element {
+export default function RiderScreen49BookingConfirmation(): React.JSX.Element {
   return <RideBookingConfirmationScreen />;
 }

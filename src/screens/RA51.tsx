@@ -37,7 +37,21 @@ const RECEIVED_ORDERS = [
   }
 ];
 
-function ReceivedOrderCard({ order }): JSX.Element {
+interface Order {
+  id: string;
+  toName?: string;
+  toAddress: string;
+  fromAddress: string;
+  fromName?: string;
+  status: string;
+  eta: string;
+}
+
+interface ReceivedOrderCardProps {
+  order: Order;
+}
+
+function ReceivedOrderCard({ order }: ReceivedOrderCardProps): React.JSX.Element {
   const isDelivered = order.status === "Delivered";
   const statusColor = isDelivered ? "#16A34A" : "#1D4ED8";
   const statusBg = isDelivered
@@ -131,7 +145,7 @@ function ReceivedOrderCard({ order }): JSX.Element {
   );
 }
 
-function DeliveriesDashboardReceivedScreen(): JSX.Element {
+function DeliveriesDashboardReceivedScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("all");
 
@@ -158,7 +172,7 @@ function DeliveriesDashboardReceivedScreen(): JSX.Element {
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)" (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)")}}
+                  : "1px solid rgba(51,65,85,0.9)"}}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>

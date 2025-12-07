@@ -21,7 +21,7 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import MobileShell from "../components/MobileShell";
 
-function SwitchRiderManualEntryScreen(): JSX.Element {
+function SwitchRiderManualEntryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("+256");

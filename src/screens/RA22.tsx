@@ -23,7 +23,7 @@ import DirectionsBusRoundedIcon from "@mui/icons-material/DirectionsBusRounded";
 import HotelRoundedIcon from "@mui/icons-material/HotelRounded";
 import MobileShell from "../components/MobileShell";
 
-function SearchingForDriverScreen(): JSX.Element {
+function SearchingForDriverScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [dots, setDots] = useState("....");
   const [showCancelDialog, setShowCancelDialog] = useState(false);

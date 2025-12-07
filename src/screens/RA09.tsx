@@ -21,7 +21,7 @@ import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import AutorenewRoundedIcon from "@mui/icons-material/AutorenewRounded";
 import MobileShell from "../components/MobileShell";
 
-function RideLaterSummaryScreen(): JSX.Element {
+function RideLaterSummaryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [summary] = useState({
     pickup: "New School, JJ Street, Kampala",

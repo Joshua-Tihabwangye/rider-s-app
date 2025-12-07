@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -28,7 +29,19 @@ const TIMELINE_STEPS = [
   { id: 5, label: "Delivered", time: "Pending", status: "upcoming" }
 ];
 
-function TimelineRow({ step, isLast }): JSX.Element {
+interface Step {
+  id: number;
+  label: string;
+  time: string;
+  status: "done" | "current" | "upcoming" | string;
+}
+
+interface TimelineRowProps {
+  step: Step;
+  isLast: boolean;
+}
+
+function TimelineRow({ step, isLast }: TimelineRowProps): React.JSX.Element {
   const isDone = step.status === "done";
   const isCurrent = step.status === "current";
   const dotColor = isDone ? "#22c55e" : isCurrent ? "#03CD8C" : "rgba(3,205,140,0.1)";
@@ -93,7 +106,7 @@ function TimelineRow({ step, isLast }): JSX.Element {
   );
 }
 
-function OrderDeliveryDetailedViewScreen(): JSX.Element {
+function OrderDeliveryDetailedViewScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const trackingId = "DLV-2025-10-07-001";
 

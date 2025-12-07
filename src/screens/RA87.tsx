@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -23,7 +24,7 @@ import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 
 import MobileShell from "../components/MobileShell";
 
-function AmbulanceLiveTrackingScreen(): JSX.Element {
+function AmbulanceLiveTrackingScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const requestId = "AMB-REQ-2025-10-07-001";
   const eta = "6 min";

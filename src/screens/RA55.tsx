@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -57,7 +58,21 @@ const TRACKING_STEPS = [
   }
 ];
 
-function TrackingStepRow({ step, isLast }): JSX.Element {
+interface Step {
+  id: number;
+  label: string;
+  description: string;
+  time: string;
+  status: "completed" | "current" | "pending" | "upcoming" | string;
+  timestamp?: string;
+}
+
+interface TrackingStepRowProps {
+  step: Step;
+  isLast: boolean;
+}
+
+function TrackingStepRow({ step, isLast }: TrackingStepRowProps): React.JSX.Element {
   const isCompleted = step.status === "completed";
   const isCurrent = step.status === "current";
 
@@ -135,7 +150,7 @@ function TrackingStepRow({ step, isLast }): JSX.Element {
   );
 }
 
-function ShipmentTrackingReceivedParcelScreen(): JSX.Element {
+function ShipmentTrackingReceivedParcelScreen(): React.JSX.Element {
   const navigate = useNavigate();
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>

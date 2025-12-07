@@ -1,4 +1,5 @@
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -20,7 +21,7 @@ import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import MobileShell from "../components/MobileShell";
 
-function RideDetailsVariant2Screen(): JSX.Element {
+function RideDetailsVariant2Screen(): React.JSX.Element {
   const navigate = useNavigate();
   const fareEstimate = "UGX 14,500";
   const eta = "16 min";
@@ -45,7 +46,7 @@ function RideDetailsVariant2Screen(): JSX.Element {
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)" (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)")}}
+                  : "1px solid rgba(51,65,85,0.9)"}}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>

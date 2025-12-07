@@ -43,11 +43,8 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
 import StarHalfRoundedIcon from "@mui/icons-material/StarHalfRounded";
-import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
 import Button from "@mui/material/Button";
-import CancelRoundedIcon from "@mui/icons-material/CancelRounded";
-import EditCalendarRoundedIcon from "@mui/icons-material/EditCalendarRounded";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -97,8 +94,75 @@ const fetchSavedLocations = async () => {
   ];
 };
 
+// Type definitions
+interface Coordinates {
+  lat: number;
+  lng: number;
+}
+
+interface SavedLocation {
+  id: string;
+  type: string;
+  label: string;
+  address: string;
+  coordinates: Coordinates;
+  icon: React.ReactElement;
+}
+
+interface PlaceSuggestion {
+  description: string;
+  placeId: string;
+  coordinates: Coordinates;
+}
+
+interface RouteData {
+  distance: string;
+  duration: string;
+  polyline: Array<{ x: number; y: number }>;
+  fare?: string;
+}
+
+interface Commute {
+  id: string;
+  route: string;
+  schedule: string;
+  origin: {
+    address: string;
+    coordinates: Coordinates;
+  };
+  destination: {
+    address: string;
+    coordinates: Coordinates;
+  };
+  distance: string;
+  fare: string;
+  driver?: {
+    name: string;
+    rating: number;
+  };
+  date?: string;
+}
+
+interface UpcomingRide {
+  id: string;
+  time: string;
+  route: string;
+  status: string;
+  vehicle: string;
+  origin: {
+    address: string;
+    coordinates: Coordinates;
+  };
+  destination: {
+    address: string;
+    coordinates: Coordinates;
+  };
+  distance: string;
+  fare: string;
+}
+
 // Mock Google Places API autocomplete service
-const searchPlaces = async (query) => {
+const searchPlaces = async (query: string): Promise<PlaceSuggestion[]> => {
   if (!query || query.length < 2) return [];
   
   // In production, this would call Google Places API
@@ -119,7 +183,7 @@ const searchPlaces = async (query) => {
 };
 
 // Mock route calculation service
-const calculateRoute = async (origin, destination) => {
+const calculateRoute = async (_origin: Coordinates, _destination: Coordinates): Promise<RouteData> => {
   // In production, this would use Google Directions API
   await new Promise(resolve => setTimeout(resolve, 200));
   return {
@@ -185,7 +249,11 @@ const fetchUpcomingRides = async () => {
 };
 
 // Star rating component
-function StarRating({ rating }): JSX.Element {
+interface StarRatingProps {
+  rating: number;
+}
+
+function StarRating({ rating }: StarRatingProps): React.JSX.Element {
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 !== 0;
   const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
@@ -206,20 +274,27 @@ function StarRating({ rating }): JSX.Element {
 }
 
 // Upcoming ride card component
-function UpcomingRideCard({ ride, onCancel, onChangeDate, onSelect }): JSX.Element {
+interface UpcomingRideCardProps {
+  ride: UpcomingRide;
+  onCancel: (ride: UpcomingRide) => void;
+  onChangeDate: (ride: UpcomingRide) => void;
+  onSelect: () => void;
+}
+
+function UpcomingRideCard({ ride, onCancel, onChangeDate, onSelect }: UpcomingRideCardProps): React.JSX.Element {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
-  const handleCancelClick = (e) => {
+  const handleCancelClick = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.stopPropagation();
     setCancelDialogOpen(true);
   };
 
-  const handleCancelConfirm = () => {
+  const handleCancelConfirm = (): void => {
     setCancelDialogOpen(false);
     onCancel(ride);
   };
 
-  const handleChangeDateClick = (e) => {
+  const handleChangeDateClick = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.stopPropagation();
     onChangeDate(ride);
   };
@@ -334,7 +409,13 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onSelect }): JSX.Eleme
 }
 
 // Commute card component
-function CommuteCard({ commute, onRequest, onSelect }): JSX.Element {
+interface CommuteCardProps {
+  commute: Commute;
+  onRequest: () => void;
+  onSelect: () => void;
+}
+
+function CommuteCard({ commute, onRequest, onSelect }: CommuteCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -424,7 +505,15 @@ function CommuteCard({ commute, onRequest, onSelect }): JSX.Element {
   );
 }
 
-function CommonPlaceCard({ icon, label, address, selected = false, onSelect }): JSX.Element {
+interface CommonPlaceCardProps {
+  icon: React.ReactElement;
+  label: string;
+  address: string;
+  selected?: boolean;
+  onSelect?: () => void;
+}
+
+function CommonPlaceCard({ icon, label, address, selected = false, onSelect }: CommonPlaceCardProps): React.JSX.Element {
   return (
     <Card
       elevation={selected ? 2 : 1}
@@ -500,7 +589,7 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }): 
   );
 }
 
-function EnterDestinationMainScreen(): JSX.Element {
+function EnterDestinationMainScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -510,19 +599,19 @@ function EnterDestinationMainScreen(): JSX.Element {
   
   const [tab, setTab] = useState("common");
   const [helperState, setHelperState] = useState("idle");
-  const [selectedPlace, setSelectedPlace] = useState(null);
+  const [selectedPlace, setSelectedPlace] = useState<string | PlaceSuggestion | null>(null);
   const [whereTo, setWhereTo] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [savedLocations, setSavedLocations] = useState([]);
+  const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
-  const [placeSuggestions, setPlaceSuggestions] = useState([]);
+  const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState(null);
-  const [routeData, setRouteData] = useState(null);
-  const [destinationCoords, setDestinationCoords] = useState(null);
-  const [dailyCommutes, setDailyCommutes] = useState([]);
+  const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
+  const [routeData, setRouteData] = useState<RouteData | null>(null);
+  const [destinationCoords, setDestinationCoords] = useState<Coordinates | null>(null);
+  const [dailyCommutes, setDailyCommutes] = useState<Commute[]>([]);
   const [loadingCommutes, setLoadingCommutes] = useState(false);
-  const [upcomingRides, setUpcomingRides] = useState([]);
+  const [upcomingRides, setUpcomingRides] = useState<UpcomingRide[]>([]);
   const [loadingUpcomingRides, setLoadingUpcomingRides] = useState(false);
 
   // Fetch saved locations on mount
@@ -668,7 +757,7 @@ function EnterDestinationMainScreen(): JSX.Element {
   }, [destinationCoords, currentLocation]);
 
 
-  const handleCommuteRequest = (commute) => {
+  const handleCommuteRequest = (commute: Commute): void => {
     // Navigate to Enter Destination screen (RA05) with commute data
     navigate("/rides/enter/details", {
       state: {
@@ -686,13 +775,13 @@ function EnterDestinationMainScreen(): JSX.Element {
     });
   };
 
-  const handleCancelRide = (ride) => {
+  const handleCancelRide = (ride: UpcomingRide): void => {
     // In production, this would call API to cancel the ride
-    setUpcomingRides(prev => prev.filter(r => r.id !== ride.id));
+    setUpcomingRides(prev => prev.filter((r: UpcomingRide) => r.id !== ride.id));
     // Show success message or notification
   };
 
-  const handleChangeDate = (ride) => {
+  const handleChangeDate = (ride: UpcomingRide): void => {
     // Navigate to schedule screen to change date/time
     navigate("/rides/schedule", {
       state: {
@@ -702,12 +791,12 @@ function EnterDestinationMainScreen(): JSX.Element {
     });
   };
 
-  const handleTabChange = (event, value) => {
+  const handleTabChange = (_event: React.SyntheticEvent, value: string): void => {
     setTab(value);
     setHelperState(`tab-${value}`);
   };
 
-  const handleQuickAction = (type) => {
+  const handleQuickAction = (type: string): void => {
     if (type === "history") {
       navigate("/rides/history/past");
     } else if (type === "schedule") {
@@ -727,7 +816,7 @@ function EnterDestinationMainScreen(): JSX.Element {
     }
   };
 
-  const handleSelectPlace = async (place) => {
+  const handleSelectPlace = async (place: string): Promise<void> => {
     const location = savedLocations.find(loc => loc.id === place);
     if (location) {
       setSelectedPlace(place);
@@ -749,7 +838,7 @@ function EnterDestinationMainScreen(): JSX.Element {
     }
   };
 
-  const handlePlaceSearch = async (query) => {
+  const handlePlaceSearch = async (query: string): Promise<void> => {
     setWhereTo(query);
     setHelperState("search");
     setSelectedPlace(null);
@@ -769,7 +858,7 @@ function EnterDestinationMainScreen(): JSX.Element {
     }
   };
 
-  const handlePlaceSelect = async (place) => {
+  const handlePlaceSelect = async (place: string | PlaceSuggestion): Promise<void> => {
     if (typeof place === "string") {
       // User typed a custom address
       setWhereTo(place);
@@ -798,7 +887,7 @@ function EnterDestinationMainScreen(): JSX.Element {
     setMenuOpen(false);
   };
 
-  const handleMenuNavigation = (route) => {
+  const handleMenuNavigation = (route: string): void => {
     navigate(route);
     setMenuOpen(false);
   };
@@ -973,10 +1062,10 @@ function EnterDestinationMainScreen(): JSX.Element {
           }
           loading={loadingSuggestions}
           value={whereTo}
-          onInputChange={(event, newValue) => {
+          onInputChange={(_event: React.SyntheticEvent, newValue: string) => {
             handlePlaceSearch(newValue);
           }}
-          onChange={(event, newValue) => {
+          onChange={(_event: React.SyntheticEvent, newValue: string | PlaceSuggestion | null) => {
             if (newValue) {
               handlePlaceSelect(newValue);
             }
@@ -1095,7 +1184,7 @@ function EnterDestinationMainScreen(): JSX.Element {
             }}
           >
             <polyline
-              points={routeData.polyline.map(p => `${p.x},${p.y}`).join(" ")}
+              points={routeData.polyline.map((p: { x: number; y: number }) => `${p.x},${p.y}`).join(" ")}
               fill="none"
               stroke="#03CD8C"
               strokeWidth="0.5"
@@ -1145,11 +1234,11 @@ function EnterDestinationMainScreen(): JSX.Element {
           <Box
             sx={{
               position: "absolute",
-              left: routeData.polyline?.[routeData.polyline.length - 1]?.x 
-                ? `${routeData.polyline[routeData.polyline.length - 1].x}%` 
+              left: routeData.polyline && routeData.polyline.length > 0 && routeData.polyline[routeData.polyline.length - 1]?.x 
+                ? `${routeData.polyline[routeData.polyline.length - 1]!.x}%` 
                 : "75%",
-              top: routeData.polyline?.[routeData.polyline.length - 1]?.y 
-                ? `${routeData.polyline[routeData.polyline.length - 1].y}%` 
+              top: routeData.polyline && routeData.polyline.length > 0 && routeData.polyline[routeData.polyline.length - 1]?.y 
+                ? `${routeData.polyline[routeData.polyline.length - 1]!.y}%` 
                 : "26%",
               transform: "translate(-50%, -50%)",
               zIndex: 2
@@ -1543,7 +1632,7 @@ function EnterDestinationMainScreen(): JSX.Element {
                     ride={ride}
                     onSelect={() => {
                       // Update map to show ride route
-                      setCurrentLocation(ride.origin.coordinates);
+                      // Update map to show ride route - coordinates only
                       setDestinationCoords(ride.destination.coordinates);
                       setWhereTo(ride.destination.address);
                     }}
@@ -1710,7 +1799,9 @@ function EnterDestinationMainScreen(): JSX.Element {
                         flex: 1
                       }}
                     >
-                      To: {selectedPlace?.name || "Selected destination"}
+                      To: {typeof selectedPlace === "string" 
+                        ? savedLocations.find(loc => loc.id === selectedPlace)?.label || "Selected destination"
+                        : selectedPlace?.description || "Selected destination"}
                     </Typography>
                   </Stack>
                 </Stack>
@@ -1769,9 +1860,11 @@ function EnterDestinationMainScreen(): JSX.Element {
                     onClick={() => {
                       navigate("/rides/enter/details", {
                         state: {
-                          pickup: currentLocation?.address || "Current location",
-                          destination: selectedPlace?.name || "Selected destination",
-                          pickupCoords: currentLocation?.coordinates,
+                          pickup: "Current location",
+                          destination: typeof selectedPlace === "string"
+                            ? savedLocations.find(loc => loc.id === selectedPlace)?.address || "Selected destination"
+                            : selectedPlace?.description || "Selected destination",
+                          pickupCoords: currentLocation,
                           destinationCoords: destinationCoords,
                           routeData: routeData,
                           isSharedRide: isSharedRideMode
@@ -1805,7 +1898,7 @@ function EnterDestinationMainScreen(): JSX.Element {
   );
 }
 
-export default function RidesDashboard(): JSX.Element {
+export default function RidesDashboard(): React.JSX.Element {
   return (
     <>
       <DarkModeToggle />
