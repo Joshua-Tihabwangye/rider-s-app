@@ -22,6 +22,8 @@
     "noUncheckedIndexedAccess": true,
 
     /* Path mapping */
+    /* Note: baseUrl deprecation warning is expected. It will be removed in TypeScript 7.0,
+       but continues to work fine in 5.9.3. This is safe to ignore for frontend projects. */
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
@@ -30,10 +32,7 @@
     /* Additional checks */
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-
-    /* Ignore deprecations for TypeScript 6.0 */
-    "ignoreDeprecations": "6.0"
+    "esModuleInterop": true
   },
   "include": ["src"]
 }
