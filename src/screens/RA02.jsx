@@ -160,7 +160,7 @@ function EnterDestinationMainScreen() {
           overflow: "hidden",
           background: (theme) =>
             theme.palette.mode === "light"
-              ? "radial-gradient(circle at top, #BAE6FD 0, #EFF6FF 55%, #DBEAFE 100%)"
+              ? "radial-gradient(circle at top, rgba(3,205,140,0.15) 0, #EFF6FF 55%, #DBEAFE 100%)"
               : "radial-gradient(circle at top, rgba(15,118,205,0.6), rgba(15,23,42,1))"
         }}
       >
@@ -188,7 +188,7 @@ function EnterDestinationMainScreen() {
                 width: 14,
                 height: 14,
                 borderRadius: "999px",
-                bgcolor: "#3b82f6",
+                bgcolor: "#03CD8C",
                 border: "2px solid white"
               }}
             />

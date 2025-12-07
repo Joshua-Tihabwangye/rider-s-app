@@ -72,7 +72,7 @@ function PreferenceSelectionScreen() {
   const [tripType, setTripType] = useState(tripData.tripType || "One Way");
   const [selectedContact, setSelectedContact] = useState(tripData.selectedContact || null);
   
-  const accentBlue = "#007BFF";
+  const accentGreen = "#03CD8C";
   const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
   const passengerOptions = [1, 2, 3, 4, 5, 6];
   
@@ -151,7 +151,7 @@ function PreferenceSelectionScreen() {
             border: theme.palette.mode === "light"
               ? "1px solid rgba(0,0,0,0.1)"
               : "1px solid rgba(255,255,255,0.1)",
-            color: accentBlue
+            color: accentGreen
           }}
         >
           <SettingsRoundedIcon sx={{ fontSize: 18 }} />
@@ -239,9 +239,9 @@ function PreferenceSelectionScreen() {
                   bgcolor: theme.palette.mode === "light"
                     ? "rgba(0,0,0,0.05)"
                     : "rgba(255,255,255,0.05)",
-                  color: accentBlue,
+                  color: accentGreen,
                   "&:hover": {
-                    bgcolor: `${accentBlue}15`
+                    bgcolor: "rgba(3,205,140,0.15)"
                   }
                 }}
               >
@@ -299,7 +299,7 @@ function PreferenceSelectionScreen() {
                   }
                   return (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <PersonRoundedIcon sx={{ fontSize: 18, color: accentBlue }} />
+                      <PersonRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
                       <Typography>{rideType}</Typography>
                     </Box>
                   );
@@ -341,7 +341,7 @@ function PreferenceSelectionScreen() {
                 onChange={(e) => setTripType(e.target.value)}
                 renderValue={(value) => (
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <DirectionsCarRoundedIcon sx={{ fontSize: 18, color: accentBlue }} />
+                    <DirectionsCarRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
                     <Typography>{value}</Typography>
                   </Box>
                 )}
@@ -400,7 +400,7 @@ function PreferenceSelectionScreen() {
                   fontSize: 14,
                   fontWeight: 600,
                   bgcolor: passengers === pax
-                    ? accentBlue
+                    ? accentGreen
                     : theme.palette.mode === "light"
                       ? "rgba(0,0,0,0.05)"
                       : "rgba(255,255,255,0.05)",
@@ -416,7 +416,7 @@ function PreferenceSelectionScreen() {
                   transition: "all 0.2s ease",
                   "&:hover": {
                     bgcolor: passengers === pax
-                      ? accentBlue
+                      ? accentGreen
                       : theme.palette.mode === "light"
                         ? "rgba(0,0,0,0.1)"
                         : "rgba(255,255,255,0.1)"
@@ -493,23 +493,23 @@ function PreferenceSelectionScreen() {
                           fontWeight: 500,
                           cursor: "pointer",
                           bgcolor: isSelected
-                            ? `${accentBlue}15`
+                            ? "rgba(3,205,140,0.15)"
                             : theme.palette.mode === "light"
                               ? "#FFFFFF"
                               : "rgba(255,255,255,0.05)",
                           color: isSelected
-                            ? accentBlue
+                            ? accentGreen
                             : theme.palette.text.primary,
                           border: isSelected
-                            ? `2px solid ${accentBlue}`
+                            ? "2px solid #03CD8C"
                             : theme.palette.mode === "light"
                               ? "1px solid #E0E0E0"
                               : "1px solid rgba(255,255,255,0.2)",
                           transition: "all 0.2s ease",
                           "&:hover": {
-                            borderColor: accentBlue,
+                            borderColor: accentGreen,
                             bgcolor: isSelected
-                              ? `${accentBlue}15`
+                              ? "rgba(3,205,140,0.15)"
                               : theme.palette.mode === "light"
                                 ? "rgba(0,0,0,0.05)"
                                 : "rgba(255,255,255,0.1)"

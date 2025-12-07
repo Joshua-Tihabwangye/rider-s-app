@@ -116,26 +116,26 @@ function TripCompletedArrivalSummaryScreen() {
         />
 
         {/* Back Button - Top left */}
-        <IconButton
-          size="small"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-          sx={{
+          <IconButton
+            size="small"
+            aria-label="Back"
+            onClick={() => navigate(-1)}
+            sx={{
             position: "absolute",
             top: 16,
             left: 16,
-            bgcolor: "#BAE6FD",
-            color: "#1E40AF",
+            bgcolor: "rgba(3,205,140,0.15)",
+            color: "#03CD8C",
             width: 40,
             height: 40,
             "&:hover": {
               bgcolor: "#93C5FD"
             },
             zIndex: 10
-          }}
-        >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
 
         {/* Route line - showing completed journey path (from bottom-left to center) */}
         <Box
@@ -188,7 +188,7 @@ function TripCompletedArrivalSummaryScreen() {
           <DirectionsCarFilledRoundedIcon
             sx={{
               fontSize: 36,
-              color: "#2196F3",
+              color: "#03CD8C",
               filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.4))"
             }}
           />
@@ -211,8 +211,8 @@ function TripCompletedArrivalSummaryScreen() {
             position: "absolute",
             right: 14,
             top: "30%",
-            bgcolor: "#BAE6FD",
-            color: "#1E40AF",
+            bgcolor: "rgba(3,205,140,0.15)",
+            color: "#03CD8C",
             width: 52,
             height: 52,
             boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
@@ -231,20 +231,20 @@ function TripCompletedArrivalSummaryScreen() {
 
       {/* Trip Info Card - Overlapping map slightly */}
       <Box sx={{ px: 2.5, pt: 0, pb: 2, mt: -3 }}>
-        <Card
-          elevation={0}
-          sx={{
+      <Card
+        elevation={0}
+        sx={{
             mb: 2,
-            borderRadius: 2,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-            border: (theme) =>
-              theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
+          borderRadius: 2,
+          bgcolor: (theme) =>
+            theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          border: (theme) =>
+            theme.palette.mode === "light"
+              ? "1px solid rgba(209,213,219,0.9)"
                 : "1px solid rgba(51,65,85,0.9)",
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
-          }}
-        >
+        }}
+      >
           <CardContent sx={{ px: 2, py: 1.5 }}>
             {/* Header with Title and Share Icon */}
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
@@ -264,7 +264,7 @@ function TripCompletedArrivalSummaryScreen() {
                 sx={{
                   bgcolor: (theme) =>
                     theme.palette.mode === "light" ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)",
-                  color: "#2196F3"
+                  color: "#03CD8C"
                 }}
               >
                 <ShareRoundedIcon sx={{ fontSize: 20 }} />
@@ -360,7 +360,7 @@ function TripCompletedArrivalSummaryScreen() {
                     }}
                   />
                 </Box>
-              </Box>
+            </Box>
               {/* Destination label at end of progress bar */}
               <Typography
                 variant="caption"
@@ -394,7 +394,7 @@ function TripCompletedArrivalSummaryScreen() {
                     fontSize: 11,
                     color: (theme) => theme.palette.text.secondary
                   }}
-                >
+              >
                   Distance
                 </Typography>
               </Box>
@@ -440,26 +440,26 @@ function TripCompletedArrivalSummaryScreen() {
                   }}
                 >
                   Total Time
-                </Typography>
-              </Box>
-            </Stack>
-          </CardContent>
-        </Card>
+              </Typography>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
 
         {/* Driver Information Section */}
-        <Card
-          elevation={0}
-          sx={{
+      <Card
+        elevation={0}
+        sx={{
             mb: 2,
-            borderRadius: 2,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-            border: (theme) =>
-              theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
-          }}
-        >
+          borderRadius: 2,
+          bgcolor: (theme) =>
+            theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          border: (theme) =>
+            theme.palette.mode === "light"
+              ? "1px solid rgba(209,213,219,0.9)"
+              : "1px solid rgba(51,65,85,0.9)"
+        }}
+      >
           <CardContent sx={{ px: 2, py: 1.5 }}>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1.5 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
@@ -467,28 +467,28 @@ function TripCompletedArrivalSummaryScreen() {
                   sx={{
                     width: 48,
                     height: 48,
-                    bgcolor: "#2196F3",
+                    bgcolor: "#03CD8C",
                     fontSize: 20,
                     fontWeight: 600
                   }}
-                >
+            >
                   TS
                 </Avatar>
                 <Box>
-                  <Typography
-                    variant="body2"
+            <Typography
+              variant="body2"
                     sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
-                  >
+            >
                     {driverName}
-                  </Typography>
+            </Typography>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                     <StarRoundedIcon sx={{ fontSize: 16, color: "#FFC107" }} />
-                    <Typography
-                      variant="caption"
+            <Typography
+              variant="caption"
                       sx={{ fontSize: 12, fontWeight: 600, color: (theme) => theme.palette.text.primary }}
-                    >
+            >
                       {driverRating}
-                    </Typography>
+            </Typography>
                   </Box>
                 </Box>
               </Box>
@@ -515,9 +515,9 @@ function TripCompletedArrivalSummaryScreen() {
               >
                 Rate Driver
               </Button>
-            </Box>
-          </CardContent>
-        </Card>
+          </Box>
+        </CardContent>
+      </Card>
 
         {/* My Route Section */}
         <Card
@@ -545,18 +545,18 @@ function TripCompletedArrivalSummaryScreen() {
               >
                 My Route
               </Typography>
-              <Button
+        <Button
                 size="small"
                 startIcon={<AddRoundedIcon sx={{ fontSize: 16 }} />}
-                sx={{
-                  borderRadius: 999,
+          sx={{
+            borderRadius: 999,
                   px: 1.5,
                   py: 0.5,
                   fontSize: 11,
                   fontWeight: 500,
-                  textTransform: "none",
-                  color: "#2196F3",
-                  "&:hover": {
+            textTransform: "none",
+                  color: "#03CD8C",
+            "&:hover": {
                     bgcolor: "rgba(33,150,243,0.1)"
                   }
                 }}
@@ -615,8 +615,8 @@ function TripCompletedArrivalSummaryScreen() {
                     sx={{
                       fontSize: 11,
                       color: (theme) => theme.palette.text.secondary
-                    }}
-                  >
+          }}
+        >
                     Departure at {departureTime}
                   </Typography>
                 </Box>
@@ -703,25 +703,25 @@ function TripCompletedArrivalSummaryScreen() {
                   UGX {totalFare}
                 </Typography>
               </Box>
-              <Button
-                variant="contained"
+      <Button
+        variant="contained"
                 onClick={handlePayNow}
-                sx={{
-                  borderRadius: 999,
+        sx={{
+          borderRadius: 999,
                   px: 3,
                   py: 1,
                   fontSize: 14,
-                  fontWeight: 600,
-                  textTransform: "none",
+          fontWeight: 600,
+          textTransform: "none",
                   bgcolor: "#22c55e",
                   color: "#FFFFFF",
                   "&:hover": {
                     bgcolor: "#16A34A"
                   }
-                }}
-              >
+        }}
+      >
                 Pay Now
-              </Button>
+      </Button>
             </Box>
           </CardContent>
         </Card>
@@ -731,18 +731,18 @@ function TripCompletedArrivalSummaryScreen() {
 }
 
 export default function RiderScreen29TripCompletedArrivalSummaryCanvas_v2() {
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (theme) => theme.palette.background.default
-      }}
-    >
-      <DarkModeToggle />
-      <MobileShell>
-        <TripCompletedArrivalSummaryScreen />
-      </MobileShell>
-    </Box>
+      return (
+      <Box
+        sx={{
+          position: "relative",
+          minHeight: "100vh",
+          bgcolor: (theme) => theme.palette.background.default
+        }}
+      >
+        <DarkModeToggle />
+        <MobileShell>
+          <TripCompletedArrivalSummaryScreen />
+        </MobileShell>
+      </Box>
   );
 }

@@ -168,7 +168,7 @@ function TripTypeRoundTripScreen() {
           <CardContent sx={{ px: 1.75, py: 1.75 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <AutorenewRoundedIcon
-                sx={{ fontSize: 22, color: "#0EA5E9" }}
+                sx={{ fontSize: 22, color: "#03CD8C" }}
               />
               <Box>
                 <Typography

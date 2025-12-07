@@ -6,346 +6,201 @@ import {
   Card,
   CardContent,
   Stack,
+  Chip,
   Avatar,
-  IconButton,
   TextField,
   InputAdornment,
-  Button,
-  Autocomplete,
-  Paper,
-  Chip
+  IconButton
 } from "@mui/material";
 
 import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
+import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
+import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
+import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
+import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
-import ShoppingCartRoundedIcon from "@mui/icons-material/ShoppingCartRounded";
-import EvStationRoundedIcon from "@mui/icons-material/EvStationRounded";
-import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
-import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
-import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
-import LocalTaxiRoundedIcon from "@mui/icons-material/LocalTaxiRounded";
-import LocalGasStationRoundedIcon from "@mui/icons-material/LocalGasStationRounded";
-import InventoryRoundedIcon from "@mui/icons-material/InventoryRounded";
-import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded";
-import BoltRoundedIcon from "@mui/icons-material/BoltRounded";
-import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
+import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
-import WorkRoundedIcon from "@mui/icons-material/WorkRounded";
 import RouteRoundedIcon from "@mui/icons-material/RouteRounded";
+import WorkRoundedIcon from "@mui/icons-material/WorkRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
+import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+import Button from "@mui/material/Button";
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 
 function HomeMultiServiceScreen() {
   const navigate = useNavigate();
-  const [reminderIndex, setReminderIndex] = useState(0);
-  const [searchValue, setSearchValue] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentReminderIndex, setCurrentReminderIndex] = useState(0);
+  
+  // Color definitions: Green variants and Orange for CTAs
+  const greenPrimary = "#03CD8C"; // Main green
+  const greenSecondary = "#22C55E"; // Lighter green variant
+  const orangeCTA = "#F77F00"; // Orange for CTA buttons
 
-  // Search autocomplete options across all service categories
-  const searchOptions = [
-    { label: "Book a Ride", category: "Ride", route: "/rides/enter" },
-    { label: "Share a Ride", category: "Ride", route: "/rides/enter?mode=share" },
-    { label: "Deliver a Parcel", category: "Delivery", route: "/deliveries" },
-    { label: "Track Delivery", category: "Delivery", route: "/deliveries" },
-    { label: "EV Marketplace", category: "Marketplace", route: "/more" },
-    { label: "ShopNow", category: "Marketplace", route: "/more" },
-    { label: "My Cart", category: "Marketplace", route: "/more" },
-    { label: "Public Charging Station", category: "Charging", route: "/more" },
-    { label: "Private Station", category: "Charging", route: "/more" },
-    { label: "My Vehicles", category: "Charging", route: "/more" },
-    { label: "School Bus Services", category: "School", route: "/school-handoff" },
-    { label: "Student Bus Fees", category: "School", route: "/school-handoff" }
-  ];
-
-  // Sample reminder data with expiry dates - in production, this would come from backend
-  const [reminders, setReminders] = useState([
+  // Mock reminders data - in production, this would come from backend
+  const reminders = [
     {
       id: 1,
-      label: "Reminder",
       title: "Student Bus Fees",
-      description: "Your Student Bus fees, for the student John Doe, paid on 24-01-2023 has expired, an additional 3hrs has been allowed for you continue accessing the service while we wait for your payment and you have until 24-01-2023 before the service is locked",
-      action: "Check Now",
-      expiryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
-      gracePeriodEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days from now
+      description: "John Doe - Expires in 5 days. Grace period: 2 days remaining.",
+      actionRoute: "/school-handoff/fees"
     },
     {
       id: 2,
-      label: "Promotion",
       title: "Ride Promotion",
-      description: "Get 20% off your next ride - Expires tomorrow",
-      action: "View Offer",
-      expiryDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day from now
-      gracePeriodEnd: null
+      description: "Get 20% off your next ride. Valid until end of month.",
+      actionRoute: "/rides/promotions"
     },
     {
       id: 3,
-      label: "Reminder",
-      title: "Payment Due",
-      description: "Your monthly subscription payment is due in 2 days",
-      action: "Pay Now",
-      expiryDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-      gracePeriodEnd: null
-    },
-    {
-      id: 4,
-      label: "Promotion",
-      title: "New User Bonus",
-      description: "Complete your first ride and get UGX 5,000 credit",
-      action: "Claim Now",
-      expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      gracePeriodEnd: null
-    },
-    {
-      id: 5,
-      label: "Reminder",
-      title: "Vehicle Service",
-      description: "Your vehicle is due for maintenance service",
-      action: "Schedule",
-      expiryDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
-      gracePeriodEnd: null
+      title: "Payment Alert",
+      description: "Your wallet balance is low. Add funds to continue booking.",
+      actionRoute: "/wallet"
     }
-  ]);
-
-  // Filter out expired reminders - check periodically
-  useEffect(() => {
-    const checkExpiredReminders = () => {
-      setReminders((currentReminders) => {
-        const now = new Date();
-        const activeReminders = currentReminders.filter((reminder) => {
-          const expiryDate = reminder.gracePeriodEnd || reminder.expiryDate;
-          return expiryDate > now;
-        });
-        
-        // Reset index if reminders were removed
-        if (activeReminders.length !== currentReminders.length) {
-          setReminderIndex((prev) => {
-            if (prev >= activeReminders.length && activeReminders.length > 0) {
-              return 0;
-            }
-            return prev;
-          });
-        }
-        
-        return activeReminders;
-      });
-    };
-
-    // Check immediately
-    checkExpiredReminders();
-    
-    // Check every minute for expired reminders
-    const interval = setInterval(checkExpiredReminders, 60000);
-    return () => clearInterval(interval);
-  }, []); // Run once on mount, then check periodically
+  ];
 
   // Auto-rotate reminders every 5 seconds
   useEffect(() => {
     if (reminders.length > 1) {
       const interval = setInterval(() => {
-        setReminderIndex((prev) => (prev + 1) % reminders.length);
+        setCurrentReminderIndex((prev) => (prev + 1) % reminders.length);
       }, 5000);
       return () => clearInterval(interval);
     }
   }, [reminders.length]);
 
-  const handleReminderAction = () => {
-    // Navigate to payment/renewal page
-    navigate("/school-handoff");
+  const handleReminderAction = (route) => {
+    navigate(route);
   };
 
-  const handleSearchSelect = (option) => {
-    if (option && option.route) {
-      navigate(option.route);
-      setSearchOpen(false);
-      setSearchValue("");
+  const handlePreviousReminder = () => {
+    setCurrentReminderIndex((prev) => (prev - 1 + reminders.length) % reminders.length);
+  };
+
+  const handleNextReminder = () => {
+    setCurrentReminderIndex((prev) => (prev + 1) % reminders.length);
+  };
+  
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Navigate to search results or rides dashboard
+      navigate("/rides/enter", { state: { searchQuery: searchQuery.trim() } });
     }
   };
 
-  const filteredSearchOptions = searchOptions.filter((option) =>
-    option.label.toLowerCase().includes(searchValue.toLowerCase()) ||
-    option.category.toLowerCase().includes(searchValue.toLowerCase())
-  );
-
+  const handleDownloadClick = () => {
+    // Handle download action
+    console.log("Download clicked");
+  };
+  
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Top bar */}
+      {/* Top Section: Avatar, Search Bar, and Action Button */}
       <Box
         sx={{
-          mb: 2.5,
+          mb: 3,
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
-          gap: 1.5,
-          position: "relative"
+          gap: 1.5
         }}
       >
-        {/* Profile icon */}
-        <IconButton
-          onClick={() => navigate("/more")}
+        {/* Avatar */}
+        <Avatar
           sx={{
-            p: 0,
-            flexShrink: 0,
-            "&:hover": { opacity: 0.8 }
-          }}
-        >
-          <Avatar
-            sx={{
-              width: 40,
-              height: 40,
-              bgcolor: "#03CD8C",
-              fontSize: 16,
-              fontWeight: 600,
-              color: "#020617"
-            }}
-          >
-            RZ
-          </Avatar>
-        </IconButton>
-
-        {/* Search Bar with Autocomplete */}
-        <Autocomplete
-          freeSolo
-          open={searchOpen}
-          onOpen={() => setSearchOpen(true)}
-          onClose={() => setSearchOpen(false)}
-          options={filteredSearchOptions}
-          getOptionLabel={(option) => (typeof option === "string" ? option : option.label)}
-          groupBy={(option) => option.category}
-          value={searchValue}
-          onChange={(event, newValue) => {
-            if (newValue) {
-              handleSearchSelect(newValue);
-            }
-          }}
-          onInputChange={(event, newInputValue) => {
-            setSearchValue(newInputValue);
-          }}
-          inputValue={searchValue}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Search rides, shops, charging stations..."
-              variant="outlined"
-              size="small"
-              sx={{
-                flex: 1,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-                  border: (t) =>
-                    t.palette.mode === "light"
-                      ? "1px solid rgba(209,213,219,0.9)"
-                      : "1px solid rgba(51,65,85,0.9)",
-                  "& fieldset": {
-                    border: "none"
-                  },
-                  "&:hover fieldset": {
-                    border: "none"
-                  },
-                  "&.Mui-focused fieldset": {
-                    border: (t) =>
-                      t.palette.mode === "light"
-                        ? "1px solid #03CD8C"
-                        : "1px solid #03CD8C"
-                  }
-                },
-                "& .MuiInputBase-input": {
-                  fontSize: 13,
-                  py: 1.2,
-                  px: 1.5
-                }
-              }}
-              InputProps={{
-                ...params.InputProps,
-                startAdornment: (
-                  <>
-                    <InputAdornment position="start">
-                      <SearchRoundedIcon
-                        sx={{ fontSize: 20, color: (t) => t.palette.text.secondary }}
-                      />
-                    </InputAdornment>
-                    {params.InputProps.startAdornment}
-                  </>
-                )
-              }}
-            />
-          )}
-          renderOption={(props, option) => (
-            <Box component="li" {...props} key={option.label}>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ width: "100%" }}>
-                <Typography variant="body2" sx={{ flex: 1 }}>
-                  {option.label}
-                </Typography>
-                <Chip
-                  label={option.category}
-                  size="small"
-                  sx={{
-                    bgcolor: "#03CD8C",
-                    color: "#020617",
-                    fontSize: 10,
-                    height: 20
-                  }}
-                />
-              </Stack>
-            </Box>
-          )}
-          PaperComponent={(props) => (
-            <Paper
-              {...props}
-              sx={{
-                mt: 1,
-                borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
-                boxShadow: "0 4px 20px rgba(15,23,42,0.15)"
-              }}
-            />
-          )}
-          sx={{ flex: 1 }}
-        />
-
-        {/* Download icon */}
-        <IconButton
-          onClick={() => {
-            // Navigate to downloads/offline resources (using more menu for now)
-            navigate("/more");
-          }}
-          sx={{
-            ml: 1,
-            flexShrink: 0,
             width: 40,
             height: 40,
-            bgcolor: "#03CD8C",
-            color: "#020617",
-            borderRadius: 1.5,
+            bgcolor: greenPrimary,
+            fontSize: 18,
+            fontWeight: 600,
+            color: "#FFFFFF",
+            flexShrink: 0
+          }}
+        >
+          RZ
+        </Avatar>
+
+        {/* Search Bar */}
+        <Box sx={{ flex: 1 }}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Search rides, shops, c..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === "Enter") {
+                handleSearch(e);
+              }
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchRoundedIcon 
+                    sx={{ 
+                      fontSize: 20, 
+                      color: (t) => t.palette.text.secondary 
+                    }} 
+                  />
+                </InputAdornment>
+              )
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 999,
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
+                "& fieldset": {
+                  borderColor: (t) =>
+                    t.palette.mode === "light"
+                      ? "rgba(209,213,219,0.9)"
+                      : "rgba(51,65,85,0.9)"
+                },
+                "&:hover fieldset": {
+                  borderColor: greenPrimary
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: greenPrimary
+                }
+              }
+            }}
+          />
+        </Box>
+
+        {/* Download/Action Button */}
+        <IconButton
+          onClick={handleDownloadClick}
+          sx={{
+            width: 40,
+            height: 40,
+            bgcolor: greenPrimary,
+            color: "#FFFFFF",
+            flexShrink: 0,
             "&:hover": {
-              bgcolor: "#02B87A"
+              bgcolor: greenSecondary
             }
           }}
         >
-          <DownloadRoundedIcon sx={{ fontSize: 20 }} />
+          <ArrowDownwardRoundedIcon sx={{ fontSize: 20 }} />
         </IconButton>
       </Box>
 
       {/* Notification Banner (Reminder Card) */}
-      {reminders.length > 0 && reminders[reminderIndex] && (
+      {reminders.length > 0 && (
         <Card
           elevation={0}
           sx={{
             mb: 2.5,
-            borderRadius: 2,
+            borderRadius: 2.5,
             bgcolor: (t) =>
               t.palette.mode === "light"
-                ? "linear-gradient(135deg, #D1FAE5 0%, #FFFFFF 100%)"
+                ? "linear-gradient(135deg, rgba(3,205,140,0.08) 0%, rgba(255,255,255,1) 100%)"
                 : "linear-gradient(135deg, rgba(3,205,140,0.15) 0%, rgba(15,23,42,0.98) 100%)",
             border: (t) =>
               t.palette.mode === "light"
@@ -355,204 +210,222 @@ function HomeMultiServiceScreen() {
             overflow: "hidden"
           }}
         >
-          <CardContent sx={{ px: 2, py: 1.5 }}>
-            <Box sx={{ position: "relative" }}>
-              {/* Pill-shaped label tag */}
-              <Chip
-                label={reminders[reminderIndex]?.label || "Reminder"}
-                size="small"
-                sx={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  bgcolor: "#03CD8C",
-                  color: "#020617",
-                  fontSize: 9,
-                  fontWeight: 600,
-                  height: 20,
-                  borderRadius: 10,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px"
-                }}
-              />
-              
-              <Box sx={{ pt: 2.5 }}>
-                {/* Title */}
-                <Typography
-                  variant="subtitle2"
+          <CardContent sx={{ px: 1.8, py: 1.6, position: "relative" }}>
+            {/* Navigation arrows (only show if multiple reminders) */}
+            {reminders.length > 1 && (
+              <>
+                <IconButton
+                  onClick={handlePreviousReminder}
                   sx={{
-                    fontSize: 15,
-                    fontWeight: 700,
-                    mb: 1,
-                    color: "#03CD8C"
+                    position: "absolute",
+                    left: 8,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: 28,
+                    height: 28,
+                    bgcolor: (t) =>
+                      t.palette.mode === "light" ? "rgba(255,255,255,0.9)" : "rgba(15,23,42,0.9)",
+                    border: (t) =>
+                      t.palette.mode === "light"
+                        ? "1px solid rgba(3,205,140,0.2)"
+                        : "1px solid rgba(3,205,140,0.3)",
+                    zIndex: 2,
+                    "&:hover": {
+                      bgcolor: (t) =>
+                        t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,1)"
+                    }
                   }}
                 >
-                  {reminders[reminderIndex]?.title || ""}
-                </Typography>
-                
-                {/* Description */}
+                  <ChevronLeftRoundedIcon sx={{ fontSize: 18, color: greenPrimary }} />
+                </IconButton>
+                <IconButton
+                  onClick={handleNextReminder}
+                  sx={{
+                    position: "absolute",
+                    right: 8,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: 28,
+                    height: 28,
+                    bgcolor: (t) =>
+                      t.palette.mode === "light" ? "rgba(255,255,255,0.9)" : "rgba(15,23,42,0.9)",
+                    border: (t) =>
+                      t.palette.mode === "light"
+                        ? "1px solid rgba(3,205,140,0.2)"
+                        : "1px solid rgba(3,205,140,0.3)",
+                    zIndex: 2,
+                    "&:hover": {
+                      bgcolor: (t) =>
+                        t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,1)"
+                    }
+                  }}
+                >
+                  <ChevronRightRoundedIcon sx={{ fontSize: 18, color: greenPrimary }} />
+                </IconButton>
+              </>
+            )}
+
+            {/* Reminder Content */}
+            <Box sx={{ px: reminders.length > 1 ? 4 : 0 }}>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                <NotificationsRoundedIcon
+                  sx={{
+                    fontSize: 18,
+                    color: greenPrimary
+                  }}
+                />
                 <Typography
                   variant="caption"
                   sx={{
-                    fontSize: 11,
-                    color: (t) => t.palette.text.secondary,
-                    display: "block",
-                    mb: 2,
-                    lineHeight: 1.5
+                    fontSize: 10,
+                    color: greenPrimary,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    fontWeight: 600
                   }}
                 >
-                  {reminders[reminderIndex]?.description || ""}
+                  Reminder
                 </Typography>
-                
-                {/* Action Button - Centered */}
-                <Box sx={{ display: "flex", justifyContent: "center", mb: 1.5 }}>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={handleReminderAction}
+              </Stack>
+
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  letterSpacing: "-0.01em",
+                  mb: 0.5,
+                  color: (t) => t.palette.text.primary
+                }}
+              >
+                {reminders[currentReminderIndex].title}
+              </Typography>
+
+              <Typography
+                variant="caption"
+                sx={{
+                  fontSize: 11,
+                  color: (t) => t.palette.text.secondary,
+                  mb: 1.5,
+                  display: "block",
+                  lineHeight: 1.5
+                }}
+              >
+                {reminders[currentReminderIndex].description}
+              </Typography>
+
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => handleReminderAction(reminders[currentReminderIndex].actionRoute)}
+                sx={{
+                  bgcolor: greenPrimary,
+                  color: "#FFFFFF",
+                  borderRadius: 999,
+                  px: 2.5,
+                  py: 0.75,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: "none",
+                  "&:hover": {
+                    bgcolor: greenSecondary
+                  }
+                }}
+              >
+                Check Now
+              </Button>
+            </Box>
+
+            {/* Carousel Indicators */}
+            {reminders.length > 1 && (
+              <Stack
+                direction="row"
+                spacing={0.5}
+                justifyContent="center"
+                sx={{ mt: 1.5 }}
+              >
+                {reminders.map((_, index) => (
+                  <Box
+                    key={index}
+                    onClick={() => setCurrentReminderIndex(index)}
                     sx={{
-                      bgcolor: "#03CD8C",
-                      color: "#020617",
-                      fontSize: 11,
-                      fontWeight: 600,
-                      px: 3,
-                      py: 0.75,
-                      borderRadius: 1.5,
-                      textTransform: "none",
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      bgcolor:
+                        index === currentReminderIndex
+                          ? greenPrimary
+                          : (t) =>
+                              t.palette.mode === "light"
+                                ? "rgba(3,205,140,0.3)"
+                                : "rgba(3,205,140,0.5)",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
                       "&:hover": {
-                        bgcolor: "#02B87A"
+                        bgcolor: greenPrimary,
+                        transform: "scale(1.2)"
                       }
                     }}
-                  >
-                    {reminders[reminderIndex]?.action || "Check Now"}
-                  </Button>
-                </Box>
-                
-                {/* Carousel Indicators - 5 dots */}
-                <Box sx={{ display: "flex", justifyContent: "center", gap: 0.75, mt: 1 }}>
-                  {Array.from({ length: Math.min(reminders.length, 5) }).map((_, index) => (
-                    <Box
-                      key={index}
-                      onClick={() => setReminderIndex(index)}
-                      sx={{
-                        width: index === reminderIndex ? 8 : 6,
-                        height: index === reminderIndex ? 8 : 6,
-                        borderRadius: "50%",
-                        bgcolor: index === reminderIndex 
-                          ? (t) => t.palette.mode === "light" ? "#6B7280" : "#9CA3AF"
-                          : (t) => t.palette.mode === "light" ? "#D1D5DB" : "#4B5563",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease"
-                      }}
-                    />
-                  ))}
-                </Box>
-              </Box>
-            </Box>
+                  />
+                ))}
+              </Stack>
+            )}
           </CardContent>
         </Card>
       )}
 
-      {/* Personalization Area - Last Ride Info */}
+      {/* Personalization Area - Your Last Ride */}
       <Card
         elevation={0}
-        onClick={() => navigate("/rides/enter")}
         sx={{
           mb: 2.5,
-          borderRadius: 2,
-          cursor: "pointer",
+          borderRadius: 2.5,
           bgcolor: (t) =>
-            t.palette.mode === "light"
-              ? "linear-gradient(135deg, #E0F2FE 0%, #FFFFFF 100%)"
-              : "linear-gradient(135deg, rgba(3,205,140,0.1) 0%, rgba(15,23,42,0.98) 100%)",
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
             t.palette.mode === "light"
-              ? "1px solid rgba(3,205,140,0.2)"
-              : "1px solid rgba(3,205,140,0.3)",
-          transition: "transform 0.12s ease, box-shadow 0.12s ease",
-          "&:hover": {
-            transform: "translateY(-1px)",
-            boxShadow: 2
-          }
+              ? "1px solid rgba(209,213,219,0.9)"
+              : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 2, py: 1.5 }}>
+        <CardContent sx={{ px: 1.8, py: 1.5 }}>
+          <Typography
+            variant="caption"
+            sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block", textTransform: "uppercase", letterSpacing: "0.5px" }}
+          >
+            YOUR LAST RIDE
+          </Typography>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Box sx={{ flex: 1 }}>
+            <Box>
               <Typography
-                variant="caption"
-                sx={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: (t) => t.palette.text.secondary,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                  mb: 0.5,
-                  display: "block"
-                }}
-              >
-                Your last ride
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  letterSpacing: "-0.01em",
-                  mb: 0.25
-                }}
+                variant="subtitle1"
+                sx={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
               >
                 Home → Office
               </Typography>
-              <Stack direction="row" spacing={1.5} alignItems="center">
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontSize: 11,
-                    color: (t) => t.palette.text.secondary
-                  }}
-                >
-                  12 min
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontSize: 11,
-                    color: (t) => t.palette.text.secondary
-                  }}
-                >
-                  •
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontSize: 11,
-                    color: (t) => t.palette.text.secondary
-                  }}
-                >
-                  UGX 5,000
-                </Typography>
-              </Stack>
+              <Typography
+                variant="caption"
+                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+              >
+                12 min • UGX 5,000
+              </Typography>
             </Box>
             <Button
               variant="contained"
               size="small"
+              onClick={() => navigate("/rides/enter")}
               sx={{
-                bgcolor: "#03CD8C",
-                color: "#020617",
-                fontSize: 11,
-                fontWeight: 600,
+                bgcolor: greenPrimary,
+                color: "#FFFFFF",
+                borderRadius: 999,
                 px: 2,
                 py: 0.75,
-                borderRadius: 1.5,
+                fontSize: 11,
+                fontWeight: 600,
                 textTransform: "none",
                 "&:hover": {
-                  bgcolor: "#02B87A"
+                  bgcolor: greenSecondary
                 }
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate("/rides/enter");
               }}
             >
               Rebook
@@ -561,763 +434,21 @@ function HomeMultiServiceScreen() {
         </CardContent>
       </Card>
 
-      {/* Quick Actions Section */}
+      {/* Primary service picker */}
       <Box sx={{ mb: 2.5 }}>
         <Typography
           variant="caption"
-          sx={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: (t) => t.palette.text.secondary,
-            mb: 1.5,
-            display: "block",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px"
-          }}
+          sx={{ fontSize: 9, color: (t) => t.palette.text.secondary, mb: 1, display: "block", opacity: 0.7 }}
         >
-          Quick actions
+          EVzone services
         </Typography>
-        <Stack direction="row" spacing={1.2}>
-          <Card
-            elevation={0}
-            onClick={() => navigate("/rides/enter")}
-            sx={{
-              flex: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)",
-              transition: "transform 0.12s ease, box-shadow 0.12s ease",
-              "&:hover": {
-                transform: "translateY(-1px)",
-                boxShadow: 2
-              }
-            }}
-          >
-            <CardContent sx={{ px: 1.5, py: 1.2 }}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <RouteRoundedIcon
-                  sx={{ fontSize: 20, color: "#03CD8C" }}
-                />
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    letterSpacing: "-0.01em",
-                    flex: 1
-                  }}
-                >
-                  Book usual route
-                </Typography>
-              </Stack>
-            </CardContent>
-          </Card>
-          <Card
-            elevation={0}
-            onClick={() => navigate("/rides/enter")}
-            sx={{
-              flex: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)",
-              transition: "transform 0.12s ease, box-shadow 0.12s ease",
-              "&:hover": {
-                transform: "translateY(-1px)",
-                boxShadow: 2
-              }
-            }}
-          >
-            <CardContent sx={{ px: 1.5, py: 1.2 }}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <WorkRoundedIcon
-                  sx={{ fontSize: 20, color: "#03CD8C" }}
-                />
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    letterSpacing: "-0.01em",
-                    flex: 1
-                  }}
-                >
-                  Go to work
-                </Typography>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Stack>
-      </Box>
 
-      {/* Service Sections */}
-      <Box sx={{ mb: 2.5 }}>
-        {/* EVZone Marketplace - 4 cards in a row */}
-        <Typography
-          variant="caption"
-          sx={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: (t) => t.palette.text.secondary,
-            mb: 1.5,
-            display: "block",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px"
-          }}
-        >
-          EVZone Marketplace
-        </Typography>
-        <Box
-          sx={{
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#D1FAE5" : "rgba(3,205,140,0.1)",
-            borderRadius: 2,
-            p: 1.2
-          }}
-        >
+        <Stack spacing={1.5}>
           <Stack direction="row" spacing={1.2}>
-          {/* EVzone MarketPlace - shopping bag with target - merges with background */}
-          <Card
-            elevation={0}
-            onClick={() => navigate("/more")}
-            sx={{
-              flex: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: "transparent",
-              border: "none",
-              transition: "transform 0.12s ease, opacity 0.12s ease",
-              "&:hover": {
-                transform: "translateY(-1px)",
-                opacity: 0.9
-              }
-            }}
-          >
-            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center", position: "relative" }}>
-              <Box sx={{ position: "relative", display: "inline-block" }}>
-                <LocalMallRoundedIcon
-                  sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
-                />
-                <BoltRoundedIcon
-                  sx={{
-                    fontSize: 14,
-                    color: "#F77F00",
-                    position: "absolute",
-                    top: -4,
-                    right: -4,
-                    bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-                    borderRadius: "50%",
-                    p: 0.25
-                  }}
-                />
-              </Box>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                EVzone MarketPlace
-              </Typography>
-            </CardContent>
-          </Card>
-
-          {/* EV Marketplace - electric car with lightning */}
-          <Card
-            elevation={0}
-            onClick={() => navigate("/more")}
-            sx={{
-              flex: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)",
-              transition: "transform 0.12s ease, box-shadow 0.12s ease",
-              "&:hover": {
-                transform: "translateY(-1px)",
-                boxShadow: 4
-              }
-            }}
-          >
-            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center", position: "relative" }}>
-              <Box sx={{ position: "relative", display: "inline-block" }}>
-                <ElectricCarRoundedIcon
-                  sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
-                />
-                <BoltRoundedIcon
-                  sx={{
-                    fontSize: 14,
-                    color: "#F77F00",
-                    position: "absolute",
-                    top: -4,
-                    right: -4
-                  }}
-                />
-              </Box>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                EV Marketplace
-              </Typography>
-            </CardContent>
-          </Card>
-
-          {/* ShopNow */}
-          <Card
-            elevation={0}
-            onClick={() => navigate("/more")}
-            sx={{
-              flex: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)",
-              transition: "transform 0.12s ease, box-shadow 0.12s ease",
-              "&:hover": {
-                transform: "translateY(-1px)",
-                boxShadow: 4
-              }
-            }}
-          >
-            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center" }}>
-              <LocalMallRoundedIcon
-                sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
-              />
-              <Typography
-                variant="subtitle2"
-                sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                ShopNow
-              </Typography>
-            </CardContent>
-          </Card>
-
-          {/* My Cart */}
-          <Card
-            elevation={0}
-            onClick={() => navigate("/more")}
-            sx={{
-              flex: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)",
-              transition: "transform 0.12s ease, box-shadow 0.12s ease",
-              "&:hover": {
-                transform: "translateY(-1px)",
-                boxShadow: 4
-              }
-            }}
-          >
-            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center" }}>
-              <ShoppingCartRoundedIcon
-                sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
-              />
-              <Typography
-                variant="subtitle2"
-                sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                My Cart
-              </Typography>
-            </CardContent>
-          </Card>
-        </Stack>
-        </Box>
-
-        {/* EVZone Charging - 4 cards in a row */}
-        <Typography
-          variant="caption"
-          sx={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: (t) => t.palette.text.secondary,
-            mb: 1.5,
-            display: "block",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px"
-          }}
-        >
-          EVZone Charging
-        </Typography>
-        <Box
-          sx={{
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#D1FAE5" : "rgba(3,205,140,0.1)",
-            borderRadius: 2,
-            p: 1.2
-          }}
-        >
-          <Stack direction="row" spacing={1.2}>
-          {/* EVzone Charging - merges with background */}
-          <Card
-            elevation={0}
-            onClick={() => navigate("/more")}
-            sx={{
-              flex: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: "transparent",
-              border: "none",
-              transition: "transform 0.12s ease, opacity 0.12s ease",
-              "&:hover": {
-                transform: "translateY(-1px)",
-                opacity: 0.9
-              }
-            }}
-          >
-            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center" }}>
-              <EvStationRoundedIcon
-                sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
-              />
-              <Typography
-                variant="subtitle2"
-                sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                EVzone Charging
-              </Typography>
-            </CardContent>
-          </Card>
-
-          {/* My Vehicles */}
-          <Card
-            elevation={0}
-            onClick={() => navigate("/more")}
-            sx={{
-              flex: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)",
-              transition: "transform 0.12s ease, box-shadow 0.12s ease",
-              "&:hover": {
-                transform: "translateY(-1px)",
-                boxShadow: 4
-              }
-            }}
-          >
-            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center" }}>
-              <DirectionsCarRoundedIcon
-                sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
-              />
-              <Typography
-                variant="subtitle2"
-                sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                My Vehicles
-              </Typography>
-            </CardContent>
-          </Card>
-
-          {/* Public Station - gas pump with lightning */}
-          <Card
-            elevation={0}
-            onClick={() => navigate("/more")}
-            sx={{
-              flex: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)",
-              transition: "transform 0.12s ease, box-shadow 0.12s ease",
-              "&:hover": {
-                transform: "translateY(-1px)",
-                boxShadow: 4
-              }
-            }}
-          >
-            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center", position: "relative" }}>
-              <Box sx={{ position: "relative", display: "inline-block" }}>
-                <LocalGasStationRoundedIcon
-                  sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
-                />
-                <BoltRoundedIcon
-                  sx={{
-                    fontSize: 14,
-                    color: "#F77F00",
-                    position: "absolute",
-                    top: -4,
-                    right: -4
-                  }}
-                />
-              </Box>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                Public Station
-              </Typography>
-            </CardContent>
-          </Card>
-
-          {/* Private Station - house with lightning */}
-          <Card
-            elevation={0}
-            onClick={() => navigate("/more")}
-            sx={{
-              flex: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)",
-              transition: "transform 0.12s ease, box-shadow 0.12s ease",
-              "&:hover": {
-                transform: "translateY(-1px)",
-                boxShadow: 4
-              }
-            }}
-          >
-            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center", position: "relative" }}>
-              <Box sx={{ position: "relative", display: "inline-block" }}>
-                <HomeRoundedIcon sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }} />
-                <BoltRoundedIcon
-                  sx={{
-                    fontSize: 14,
-                    color: "#F77F00",
-                    position: "absolute",
-                    top: -4,
-                    right: -4
-                  }}
-                />
-              </Box>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                Private Station
-              </Typography>
-            </CardContent>
-          </Card>
-        </Stack>
-        </Box>
-
-        {/* EVZone Ride - 4 cards in a row (same style as Marketplace and Charging) */}
-        <Typography
-          variant="caption"
-          sx={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: (t) => t.palette.text.secondary,
-            mb: 1.5,
-            display: "block",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px"
-          }}
-        >
-          EVZone Ride
-        </Typography>
-        <Box
-          sx={{
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#D1FAE5" : "rgba(3,205,140,0.1)",
-            borderRadius: 2,
-            p: 1.2
-          }}
-        >
-          <Stack direction="row" spacing={1.2}>
-          {/* EVzone Ride - taxi with lightning - merges with background */}
-          <Card
-            elevation={0}
-            onClick={() => navigate("/rides/enter")}
-            sx={{
-              flex: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: "transparent",
-              border: "none",
-              transition: "transform 0.12s ease, opacity 0.12s ease",
-              "&:hover": {
-                transform: "translateY(-1px)",
-                opacity: 0.9
-              }
-            }}
-          >
-            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center", position: "relative" }}>
-              <Box sx={{ position: "relative", display: "inline-block" }}>
-                <LocalTaxiRoundedIcon
-                  sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
-                />
-                <BoltRoundedIcon
-                  sx={{
-                    fontSize: 14,
-                    color: "#F77F00",
-                    position: "absolute",
-                    top: -4,
-                    right: -4,
-                    bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-                    borderRadius: "50%",
-                    p: 0.25
-                  }}
-                />
-              </Box>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                EVzone Ride
-              </Typography>
-            </CardContent>
-          </Card>
-
-          {/* Book a Ride - taxi icon */}
-          <Card
-            elevation={0}
-            onClick={() => navigate("/rides/enter")}
-            sx={{
-              flex: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)",
-              transition: "transform 0.12s ease, box-shadow 0.12s ease",
-              "&:hover": {
-                transform: "translateY(-1px)",
-                boxShadow: 4
-              }
-            }}
-          >
-            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center", position: "relative" }}>
-              <Box sx={{ position: "relative", display: "inline-block" }}>
-                <LocalTaxiRoundedIcon
-                  sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
-                />
-                <BoltRoundedIcon
-                  sx={{
-                    fontSize: 14,
-                    color: "#F77F00",
-                    position: "absolute",
-                    top: -4,
-                    right: -4
-                  }}
-                />
-              </Box>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                Book a ride
-              </Typography>
-              <ArrowForwardIosRoundedIcon
-                sx={{
-                  fontSize: 14,
-                  color: (t) => t.palette.text.secondary,
-                  opacity: 0.5,
-                  position: "absolute",
-                  right: 8,
-                  top: "50%",
-                  transform: "translateY(-50%)"
-                }}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Share a Ride - taxi with people */}
-          <Card
-            elevation={0}
-            onClick={() => navigate("/rides/enter?mode=share")}
-            sx={{
-              flex: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)",
-              transition: "transform 0.12s ease, box-shadow 0.12s ease",
-              "&:hover": {
-                transform: "translateY(-1px)",
-                boxShadow: 4
-              }
-            }}
-          >
-            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center", position: "relative" }}>
-              <Box sx={{ position: "relative", display: "inline-block" }}>
-                <LocalTaxiRoundedIcon
-                  sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
-                />
-                <GroupRoundedIcon
-                  sx={{
-                    fontSize: 12,
-                    color: "#F77F00",
-                    position: "absolute",
-                    top: -6,
-                    right: -6
-                  }}
-                />
-              </Box>
-              <Typography
-                variant="subtitle2"
-                sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                Share a Ride
-              </Typography>
-              <ArrowForwardIosRoundedIcon
-                sx={{
-                  fontSize: 14,
-                  color: (t) => t.palette.text.secondary,
-                  opacity: 0.5,
-                  position: "absolute",
-                  right: 8,
-                  top: "50%",
-                  transform: "translateY(-50%)"
-                }}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Deliver a Parcel - package box */}
-          <Card
-            elevation={0}
-            onClick={() => navigate("/deliveries")}
-            sx={{
-              flex: 1,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)",
-              transition: "transform 0.12s ease, box-shadow 0.12s ease",
-              "&:hover": {
-                transform: "translateY(-1px)",
-                boxShadow: 4
-              }
-            }}
-          >
-            <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center", position: "relative" }}>
-              <InventoryRoundedIcon
-                sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
-              />
-              <Typography
-                variant="subtitle2"
-                sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                Deliver a Parcel
-              </Typography>
-              <ArrowForwardIosRoundedIcon
-                sx={{
-                  fontSize: 14,
-                  color: (t) => t.palette.text.secondary,
-                  opacity: 0.5,
-                  position: "absolute",
-                  right: 8,
-                  top: "50%",
-                  transform: "translateY(-50%)"
-                }}
-              />
-            </CardContent>
-          </Card>
-        </Stack>
-        </Box>
-
-        {/* School Section - 3 cards in a row with light yellow-orange background */}
-        <Typography
-          variant="caption"
-          sx={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: (t) => t.palette.text.secondary,
-            mb: 1.5,
-            display: "block",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px"
-          }}
-        >
-          School Section
-        </Typography>
-        <Box
-          sx={{
-            borderRadius: 2,
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#D1FAE5" : "rgba(3,205,140,0.1)",
-            p: 1.2
-          }}
-        >
-          <Stack direction="row" spacing={1.2}>
-            {/* School card - orange book with graduation cap - merges with background */}
+            {/* Ride */}
             <Card
               elevation={0}
-              onClick={() => navigate("/school-handoff")}
-              sx={{
-                flex: 1,
-                borderRadius: 2,
-                cursor: "pointer",
-                bgcolor: "transparent",
-                border: "none",
-                transition: "transform 0.12s ease, opacity 0.12s ease",
-                "&:hover": {
-                  transform: "translateY(-1px)",
-                  opacity: 0.9
-                }
-              }}
-            >
-              <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center", position: "relative" }}>
-                <Box sx={{ position: "relative", display: "inline-block" }}>
-                  <MenuBookRoundedIcon
-                    sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
-                  />
-                  <SchoolRoundedIcon
-                    sx={{
-                      fontSize: 14,
-                      color: "#F77F00",
-                      position: "absolute",
-                      top: -4,
-                      right: -4
-                    }}
-                  />
-                </Box>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
-                >
-                  School
-                </Typography>
-              </CardContent>
-            </Card>
-
-            {/* Parent card - orange person reading */}
-            <Card
-              elevation={0}
-              onClick={() => navigate("/school-handoff")}
+              onClick={() => navigate("/rides/enter")}
               sx={{
                 flex: 1,
                 borderRadius: 2,
@@ -1328,41 +459,44 @@ function HomeMultiServiceScreen() {
                   t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
                     : "1px solid rgba(51,65,85,0.9)",
-                transition: "transform 0.12s ease, box-shadow 0.12s ease",
+                transition: "transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease",
                 "&:hover": {
                   transform: "translateY(-1px)",
-                  boxShadow: 4
+                  boxShadow: 4,
+                  borderColor: orangeCTA
                 }
               }}
             >
-              <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center", position: "relative" }}>
-                <Box sx={{ position: "relative", display: "inline-block" }}>
-                  <PersonRoundedIcon
-                    sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
+              <CardContent sx={{ px: 1.4, py: 1.4, position: "relative" }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.4 }}>
+                  <ElectricCarRoundedIcon sx={{ fontSize: 20, color: greenPrimary }} />
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", flex: 1 }}
+                  >
+                    Ride
+                  </Typography>
+                  <ArrowForwardIosRoundedIcon 
+                    sx={{ 
+                      fontSize: 12, 
+                      color: (t) => t.palette.text.secondary,
+                      opacity: 0.5
+                    }} 
                   />
-                  <MenuBookRoundedIcon
-                    sx={{
-                      fontSize: 12,
-                      color: "#F77F00",
-                      position: "absolute",
-                      top: -6,
-                      right: -6
-                    }}
-                  />
-                </Box>
+                </Stack>
                 <Typography
-                  variant="subtitle2"
-                  sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
+                  variant="caption"
+                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
                 >
-                  Parent
+                  Book an electric ride now or later
                 </Typography>
               </CardContent>
             </Card>
 
-            {/* Student card - orange books with graduation cap */}
+            {/* Delivery */}
             <Card
               elevation={0}
-              onClick={() => navigate("/school-handoff")}
+              onClick={() => navigate("/deliveries")}
               sx={{
                 flex: 1,
                 borderRadius: 2,
@@ -1373,40 +507,425 @@ function HomeMultiServiceScreen() {
                   t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
                     : "1px solid rgba(51,65,85,0.9)",
-                transition: "transform 0.12s ease, box-shadow 0.12s ease",
+                transition: "transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease",
                 "&:hover": {
                   transform: "translateY(-1px)",
-                  boxShadow: 4
+                  boxShadow: 4,
+                  borderColor: orangeCTA
                 }
               }}
             >
-              <CardContent sx={{ px: 1.4, py: 1.4, textAlign: "center", position: "relative" }}>
-                <Box sx={{ position: "relative", display: "inline-block" }}>
-                  <MenuBookRoundedIcon
-                    sx={{ fontSize: 28, color: "#F77F00", mb: 0.5 }}
+              <CardContent sx={{ px: 1.4, py: 1.4, position: "relative" }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.4 }}>
+                  <LocalShippingRoundedIcon sx={{ fontSize: 20, color: greenPrimary }} />
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", flex: 1 }}
+                  >
+                    Delivery
+                  </Typography>
+                  <ArrowForwardIosRoundedIcon 
+                    sx={{ 
+                      fontSize: 12, 
+                      color: (t) => t.palette.text.secondary,
+                      opacity: 0.5
+                    }} 
                   />
-                  <SchoolRoundedIcon
-                    sx={{
-                      fontSize: 14,
-                      color: "#F77F00",
-                      position: "absolute",
-                      top: -4,
-                      right: -4
-                    }}
-                  />
-                </Box>
+                </Stack>
                 <Typography
-                  variant="subtitle2"
-                  sx={{ fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em" }}
+                  variant="caption"
+                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
                 >
-                  Student
+                  Send or receive parcels with EV couriers
                 </Typography>
               </CardContent>
             </Card>
           </Stack>
-        </Box>
+
+          <Stack direction="row" spacing={1.2}>
+            {/* Rental */}
+            <Card
+              elevation={0}
+              onClick={() => navigate("/rental")}
+              sx={{
+                flex: 1,
+                borderRadius: 2,
+                cursor: "pointer",
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(209,213,219,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)",
+                transition: "transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease",
+                "&:hover": {
+                  transform: "translateY(-1px)",
+                  boxShadow: 4,
+                  borderColor: orangeCTA
+                }
+              }}
+            >
+              <CardContent sx={{ px: 1.4, py: 1.4, position: "relative" }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.4 }}>
+                  <LuggageRoundedIcon sx={{ fontSize: 20, color: greenPrimary }} />
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", flex: 1 }}
+                  >
+                    Rental
+                  </Typography>
+                  <ArrowForwardIosRoundedIcon 
+                    sx={{ 
+                      fontSize: 12, 
+                      color: (t) => t.palette.text.secondary,
+                      opacity: 0.5
+                    }} 
+                  />
+                </Stack>
+                <Typography
+                  variant="caption"
+                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+                >
+                  Rent an EV for self-drive or chauffeur
+                </Typography>
+              </CardContent>
+            </Card>
+
+            {/* Tours */}
+            <Card
+              elevation={0}
+              onClick={() => navigate("/tours")}
+              sx={{
+                flex: 1,
+                borderRadius: 2,
+                cursor: "pointer",
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(209,213,219,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)",
+                transition: "transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease",
+                "&:hover": {
+                  transform: "translateY(-1px)",
+                  boxShadow: 4,
+                  borderColor: orangeCTA
+                }
+              }}
+            >
+              <CardContent sx={{ px: 1.4, py: 1.4, position: "relative" }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.4 }}>
+                  <TourRoundedIcon sx={{ fontSize: 20, color: greenPrimary }} />
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", flex: 1 }}
+                  >
+                    Tours
+                  </Typography>
+                  <ArrowForwardIosRoundedIcon 
+                    sx={{ 
+                      fontSize: 12, 
+                      color: (t) => t.palette.text.secondary,
+                      opacity: 0.5
+                    }} 
+                  />
+                </Stack>
+                <Typography
+                  variant="caption"
+                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+                >
+                  Book EV tours, day trips
+                </Typography>
+              </CardContent>
+            </Card>
+          </Stack>
+
+          <Stack direction="row" spacing={1.2}>
+            {/* School */}
+            <Card
+              elevation={0}
+              onClick={() => navigate("/school-handoff")}
+              sx={{
+                flex: 1,
+                borderRadius: 2,
+                cursor: "pointer",
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(209,213,219,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)",
+                transition: "transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease",
+                "&:hover": {
+                  transform: "translateY(-1px)",
+                  boxShadow: 4,
+                  borderColor: orangeCTA
+                }
+              }}
+            >
+              <CardContent sx={{ px: 1.4, py: 1.4, position: "relative" }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.4 }}>
+                  <SchoolRoundedIcon sx={{ fontSize: 20, color: greenPrimary }} />
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", flex: 1 }}
+                  >
+                    School
+                  </Typography>
+                  <ArrowForwardIosRoundedIcon 
+                    sx={{ 
+                      fontSize: 12, 
+                      color: (t) => t.palette.text.secondary,
+                      opacity: 0.5
+                    }} 
+                  />
+                </Stack>
+                <Typography
+                  variant="caption"
+                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+                >
+                  Manage your school shuttle rides
+                </Typography>
+              </CardContent>
+            </Card>
+
+            {/* Ambulance */}
+            <Card
+              elevation={0}
+              onClick={() => navigate("/ambulance")}
+              sx={{
+                flex: 1,
+                borderRadius: 2,
+                cursor: "pointer",
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(209,213,219,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)",
+                transition: "transform 0.12s ease, box-shadow 0.12s ease",
+                "&:hover": {
+                  transform: "translateY(-1px)",
+                  boxShadow: 4
+                }
+              }}
+            >
+              <CardContent sx={{ px: 1.4, py: 1.4, position: "relative" }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.4 }}>
+                  <LocalHospitalRoundedIcon sx={{ fontSize: 20, color: "#DC2626" }} />
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", flex: 1 }}
+                  >
+                    Ambulance
+                  </Typography>
+                  <ArrowForwardIosRoundedIcon 
+                    sx={{ 
+                      fontSize: 12, 
+                      color: (t) => t.palette.text.secondary,
+                      opacity: 0.5
+                    }} 
+                  />
+                </Stack>
+                <Typography
+                  variant="caption"
+                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+                >
+                  Request an emergency or transfer ambulance
+                </Typography>
+              </CardContent>
+            </Card>
+          </Stack>
+        </Stack>
       </Box>
 
+      {/* Quick actions - Redesigned with better styling */}
+      <Card
+        elevation={0}
+        sx={{
+          mb: 2.5,
+          borderRadius: 2.5,
+          bgcolor: (t) =>
+            t.palette.mode === "light"
+              ? "linear-gradient(135deg, rgba(3,205,140,0.05) 0%, rgba(255,255,255,1) 100%)"
+              : "linear-gradient(135deg, rgba(3,205,140,0.1) 0%, rgba(15,23,42,0.98) 100%)",
+          border: (t) =>
+            t.palette.mode === "light"
+              ? "1px solid rgba(3,205,140,0.15)"
+              : "1px solid rgba(3,205,140,0.25)"
+        }}
+      >
+        <CardContent sx={{ px: 1.8, py: 1.8 }}>
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: 10,
+              color: (t) => t.palette.text.secondary,
+              mb: 1.5,
+              display: "block",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              fontWeight: 600
+            }}
+          >
+            Quick actions
+          </Typography>
+          <Stack direction="row" spacing={1.25} sx={{ flexWrap: "wrap" }}>
+            <Chip
+              icon={<RouteRoundedIcon sx={{ fontSize: 18, color: greenPrimary }} />}
+              label="Book usual route"
+              size="small"
+              onClick={() => navigate("/rides/enter")}
+              sx={{
+                borderRadius: 999,
+                fontSize: 12,
+                height: 36,
+                cursor: "pointer",
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(3,205,140,0.3)"
+                    : "1px solid rgba(3,205,140,0.4)",
+                color: greenPrimary,
+                fontWeight: 600,
+                boxShadow: (t) =>
+                  t.palette.mode === "light"
+                    ? "0 2px 8px rgba(3,205,140,0.1)"
+                    : "0 2px 8px rgba(3,205,140,0.15)",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  borderColor: greenPrimary,
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "rgba(3,205,140,0.1)" : "rgba(3,205,140,0.2)",
+                  transform: "translateY(-2px)",
+                  boxShadow: (t) =>
+                    t.palette.mode === "light"
+                      ? "0 4px 12px rgba(3,205,140,0.2)"
+                      : "0 4px 12px rgba(3,205,140,0.25)"
+                },
+                "&:active": {
+                  transform: "translateY(0px)"
+                }
+              }}
+            />
+            <Chip
+              icon={<WorkRoundedIcon sx={{ fontSize: 18, color: greenPrimary }} />}
+              label="Go to work"
+              size="small"
+              onClick={() => navigate("/rides/enter")}
+              sx={{
+                borderRadius: 999,
+                fontSize: 12,
+                height: 36,
+                cursor: "pointer",
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(3,205,140,0.3)"
+                    : "1px solid rgba(3,205,140,0.4)",
+                color: greenPrimary,
+                fontWeight: 600,
+                boxShadow: (t) =>
+                  t.palette.mode === "light"
+                    ? "0 2px 8px rgba(3,205,140,0.1)"
+                    : "0 2px 8px rgba(3,205,140,0.15)",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  borderColor: greenPrimary,
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "rgba(3,205,140,0.1)" : "rgba(3,205,140,0.2)",
+                  transform: "translateY(-2px)",
+                  boxShadow: (t) =>
+                    t.palette.mode === "light"
+                      ? "0 4px 12px rgba(3,205,140,0.2)"
+                      : "0 4px 12px rgba(3,205,140,0.25)"
+                },
+                "&:active": {
+                  transform: "translateY(0px)"
+                }
+              }}
+            />
+            <Chip
+              icon={<ElectricCarRoundedIcon sx={{ fontSize: 18, color: greenPrimary }} />}
+              label="Rebook last ride"
+              size="small"
+              onClick={() => navigate("/rides/enter")}
+              sx={{
+                borderRadius: 999,
+                fontSize: 12,
+                height: 36,
+                cursor: "pointer",
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(3,205,140,0.3)"
+                    : "1px solid rgba(3,205,140,0.4)",
+                color: greenPrimary,
+                fontWeight: 600,
+                boxShadow: (t) =>
+                  t.palette.mode === "light"
+                    ? "0 2px 8px rgba(3,205,140,0.1)"
+                    : "0 2px 8px rgba(3,205,140,0.15)",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  borderColor: greenPrimary,
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "rgba(3,205,140,0.1)" : "rgba(3,205,140,0.2)",
+                  transform: "translateY(-2px)",
+                  boxShadow: (t) =>
+                    t.palette.mode === "light"
+                      ? "0 4px 12px rgba(3,205,140,0.2)"
+                      : "0 4px 12px rgba(3,205,140,0.25)"
+                },
+                "&:active": {
+                  transform: "translateY(0px)"
+                }
+              }}
+            />
+            <Chip
+              icon={<LocalShippingRoundedIcon sx={{ fontSize: 18, color: greenPrimary }} />}
+              label="Track a parcel"
+              size="small"
+              onClick={() => navigate("/deliveries")}
+              sx={{
+                borderRadius: 999,
+                fontSize: 12,
+                height: 36,
+                cursor: "pointer",
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(3,205,140,0.3)"
+                    : "1px solid rgba(3,205,140,0.4)",
+                color: greenPrimary,
+                fontWeight: 600,
+                boxShadow: (t) =>
+                  t.palette.mode === "light"
+                    ? "0 2px 8px rgba(3,205,140,0.1)"
+                    : "0 2px 8px rgba(3,205,140,0.15)",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  borderColor: greenPrimary,
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "rgba(3,205,140,0.1)" : "rgba(3,205,140,0.2)",
+                  transform: "translateY(-2px)",
+                  boxShadow: (t) =>
+                    t.palette.mode === "light"
+                      ? "0 4px 12px rgba(3,205,140,0.2)"
+                      : "0 4px 12px rgba(3,205,140,0.25)"
+                },
+                "&:active": {
+                  transform: "translateY(0px)"
+                }
+              }}
+            />
+          </Stack>
+        </CardContent>
+      </Card>
     </Box>
   );
 }

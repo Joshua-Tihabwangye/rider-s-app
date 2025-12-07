@@ -37,7 +37,7 @@ const DRIVER_PREFERENCES = [
   {
     id: "cultural",
     category: "Cultural Background",
-    color: "#2196F3", // Blue
+    color: "#03CD8C", // Blue
     icon: <PublicRoundedIcon sx={{ fontSize: 20, color: "#FFFFFF" }} />,
     value: "Cultural Background"
   },

@@ -1,252 +1,422 @@
-import React from "react";
+import React, { useState } from "react";
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
-  
   Box,
   IconButton,
   Typography,
-  Card,
-  CardContent,
-  Chip,
   Stack,
-  Button
+  Avatar,
+  Button,
+  Chip,
+  Snackbar,
+  Alert
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
-import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
-import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
-import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import MailRoundedIcon from "@mui/icons-material/MailRounded";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import MobileShell from "../components/MobileShell";
+import { COLORS } from "../constants/colors";
 
 const INCOMING_TRACKING_REQUESTS = [
   {
-    id: "TRK-REQ-001",
-    fromName: "Mary Immaculate",
-    description: "Groceries from Nsambya Market",
-    eta: "Today • 05:30 PM",
-    createdAt: "Today • 03:05 PM"
+    id: "XD 123456 F7890",
+    name: "Johnathan Doe",
+    profileImage: null,
+    initials: "JD",
+    date: "May 23, 2024",
+    status: "received" // "received" or "pending"
   },
   {
-    id: "TRK-REQ-002",
-    fromName: "John Doe",
-    description: "Documents from Kansanga",
-    eta: "Today • 07:10 PM",
-    createdAt: "Today • 01:20 PM"
+    id: "XD 123456 F7891",
+    name: "Johnathan Doe",
+    profileImage: null,
+    initials: "JD",
+    date: "May 23, 2024",
+    status: "received"
   },
   {
-    id: "TRK-REQ-003",
-    fromName: "EVzone Marketplace",
-    description: "EV accessories shipment",
-    eta: "Tomorrow • 10:00 AM",
-    createdAt: "Yesterday • 04:45 PM"
+    id: "XD 123456 F7892",
+    name: "Johnathan Doe",
+    profileImage: null,
+    initials: "JD",
+    date: "May 23, 2024",
+    status: "received"
+  },
+  {
+    id: "XD 123456 F7893",
+    name: "Johnathan Doe",
+    profileImage: null,
+    initials: "JD",
+    date: "May 23, 2024",
+    status: "received"
+  },
+  {
+    id: "XD 123456 F7090",
+    name: "Johnathan Doe",
+    profileImage: null,
+    initials: "JD",
+    date: "May 23, 2024",
+    status: "pending"
+  },
+  {
+    id: "XD 123456 F7894",
+    name: "Johnathan Doe",
+    profileImage: null,
+    initials: "JD",
+    date: "May 23, 2024",
+    status: "pending"
+  },
+  {
+    id: "XD 123456 F7895",
+    name: "Sarah Johnson",
+    profileImage: null,
+    initials: "SJ",
+    date: "May 22, 2024",
+    status: "pending"
+  },
+  {
+    id: "XD 123456 F7896",
+    name: "Michael Chen",
+    profileImage: null,
+    initials: "MC",
+    date: "May 21, 2024",
+    status: "pending"
   }
 ];
 
-function TrackingRequestCard({ request }) {
-  return (
-    <Card
-      elevation={0}
-      sx={{
-        mb: 1.75,
-        borderRadius: 2,
-        bgcolor: (t) =>
-          t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-        border: (t) =>
-          t.palette.mode === "light"
-            ? "1px solid rgba(209,213,219,0.9)"
-            : "1px solid rgba(51,65,85,0.9)"
-      }}
-    >
-      <CardContent sx={{ px: 1.75, py: 1.6 }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Box
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: 999,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#E5F9F1" : "rgba(15,23,42,0.96)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-            >
-              <PersonRoundedIcon sx={{ fontSize: 18, color: "primary.main" }} />
-            </Box>
-            <Box>
-              <Typography
-                variant="body2"
-                sx={{ fontSize: 13, fontWeight: 500, letterSpacing: "-0.01em" }}
-              >
-                {request.fromName}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Shared a tracking link with you
-              </Typography>
-            </Box>
-          </Stack>
-          <Chip
-            size="small"
-            icon={<AccessTimeRoundedIcon sx={{ fontSize: 14 }} />}
-            label="Active"
-            sx={{
-              borderRadius: 999,
-              fontSize: 10,
-              height: 22,
-              bgcolor: "rgba(34,197,94,0.1)",
-              color: "#16A34A"
-            }}
-          />
-        </Stack>
-
-        <Box sx={{ mt: 1 }}>
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-          >
-            {request.description}
-          </Typography>
-        </Box>
-
-        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 1.1 }}>
-          <Stack direction="row" spacing={0.75} alignItems="center">
-            <LocalShippingRoundedIcon
-              sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
-            />
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              ETA {request.eta}
-            </Typography>
-          </Stack>
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-          >
-            Shared {request.createdAt}
-          </Typography>
-        </Stack>
-
-        <Stack direction="row" spacing={1.25} sx={{ mt: 1.4 }}>
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<ShareRoundedIcon sx={{ fontSize: 16 }} />}
-            sx={{
-              borderRadius: 999,
-              fontSize: 12,
-              textTransform: "none",
-              py: 0.6,
-              bgcolor: "primary.main",
-              color: "#020617",
-              "&:hover": { bgcolor: "#06e29a" }
-            }}
-          >
-            View tracking
-          </Button>
-          <Button
-            size="small"
-            variant="text"
-            sx={{
-              borderRadius: 999,
-              fontSize: 12,
-              textTransform: "none",
-              color: (t) => t.palette.text.secondary
-            }}
-          >
-            Remove
-          </Button>
-        </Stack>
-      </CardContent>
-    </Card>
-  );
-}
-
 function IncomingTrackingRequestsScreen() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("received");
+  const [requests, setRequests] = useState(INCOMING_TRACKING_REQUESTS);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const greenPrimary = COLORS.green.primary;
+
+  // Filter requests based on active tab
+  const filteredRequests = requests.filter(
+    (request) => request.status === activeTab
+  );
+
+  const handleAccept = (requestId) => {
+    // Update request status to "received"
+    setRequests((prevRequests) =>
+      prevRequests.map((req) =>
+        req.id === requestId ? { ...req, status: "received" } : req
+      )
+    );
+    
+    // Show success toast
+    setSnackbar({
+      open: true,
+      message: "Request accepted",
+      severity: "success"
+    });
+
+    // If we're on pending tab and this was the last pending request, switch to received tab
+    if (activeTab === "pending") {
+      const remainingPending = requests.filter(
+        (req) => req.id !== requestId && req.status === "pending"
+      );
+      if (remainingPending.length === 0) {
+        setTimeout(() => setActiveTab("received"), 500);
+      }
+    }
+  };
+
+  const handleDecline = (requestId) => {
+    // Remove the request from the list
+    setRequests((prevRequests) =>
+      prevRequests.filter((req) => req.id !== requestId)
+    );
+    
+    // Show info toast
+    setSnackbar({
+      open: true,
+      message: "Request declined",
+      severity: "info"
+    });
+
+    // If we're on pending tab and this was the last pending request, switch to received tab
+    if (activeTab === "pending") {
+      const remainingPending = requests.filter(
+        (req) => req.id !== requestId && req.status === "pending"
+      );
+      if (remainingPending.length === 0) {
+        setTimeout(() => setActiveTab("received"), 500);
+      }
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
+    <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: "#FFFFFF", pb: 8 }}>
+      {/* Green Header Section */}
       <Box
         sx={{
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
+          bgcolor: greenPrimary,
+          pt: 3,
+          pb: 4,
+          px: 2.5,
+          position: "relative"
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        {/* Top Bar: Back Arrow and Tabs */}
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ mb: 3 }}
+        >
+          {/* Back Arrow */}
           <IconButton
-            size="small"
-            aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
+              color: "#FFFFFF",
+              bgcolor: "rgba(255,255,255,0.2)",
+              "&:hover": {
+                bgcolor: "rgba(255,255,255,0.3)"
+              }
             }}
           >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 20 }} />
           </IconButton>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              Incoming tracking requests
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              Others have shared their parcel tracking with you
-            </Typography>
+
+          {/* Tabs: RECEIVED and PENDING */}
+          <Stack direction="row" spacing={1}>
+            <Chip
+              label="RECEIVED"
+              onClick={() => setActiveTab("received")}
+              sx={{
+                bgcolor: activeTab === "received" ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.15)",
+                color: "#FFFFFF",
+                fontWeight: 600,
+                fontSize: 11,
+                height: 28,
+                px: 1,
+                cursor: "pointer",
+                "&:hover": {
+                  bgcolor: "rgba(255,255,255,0.25)"
+                }
+              }}
+            />
+            <Chip
+              label="PENDING"
+              onClick={() => setActiveTab("pending")}
+              sx={{
+                bgcolor: activeTab === "pending" ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.15)",
+                color: "#FFFFFF",
+                fontWeight: 600,
+                fontSize: 11,
+                height: 28,
+                px: 1,
+                cursor: "pointer",
+                "&:hover": {
+                  bgcolor: "rgba(255,255,255,0.25)"
+                }
+              }}
+            />
+          </Stack>
+        </Stack>
+
+        {/* Centered Envelope Icon and Title */}
+        <Stack alignItems="center" spacing={2}>
+          <Box
+            sx={{
+              width: 80,
+              height: 80,
+              borderRadius: "50%",
+              bgcolor: "rgba(255,255,255,0.2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+          >
+            <MailRoundedIcon sx={{ fontSize: 48, color: "#FFFFFF" }} />
           </Box>
-        </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              color: "#FFFFFF",
+              fontWeight: 700,
+              fontSize: 18,
+              letterSpacing: "-0.01em",
+              textAlign: "center"
+            }}
+          >
+            Incoming Tracking requests
+          </Typography>
+        </Stack>
       </Box>
 
-      {INCOMING_TRACKING_REQUESTS.length === 0 ? (
-        <Typography
-          variant="caption"
-          sx={{ mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
+      {/* White Content Area - Scrollable List */}
+      <Box
+        sx={{
+          bgcolor: "#FFFFFF",
+          minHeight: "calc(100vh - 220px)",
+          maxHeight: "calc(100vh - 220px)",
+          overflowY: "auto",
+          px: 2.5,
+          pt: 2.5
+        }}
+      >
+        {filteredRequests.length === 0 ? (
+          <Typography
+            variant="body2"
+            sx={{
+              mt: 4,
+              display: "block",
+              textAlign: "center",
+              color: "#9CA3AF"
+            }}
+          >
+            {activeTab === "received" 
+              ? "You have no received tracking requests."
+              : "You have no pending tracking requests."}
+          </Typography>
+        ) : (
+          filteredRequests.map((request, index) => (
+            <Box
+              key={`${request.id}-${index}`}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                py: 2,
+                borderBottom: index < filteredRequests.length - 1 ? "1px solid #E5E7EB" : "none"
+              }}
+            >
+              {/* Left Side: Profile Picture and Info */}
+              <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
+                {/* Profile Picture */}
+                <Avatar
+                  src={request.profileImage}
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    bgcolor: "#E5E7EB",
+                    color: "#6B7280",
+                    fontSize: 18,
+                    fontWeight: 600
+                  }}
+                >
+                  {request.initials}
+                </Avatar>
+
+                {/* User Information */}
+                <Box sx={{ flex: 1 }}>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontSize: 15,
+                      fontWeight: 700,
+                      color: "#111827",
+                      mb: 0.5,
+                      letterSpacing: "-0.01em"
+                    }}
+                  >
+                    {request.name}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontSize: 12,
+                      color: "#9CA3AF",
+                      display: "block",
+                      mb: 0.25
+                    }}
+                  >
+                    {request.id}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontSize: 12,
+                      color: "#9CA3AF",
+                      display: "block"
+                    }}
+                  >
+                    {request.date}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              {/* Right Side: Action Buttons */}
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                {/* Accept Button - Blue Circle with Checkmark */}
+                <IconButton
+                  onClick={() => handleAccept(request.id)}
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    bgcolor: "#3B82F6",
+                    color: "#FFFFFF",
+                    "&:hover": {
+                      bgcolor: "#2563EB"
+                    }
+                  }}
+                >
+                  <CheckRoundedIcon sx={{ fontSize: 20 }} />
+                </IconButton>
+
+                {/* Decline Button - Grey Circle with X */}
+                <IconButton
+                  onClick={() => handleDecline(request.id)}
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    bgcolor: "#E5E7EB",
+                    color: "#6B7280",
+                    "&:hover": {
+                      bgcolor: "#D1D5DB"
+                    }
+                  }}
+                >
+                  <CloseRoundedIcon sx={{ fontSize: 20 }} />
+                </IconButton>
+              </Stack>
+            </Box>
+          ))
+        )}
+      </Box>
+
+      {/* Toast Notification */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{
+            width: "100%",
+            bgcolor: snackbar.severity === "success" ? greenPrimary : "#3B82F6",
+            color: "#FFFFFF",
+            "& .MuiAlert-icon": {
+              color: "#FFFFFF"
+            }
+          }}
         >
-          You have no incoming tracking requests.
-        </Typography>
-      ) : (
-        INCOMING_TRACKING_REQUESTS.map((req) => (
-          <TrackingRequestCard key={req.id} request={req} />
-        ))
-      )}
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
 
 export default function RiderScreen56IncomingTrackingRequestsCanvas_v2() {
-      return (
-    
-      
-      <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-        
-
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
-          <IncomingTrackingRequestsScreen />
-        </MobileShell>
-      </Box>
-    
+  return (
+    <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
+      <DarkModeToggle />
+      <MobileShell>
+        <IncomingTrackingRequestsScreen />
+      </MobileShell>
+    </Box>
   );
 }

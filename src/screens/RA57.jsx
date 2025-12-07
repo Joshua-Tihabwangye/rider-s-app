@@ -1,231 +1,391 @@
-import React from "react";
+import React, { useState } from "react";
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
-  
   Box,
   IconButton,
   Typography,
-  Card,
-  CardContent,
-  Chip,
   Stack,
+  Avatar,
   Button,
-  Avatar
+  Chip,
+  Snackbar,
+  Alert
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import PersonAddAltRoundedIcon from "@mui/icons-material/PersonAddAltRounded";
-import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import MailRoundedIcon from "@mui/icons-material/MailRounded";
 import MobileShell from "../components/MobileShell";
+import { COLORS } from "../constants/colors";
 
-const PENDING_INVITATIONS = [
+const INVITATIONS = [
   {
     id: "INV-001",
-    fromName: "Mary Immaculate",
-    initials: "MI",
-    context: "Shared delivery – Groceries from Nsambya Market",
-    createdAt: "Today • 02:15 PM"
+    inviteeName: "Johnathan Doe",
+    userId: "XD 123456 F7890",
+    profileImage: null,
+    initials: "JD",
+    dateSent: "May 23, 2024",
+    status: "pending" // "pending", "accepted", "rejected"
   },
   {
     id: "INV-002",
-    fromName: "John Doe",
-    initials: "JD",
-    context: "Contact invite – Family & friends",
-    createdAt: "Yesterday • 11:40 AM"
+    inviteeName: "Sarah Johnson",
+    userId: "XD 123456 F7891",
+    profileImage: null,
+    initials: "SJ",
+    dateSent: "May 22, 2024",
+    status: "accepted"
   },
   {
     id: "INV-003",
-    fromName: "EVzone Marketplace",
-    initials: "EV",
-    context: "Shared delivery – EV accessories",
-    createdAt: "Mon • 04:05 PM"
+    inviteeName: "Michael Chen",
+    userId: "XD 123456 F7892",
+    profileImage: null,
+    initials: "MC",
+    dateSent: "May 21, 2024",
+    status: "rejected"
+  },
+  {
+    id: "INV-004",
+    inviteeName: "Emily Davis",
+    userId: "XD 123456 F7893",
+    profileImage: null,
+    initials: "ED",
+    dateSent: "May 20, 2024",
+    status: "pending"
+  },
+  {
+    id: "INV-005",
+    inviteeName: "David Wilson",
+    userId: "XD 123456 F7894",
+    profileImage: null,
+    initials: "DW",
+    dateSent: "May 19, 2024",
+    status: "accepted"
+  },
+  {
+    id: "INV-006",
+    inviteeName: "Lisa Anderson",
+    userId: "XD 123456 F7895",
+    profileImage: null,
+    initials: "LA",
+    dateSent: "May 18, 2024",
+    status: "pending"
   }
 ];
 
-function InvitationCard({ invitation }) {
-  return (
-    <Card
-      elevation={0}
-      sx={{
-        mb: 1.75,
-        borderRadius: 2,
-        bgcolor: (t) =>
-          t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-        border: (t) =>
-          t.palette.mode === "light"
-            ? "1px solid rgba(209,213,219,0.9)"
-            : "1px solid rgba(51,65,85,0.9)"
-      }}
-    >
-      <CardContent sx={{ px: 1.75, py: 1.6 }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
-          <Stack direction="row" spacing={1.25} alignItems="center">
-            <Avatar
-              sx={{
-                width: 36,
-                height: 36,
-                bgcolor: "primary.main",
-                color: "#020617",
-                fontSize: 16,
-                fontWeight: 600
-              }}
-            >
-              {invitation.initials}
-            </Avatar>
-            <Box>
-              <Typography
-                variant="body2"
-                sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                {invitation.fromName}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                {invitation.context}
-              </Typography>
-            </Box>
-          </Stack>
-          <Chip
-            size="small"
-            label="Pending"
-            sx={{
-              borderRadius: 999,
-              fontSize: 10,
-              height: 22,
-              bgcolor: "rgba(250,204,21,0.15)",
-              color: "#CA8A04"
-            }}
-          />
-        </Stack>
-
-        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 1.1 }}>
-          <AccessTimeRoundedIcon
-            sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
-          />
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-          >
-            Invited {invitation.createdAt}
-          </Typography>
-        </Stack>
-
-        <Stack direction="row" spacing={1.25} sx={{ mt: 1.4 }}>
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<PersonAddAltRoundedIcon sx={{ fontSize: 16 }} />}
-            sx={{
-              borderRadius: 999,
-              fontSize: 12,
-              textTransform: "none",
-              py: 0.6,
-              bgcolor: "primary.main",
-              color: "#020617",
-              "&:hover": { bgcolor: "#06e29a" }
-            }}
-          >
-            Accept
-          </Button>
-          <Button
-            size="small"
-            variant="text"
-            sx={{
-              borderRadius: 999,
-              fontSize: 12,
-              textTransform: "none",
-              color: "#EF4444"
-            }}
-          >
-            Decline
-          </Button>
-        </Stack>
-      </CardContent>
-    </Card>
-  );
-}
-
 function InvitationsPendingScreen() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("pending");
+  const [invitations, setInvitations] = useState(INVITATIONS);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const greenPrimary = COLORS.green.primary;
+
+  // Filter invitations based on active tab
+  // For "pending" tab: show invitations sent by user that are pending
+  // For "received" tab: show invitations received by user (would need different data structure)
+  const filteredInvitations = activeTab === "pending"
+    ? invitations.filter((inv) => inv.status === "pending")
+    : invitations.filter((inv) => inv.status === "accepted" || inv.status === "rejected");
+
+  const handleWithdraw = (invitationId) => {
+    // Remove the invitation from the list
+    setInvitations((prevInvitations) =>
+      prevInvitations.filter((inv) => inv.id !== invitationId)
+    );
+    
+    // Show success toast
+    setSnackbar({
+      open: true,
+      message: "Invitation withdrawn",
+      severity: "success"
+    });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
+    <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: "#FFFFFF", pb: 8 }}>
+      {/* Green Header Section */}
       <Box
         sx={{
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
+          bgcolor: greenPrimary,
+          pt: 3,
+          pb: 4,
+          px: 2.5,
+          position: "relative"
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        {/* Top Bar: Back Arrow and Tabs */}
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ mb: 3 }}
+        >
+          {/* Back Arrow */}
           <IconButton
-            size="small"
-            aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
+              color: "#FFFFFF",
+              bgcolor: "rgba(255,255,255,0.2)",
+              "&:hover": {
+                bgcolor: "rgba(255,255,255,0.3)"
+              }
             }}
           >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 20 }} />
           </IconButton>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              Invitations – Pending
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              Requests to join shared deliveries or contacts
-            </Typography>
+
+          {/* Tabs: RECEIVED and PENDING */}
+          <Stack direction="row" spacing={1}>
+            <Chip
+              label="RECEIVED"
+              onClick={() => setActiveTab("received")}
+              sx={{
+                bgcolor: activeTab === "received" ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.15)",
+                color: "#FFFFFF",
+                fontWeight: 600,
+                fontSize: 11,
+                height: 28,
+                px: 1,
+                cursor: "pointer",
+                "&:hover": {
+                  bgcolor: "rgba(255,255,255,0.25)"
+                }
+              }}
+            />
+            <Chip
+              label="PENDING"
+              onClick={() => setActiveTab("pending")}
+              sx={{
+                bgcolor: activeTab === "pending" ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.15)",
+                color: "#FFFFFF",
+                fontWeight: 600,
+                fontSize: 11,
+                height: 28,
+                px: 1,
+                cursor: "pointer",
+                "&:hover": {
+                  bgcolor: "rgba(255,255,255,0.25)"
+                }
+              }}
+            />
+          </Stack>
+        </Stack>
+
+        {/* Centered Envelope Icon and Title */}
+        <Stack alignItems="center" spacing={2}>
+          <Box
+            sx={{
+              width: 80,
+              height: 80,
+              borderRadius: "50%",
+              bgcolor: "rgba(255,255,255,0.2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+          >
+            <MailRoundedIcon sx={{ fontSize: 48, color: "#FFFFFF" }} />
           </Box>
-        </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              color: "#FFFFFF",
+              fontWeight: 700,
+              fontSize: 18,
+              letterSpacing: "-0.01em",
+              textAlign: "center"
+            }}
+          >
+            Invitations
+          </Typography>
+        </Stack>
       </Box>
 
-      {PENDING_INVITATIONS.length === 0 ? (
-        <Typography
-          variant="caption"
-          sx={{ mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
+      {/* White Content Area - Scrollable List */}
+      <Box
+        sx={{
+          bgcolor: "#FFFFFF",
+          minHeight: "calc(100vh - 220px)",
+          maxHeight: "calc(100vh - 220px)",
+          overflowY: "auto",
+          px: 2.5,
+          pt: 2.5
+        }}
+      >
+        {filteredInvitations.length === 0 ? (
+          <Typography
+            variant="body2"
+            sx={{
+              mt: 4,
+              display: "block",
+              textAlign: "center",
+              color: "#9CA3AF"
+            }}
+          >
+            {activeTab === "pending" 
+              ? "No pending invitations"
+              : "No received invitations"}
+          </Typography>
+        ) : (
+          filteredInvitations.map((invitation, index) => (
+            <Box
+              key={invitation.id}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                py: 2,
+                borderBottom: index < filteredInvitations.length - 1 ? "1px solid #E5E7EB" : "none"
+              }}
+            >
+              {/* Left Side: Profile Picture and Info */}
+              <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
+                {/* Profile Picture */}
+                <Avatar
+                  src={invitation.profileImage}
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    bgcolor: "#E5E7EB",
+                    color: "#6B7280",
+                    fontSize: 18,
+                    fontWeight: 600
+                  }}
+                >
+                  {invitation.initials}
+                </Avatar>
+
+                {/* Invitee Information */}
+                <Box sx={{ flex: 1 }}>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontSize: 15,
+                      fontWeight: 700,
+                      color: "#111827",
+                      mb: 0.5,
+                      letterSpacing: "-0.01em"
+                    }}
+                  >
+                    {invitation.inviteeName}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontSize: 12,
+                      color: "#9CA3AF",
+                      display: "block",
+                      mb: 0.25
+                    }}
+                  >
+                    {invitation.userId}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontSize: 12,
+                      color: "#9CA3AF",
+                      display: "block"
+                    }}
+                  >
+                    {invitation.dateSent}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              {/* Right Side: Status or Withdraw Button */}
+              <Box sx={{ ml: 2 }}>
+                {invitation.status === "pending" ? (
+                  <Button
+                    variant="contained"
+                    onClick={() => handleWithdraw(invitation.id)}
+                    sx={{
+                      bgcolor: "#3B82F6",
+                      color: "#FFFFFF",
+                      borderRadius: 2,
+                      px: 2,
+                      py: 0.75,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      textTransform: "none",
+                      minWidth: 100,
+                      "&:hover": {
+                        bgcolor: "#2563EB"
+                      }
+                    }}
+                  >
+                    Withdraw
+                  </Button>
+                ) : invitation.status === "accepted" ? (
+                  <Chip
+                    label="ACCEPTED"
+                    sx={{
+                      bgcolor: greenPrimary,
+                      color: "#FFFFFF",
+                      fontWeight: 700,
+                      fontSize: 11,
+                      height: 32,
+                      px: 1.5
+                    }}
+                  />
+                ) : (
+                  <Chip
+                    label="REJECTED"
+                    sx={{
+                      bgcolor: "#EF4444",
+                      color: "#FFFFFF",
+                      fontWeight: 700,
+                      fontSize: 11,
+                      height: 32,
+                      px: 1.5
+                    }}
+                  />
+                )}
+              </Box>
+            </Box>
+          ))
+        )}
+      </Box>
+
+      {/* Toast Notification */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{
+            width: "100%",
+            bgcolor: greenPrimary,
+            color: "#FFFFFF",
+            "& .MuiAlert-icon": {
+              color: "#FFFFFF"
+            }
+          }}
         >
-          You have no pending invitations.
-        </Typography>
-      ) : (
-        PENDING_INVITATIONS.map((inv) => (
-          <InvitationCard key={inv.id} invitation={inv} />
-        ))
-      )}
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
 
 export default function RiderScreen57InvitationsPendingTabCanvas_v2() {
-      return (
-    
-      
-      <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-        
-
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
-          <InvitationsPendingScreen />
-        </MobileShell>
-      </Box>
-    
+  return (
+    <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
+      <DarkModeToggle />
+      <MobileShell>
+        <InvitationsPendingScreen />
+      </MobileShell>
+    </Box>
   );
 }

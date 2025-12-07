@@ -138,7 +138,7 @@ function TripInProgressBasicScreen() {
             transform: "translateX(-50%)",
             fontSize: 11,
             fontWeight: 600,
-            color: "#1E40AF"
+            color: "#03CD8C"
           }}
         >
           Lake Victoria Hotel
@@ -151,7 +151,7 @@ function TripInProgressBasicScreen() {
             left: "15%",
             fontSize: 10,
             fontWeight: 500,
-            color: "#1E40AF"
+            color: "#03CD8C"
           }}
         >
           Entebbe
@@ -164,7 +164,7 @@ function TripInProgressBasicScreen() {
             right: "20%",
             fontSize: 9,
             fontWeight: 500,
-            color: "#1E40AF"
+            color: "#03CD8C"
           }}
         >
           aero beach
@@ -294,7 +294,7 @@ function TripInProgressBasicScreen() {
           <DirectionsCarFilledRoundedIcon
             sx={{
               fontSize: 32,
-              color: "#2196F3",
+              color: "#03CD8C",
               filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
             }}
           />
@@ -353,8 +353,8 @@ function TripInProgressBasicScreen() {
           <IconButton
             onClick={handleNavigation}
             sx={{
-              bgcolor: "#BAE6FD",
-              color: "#2196F3",
+              bgcolor: "rgba(3,205,140,0.15)",
+              color: "#03CD8C",
               width: 48,
               height: 48,
               boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
@@ -369,8 +369,8 @@ function TripInProgressBasicScreen() {
           <IconButton
             onClick={handleCamera}
             sx={{
-              bgcolor: "#BAE6FD",
-              color: "#2196F3",
+              bgcolor: "rgba(3,205,140,0.15)",
+              color: "#03CD8C",
               width: 48,
               height: 48,
               boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
@@ -385,8 +385,8 @@ function TripInProgressBasicScreen() {
           <IconButton
             onClick={handleGroup}
             sx={{
-              bgcolor: "#BAE6FD",
-              color: "#2196F3",
+              bgcolor: "rgba(3,205,140,0.15)",
+              color: "#03CD8C",
               width: 48,
               height: 48,
               boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
@@ -401,8 +401,8 @@ function TripInProgressBasicScreen() {
           <IconButton
             onClick={handleSettings}
             sx={{
-              bgcolor: "#BAE6FD",
-              color: "#2196F3",
+              bgcolor: "rgba(3,205,140,0.15)",
+              color: "#03CD8C",
               width: 48,
               height: 48,
               boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
@@ -463,7 +463,7 @@ function TripInProgressBasicScreen() {
                   sx={{
                     bgcolor: (theme) =>
                       theme.palette.mode === "light" ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)",
-                    color: "#2196F3"
+                    color: "#03CD8C"
                   }}
                 >
                   <ShareRoundedIcon sx={{ fontSize: 20 }} />

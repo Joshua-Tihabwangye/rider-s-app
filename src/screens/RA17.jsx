@@ -143,7 +143,7 @@ function PreferenceSelectionInlineScreen() {
               theme.palette.mode === "light"
                 ? "1px solid rgba(209,213,219,0.9)"
                 : "1px solid rgba(51,65,85,0.9)",
-            color: "#007BFF"
+            color: "#03CD8C"
           }}
         >
           <SettingsRoundedIcon sx={{ fontSize: 18 }} />

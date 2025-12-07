@@ -93,8 +93,8 @@ function RideDetailsScreen() {
   };
 
   const handleBookTrip = () => {
-    // Navigate to payment method selection (RA21) or booking confirmation
-    navigate("/rides/payment", {
+    // Navigate to booking confirmation screen (RA49) first
+    navigate("/rides/booking/confirmation", {
       state: {
         ...tripData,
         rideDetails,
@@ -118,7 +118,7 @@ function RideDetailsScreen() {
   const hasHalfStar = rideDetails.driver.rating % 1 >= 0.5;
 
   const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
-  const accentBlue = "#00B7FF";
+  const accentGreen = "#03CD8C";
 
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: theme.palette.background.default }}>
@@ -153,27 +153,27 @@ function RideDetailsScreen() {
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-          <Typography
+            <Typography
             variant="h6"
-            sx={{
+        sx={{
               fontWeight: 600,
               letterSpacing: "-0.01em",
               color: theme.palette.text.primary
             }}
-          >
+                >
             Ride Details.
-          </Typography>
-        </Box>
+                </Typography>
+              </Box>
         <IconButton
-          size="small"
+              size="small"
           onClick={handleNotificationClick}
-          sx={{
-            borderRadius: 999,
+              sx={{
+                borderRadius: 999,
             bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.9)",
             "&:hover": {
               bgcolor: theme.palette.mode === "light" ? "#E5E7EB" : "rgba(15,23,42,1)"
             }
-          }}
+              }}
         >
           <NotificationsRoundedIcon sx={{ fontSize: 20 }} />
         </IconButton>
@@ -181,17 +181,17 @@ function RideDetailsScreen() {
 
       <Box sx={{ px: 2.5, pt: 2, pb: 10 }}>
         {/* Trip Summary Section */}
-        <Card
-          elevation={0}
-          sx={{
+      <Card
+        elevation={0}
+        sx={{
             mb: 2.5,
-            borderRadius: 2,
+          borderRadius: 2,
             bgcolor: contentBg,
             border: theme.palette.mode === "light"
               ? "1px solid rgba(0,0,0,0.1)"
               : "1px solid rgba(255,255,255,0.1)"
-          }}
-        >
+        }}
+      >
           <CardContent sx={{ px: 2, py: 2 }}>
             {/* Date Label */}
             <Typography
@@ -224,7 +224,7 @@ function RideDetailsScreen() {
                   boxShadow: "0 2px 8px rgba(34,197,94,0.4)"
                 }}
               />
-              <Typography
+            <Typography
                 variant="body1"
                 sx={{
                   fontWeight: 600,
@@ -232,31 +232,31 @@ function RideDetailsScreen() {
                   mb: 0.5,
                   color: theme.palette.text.primary
                 }}
-              >
+            >
                 {rideDetails.origin.name}
-              </Typography>
-              <Typography
-                variant="caption"
+            </Typography>
+            <Typography
+              variant="caption"
                 sx={{
                   fontSize: 11,
                   color: theme.palette.text.secondary,
                   display: "block",
                   mb: 0.5
                 }}
-              >
+            >
                 {rideDetails.origin.address}
-              </Typography>
-              <Typography
+            </Typography>
+            <Typography
                 variant="caption"
                 sx={{
                   fontSize: 11,
                   fontWeight: 500,
                   color: theme.palette.text.secondary
                 }}
-              >
+            >
                 {rideDetails.origin.time}
-              </Typography>
-            </Box>
+            </Typography>
+          </Box>
 
             {/* Duration Indicator */}
             <Box
@@ -352,21 +352,21 @@ function RideDetailsScreen() {
                 {rideDetails.destination.time}
               </Typography>
             </Box>
-          </CardContent>
-        </Card>
+        </CardContent>
+      </Card>
 
         {/* Fare & Passenger Info */}
-        <Card
-          elevation={0}
-          sx={{
+      <Card
+        elevation={0}
+        sx={{
             mb: 2.5,
-            borderRadius: 2,
+          borderRadius: 2,
             bgcolor: contentBg,
             border: theme.palette.mode === "light"
               ? "1px solid rgba(0,0,0,0.1)"
               : "1px solid rgba(255,255,255,0.1)"
-          }}
-        >
+        }}
+      >
           <CardContent sx={{ px: 2, py: 1.5 }}>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <Typography
@@ -411,7 +411,7 @@ function RideDetailsScreen() {
                 sx={{
                   width: 64,
                   height: 64,
-                  bgcolor: accentBlue,
+                  bgcolor: accentGreen,
                   fontSize: 24,
                   fontWeight: 600,
                   color: "#FFFFFF"
@@ -487,21 +487,21 @@ function RideDetailsScreen() {
                   }}
                 >
                   {rideDetails.driver.rides}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography
-                  variant="caption"
+              </Typography>
+            </Box>
+            <Box>
+              <Typography
+                variant="caption"
                   sx={{
                     fontSize: 11,
                     color: theme.palette.text.secondary,
                     display: "block"
                   }}
-                >
+              >
                   Experience
-                </Typography>
-                <Typography
-                  variant="body2"
+              </Typography>
+              <Typography
+                variant="body2"
                   sx={{
                     fontWeight: 600,
                     color: theme.palette.text.primary
@@ -529,8 +529,8 @@ function RideDetailsScreen() {
                     : "rgba(255,255,255,0.2)",
                   color: theme.palette.text.primary,
                   "&:hover": {
-                    borderColor: accentBlue,
-                    bgcolor: `${accentBlue}10`
+                    borderColor: accentGreen,
+                    bgcolor: "rgba(3,205,140,0.1)"
                   }
                 }}
               >
@@ -549,8 +549,8 @@ function RideDetailsScreen() {
                     : "rgba(255,255,255,0.2)",
                   color: theme.palette.text.primary,
                   "&:hover": {
-                    borderColor: accentBlue,
-                    bgcolor: `${accentBlue}10`
+                    borderColor: accentGreen,
+                    bgcolor: "rgba(3,205,140,0.1)"
                   }
                 }}
               >
@@ -573,8 +573,8 @@ function RideDetailsScreen() {
                 <ChevronRightRoundedIcon sx={{ fontSize: 20 }} />
               </IconButton>
             </Box>
-          </CardContent>
-        </Card>
+        </CardContent>
+      </Card>
 
         {/* Vehicle Preview Section */}
         <Card
@@ -627,20 +627,20 @@ function RideDetailsScreen() {
         </Card>
 
         {/* Book Trip Button */}
-        <Button
-          fullWidth
-          variant="contained"
+      <Button
+        fullWidth
+        variant="contained"
           onClick={handleBookTrip}
-          sx={{
-            borderRadius: 999,
+        sx={{
+          borderRadius: 999,
             py: 1.5,
             fontSize: 16,
-            fontWeight: 600,
-            textTransform: "none",
-            bgcolor: accentBlue,
+          fontWeight: 600,
+          textTransform: "none",
+            bgcolor: accentGreen,
             color: "#FFFFFF",
             "&:hover": {
-              bgcolor: "#0099CC"
+              bgcolor: "#22C55E"
             }
           }}
         >
@@ -681,9 +681,9 @@ function RideDetailsScreen() {
         <IconButton
           onClick={() => navigate("/rides/history")}
           sx={{
-            color: accentBlue,
+            color: accentGreen,
             "&:hover": {
-              bgcolor: `${accentBlue}10`
+              bgcolor: rgba(3,205,140,0.1)
             }
           }}
         >
@@ -711,8 +711,8 @@ function RideDetailsScreen() {
                 ? "rgba(0,0,0,0.05)"
                 : "rgba(255,255,255,0.05)"
             }
-          }}
-        >
+        }}
+      >
           <SettingsRoundedIcon sx={{ fontSize: 24 }} />
         </IconButton>
       </Box>
@@ -721,12 +721,12 @@ function RideDetailsScreen() {
 }
 
 export default function RiderScreen47RideDetailsCanvas_v2() {
-  return (
+      return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (theme) => theme.palette.background.default }}>
-      <DarkModeToggle />
-      <MobileShell>
+        <DarkModeToggle />
+        <MobileShell>
         <RideDetailsScreen />
-      </MobileShell>
-    </Box>
+        </MobileShell>
+      </Box>
   );
 }

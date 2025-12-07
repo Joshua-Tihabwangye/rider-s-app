@@ -23,7 +23,7 @@ import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import MobileShell from "../components/MobileShell";
 
-const accentBlue = "#007BFF";
+const accentGreen = "#03CD8C";
 
 // Preferred Route Type Options
 const ROUTE_PREFERENCES = [
@@ -178,23 +178,23 @@ function PreferenceChip({ option, active, onToggle, description }) {
           fontWeight: 500,
           cursor: "pointer",
           bgcolor: active
-            ? `${accentBlue}15`
+            ? rgba(3,205,140,0.15)
             : theme.palette.mode === "light"
               ? "#FFFFFF"
               : "rgba(255,255,255,0.05)",
           color: active
-            ? accentBlue
+            ? accentGreen
             : theme.palette.text.primary,
           border: active
-            ? `2px solid ${accentBlue}`
+            ? "2px solid #03CD8C"
             : theme.palette.mode === "light"
               ? "1px solid #E0E0E0"
               : "1px solid rgba(255,255,255,0.2)",
           transition: "all 0.2s ease",
           "&:hover": {
-            borderColor: accentBlue,
+            borderColor: accentGreen,
             bgcolor: active
-              ? `${accentBlue}15`
+              ? rgba(3,205,140,0.15)
               : theme.palette.mode === "light"
                 ? "rgba(0,0,0,0.05)"
                 : "rgba(255,255,255,0.1)"
@@ -747,9 +747,9 @@ function RidePreferenceSetupScreen() {
                           size="small"
                           sx={{
                             borderRadius: 2,
-                            bgcolor: `${accentBlue}15`,
-                            color: accentBlue,
-                            border: `1px solid ${accentBlue}`
+                            bgcolor: rgba(3,205,140,0.15),
+                            color: accentGreen,
+                            border: "1px solid #03CD8C"
                           }}
                         />
                       ))
@@ -958,12 +958,12 @@ function RidePreferenceSetupScreen() {
           fontSize: 16,
           fontWeight: 600,
           textTransform: "none",
-          bgcolor: canSave ? accentBlue : "rgba(0,0,0,0.2)",
+          bgcolor: canSave ? accentGreen : "rgba(0,0,0,0.2)",
           color: "#FFFFFF",
           boxShadow: "none",
           mb: 1.5,
           "&:hover": {
-            bgcolor: canSave ? "#0056b3" : "rgba(0,0,0,0.3)",
+            bgcolor: canSave ? "#22C55E" : "rgba(0,0,0,0.3)",
             boxShadow: "none"
           },
           "&.Mui-disabled": {
@@ -988,11 +988,11 @@ function RidePreferenceSetupScreen() {
             fontSize: 14,
             fontWeight: 600,
             textTransform: "none",
-            borderColor: accentBlue,
+            borderColor: accentGreen,
             borderWidth: 2,
-            color: accentBlue,
+            color: accentGreen,
             "&:hover": {
-              borderColor: accentBlue,
+              borderColor: accentGreen,
               borderWidth: 2,
               bgcolor: theme.palette.mode === "light" ? "rgba(0,123,255,0.08)" : "rgba(0,123,255,0.15)"
             }

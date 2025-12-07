@@ -230,7 +230,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }) {
               sx={{
                 width: 48,
                 height: 48,
-                bgcolor: "#2196F3",
+                bgcolor: "#03CD8C",
                 fontSize: 18,
                 fontWeight: 600,
                 color: "#FFFFFF"
@@ -396,7 +396,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }) {
                 fontWeight: 600,
                 textTransform: "none",
                 py: 1,
-                bgcolor: "#2196F3",
+                bgcolor: "#03CD8C",
                 color: "#FFFFFF",
                 "&:hover": {
                   bgcolor: "#1976D2"
@@ -438,7 +438,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }) {
             borderRadius: 2,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
-          }
+  }
         }}
       >
         <DialogTitle sx={{ fontWeight: 600 }}>Cancel Ride</DialogTitle>
@@ -522,7 +522,7 @@ function RideHistoryCard({ ride, onClick, onSharedPassengersClick }) {
               sx={{
                 width: 48,
                 height: 48,
-                bgcolor: "#2196F3",
+                bgcolor: "#03CD8C",
                 fontSize: 18,
                 fontWeight: 600,
                 color: "#FFFFFF"
@@ -787,7 +787,7 @@ function RideHistoryCard({ ride, onClick, onSharedPassengersClick }) {
                     sx={{
                       width: 32,
                       height: 32,
-                      bgcolor: "#2196F3",
+                      bgcolor: "#03CD8C",
                       fontSize: 12,
                       fontWeight: 600,
                       color: "#FFFFFF",
@@ -798,7 +798,7 @@ function RideHistoryCard({ ride, onClick, onSharedPassengersClick }) {
                     {passenger.initials}
                   </Avatar>
                 ))}
-              </Stack>
+        </Stack>
             </Box>
           </Box>
         )}
@@ -895,23 +895,23 @@ function RideHistoryPastTripsScreen() {
           gap: 1.5
         }}
       >
-        <IconButton
-          size="small"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-          sx={{
-            borderRadius: 999,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-            border: (theme) =>
-              theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
-          }}
-        >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-        <Typography
+          <IconButton
+            size="small"
+            aria-label="Back"
+            onClick={() => navigate(-1)}
+            sx={{
+              borderRadius: 999,
+              bgcolor: (theme) =>
+                theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+              border: (theme) =>
+                theme.palette.mode === "light"
+                  ? "1px solid rgba(209,213,219,0.9)"
+                  : "1px solid rgba(51,65,85,0.9)"
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+            <Typography
           variant="h6"
           sx={{
             fontWeight: 600,
@@ -920,9 +920,9 @@ function RideHistoryPastTripsScreen() {
             textAlign: "center",
             color: (theme) => theme.palette.text.primary
           }}
-        >
+            >
           Ride History
-        </Typography>
+            </Typography>
         <Box sx={{ width: 40 }} /> {/* Spacer for centering */}
       </Box>
 
@@ -943,13 +943,13 @@ function RideHistoryPastTripsScreen() {
               theme.palette.mode === "light" ? "#6B7280" : "#9CA3AF"
           },
           "& .Mui-selected": {
-            color: "#2196F3", // Blue for active tab
+            color: "#03CD8C", // Green for active tab
             fontWeight: 600
           },
           "& .MuiTabs-indicator": {
             height: 3,
             borderRadius: 999,
-            bgcolor: "#2196F3" // Blue underline
+            bgcolor: "#03CD8C" // Green underline
           }
         }}
       >
@@ -997,16 +997,16 @@ function RideHistoryPastTripsScreen() {
           )
         ) : (
           upcomingRides.length === 0 ? (
-            <Typography
+        <Typography
               variant="body2"
               sx={{
                 textAlign: "center",
                 color: (theme) => theme.palette.text.secondary,
                 py: 4
               }}
-            >
+        >
               No upcoming rides
-            </Typography>
+        </Typography>
           ) : (
             upcomingRides.map((ride) => (
               <UpcomingRideCard
@@ -1035,18 +1035,18 @@ function RideHistoryPastTripsScreen() {
 }
 
 export default function RiderScreen33RideHistoryPastTripsCanvas_v2() {
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (theme) => theme.palette.background.default
-      }}
-    >
-      <DarkModeToggle />
-      <MobileShell>
-        <RideHistoryPastTripsScreen />
-      </MobileShell>
-    </Box>
+      return (
+      <Box
+        sx={{
+          position: "relative",
+          minHeight: "100vh",
+          bgcolor: (theme) => theme.palette.background.default
+        }}
+      >
+        <DarkModeToggle />
+        <MobileShell>
+          <RideHistoryPastTripsScreen />
+        </MobileShell>
+      </Box>
   );
 }

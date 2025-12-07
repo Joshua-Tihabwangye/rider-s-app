@@ -129,12 +129,12 @@ function CompletedTripSummaryScreen() {
                   }
                 }}
               />
-              <Typography
+            <Typography
                 variant="h6"
-                sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
+              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
+            >
                 {tripData.title}
-              </Typography>
+            </Typography>
             </Box>
           </Box>
         </Box>
@@ -158,8 +158,8 @@ function CompletedTripSummaryScreen() {
           {/* Pickup & Drop-off Points */}
           <Box sx={{ mb: 2 }}>
             <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5, mb: 1.5 }}>
-              <Box
-                sx={{
+        <Box
+          sx={{
                   width: 8,
                   height: 8,
                   borderRadius: "50%",
@@ -192,7 +192,7 @@ function CompletedTripSummaryScreen() {
 
             <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
               <PlaceRoundedIcon
-                sx={{
+            sx={{
                   fontSize: 20,
                   color: "primary.main",
                   mt: 0.5,
@@ -220,7 +220,7 @@ function CompletedTripSummaryScreen() {
                 </Typography>
               </Box>
             </Box>
-          </Box>
+        </Box>
 
           {/* Shared Passengers */}
           {tripData.sharedPassengers && tripData.sharedPassengers.length > 0 && (
@@ -236,7 +236,7 @@ function CompletedTripSummaryScreen() {
                   {tripData.sharedPassengers.slice(0, 5).map((passenger, index) => (
                     <Avatar
                       key={passenger.id || index}
-                      sx={{
+          sx={{
                         width: 32,
                         height: 32,
                         bgcolor: "primary.main",
@@ -244,14 +244,14 @@ function CompletedTripSummaryScreen() {
                         fontWeight: 600,
                         border: "2px solid",
                         borderColor: (t) => t.palette.background.default
-                      }}
-                    >
+          }}
+        >
                       {passenger.initials}
                     </Avatar>
                   ))}
                   {tripData.sharedPassengers.length > 5 && (
                     <Avatar
-                      sx={{
+            sx={{
                         width: 32,
                         height: 32,
                         bgcolor: (t) => t.palette.mode === "light" ? "#F3F4F6" : "rgba(51,65,85,0.9)",
@@ -266,8 +266,8 @@ function CompletedTripSummaryScreen() {
                     </Avatar>
                   )}
                 </Box>
-              </Box>
-            </Box>
+        </Box>
+      </Box>
           )}
 
           {/* Trip Stats */}
@@ -338,15 +338,15 @@ function CompletedTripSummaryScreen() {
                 sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
               />
               <Box sx={{ flex: 1 }}>
-                <Typography
-                  variant="caption"
+              <Typography
+                variant="caption"
                   sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
-                >
+              >
                   Booking Time
-                </Typography>
+              </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
                   Booked {tripData.booking.bookedAt}
-                </Typography>
+              </Typography>
               </Box>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -359,10 +359,10 @@ function CompletedTripSummaryScreen() {
                   sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
                 >
                   Travel Date
-                </Typography>
+              </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
                   {tripData.booking.travelDate}
-                </Typography>
+              </Typography>
               </Box>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -375,10 +375,10 @@ function CompletedTripSummaryScreen() {
                   sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
                 >
                   Trip Distance
-                </Typography>
+              </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
                   {tripData.booking.tripDistance}
-                </Typography>
+              </Typography>
               </Box>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -391,11 +391,11 @@ function CompletedTripSummaryScreen() {
                   sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
                 >
                   Fare
-                </Typography>
+              </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600, color: "#22c55e" }}>
                   {tripData.booking.fare}
-                </Typography>
-              </Box>
+              </Typography>
+            </Box>
             </Box>
           </Stack>
         </CardContent>
@@ -457,7 +457,7 @@ function CompletedTripSummaryScreen() {
             variant="contained"
             onClick={handleRateDriver}
             sx={{
-              bgcolor: "#007BFF",
+              bgcolor: "#F77F00",
               color: "#FFFFFF",
               borderRadius: 999,
               py: 0.9,
@@ -465,7 +465,7 @@ function CompletedTripSummaryScreen() {
               fontWeight: 600,
               textTransform: "none",
               "&:hover": {
-                bgcolor: "#0056B3"
+                bgcolor: "#E66A00"
               }
             }}
           >
@@ -538,18 +538,18 @@ function CompletedTripSummaryScreen() {
                       </Typography>
                       {stop.distance && (
                         <>
-                          <Typography
-                            variant="caption"
+            <Typography
+              variant="caption"
                             sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-                          >
+            >
                             •
-                          </Typography>
-                          <Typography
+            </Typography>
+            <Typography
                             variant="caption"
                             sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-                          >
+            >
                             {stop.distance}
-                          </Typography>
+            </Typography>
                         </>
                       )}
                     </Box>
@@ -576,7 +576,7 @@ function CompletedTripSummaryScreen() {
         }}
       >
         <CardContent sx={{ px: 2, py: 2 }}>
-          <Typography
+            <Typography
             variant="subtitle2"
             sx={{ fontWeight: 600, mb: 2, fontSize: 13 }}
           >
@@ -605,9 +605,9 @@ function CompletedTripSummaryScreen() {
                   key={value}
                   variant="caption"
                   sx={{ fontSize: 9, color: (t) => t.palette.text.secondary }}
-                >
+            >
                   {value}
-                </Typography>
+            </Typography>
               ))}
             </Box>
 
@@ -640,7 +640,7 @@ function CompletedTripSummaryScreen() {
                         width: "100%",
                         height: `${heightPercent}%`,
                         minHeight: data.distance > 0 ? 4 : 0,
-                        bgcolor: "#007BFF",
+                        bgcolor: "#03CD8C",
                         borderRadius: "2px 2px 0 0",
                         transition: "all 0.3s ease"
                       }}
@@ -659,8 +659,8 @@ function CompletedTripSummaryScreen() {
                       }}
                     >
                       {data.time}
-                    </Typography>
-                  </Box>
+            </Typography>
+          </Box>
                 );
               })}
             </Box>
@@ -690,7 +690,7 @@ function CompletedTripSummaryScreen() {
               justifyContent: "space-between",
               gap: 0.5
             }}
-          >
+              >
             {tripData.tripBreakdown.map((data, index) => (
               <Typography
                 key={index}
@@ -757,14 +757,14 @@ function CompletedTripSummaryScreen() {
 }
 
 export default function RiderScreen37CompletedTripSummaryCanvas_v2() {
-  return (
-    <Box
-      sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}
-    >
-      <DarkModeToggle />
-      <MobileShell>
-        <CompletedTripSummaryScreen />
-      </MobileShell>
-    </Box>
+      return (
+      <Box
+        sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}
+      >
+        <DarkModeToggle />
+        <MobileShell>
+          <CompletedTripSummaryScreen />
+        </MobileShell>
+      </Box>
   );
 }

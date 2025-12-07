@@ -79,7 +79,7 @@ function EnterDestinationVariantLayoutScreen() {
           mb: 2,
           background: (t) =>
             t.palette.mode === "light"
-              ? "radial-gradient(circle at top, #BAE6FD 0, #E5E7EB 55%, #CBD5F5 100%)"
+              ? "radial-gradient(circle at top, rgba(3,205,140,0.15) 0, #E5E7EB 55%, rgba(3,205,140,0.1) 100%)"
               : "radial-gradient(circle at top, rgba(15,118,205,0.5), #020617 60%, #020617 100%)"
         }}
       >

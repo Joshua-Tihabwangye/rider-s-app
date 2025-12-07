@@ -113,7 +113,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
     }
   }, [selectedTripType, open, returnDate, existingReturnDate, dateOptions]);
   
-  const accentBlue = "#007BFF";
+  const accentGreen = "#03CD8C";
   const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
 
   const handleBackdropClick = (e) => {
@@ -317,7 +317,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                       borderRadius: 2,
                       bgcolor: contentBg,
                       border: isSelected
-                        ? `2px solid ${accentBlue}`
+                          ? "2px solid #03CD8C"
                         : theme.palette.mode === "light"
                         ? "1px solid rgba(0,0,0,0.15)"
                         : "1px solid rgba(255,255,255,0.2)",
@@ -328,7 +328,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                         bgcolor: theme.palette.mode === "light"
                           ? "rgba(0,0,0,0.02)"
                           : "rgba(255,255,255,0.02)",
-                        borderColor: accentBlue
+                        borderColor: accentGreen
                       }
                     }}
                   >
@@ -337,7 +337,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                         <DirectionsCarRoundedIcon
                           sx={{
                             fontSize: 24,
-                            color: isSelected ? accentBlue : theme.palette.text.secondary
+                            color: isSelected ? accentGreen : theme.palette.text.secondary
                           }}
                         />
                         <Typography
@@ -383,7 +383,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                 <Box sx={{ mb: 3 }}>
                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <CalendarTodayRoundedIcon sx={{ fontSize: 18, color: accentBlue }} />
+                      <CalendarTodayRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
                       <Typography
                         variant="subtitle2"
                         sx={{
@@ -443,7 +443,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                             borderRadius: 2,
                             cursor: "pointer",
                             bgcolor: isSelected
-                              ? accentBlue
+                              ? accentGreen
                               : theme.palette.mode === "light"
                                 ? "rgba(0,0,0,0.05)"
                                 : "rgba(255,255,255,0.05)",
@@ -453,7 +453,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                             transition: "all 0.2s ease",
                             "&:hover": {
                               bgcolor: isSelected
-                                ? accentBlue
+                                ? accentGreen
                                 : theme.palette.mode === "light"
                                   ? "rgba(0,0,0,0.1)"
                                   : "rgba(255,255,255,0.1)"
@@ -507,7 +507,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                 <Box sx={{ mb: 2 }}>
                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <AccessTimeRoundedIcon sx={{ fontSize: 18, color: accentBlue }} />
+                      <AccessTimeRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
                       <Typography
                         variant="subtitle2"
                         sx={{
@@ -551,7 +551,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                           width: 4
                         },
                         "&::-webkit-scrollbar-thumb": {
-                          bgcolor: accentBlue,
+                          bgcolor: accentGreen,
                           borderRadius: 2
                         }
                       }}
@@ -574,7 +574,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                               textAlign: "center",
                               cursor: "pointer",
                               bgcolor: isSelected
-                                ? accentBlue
+                                ? accentGreen
                                 : "transparent",
                               color: isSelected
                                 ? "#FFFFFF"
@@ -582,7 +582,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                               transition: "all 0.2s ease",
                               "&:hover": {
                                 bgcolor: isSelected
-                                  ? accentBlue
+                                  ? accentGreen
                                   : theme.palette.mode === "light"
                                     ? "rgba(0,0,0,0.05)"
                                     : "rgba(255,255,255,0.05)"
@@ -612,7 +612,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                           width: 4
                         },
                         "&::-webkit-scrollbar-thumb": {
-                          bgcolor: accentBlue,
+                          bgcolor: accentGreen,
                           borderRadius: 2
                         }
                       }}
@@ -635,7 +635,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                               textAlign: "center",
                               cursor: "pointer",
                               bgcolor: isSelected
-                                ? accentBlue
+                                ? accentGreen
                                 : "transparent",
                               color: isSelected
                                 ? "#FFFFFF"
@@ -643,7 +643,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                               transition: "all 0.2s ease",
                               "&:hover": {
                                 bgcolor: isSelected
-                                  ? accentBlue
+                                  ? accentGreen
                                   : theme.palette.mode === "light"
                                     ? "rgba(0,0,0,0.05)"
                                     : "rgba(255,255,255,0.05)"
@@ -671,7 +671,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                           width: 4
                         },
                         "&::-webkit-scrollbar-thumb": {
-                          bgcolor: accentBlue,
+                          bgcolor: accentGreen,
                           borderRadius: 2
                         }
                       }}
@@ -693,7 +693,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                               textAlign: "center",
                               cursor: "pointer",
                               bgcolor: isSelected
-                                ? accentBlue
+                                ? accentGreen
                                 : "transparent",
                               color: isSelected
                                 ? "#FFFFFF"
@@ -701,7 +701,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                               transition: "all 0.2s ease",
                               "&:hover": {
                                 bgcolor: isSelected
-                                  ? accentBlue
+                                  ? accentGreen
                                   : theme.palette.mode === "light"
                                     ? "rgba(0,0,0,0.05)"
                                     : "rgba(255,255,255,0.05)"

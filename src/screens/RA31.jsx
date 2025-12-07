@@ -62,7 +62,7 @@ function PassengerCard({ passenger }) {
   return (
     <Card
       elevation={0}
-      sx={{
+        sx={{
         mb: 1.5,
         borderRadius: 2,
         bgcolor: (theme) =>
@@ -81,7 +81,7 @@ function PassengerCard({ passenger }) {
             sx={{
               width: 48,
               height: 48,
-              bgcolor: passenger.isMain ? "#2196F3" : "rgba(15,23,42,0.9)",
+              bgcolor: passenger.isMain ? "#03CD8C" : "rgba(15,23,42,0.9)",
               fontSize: 18,
               fontWeight: 600,
               color: "#FFFFFF"
@@ -192,7 +192,7 @@ function SharingPassengersScreen() {
             left: "10%",
             fontSize: 10,
             fontWeight: 500,
-            color: (theme) => theme.palette.mode === "light" ? "#1E40AF" : "#E2E8F0",
+            color: (theme) => theme.palette.mode === "light" ? "#03CD8C" : "#E2E8F0",
             zIndex: 1,
             textShadow: (theme) => theme.palette.mode === "light" ? "none" : "0 1px 2px rgba(0,0,0,0.3)"
           }}
@@ -200,7 +200,7 @@ function SharingPassengersScreen() {
           Entebbe
         </Typography>
 
-        <Typography
+            <Typography
           sx={{
             position: "absolute",
             top: "8%",
@@ -208,30 +208,30 @@ function SharingPassengersScreen() {
             transform: "translateX(-50%)",
             fontSize: 11,
             fontWeight: 600,
-            color: (theme) => theme.palette.mode === "light" ? "#1E40AF" : "#E2E8F0",
+            color: (theme) => theme.palette.mode === "light" ? "#03CD8C" : "#E2E8F0",
             zIndex: 1,
             textShadow: (theme) => theme.palette.mode === "light" ? "none" : "0 1px 2px rgba(0,0,0,0.3)"
           }}
-        >
+            >
           Lake Victoria Hotel
-        </Typography>
+            </Typography>
 
-        <Typography
+            <Typography
           sx={{
             position: "absolute",
             top: "45%",
             left: "20%",
             fontSize: 9,
             fontWeight: 500,
-            color: (theme) => theme.palette.mode === "light" ? "#1E40AF" : "#E2E8F0",
+            color: (theme) => theme.palette.mode === "light" ? "#03CD8C" : "#E2E8F0",
             zIndex: 1,
             textShadow: (theme) => theme.palette.mode === "light" ? "none" : "0 1px 2px rgba(0,0,0,0.3)"
           }}
         >
           Kajjansi
-        </Typography>
+            </Typography>
 
-        <Typography
+          <Typography
           sx={{
             position: "absolute",
             bottom: "15%",
@@ -239,7 +239,7 @@ function SharingPassengersScreen() {
             transform: "translateX(-50%)",
             fontSize: 9,
             fontWeight: 500,
-            color: (theme) => theme.palette.mode === "light" ? "#1E40AF" : "#E2E8F0",
+            color: (theme) => theme.palette.mode === "light" ? "#03CD8C" : "#E2E8F0",
             zIndex: 1,
             textShadow: (theme) => theme.palette.mode === "light" ? "none" : "0 1px 2px rgba(0,0,0,0.3)"
           }}
@@ -325,12 +325,12 @@ function SharingPassengersScreen() {
           <DirectionsCarFilledRoundedIcon
             sx={{
               fontSize: 28,
-              color: "#2196F3",
+              color: "#03CD8C",
               filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.4))"
             }}
           />
           <Box
-            sx={{
+                  sx={{
               width: 10,
               height: 10,
               borderRadius: "50%",
@@ -352,8 +352,8 @@ function SharingPassengersScreen() {
             position: "absolute",
             top: 16,
             left: 16,
-            bgcolor: "#BAE6FD",
-            color: "#1E40AF",
+            bgcolor: "rgba(3,205,140,0.15)",
+            color: "#03CD8C",
             width: 40,
             height: 40,
             "&:hover": {
@@ -371,8 +371,8 @@ function SharingPassengersScreen() {
             position: "absolute",
             right: 14,
             top: "35%",
-            bgcolor: "#BAE6FD",
-            color: "#1E40AF",
+            bgcolor: "rgba(3,205,140,0.15)",
+            color: "#03CD8C",
             width: 52,
             height: 52,
             boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
@@ -392,23 +392,23 @@ function SharingPassengersScreen() {
       {/* Content Section - with proper spacing to not overlap map */}
       <Box sx={{ px: 2.5, pt: 3, pb: 2 }}>
         {/* Header Section */}
-        <Card
-          elevation={0}
-          sx={{
-            mb: 2,
-            borderRadius: 2,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-            border: (theme) =>
-              theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
+      <Card
+        elevation={0}
+        sx={{
+          mb: 2,
+          borderRadius: 2,
+          bgcolor: (theme) =>
+            theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          border: (theme) =>
+            theme.palette.mode === "light"
+              ? "1px solid rgba(209,213,219,0.9)"
                 : "1px solid rgba(51,65,85,0.9)",
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
-          }}
-        >
+        }}
+      >
           <CardContent sx={{ px: 2, py: 1.5 }}>
             {/* Title */}
-            <Typography
+          <Typography
               variant="h6"
               sx={{
                 fontWeight: 600,
@@ -416,13 +416,13 @@ function SharingPassengersScreen() {
                 mb: 2,
                 color: (theme) => theme.palette.text.primary
               }}
-            >
+          >
               Sharing (Passengers)
-            </Typography>
+          </Typography>
 
             {/* Activation Toggle */}
             <Box
-              sx={{
+            sx={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -456,30 +456,30 @@ function SharingPassengersScreen() {
                     sx={{
                       "& .MuiSwitch-switchBase.Mui-checked": {
                         color: "#22c55e"
-                      },
+                },
                       "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
                         backgroundColor: "#22c55e"
-                      }
-                    }}
-                  />
+              }
+            }}
+          />
                 }
                 label=""
               />
             </Box>
-          </CardContent>
-        </Card>
+        </CardContent>
+      </Card>
 
         {/* Main Passenger Section */}
         <Box sx={{ mb: 2 }}>
           <Typography
             variant="subtitle2"
-            sx={{
+          sx={{
               fontWeight: 600,
               mb: 1.5,
               color: (theme) => theme.palette.text.primary,
               fontSize: 13
-            }}
-          >
+          }}
+        >
             Main Passenger
           </Typography>
           <PassengerCard passenger={mainPassenger} />
@@ -490,20 +490,20 @@ function SharingPassengersScreen() {
           <Box>
             <Typography
               variant="subtitle2"
-              sx={{
-                fontWeight: 600,
+          sx={{
+            fontWeight: 600,
                 mb: 1.5,
                 color: (theme) => theme.palette.text.primary,
                 fontSize: 13
-              }}
-            >
+          }}
+        >
               Sharing Passengers
             </Typography>
             <Stack spacing={0}>
               {sharingPassengers.map((passenger) => (
                 <PassengerCard key={passenger.id} passenger={passenger} />
               ))}
-            </Stack>
+      </Stack>
           </Box>
         )}
 
@@ -534,18 +534,18 @@ function SharingPassengersScreen() {
 }
 
 export default function RiderScreen31SharingPassengersCanvas_v2() {
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (theme) => theme.palette.background.default
-      }}
-    >
-      <DarkModeToggle />
-      <MobileShell>
+      return (
+      <Box
+        sx={{
+          position: "relative",
+          minHeight: "100vh",
+          bgcolor: (theme) => theme.palette.background.default
+        }}
+      >
+        <DarkModeToggle />
+        <MobileShell>
         <SharingPassengersScreen />
-      </MobileShell>
-    </Box>
+        </MobileShell>
+      </Box>
   );
 }

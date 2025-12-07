@@ -897,7 +897,7 @@ function TripInProgressWithDriverScreen() {
           <CardContent sx={{ px: 2, py: 1.5 }}>
             {/* Trip Ongoing Label */}
             <Box
-              sx={{
+                  sx={{
                 display: "flex",
                 justifyContent: "center",
                 mb: 2
@@ -955,26 +955,26 @@ function TripInProgressWithDriverScreen() {
               </Typography>
               <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, mb: 1.5 }}>
                 <StarRoundedIcon sx={{ fontSize: 18, color: "#FFC107" }} />
-                <Typography
-                  variant="body2"
+                  <Typography
+                    variant="body2"
                   sx={{
                     fontSize: 14,
                     fontWeight: 600,
                     color: (theme) => theme.palette.text.primary
                   }}
-                >
+                  >
                   {driverData.rating}
-                </Typography>
-                <Typography
-                  variant="caption"
+                  </Typography>
+                    <Typography
+                      variant="caption"
                   sx={{
                     fontSize: 12,
                     color: (theme) => theme.palette.text.secondary
                   }}
-                >
+                    >
                   based on {driverData.totalRatings} ratings
-                </Typography>
-              </Box>
+                    </Typography>
+                  </Box>
 
               {/* Quick Stats */}
               <Stack direction="row" spacing={2} sx={{ justifyContent: "center", mb: 2 }}>
@@ -1021,7 +1021,7 @@ function TripInProgressWithDriverScreen() {
                   >
                     Years of Experience
                   </Typography>
-                </Box>
+              </Box>
               </Stack>
             </Box>
 
@@ -1082,23 +1082,23 @@ function TripInProgressWithDriverScreen() {
               sx={{
                 borderRadius: 2,
                 py: 1,
-                fontSize: 13,
-                fontWeight: 600,
-                textTransform: "none",
-                borderColor: (theme) =>
-                  theme.palette.mode === "light" ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.2)",
-                color: (theme) => theme.palette.text.primary,
-                mb: 1.5,
-                "&:hover": {
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textTransform: "none",
                   borderColor: (theme) =>
-                    theme.palette.mode === "light" ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)",
-                  bgcolor: (theme) =>
-                    theme.palette.mode === "light" ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)"
-                }
-              }}
-            >
+                    theme.palette.mode === "light" ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.2)",
+                  color: (theme) => theme.palette.text.primary,
+                mb: 1.5,
+                  "&:hover": {
+                    borderColor: (theme) =>
+                      theme.palette.mode === "light" ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)",
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "light" ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)"
+                  }
+                }}
+              >
               Share Driver Details
-            </Button>
+              </Button>
 
             {/* User name display */}
             <Box

@@ -159,7 +159,7 @@ export default function AppRouter() {
           <Route path="details" element={<RA42 />} />
           <Route path="details/variant" element={<RA46 />} />
           <Route path="details/confirm" element={<RA47 />} />
-          <Route path="booking/confirmation" element={<RA47 />} />
+          <Route path="booking/confirmation" element={<RA49 />} />
           <Route path="booking/thank-you" element={<RA48 />} />
         </Route>
 

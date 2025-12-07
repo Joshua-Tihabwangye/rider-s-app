@@ -150,7 +150,7 @@ function DriverHasArrivedScreen() {
               width: 48,
               height: 48,
               borderRadius: "50%",
-              bgcolor: "#2196F3",
+              bgcolor: "#03CD8C",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -178,7 +178,7 @@ function DriverHasArrivedScreen() {
               height: 100,
               mx: "auto",
               mb: 1.5,
-              bgcolor: "#2196F3",
+              bgcolor: "#03CD8C",
               fontSize: 36,
               fontWeight: 600
             }}
@@ -318,7 +318,7 @@ function DriverHasArrivedScreen() {
             fontSize: 15,
             fontWeight: 600,
             textTransform: "none",
-            bgcolor: "#2196F3",
+            bgcolor: "#03CD8C",
             color: "#FFFFFF",
             "&:hover": {
               bgcolor: "#1976D2"
@@ -477,7 +477,7 @@ function DriverHasArrivedScreen() {
                         alignItems: "center",
                         justifyContent: "center",
                         mb: 0.5,
-                        border: "3px solid #1E40AF",
+                        border: "3px solid #03CD8C",
                         boxShadow: "0 3px 6px rgba(0,0,0,0.25)",
                         position: "relative",
                         zIndex: 2
@@ -487,7 +487,7 @@ function DriverHasArrivedScreen() {
                         sx={{
                           fontSize: 11,
                           fontWeight: 700,
-                          color: "#1E40AF",
+                          color: "#03CD8C",
                           letterSpacing: "1px",
                           textAlign: "center"
                         }}
@@ -567,7 +567,7 @@ function DriverHasArrivedScreen() {
             width: "100%",
             height: 56,
             borderRadius: 999,
-            bgcolor: "#2196F3",
+            bgcolor: "#03CD8C",
             overflow: "hidden",
             cursor: isSliding ? "grabbing" : "grab",
             userSelect: "none"
@@ -613,7 +613,7 @@ function DriverHasArrivedScreen() {
               ml: 0.5
             }}
           >
-            <KeyboardDoubleArrowRightRoundedIcon sx={{ fontSize: 24, color: "#2196F3" }} />
+            <KeyboardDoubleArrowRightRoundedIcon sx={{ fontSize: 24, color: "#03CD8C" }} />
           </Box>
 
           {/* Text */}

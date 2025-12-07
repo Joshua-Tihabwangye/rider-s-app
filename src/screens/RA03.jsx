@@ -312,7 +312,7 @@ function DailyCommutesScreen() {
               width: 14,
               height: 14,
               borderRadius: "999px",
-              bgcolor: "#3b82f6",
+              bgcolor: "#03CD8C",
               border: "2px solid white"
             }}
           />

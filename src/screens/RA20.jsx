@@ -50,7 +50,7 @@ function MapBackground({ onBackClick }) {
           right: "5%",
           width: "30%",
           height: "40%",
-          bgcolor: "#87CEEB", // Light blue water
+          bgcolor: "rgba(3,205,140,0.15)", // Light blue water
           borderRadius: "50%",
           opacity: 0.6
         }}
@@ -157,7 +157,7 @@ function RideOptionCard({ option, selected, onSelect }) {
           ? "#FFFFFF"
           : "rgba(15,23,42,0.98)",
         border: isActive
-          ? "2px solid #2196F3"
+          ? "2px solid #03CD8C"
           : theme.palette.mode === "light"
           ? "1px solid rgba(209,213,219,0.9)"
           : "1px solid rgba(51,65,85,0.9)",
@@ -227,7 +227,7 @@ function RideOptionCard({ option, selected, onSelect }) {
                   width: 16,
                   height: 16,
                   borderRadius: "50%",
-                  bgcolor: "#2196F3",
+                  bgcolor: "#F77F00",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center"
@@ -359,7 +359,7 @@ function SelectYourRideScreen() {
           <Box sx={{ mb: 2.5 }}>
             <Typography
               variant="subtitle1"
-              sx={{ fontWeight: 600, mb: 0.5, fontSize: 15, color: "#2196F3" }}
+              sx={{ fontWeight: 600, mb: 0.5, fontSize: 15, color: "#03CD8C" }}
             >
               Ride type
             </Typography>
@@ -388,7 +388,7 @@ function SelectYourRideScreen() {
                   fontWeight: 500,
                   color: theme.palette.text.secondary,
                   "&.Mui-selected": {
-                    bgcolor: "#2196F3",
+                    bgcolor: "#F77F00",
                     color: "#FFFFFF",
                     "&:hover": {
                       bgcolor: "#1976D2"

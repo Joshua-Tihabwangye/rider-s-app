@@ -170,7 +170,7 @@ function EnterDestinationScreen() {
     ? pickup.trim() !== "" && stops.some(stop => stop.value.trim() !== "") &&
       (tripType !== "Round Trip" || (returnDate && returnTime))
     : pickup.trim() !== "" && destination.trim() !== "" &&
-      (tripType !== "Round Trip" || (returnDate && returnTime));
+    (tripType !== "Round Trip" || (returnDate && returnTime));
 
   // Load recent searches on mount
   useEffect(() => {
@@ -394,11 +394,11 @@ function EnterDestinationScreen() {
   };
 
   // Theme-aware colors
-  const headerBg = "#0B1E3A"; // Deep navy as per spec
+  const headerBg = "#03CD8C"; // Green header
   const headerText = "#FFFFFF";
   const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
-  const accentBlue = "#007BFF";
-  const lightBlue = "#E3F2FD"; // Light blue for active passenger selection
+  const accentGreen = "#03CD8C";
+  const lightGreen = "rgba(3,205,140,0.1)"; // Light green for active passenger selection
 
   return (
     <Box
@@ -411,7 +411,7 @@ function EnterDestinationScreen() {
         }
       }}
     >
-      {/* Header Section - Dark Blue */}
+      {/* Header Section - Green */}
       <Box
         sx={{
           px: 2.5,
@@ -467,17 +467,17 @@ function EnterDestinationScreen() {
             <Stack spacing={2}>
               {/* Origin Field with Green Pin */}
               <Box sx={{ position: "relative" }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  variant="outlined"
-                  value={pickup}
-                  onChange={(e) => setPickup(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PlaceRoundedIcon sx={{ fontSize: 20, color: "#4CAF50" }} />
-                      </InputAdornment>
+              <TextField
+                fullWidth
+                size="small"
+                variant="outlined"
+                value={pickup}
+                onChange={(e) => setPickup(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PlaceRoundedIcon sx={{ fontSize: 20, color: "#4CAF50" }} />
+                    </InputAdornment>
                     ),
                     endAdornment: (
                       <InputAdornment position="end">
@@ -495,55 +495,55 @@ function EnterDestinationScreen() {
                         >
                           <SwapVertRoundedIcon sx={{ fontSize: 20 }} />
                         </IconButton>
-                      </InputAdornment>
-                    )
-                  }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 999,
-                      bgcolor: theme.palette.mode === "light"
-                        ? "rgba(0,0,0,0.05)"
-                        : "rgba(255,255,255,0.05)",
-                      color: theme.palette.text.primary,
-                      "& fieldset": {
-                        borderColor: theme.palette.mode === "light"
-                          ? "rgba(0,0,0,0.15)"
-                          : "rgba(255,255,255,0.2)"
-                      },
-                      "&:hover fieldset": {
-                        borderColor: accentBlue
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: accentBlue
-                      }
+                    </InputAdornment>
+                  )
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 999,
+                    bgcolor: theme.palette.mode === "light"
+                      ? "rgba(0,0,0,0.05)"
+                      : "rgba(255,255,255,0.05)",
+                    color: theme.palette.text.primary,
+                    "& fieldset": {
+                      borderColor: theme.palette.mode === "light"
+                        ? "rgba(0,0,0,0.15)"
+                        : "rgba(255,255,255,0.2)"
+                    },
+                    "&:hover fieldset": {
+                      borderColor: accentGreen
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: accentGreen
                     }
-                  }}
-                />
+                  }
+                }}
+              />
               </Box>
 
               {/* Single Destination Mode */}
               {!isMultiStopMode && (
                 <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    variant="outlined"
+              <TextField
+                fullWidth
+                size="small"
+                variant="outlined"
                     placeholder="Abayita Ababiri, Lyamu..."
-                    value={destination}
-                    onChange={(e) => {
-                      setDestination(e.target.value);
-                      setSearchQuery(e.target.value);
-                      setShowError(false);
-                    }}
-                    onFocus={() => {
-                      if (searchQuery.length === 0) {
-                        setSearchResults(getRecentSearches());
-                      }
-                      setShowSearchResults(true);
-                    }}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
+                value={destination}
+                onChange={(e) => {
+                  setDestination(e.target.value);
+                  setSearchQuery(e.target.value);
+                  setShowError(false);
+                }}
+                onFocus={() => {
+                  if (searchQuery.length === 0) {
+                    setSearchResults(getRecentSearches());
+                  }
+                  setShowSearchResults(true);
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
                           <Box
                             sx={{
                               width: 24,
@@ -598,10 +598,10 @@ function EnterDestinationScreen() {
                             : "rgba(255,255,255,0.2)"
                         },
                         "&:hover fieldset": {
-                          borderColor: accentBlue
+                          borderColor: accentGreen
                         },
                         "&.Mui-focused fieldset": {
-                          borderColor: accentBlue
+                          borderColor: accentGreen
                         }
                       }
                     }}
@@ -623,8 +623,8 @@ function EnterDestinationScreen() {
                         ? "rgba(0,0,0,0.05)"
                         : "rgba(255,255,255,0.05)",
                       "&:hover": {
-                        borderColor: isScheduled ? "#4CAF50" : accentBlue,
-                        bgcolor: `${accentBlue}10`
+                        borderColor: isScheduled ? "#4CAF50" : accentGreen,
+                        bgcolor: rgba(3,205,140,0.1)
                       },
                       fontSize: 12,
                       px: 1.5
@@ -660,7 +660,7 @@ function EnterDestinationScreen() {
                               <InputAdornment position="start">
                                 {isLast ? (
                                   // Orange pin icon for final stop
-                                  <PlaceRoundedIcon sx={{ fontSize: 20, color: "#FF9800" }} />
+                      <PlaceRoundedIcon sx={{ fontSize: 20, color: "#FF9800" }} />
                                 ) : (
                                   // Letter badge for other stops
                                   <Box
@@ -680,10 +680,10 @@ function EnterDestinationScreen() {
                                     {stop.id}
                                   </Box>
                                 )}
-                              </InputAdornment>
-                            ),
-                            endAdornment: (
-                              <InputAdornment position="end">
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                                   <DragIndicatorRoundedIcon 
                                     sx={{ 
@@ -693,8 +693,8 @@ function EnterDestinationScreen() {
                                       "&:active": { cursor: "grabbing" }
                                     }} 
                                   />
-                                  <IconButton
-                                    size="small"
+                      <IconButton
+                        size="small"
                                     onClick={() => {
                                       const newStops = stops.filter((_, i) => i !== index);
                                       // Re-index stops
@@ -704,42 +704,42 @@ function EnterDestinationScreen() {
                                       }));
                                       setStops(reindexed);
                                     }}
-                                    sx={{
+                        sx={{
                                       color: theme.palette.text.secondary,
-                                      "&:hover": {
+                          "&:hover": {
                                         bgcolor: theme.palette.mode === "light"
                                           ? "rgba(0,0,0,0.05)"
                                           : "rgba(255,255,255,0.05)"
-                                      }
-                                    }}
-                                  >
+                          }
+                        }}
+                      >
                                     <CloseRoundedIcon sx={{ fontSize: 18 }} />
-                                  </IconButton>
+                      </IconButton>
                                 </Box>
-                              </InputAdornment>
-                            )
-                          }}
-                          sx={{
-                            "& .MuiOutlinedInput-root": {
-                              borderRadius: 999,
-                              bgcolor: theme.palette.mode === "light"
-                                ? "rgba(0,0,0,0.05)"
-                                : "rgba(255,255,255,0.05)",
-                              color: theme.palette.text.primary,
-                              "& fieldset": {
-                                borderColor: theme.palette.mode === "light"
-                                  ? "rgba(0,0,0,0.15)"
-                                  : "rgba(255,255,255,0.2)"
-                              },
-                              "&:hover fieldset": {
-                                borderColor: accentBlue
-                              },
-                              "&.Mui-focused fieldset": {
-                                borderColor: accentBlue
-                              }
-                            }
-                          }}
-                        />
+                    </InputAdornment>
+                  )
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 999,
+                    bgcolor: theme.palette.mode === "light"
+                      ? "rgba(0,0,0,0.05)"
+                      : "rgba(255,255,255,0.05)",
+                    color: theme.palette.text.primary,
+                    "& fieldset": {
+                      borderColor: theme.palette.mode === "light"
+                        ? "rgba(0,0,0,0.15)"
+                        : "rgba(255,255,255,0.2)"
+                    },
+                    "&:hover fieldset": {
+                      borderColor: accentGreen
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: accentGreen
+                    }
+                  }
+                }}
+              />
                       </Box>
                     );
                   })}
@@ -785,30 +785,30 @@ function EnterDestinationScreen() {
                   )}
 
                   {/* Date & Time Selector for Multi-Stop Mode */}
-                  <Button
-                    variant="outlined"
-                    onClick={handleScheduleClick}
-                    startIcon={<CalendarTodayRoundedIcon sx={{ fontSize: 18 }} />}
-                    endIcon={<KeyboardArrowDownRoundedIcon sx={{ fontSize: 18 }} />}
-                    sx={{
-                      borderRadius: 999,
-                      textTransform: "none",
-                      borderColor: theme.palette.mode === "light"
-                        ? "rgba(0,0,0,0.15)"
-                        : "rgba(255,255,255,0.2)",
-                      color: isScheduled ? "#4CAF50" : theme.palette.text.primary,
-                      bgcolor: theme.palette.mode === "light"
-                        ? "rgba(0,0,0,0.05)"
-                        : "rgba(255,255,255,0.05)",
-                      "&:hover": {
-                        borderColor: isScheduled ? "#4CAF50" : accentBlue,
-                        bgcolor: `${accentBlue}10`
-                      },
-                      justifyContent: "flex-start"
-                    }}
-                  >
+              <Button
+                variant="outlined"
+                onClick={handleScheduleClick}
+                startIcon={<CalendarTodayRoundedIcon sx={{ fontSize: 18 }} />}
+                endIcon={<KeyboardArrowDownRoundedIcon sx={{ fontSize: 18 }} />}
+                sx={{
+                  borderRadius: 999,
+                  textTransform: "none",
+                  borderColor: theme.palette.mode === "light"
+                    ? "rgba(0,0,0,0.15)"
+                    : "rgba(255,255,255,0.2)",
+                  color: isScheduled ? "#4CAF50" : theme.palette.text.primary,
+                  bgcolor: theme.palette.mode === "light"
+                    ? "rgba(0,0,0,0.05)"
+                    : "rgba(255,255,255,0.05)",
+                  "&:hover": {
+                    borderColor: isScheduled ? "#4CAF50" : accentGreen,
+                    bgcolor: rgba(3,205,140,0.1)
+                  },
+                  justifyContent: "flex-start"
+                }}
+              >
                     {isScheduled ? `${schedule} – ${scheduleTime}` : schedule}
-                  </Button>
+              </Button>
                 </>
               )}
             </Stack>
@@ -885,7 +885,7 @@ function EnterDestinationScreen() {
                     }
                     return (
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <PersonRoundedIcon sx={{ fontSize: 18, color: accentBlue }} />
+                        <PersonRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
                         <Typography>{rideType}</Typography>
                       </Box>
                     );
@@ -902,10 +902,10 @@ function EnterDestinationScreen() {
                         : "rgba(255,255,255,0.2)"
                     },
                     "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: accentBlue
+                      borderColor: accentGreen
                     },
                     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      borderColor: accentBlue
+                      borderColor: accentGreen
                     }
                   }}
                 >
@@ -1010,34 +1010,34 @@ function EnterDestinationScreen() {
                   }}
                   renderValue={(value) => (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <DirectionsCarRoundedIcon sx={{ fontSize: 18, color: accentBlue }} />
+                      <DirectionsCarRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
                       <Typography>{value}</Typography>
                     </Box>
                   )}
-                  sx={{
-                    borderRadius: 999,
+                sx={{
+                  borderRadius: 999,
                     bgcolor: theme.palette.mode === "light"
-                      ? "rgba(0,0,0,0.05)"
-                      : "rgba(255,255,255,0.05)",
-                    color: theme.palette.text.primary,
+                    ? "rgba(0,0,0,0.05)"
+                    : "rgba(255,255,255,0.05)",
+                  color: theme.palette.text.primary,
                     "& .MuiOutlinedInput-notchedOutline": {
                       borderColor: theme.palette.mode === "light"
                         ? "rgba(0,0,0,0.15)"
                         : "rgba(255,255,255,0.2)"
                     },
                     "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: accentBlue
+                      borderColor: accentGreen
                     },
                     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      borderColor: accentBlue
-                    }
-                  }}
-                >
+                    borderColor: accentGreen
+                  }
+                }}
+              >
                   <MenuItem value="One Way">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <DirectionsCarRoundedIcon sx={{ fontSize: 18 }} />
                       One Way
-                    </Box>
+                </Box>
                   </MenuItem>
                   <MenuItem value="Round Trip">
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -1130,9 +1130,9 @@ function EnterDestinationScreen() {
                       bgcolor: theme.palette.mode === "light"
                         ? "rgba(0,0,0,0.05)"
                         : "rgba(255,255,255,0.05)",
-                      color: accentBlue,
+                      color: accentGreen,
                       "&:hover": {
-                        bgcolor: `${accentBlue}15`
+                        bgcolor: rgba(3,205,140,0.15)
                       }
                     }}
                   >
@@ -1194,12 +1194,12 @@ function EnterDestinationScreen() {
                       fontWeight: 600,
                       flexShrink: 0,
                       bgcolor: passengers === pax && !customPassengers
-                        ? lightBlue
+                        ? lightGreen
                         : theme.palette.mode === "light"
                           ? "rgba(0,0,0,0.05)"
                           : "rgba(255,255,255,0.05)",
                       color: passengers === pax && !customPassengers
-                        ? accentBlue
+                        ? accentGreen
                         : theme.palette.text.primary,
                       border: passengers === pax && !customPassengers
                         ? "none"
@@ -1210,7 +1210,7 @@ function EnterDestinationScreen() {
                       transition: "all 0.2s ease",
                       "&:hover": {
                         bgcolor: passengers === pax && !customPassengers
-                          ? lightBlue
+                          ? lightGreen
                           : theme.palette.mode === "light"
                             ? "rgba(0,0,0,0.1)"
                             : "rgba(255,255,255,0.1)"
@@ -1265,7 +1265,7 @@ function EnterDestinationScreen() {
                         : "rgba(255,255,255,0.3)"
                     },
                     "&.Mui-focused fieldset": {
-                      borderColor: accentBlue
+                      borderColor: accentGreen
                     }
                   },
                   "& .MuiInputBase-input": {
@@ -1396,12 +1396,12 @@ function EnterDestinationScreen() {
           onClick={handleLocateOnMap}
           sx={{
             mb: 1.5,
-            color: accentBlue,
+            color: accentGreen,
             textTransform: "none",
             fontSize: 14,
             fontWeight: 500,
             "&:hover": {
-              bgcolor: `${accentBlue}10`
+              bgcolor: rgba(3,205,140,0.1)
             }
           }}
           startIcon={<MapRoundedIcon />}
@@ -1415,13 +1415,13 @@ function EnterDestinationScreen() {
           onClick={() => navigate("/rides/trip/sharing")}
           sx={{
             mb: 1.5,
-            color: accentBlue,
+            color: accentGreen,
             textTransform: "none",
             fontSize: 14,
             fontWeight: 500,
-            border: `1px solid ${accentBlue}`,
+            border: "1px solid #03CD8C",
             "&:hover": {
-              bgcolor: `${accentBlue}10`
+              bgcolor: rgba(3,205,140,0.1)
             }
           }}
           startIcon={<GroupRoundedIcon />}
@@ -1482,7 +1482,7 @@ function EnterDestinationScreen() {
             onClick={() => handleScheduleSelect(option)}
             sx={{
               "&:hover": {
-                bgcolor: `${accentBlue}15`
+                bgcolor: rgba(3,205,140,0.15)
               }
             }}
           >

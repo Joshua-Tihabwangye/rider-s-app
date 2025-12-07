@@ -105,7 +105,7 @@ function UpcomingRideCard({ dateLabel, timeLabel, from, to, status, statusColor,
 
           <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.2 }}>
             <PlaceRoundedIcon
-              sx={{ fontSize: 18, color: "#3b82f6", mt: 0.1 }}
+              sx={{ fontSize: 18, color: "#03CD8C", mt: 0.1 }}
             />
             <Box sx={{ flex: 1 }}>
               <Typography

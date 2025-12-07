@@ -141,7 +141,7 @@ function RideRatingTipScreen() {
             backgroundImage:
               "linear-gradient(to right, rgba(148,163,184,0.4) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.4) 1px, transparent 1px)",
             backgroundSize: "32px 32px"
-          }}
+        }}
         />
 
         {/* Faded route line */}
@@ -174,7 +174,7 @@ function RideRatingTipScreen() {
           <DirectionsCarFilledRoundedIcon
             sx={{
               fontSize: 32,
-              color: "#2196F3",
+              color: "#03CD8C",
               opacity: 0.5,
               filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.3))"
             }}
@@ -182,44 +182,44 @@ function RideRatingTipScreen() {
         </Box>
 
         {/* Back Arrow - Top left */}
-        <IconButton
-          size="small"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-          sx={{
+          <IconButton
+            size="small"
+            aria-label="Back"
+            onClick={() => navigate(-1)}
+            sx={{
             position: "absolute",
             top: 16,
             left: 16,
-            bgcolor: "#BAE6FD",
-            color: "#1E40AF",
+            bgcolor: "rgba(3,205,140,0.15)",
+            color: "#03CD8C",
             width: 40,
             height: 40,
             "&:hover": {
               bgcolor: "#93C5FD"
             },
             zIndex: 10
-          }}
-        >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
       </Box>
 
       {/* Content Section - Modal overlay with rounded white container */}
       <Box sx={{ px: 2.5, pt: 3, pb: 2 }}>
-        <Card
-          elevation={0}
-          sx={{
+      <Card
+        elevation={0}
+        sx={{
             mb: 2,
             borderRadius: 3,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-            border: (theme) =>
-              theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
+          bgcolor: (theme) =>
+            theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          border: (theme) =>
+            theme.palette.mode === "light"
+              ? "1px solid rgba(209,213,219,0.9)"
                 : "1px solid rgba(51,65,85,0.9)",
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
-          }}
-        >
+        }}
+      >
           <CardContent sx={{ px: 2.5, py: 2.5 }}>
             {/* Driver Details - Profile image at top center */}
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 3 }}>
@@ -227,7 +227,7 @@ function RideRatingTipScreen() {
                 sx={{
                   width: 80,
                   height: 80,
-                  bgcolor: "#2196F3",
+                  bgcolor: "#03CD8C",
                   fontSize: 32,
                   fontWeight: 700,
                   mb: 2,
@@ -239,7 +239,7 @@ function RideRatingTipScreen() {
               >
                 {driverData.initials}
               </Avatar>
-              <Typography
+            <Typography
                 variant="h6"
                 sx={{
                   fontWeight: 600,
@@ -248,10 +248,10 @@ function RideRatingTipScreen() {
                   mb: 0.5,
                   color: (theme) => theme.palette.text.primary
                 }}
-              >
+            >
                 How was your ride with <strong>{driverData.name}</strong>?
-              </Typography>
-            </Box>
+            </Typography>
+          </Box>
 
             {/* Star Rating System - Five-star horizontal layout */}
             <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
@@ -261,9 +261,9 @@ function RideRatingTipScreen() {
                   if (newValue !== null) {
                     setRating(newValue);
                   }
-                }}
+                  }}
                 size="large"
-                sx={{
+                  sx={{
                   "& .MuiRating-iconFilled": {
                     color: "#FFC107" // Yellow/gold for selected stars
                   },
@@ -273,54 +273,54 @@ function RideRatingTipScreen() {
                   },
                   "& .MuiRating-icon": {
                     fontSize: 40
-                  }
-                }}
-              />
+                    }
+                  }}
+                />
             </Box>
 
             {/* Feedback Input Box */}
             <Box sx={{ mb: 3 }}>
-              <TextField
+            <TextField
                 multiline
                 rows={3}
-                fullWidth
+              fullWidth
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
                 placeholder="Write your message here…"
-                sx={{
-                  "& .MuiOutlinedInput-root": {
+              sx={{
+                "& .MuiOutlinedInput-root": {
                     borderRadius: 2,
-                    bgcolor: (theme) =>
+                  bgcolor: (theme) =>
                       theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                    "& fieldset": {
-                      borderColor: (theme) =>
-                        theme.palette.mode === "light"
-                          ? "rgba(209,213,219,0.9)"
-                          : "rgba(51,65,85,0.9)"
-                    },
-                    "&:hover fieldset": {
-                      borderColor: "#2196F3"
+                  "& fieldset": {
+                    borderColor: (theme) =>
+                      theme.palette.mode === "light"
+                        ? "rgba(209,213,219,0.9)"
+                        : "rgba(51,65,85,0.9)"
+                  },
+                  "&:hover fieldset": {
+                      borderColor: "#03CD8C"
                     },
                     "&.Mui-focused fieldset": {
-                      borderColor: "#2196F3"
-                    }
+                      borderColor: "#03CD8C"
                   }
-                }}
-              />
+                }
+              }}
+            />
             </Box>
 
             {/* Tip Selection Section */}
             <Box sx={{ mb: 3 }}>
-              <Typography
+          <Typography
                 variant="body2"
-                sx={{
+            sx={{
                   fontWeight: 600,
                   mb: 1.5,
                   color: (theme) => theme.palette.text.primary
-                }}
-              >
+            }}
+          >
                 Add a tip to the driver
-              </Typography>
+          </Typography>
               
               {/* Four button options displayed horizontally */}
               <Box
@@ -379,10 +379,10 @@ function RideRatingTipScreen() {
                 <Button
                   variant={customTip ? "contained" : "outlined"}
                   onClick={handleCustomTipClick}
-                  sx={{
+        sx={{
                     flex: 1,
                     minWidth: "80px",
-                    borderRadius: 2,
+          borderRadius: 2,
                     py: 1,
                     fontSize: 13,
                     fontWeight: 600,
@@ -403,13 +403,13 @@ function RideRatingTipScreen() {
                       bgcolor: customTip
                         ? "#16A34A"
                         : (theme) =>
-                            theme.palette.mode === "light"
+            theme.palette.mode === "light"
                               ? "rgba(0,0,0,0.05)"
                               : "rgba(255,255,255,0.05)",
                       borderColor: customTip ? "#16A34A" : "#22c55e"
                     }
-                  }}
-                >
+        }}
+      >
                   Custom
                 </Button>
               </Box>
@@ -424,57 +424,57 @@ function RideRatingTipScreen() {
                   placeholder="Enter amount"
                   InputProps={{
                     startAdornment: (
-                      <Typography
+          <Typography
                         sx={{
                           mr: 1,
                           color: (theme) => theme.palette.text.secondary,
                           fontWeight: 500
                         }}
-                      >
+          >
                         UGX
-                      </Typography>
+          </Typography>
                     )
                   }}
-                  sx={{
+            sx={{
                     mt: 1.5,
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 2,
-                      bgcolor: (theme) =>
-                        theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                      "& fieldset": {
-                        borderColor: (theme) =>
-                          theme.palette.mode === "light"
-                            ? "rgba(209,213,219,0.9)"
-                            : "rgba(51,65,85,0.9)"
-                      },
-                      "&:hover fieldset": {
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+                bgcolor: (theme) =>
+                  theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+                "& fieldset": {
+                  borderColor: (theme) =>
+                    theme.palette.mode === "light"
+                      ? "rgba(209,213,219,0.9)"
+                      : "rgba(51,65,85,0.9)"
+                },
+                "&:hover fieldset": {
                         borderColor: "#22c55e"
                       },
                       "&.Mui-focused fieldset": {
                         borderColor: "#22c55e"
-                      }
-                    }
-                  }}
-                />
+                }
+              }
+            }}
+          />
               )}
             </Box>
 
             {/* Submit Button - Prominent black button */}
-            <Button
-              fullWidth
-              variant="contained"
-              disabled={!canSubmit}
+      <Button
+        fullWidth
+        variant="contained"
+        disabled={!canSubmit}
               onClick={handleSubmit}
-              sx={{
+        sx={{
                 borderRadius: 2,
                 py: 1.5,
                 fontSize: 16,
-                fontWeight: 600,
-                textTransform: "none",
+          fontWeight: 600,
+          textTransform: "none",
                 bgcolor: canSubmit ? "#000000" : "rgba(0,0,0,0.3)",
                 color: "#FFFFFF",
                 boxShadow: "none",
-                "&:hover": {
+          "&:hover": {
                   bgcolor: canSubmit ? "#333333" : "rgba(0,0,0,0.4)",
                   boxShadow: "none"
                 },
@@ -482,11 +482,11 @@ function RideRatingTipScreen() {
                   bgcolor: "rgba(0,0,0,0.3)",
                   color: "#FFFFFF",
                   opacity: 1
-                }
-              }}
-            >
+          }
+        }}
+      >
               {isSubmitting ? "Submitting..." : "Submit"}
-            </Button>
+      </Button>
           </CardContent>
         </Card>
       </Box>
@@ -518,18 +518,18 @@ function RideRatingTipScreen() {
 }
 
 export default function RiderScreen32RideRatingTipCanvas_v2() {
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (theme) => theme.palette.background.default
-      }}
-    >
-      <DarkModeToggle />
-      <MobileShell>
-        <RideRatingTipScreen />
-      </MobileShell>
-    </Box>
+      return (
+      <Box
+        sx={{
+          position: "relative",
+          minHeight: "100vh",
+          bgcolor: (theme) => theme.palette.background.default
+        }}
+      >
+        <DarkModeToggle />
+        <MobileShell>
+          <RideRatingTipScreen />
+        </MobileShell>
+      </Box>
   );
 }
