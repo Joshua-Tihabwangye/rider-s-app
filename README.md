@@ -1,4 +1,4 @@
-# EVzone Rider Supervisor – Full RA01–RA91
+# EVzone Rider Supervisor
 
 This project is a **Create React App + MUI + Tailwind** supervisor shell that
 hosts **all RA01–RA91 mobile canvases** for the EVzone Rider / Customer app.
