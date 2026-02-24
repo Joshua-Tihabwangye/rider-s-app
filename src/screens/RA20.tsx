@@ -16,19 +16,20 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import TwoWheelerRoundedIcon from "@mui/icons-material/TwoWheelerRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
-import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
-import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
-import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
-import SmartphoneRoundedIcon from "@mui/icons-material/SmartphoneRounded";
-import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import StraightenRoundedIcon from "@mui/icons-material/StraightenRounded";
 import MobileShell from "../components/MobileShell";
 
 interface MapBackgroundProps {
   onBackClick: () => void;
+  pickup?: string;
+  destination?: string;
+  distance?: string;
+  estimatedTime?: string;
 }
 
 // Map background component with route visualization
-function MapBackground({ onBackClick }: MapBackgroundProps): React.JSX.Element {
+function MapBackground({ onBackClick, pickup, destination, distance, estimatedTime }: MapBackgroundProps): React.JSX.Element {
   const theme = useTheme();
   
   return (
@@ -40,12 +41,24 @@ function MapBackground({ onBackClick }: MapBackgroundProps): React.JSX.Element {
         right: 0,
         height: "40vh",
         background: theme.palette.mode === "light"
-          ? "#F5F5DC" // Light beige map background
+          ? "#F5F5DC"
           : "linear-gradient(135deg, #0f1e2e 0%, #1a2d3e 50%, #0f1e2e 100%)",
         zIndex: 0,
         overflow: "hidden"
       }}
     >
+      {/* Grid overlay */}
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          opacity: 0.15,
+          backgroundImage:
+            "linear-gradient(to right, rgba(148,163,184,0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.3) 1px, transparent 1px)",
+          backgroundSize: "30px 30px"
+        }}
+      />
+      
       {/* Water body on the right */}
       <Box
         sx={{
@@ -54,7 +67,7 @@ function MapBackground({ onBackClick }: MapBackgroundProps): React.JSX.Element {
           right: "5%",
           width: "30%",
           height: "40%",
-          bgcolor: "rgba(3,205,140,0.15)", // Light blue water
+          bgcolor: "rgba(3,205,140,0.15)",
           borderRadius: "50%",
           opacity: 0.6
         }}
@@ -68,7 +81,7 @@ function MapBackground({ onBackClick }: MapBackgroundProps): React.JSX.Element {
           left: "15%",
           width: "70%",
           height: 3,
-          bgcolor: "#424242", // Dark grey route line
+          bgcolor: "#424242",
           borderRadius: 2,
           transform: "rotate(-25deg)",
           transformOrigin: "left center",
@@ -92,6 +105,100 @@ function MapBackground({ onBackClick }: MapBackgroundProps): React.JSX.Element {
           transform: "translate(-50%, -50%)"
         }}
       />
+
+      {/* Destination marker (orange) */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: "40%",
+          left: "82%",
+          width: 18,
+          height: 18,
+          borderRadius: "50%",
+          bgcolor: "#FF9800",
+          border: "3px solid #FFFFFF",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+          zIndex: 2,
+          transform: "translate(-50%, -50%)"
+        }}
+      />
+
+      {/* Route info badge */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: "48%",
+          left: "50%",
+          bgcolor: "rgba(0,0,0,0.75)",
+          borderRadius: 2,
+          px: 1.5,
+          py: 0.5,
+          zIndex: 3,
+          transform: "translate(-50%, -50%)",
+          display: "flex",
+          alignItems: "center",
+          gap: 1
+        }}
+      >
+        <StraightenRoundedIcon sx={{ fontSize: 14, color: "#FFFFFF" }} />
+        <Typography
+          variant="caption"
+          sx={{ fontSize: 11, fontWeight: 600, color: "#FFFFFF", whiteSpace: "nowrap" }}
+        >
+          {distance || "41.5 km"}
+        </Typography>
+        <AccessTimeRoundedIcon sx={{ fontSize: 14, color: "#FFFFFF" }} />
+        <Typography
+          variant="caption"
+          sx={{ fontSize: 11, fontWeight: 600, color: "#FFFFFF", whiteSpace: "nowrap" }}
+        >
+          {estimatedTime || "1 hr"}
+        </Typography>
+      </Box>
+
+      {/* Origin label */}
+      {pickup && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: "68%",
+            left: "18%",
+            bgcolor: "rgba(0,0,0,0.7)",
+            borderRadius: 1,
+            px: 1,
+            py: 0.3,
+            zIndex: 2,
+            transform: "translateX(-50%)",
+            maxWidth: 120
+          }}
+        >
+          <Typography variant="caption" sx={{ fontSize: 9, color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>
+            {pickup}
+          </Typography>
+        </Box>
+      )}
+
+      {/* Destination label */}
+      {destination && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: "28%",
+            left: "82%",
+            bgcolor: "rgba(0,0,0,0.7)",
+            borderRadius: 1,
+            px: 1,
+            py: 0.3,
+            zIndex: 2,
+            transform: "translateX(-50%)",
+            maxWidth: 120
+          }}
+        >
+          <Typography variant="caption" sx={{ fontSize: 9, color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>
+            {destination}
+          </Typography>
+        </Box>
+      )}
       
       {/* Back arrow button */}
       <IconButton
@@ -128,30 +235,33 @@ interface RideOption {
   description: string;
   price?: string;
   eta?: string;
-  fare?: string;
+  fare: string;
+  premiumFare: string;
   icon: React.ReactElement;
   thumbnail?: string | null;
 }
 
-// Ride options data
+// Ride options data - with different prices for standard vs premium
 const RIDE_OPTIONS: RideOption[] = [
   {
     id: "scooter",
     name: "EV Scooter",
-    description: "Inter-City Travel",
+    description: "Quick & affordable motorbike ride",
     icon: <TwoWheelerRoundedIcon sx={{ fontSize: 28 }} />,
     eta: "4 mins",
-    fare: "UGX 25,365",
-    thumbnail: null // Would be an image in production
+    fare: "UGX 15,000",
+    premiumFare: "UGX 25,365",
+    thumbnail: null
   },
   {
     id: "car-mini",
     name: "EV Car Mini",
-    description: "Senior Citizen Assistance",
+    description: "Comfortable sedan for up to 4 passengers",
     icon: <DirectionsCarRoundedIcon sx={{ fontSize: 28 }} />,
-    eta: "4 mins",
-    fare: "UGX 40,365",
-    thumbnail: null // Would be an image in production
+    eta: "6 mins",
+    fare: "UGX 28,500",
+    premiumFare: "UGX 40,365",
+    thumbnail: null
   }
 ];
 
@@ -159,11 +269,13 @@ interface RideOptionCardProps {
   option: RideOption;
   selected: string;
   onSelect: (id: string) => void;
+  isPremium: boolean;
 }
 
-function RideOptionCard({ option, selected, onSelect }: RideOptionCardProps): React.JSX.Element {
+function RideOptionCard({ option, selected, onSelect, isPremium }: RideOptionCardProps): React.JSX.Element {
   const theme = useTheme();
   const isActive = selected === option.id;
+  const displayFare = isPremium ? option.premiumFare : option.fare;
   
   return (
     <Card
@@ -201,7 +313,6 @@ function RideOptionCard({ option, selected, onSelect }: RideOptionCardProps): Re
           overflow: "hidden"
         }}
       >
-        {/* Placeholder for vehicle image - in production this would be an actual image */}
         <Box
           sx={{
             width: "100%",
@@ -214,20 +325,34 @@ function RideOptionCard({ option, selected, onSelect }: RideOptionCardProps): Re
         >
           {option.icon}
         </Box>
+        {/* Premium badge */}
+        {isPremium && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              bgcolor: "#F77F00",
+              borderRadius: 1,
+              px: 1,
+              py: 0.3
+            }}
+          >
+            <Typography sx={{ fontSize: 10, fontWeight: 700, color: "#FFFFFF" }}>PREMIUM</Typography>
+          </Box>
+        )}
       </Box>
       
       <CardContent sx={{ px: 2, py: 1.5 }}>
         <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1.5 }}>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            {/* Vehicle name and ETA on same line */}
             <Typography
               variant="subtitle2"
               sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.5, fontSize: 14 }}
             >
-              {option.name} • {option.eta}
+              {option.name} • {option.eta} away
             </Typography>
             
-            {/* Description */}
             <Typography
               variant="caption"
               sx={{ fontSize: 12, color: theme.palette.text.secondary, display: "block", mb: 0.5 }}
@@ -241,8 +366,16 @@ function RideOptionCard({ option, selected, onSelect }: RideOptionCardProps): Re
                 variant="body2"
                 sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: 14 }}
               >
-                {option.fare}
+                {displayFare}
               </Typography>
+              {isPremium && (
+                <Typography
+                  variant="caption"
+                  sx={{ fontSize: 11, color: theme.palette.text.secondary, textDecoration: "line-through", ml: 0.5 }}
+                >
+                  {option.fare}
+                </Typography>
+              )}
               <Box
                 sx={{
                   width: 16,
@@ -251,16 +384,12 @@ function RideOptionCard({ option, selected, onSelect }: RideOptionCardProps): Re
                   bgcolor: "#F77F00",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center"
+                  justifyContent: "center",
+                  ml: 0.5
                 }}
               >
                 <Typography
-                  sx={{
-                    fontSize: 10,
-                    color: "#FFFFFF",
-                    fontWeight: 600,
-                    lineHeight: 1
-                  }}
+                  sx={{ fontSize: 10, color: "#FFFFFF", fontWeight: 600, lineHeight: 1 }}
                 >
                   i
                 </Typography>
@@ -277,16 +406,24 @@ function SelectYourRideScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const [selectedRide, setSelectedRide] = useState("car-mini"); // Default to EV Car Mini as per spec
-  const [rideType, setRideType] = useState("premium"); // Default to Premium as per spec
-  const [paymentMethod, setPaymentMethod] = useState("cash");
-  const [paymentMethodName, setPaymentMethodName] = useState("Cash payment");
+  const [selectedRide, setSelectedRide] = useState("car-mini");
+  const [rideType, setRideType] = useState("standard");
+
+  // Get trip data from location state
+  const tripData = location.state || {};
+  const pickup = tripData.pickup || "Current location";
+  const destination = tripData.destination || "Kampala City";
+  const distance = tripData.distance || "41.5 km";
+  const estimatedTime = tripData.estimatedTime || "1 hr";
+  const passengers = tripData.passengers || 1;
   
-  // Get payment method from location state (when returning from RA21)
+  // Restore selections when returning from RA21
   useEffect(() => {
-    if (location.state?.paymentMethod) {
-      setPaymentMethod(location.state.paymentMethod);
-      setPaymentMethodName(location.state.paymentMethodName || "Cash payment");
+    if (location.state?.selectedRide) {
+      setSelectedRide(location.state.selectedRide);
+    }
+    if (location.state?.rideType) {
+      setRideType(location.state.rideType);
     }
   }, [location.state]);
   
@@ -296,32 +433,38 @@ function SelectYourRideScreen(): React.JSX.Element {
     }
   };
   
+  const isPremium = rideType === "premium";
+
   const handleConfirm = () => {
-    // Get trip data from location state
-    const tripData = location.state || {};
     const selectedRideOption = RIDE_OPTIONS.find(opt => opt.id === selectedRide);
-    const fare = selectedRideOption?.fare || "UGX 40,365";
-    
-    // Navigate to Ride Details screen (RA47) before booking
-    navigate("/rides/details/confirm", {
+    const fare = isPremium
+      ? (selectedRideOption?.premiumFare || "UGX 40,365")
+      : (selectedRideOption?.fare || "UGX 28,500");
+
+    // Navigate to searching screen (RA22) to find nearest driver/rider
+    navigate("/rides/searching", {
       state: {
         ...tripData,
         selectedRide,
         rideType,
         fare,
-        distance: tripData.distance || "41.5 km",
-        estimatedTime: tripData.estimatedTime || "1 hr",
-        origin: tripData.pickup ? {
-          name: tripData.pickup,
-          address: tripData.pickupAddress || tripData.pickup,
+        distance,
+        estimatedTime,
+        pickup,
+        destination,
+        passengers,
+        vehicleType: selectedRide === "scooter" ? "motorbike" : "car",
+        vehicleName: selectedRideOption?.name || "EV Car Mini",
+        origin: {
+          name: pickup,
+          address: tripData.pickupAddress || pickup,
           time: tripData.scheduleTime || "Now"
-        } : null,
-        destination: tripData.destination ? {
-          name: tripData.destination,
-          address: tripData.destinationAddress || tripData.destination,
+        },
+        destinationData: {
+          name: destination,
+          address: tripData.destinationAddress || destination,
           time: tripData.arrivalTime || null
-        } : null,
-        passengers: tripData.passengers || 1,
+        },
         dateLabel: tripData.isScheduled ? tripData.schedule : "Today"
       }
     });
@@ -341,7 +484,13 @@ function SelectYourRideScreen(): React.JSX.Element {
       }}
     >
       {/* Map Background */}
-      <MapBackground onBackClick={() => navigate(-1)} />
+      <MapBackground
+        onBackClick={() => navigate(-1)}
+        pickup={pickup}
+        destination={destination}
+        distance={distance}
+        estimatedTime={estimatedTime}
+      />
       
       {/* Content Panel - slides up from bottom */}
       <Box
@@ -360,7 +509,7 @@ function SelectYourRideScreen(): React.JSX.Element {
         }}
       >
         <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-          {/* Header - Ride Summary */}
+          {/* Header - Ride Summary with distance & ETA */}
           <Box sx={{ mb: 2.5 }}>
             <Typography
               variant="h6"
@@ -368,12 +517,23 @@ function SelectYourRideScreen(): React.JSX.Element {
             >
               Select your ride
             </Typography>
-            <Typography
-              variant="body2"
-              sx={{ fontSize: 13, color: theme.palette.text.secondary }}
-            >
-              41.5 km • 1 hr
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <StraightenRoundedIcon sx={{ fontSize: 16, color: theme.palette.text.secondary }} />
+                <Typography variant="body2" sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
+                  {distance}
+                </Typography>
+              </Box>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <AccessTimeRoundedIcon sx={{ fontSize: 16, color: theme.palette.text.secondary }} />
+                <Typography variant="body2" sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
+                  Est. {estimatedTime}
+                </Typography>
+              </Box>
+              <Typography variant="body2" sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
+                • {passengers} {passengers === 1 ? "passenger" : "passengers"}
+              </Typography>
+            </Box>
           </Box>
           
           {/* Ride Type Section */}
@@ -412,7 +572,7 @@ function SelectYourRideScreen(): React.JSX.Element {
                     bgcolor: "#F77F00",
                     color: "#FFFFFF",
                     "&:hover": {
-                      bgcolor: "#1976D2"
+                      bgcolor: "#E06F00"
                     }
                   },
                   "&:not(.Mui-selected)": {
@@ -441,95 +601,10 @@ function SelectYourRideScreen(): React.JSX.Element {
                 option={option}
                 selected={selectedRide}
                 onSelect={setSelectedRide}
+                isPremium={isPremium}
               />
             ))}
           </Box>
-          
-          {/* Payment Method Section */}
-          <Card
-            elevation={0}
-            onClick={() => {
-              // Get fare from selected ride
-              const selectedRideOption = RIDE_OPTIONS.find(opt => opt.id === selectedRide);
-              const fare = selectedRideOption?.fare || "UGX 40,365";
-              
-              // Navigate to payment method selection
-              navigate("/rides/payment", {
-                state: { 
-                  fromSelectRide: true,
-                  selectedRide,
-                  rideType,
-                  distance: "41.5 km",
-                  estimatedTime: "1 hr",
-                  fare: fare
-                }
-              });
-            }}
-            sx={{
-              mb: 2.5,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.5)",
-              border: theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-              transition: "all 0.15s ease",
-              "&:hover": {
-                bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.7)"
-              }
-            }}
-          >
-            <CardContent sx={{ px: 2, py: 1.5 }}>
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                  {paymentMethod === "cash" && (
-                    <PaymentsRoundedIcon 
-                      sx={{ 
-                        fontSize: 24, 
-                        color: "#4CAF50" 
-                      }} 
-                    />
-                  )}
-                  {paymentMethod === "wallet" && (
-                    <AccountBalanceWalletRoundedIcon 
-                      sx={{ 
-                        fontSize: 24, 
-                        color: "#4CAF50" 
-                      }} 
-                    />
-                  )}
-                  {paymentMethod === "card" && (
-                    <CreditCardRoundedIcon 
-                      sx={{ 
-                        fontSize: 24, 
-                        color: "#4CAF50" 
-                      }} 
-                    />
-                  )}
-                  {paymentMethod === "mobile" && (
-                    <SmartphoneRoundedIcon 
-                      sx={{ 
-                        fontSize: 24, 
-                        color: "#4CAF50" 
-                      }} 
-                    />
-                  )}
-                  <Typography
-                    variant="body2"
-                    sx={{ fontWeight: 500, fontSize: 14, textTransform: paymentMethod === "cash" ? "lowercase" : "none" }}
-                  >
-                    {paymentMethodName}
-                  </Typography>
-                </Box>
-                <ChevronRightRoundedIcon 
-                  sx={{ 
-                    fontSize: 20, 
-                    color: theme.palette.text.secondary 
-                  }} 
-                />
-              </Box>
-            </CardContent>
-          </Card>
           
           {/* Confirm Button */}
           <Button
@@ -543,18 +618,18 @@ function SelectYourRideScreen(): React.JSX.Element {
               fontSize: 15,
               fontWeight: 600,
               textTransform: "none",
-              bgcolor: selectedRide ? "#424242" : "rgba(66,66,66,0.3)", // Dark grey instead of black
+              bgcolor: selectedRide ? "#03CD8C" : "rgba(3,205,140,0.3)",
               color: "#FFFFFF",
               "&:hover": {
-                bgcolor: selectedRide ? "#525252" : "rgba(66,66,66,0.3)"
+                bgcolor: selectedRide ? "#22C55E" : "rgba(3,205,140,0.3)"
               },
               "&.Mui-disabled": {
-                bgcolor: "rgba(66,66,66,0.3)",
+                bgcolor: "rgba(3,205,140,0.3)",
                 color: "rgba(255,255,255,0.5)"
               }
             }}
           >
-            Confirm your Ride
+            Search for {selectedRide === "scooter" ? "Rider" : "Driver"}
           </Button>
         </Box>
       </Box>

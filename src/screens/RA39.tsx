@@ -474,16 +474,10 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
                       Business
                     </Box>
                   </MenuItem>
-                  <MenuItem value="Group">
+                  <MenuItem value="Organization">
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <GroupRoundedIcon sx={{ fontSize: 18 }} />
-                      Group
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="Delivery">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <DirectionsCarRoundedIcon sx={{ fontSize: 18 }} />
-                      Delivery
+                      Organization
                     </Box>
                   </MenuItem>
                 </Select>
