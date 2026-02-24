@@ -846,6 +846,121 @@ function EnterDestinationScreen(): React.JSX.Element {
         </Card>
       </Box>
 
+      {/* Route Map Preview - Shows when both pickup and destination are entered */}
+      {pickup.trim() !== "" && destination.trim() !== "" && !isMultiStopMode && (
+        <Box
+          sx={{
+            mx: 2.5,
+            mt: 1.5,
+            mb: 0,
+            borderRadius: 2,
+            overflow: "hidden",
+            border: theme.palette.mode === "light"
+              ? "1px solid rgba(0,0,0,0.1)"
+              : "1px solid rgba(255,255,255,0.1)",
+            bgcolor: theme.palette.mode === "light"
+              ? "#F5F5DC"
+              : "linear-gradient(135deg, #0f1e2e 0%, #1a2d3e 50%, #0f1e2e 100%)"
+          }}
+        >
+          <Box
+            sx={{
+              position: "relative",
+              height: 180,
+              background: theme.palette.mode === "light"
+                ? "#F5F5DC"
+                : "linear-gradient(135deg, #0f1e2e 0%, #1a2d3e 50%, #0f1e2e 100%)",
+              overflow: "hidden"
+            }}
+          >
+            {/* Grid overlay */}
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                opacity: 0.15,
+                backgroundImage:
+                  "linear-gradient(to right, rgba(148,163,184,0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.3) 1px, transparent 1px)",
+                backgroundSize: "30px 30px"
+              }}
+            />
+            {/* Route line */}
+            <Box
+              sx={{
+                position: "absolute",
+                top: "55%",
+                left: "12%",
+                width: "76%",
+                height: 3,
+                bgcolor: "#424242",
+                borderRadius: 2,
+                transform: "rotate(-20deg)",
+                transformOrigin: "left center",
+                zIndex: 1
+              }}
+            />
+            {/* Origin marker (green) */}
+            <Box
+              sx={{
+                position: "absolute",
+                top: "52%",
+                left: "12%",
+                width: 16,
+                height: 16,
+                borderRadius: "50%",
+                bgcolor: "#4CAF50",
+                border: "3px solid #FFFFFF",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+                zIndex: 2,
+                transform: "translate(-50%, -50%)"
+              }}
+            />
+            {/* Destination marker (orange) */}
+            <Box
+              sx={{
+                position: "absolute",
+                top: "30%",
+                left: "88%",
+                width: 16,
+                height: 16,
+                borderRadius: "50%",
+                bgcolor: "#FF9800",
+                border: "3px solid #FFFFFF",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+                zIndex: 2,
+                transform: "translate(-50%, -50%)"
+              }}
+            />
+            {/* Route info label */}
+            <Box
+              sx={{
+                position: "absolute",
+                top: "75%",
+                left: "50%",
+                bgcolor: "rgba(0,0,0,0.7)",
+                borderRadius: 1.5,
+                px: 1.5,
+                py: 0.5,
+                zIndex: 2,
+                transform: "translateX(-50%)"
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "#FFFFFF",
+                  whiteSpace: "nowrap"
+                }}
+              >
+                {pickup} → {destination}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
       {/* Lower Section - White/Light Background */}
       <Box
         sx={{
@@ -885,12 +1000,10 @@ function EnterDestinationScreen(): React.JSX.Element {
                   value={selectedContact ? `contact-${selectedContact.id}` : rideType}
                   onChange={(e) => {
                     const newValue = e.target.value;
-                    if (newValue === "Personal" || newValue === "Business" || newValue === "Group" || newValue === "Delivery") {
+                    if (newValue === "Personal" || newValue === "Business" || newValue === "Organization") {
                       setRideType(newValue);
                       setSelectedContact(null);
                       setRiderType("personal");
-                    } else if (newValue === "add-contact" || newValue === "manual") {
-                      setShowSwitchRiderModal(true);
                     }
                   }}
                   renderValue={(value) => {
@@ -970,28 +1083,10 @@ function EnterDestinationScreen(): React.JSX.Element {
                       Business
                     </Box>
                   </MenuItem>
-                  <MenuItem value="Group">
+                  <MenuItem value="Organization">
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <GroupRoundedIcon sx={{ fontSize: 18 }} />
-                      Group
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="Delivery">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <DirectionsCarRoundedIcon sx={{ fontSize: 18 }} />
-                      Delivery
-                    </Box>
-                  </MenuItem>
-                  <MenuItem 
-                    value="add-contact"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setShowSwitchRiderModal(true);
-                    }}
-                  >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <ContactPhoneRoundedIcon sx={{ fontSize: 18 }} />
-                      Add Contact
+                      Organization
                     </Box>
                   </MenuItem>
                 </Select>
@@ -1437,26 +1532,6 @@ function EnterDestinationScreen(): React.JSX.Element {
           startIcon={<MapRoundedIcon />}
         >
           Locate on Map
-        </Button>
-
-        {/* Test Navigation to Sharing Passengers Screen - Remove in production */}
-        <Button
-          fullWidth
-          onClick={() => navigate("/rides/trip/sharing")}
-          sx={{
-            mb: 1.5,
-            color: accentGreen,
-            textTransform: "none",
-            fontSize: 14,
-            fontWeight: 500,
-            border: "1px solid #03CD8C",
-            "&:hover": {
-              bgcolor: "rgba(3,205,140,0.1)"
-            }
-          }}
-          startIcon={<GroupRoundedIcon />}
-        >
-          View Sharing Passengers (Test)
         </Button>
 
         {/* Continue Button */}

@@ -495,16 +495,10 @@ function EnterDestinationMaxStopsScreen(): React.JSX.Element {
                       Business
                     </Box>
                   </MenuItem>
-                  <MenuItem value="Delivery">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <DirectionsCarRoundedIcon sx={{ fontSize: 18 }} />
-                      Delivery
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="Shared Ride">
+                  <MenuItem value="Organization">
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <GroupRoundedIcon sx={{ fontSize: 18 }} />
-                      Shared Ride
+                      Organization
                     </Box>
                   </MenuItem>
                 </Select>

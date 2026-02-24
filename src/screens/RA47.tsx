@@ -1,5 +1,4 @@
-import React from "react";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import React, { useState } from "react";
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
@@ -11,7 +10,13 @@ import {
   CardContent,
   Button,
   Avatar,
-  Divider
+  Divider,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Stack
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
@@ -21,11 +26,20 @@ import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
-import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
-import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
-import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
-import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+import TwoWheelerRoundedIcon from "@mui/icons-material/TwoWheelerRounded";
+import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
+import SendRoundedIcon from "@mui/icons-material/SendRounded";
+import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import StraightenRoundedIcon from "@mui/icons-material/StraightenRounded";
 import MobileShell from "../components/MobileShell";
+
+// Mock chat messages
+interface ChatMessage {
+  id: string;
+  sender: "user" | "driver";
+  message: string;
+  time: string;
+}
 
 function RideDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -35,33 +49,52 @@ function RideDetailsScreen(): React.JSX.Element {
   // Get trip data from navigation state or use defaults
   const tripData = location.state || {};
   
-  // Mock data - would come from API
+  // Chat state
+  const [showChatDialog, setShowChatDialog] = useState(false);
+  const [chatMessage, setChatMessage] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    { id: "1", sender: "driver", message: "Hello! I'm on my way to your pickup location.", time: "Now" },
+    { id: "2", sender: "user", message: "Great, thank you!", time: "Now" }
+  ]);
+
+  // Vehicle type from trip data
+  const vehicleType = tripData.vehicleType || (tripData.selectedRide === "scooter" ? "motorbike" : "car");
+  const isMotorbike = vehicleType === "motorbike";
+  
+  // Mock data - driver info from search results (RA22)
   const rideDetails = {
     dateLabel: tripData.dateLabel || "Today",
     origin: {
-      name: tripData.origin?.name || "Mbarara",
-      address: tripData.origin?.address || "Former Horizon Bus Terminal, Mbarara, Uganda",
-      time: tripData.origin?.time || "03:00 pm"
+      name: tripData.origin?.name || tripData.pickup || "Current location",
+      address: tripData.origin?.address || tripData.pickup || "Current location, Uganda",
+      time: tripData.origin?.time || "Now"
     },
     destination: {
-      name: tripData.destination?.name || "Kampala City",
-      address: tripData.destination?.address || "Kafu Bus Terminal, Kampala, Uganda",
-      time: tripData.destination?.time || "08:15 pm"
+      name: tripData.destinationData?.name || tripData.destination || "Kampala City",
+      address: tripData.destinationData?.address || tripData.destination || "Kampala, Uganda",
+      time: tripData.destinationData?.time || null
     },
-    duration: tripData.duration || "5h 15min",
+    distance: tripData.distance || "41.5 km",
+    estimatedTime: tripData.estimatedTime || "1 hr",
+    duration: tripData.duration || tripData.estimatedTime || "1 hr",
     passengers: tripData.passengers || 1,
-    fare: tripData.fare || "UGX 121,400",
+    fare: tripData.fare || "UGX 28,500",
+    rideType: tripData.rideType || "standard",
     driver: {
+      id: tripData.driver?.id || "driver_001",
       name: tripData.driver?.name || "Tim Smith",
-      vehicle: tripData.driver?.vehicle || "Tesla Model X",
-      licensePlate: tripData.driver?.licensePlate || "UPL 630",
+      vehicle: tripData.driver?.vehicle || (isMotorbike ? "EV Scooter Pro" : "Tesla Model X"),
+      vehicleType: tripData.driver?.vehicleType || vehicleType,
+      licensePlate: tripData.driver?.licensePlate || (isMotorbike ? "UMC 219" : "UPL 630"),
       rating: tripData.driver?.rating || 4.6,
       totalRatings: tripData.driver?.totalRatings || 157,
       rides: tripData.driver?.rides || "200+",
       experience: tripData.driver?.experience || "4+ years",
-      photo: tripData.driver?.photo || "TS"
-    },
-    vehicleImage: tripData.vehicleImage || null // Would be a URL in production
+      photo: tripData.driver?.photo || "TS",
+      phone: tripData.driver?.phone || "+256 700 123 456",
+      distanceAway: tripData.driver?.distanceAway || "0.8 km",
+      etaMinutes: tripData.driver?.etaMinutes || 3
+    }
   };
 
   const handleBack = () => {
@@ -69,22 +102,37 @@ function RideDetailsScreen(): React.JSX.Element {
   };
 
   const handleCallDriver = () => {
-    // In production: Open phone dialer
-    window.location.href = `tel:+256700000000`;
+    window.location.href = `tel:${rideDetails.driver.phone}`;
   };
 
   const handleMessageDriver = () => {
-    // In production: Open in-app chat
-    navigate("/rides/chat", {
-      state: {
-        driverId: tripData.driverId || "driver_001",
-        driverName: rideDetails.driver.name
-      }
-    });
+    setShowChatDialog(true);
+  };
+
+  const handleSendMessage = () => {
+    if (!chatMessage.trim()) return;
+    const newMsg: ChatMessage = {
+      id: String(chatMessages.length + 1),
+      sender: "user",
+      message: chatMessage,
+      time: "Now"
+    };
+    setChatMessages([...chatMessages, newMsg]);
+    setChatMessage("");
+    
+    // Simulate driver reply after 2 seconds
+    setTimeout(() => {
+      const driverReply: ChatMessage = {
+        id: String(chatMessages.length + 2),
+        sender: "driver",
+        message: "Got it! I'll be there shortly.",
+        time: "Now"
+      };
+      setChatMessages(prev => [...prev, driverReply]);
+    }, 2000);
   };
 
   const handleViewDriverProfile = () => {
-    // Navigate to driver profile screen (RA28)
     navigate("/rides/trip/driver-profile", {
       state: {
         driver: rideDetails.driver,
@@ -93,32 +141,20 @@ function RideDetailsScreen(): React.JSX.Element {
     });
   };
 
-  const handleBookTrip = () => {
-    // Navigate to payment simulation gateway before booking
-    navigate("/payment/process", {
+  const handleProceedToPayment = () => {
+    // Navigate to payment method selection (RA21) with all trip + driver data
+    navigate("/rides/payment", {
       state: {
-        paymentMethod: "wallet",
-        amount: rideDetails.fare,
-        description: `EV Ride – ${rideDetails.origin.name} → ${rideDetails.destination.name}`,
-        returnPath: "/rides/booking/confirmation",
-        cancelPath: "/rides/details/confirm",
-        serviceName: "Ride",
-        extraData: {
-          ...tripData,
-          rideDetails,
-          fromRideDetails: true,
-          selectedRide: tripData.selectedRide,
-          rideType: tripData.rideType,
-          fare: rideDetails.fare,
-          distance: tripData.distance,
-          estimatedTime: tripData.estimatedTime
-        }
+        ...tripData,
+        fromRideDetails: true,
+        rideDetails,
+        fare: rideDetails.fare,
+        driver: rideDetails.driver
       }
     });
   };
 
   const handleNotificationClick = () => {
-    // In production: Open notifications
     navigate("/notifications");
   };
 
@@ -128,6 +164,7 @@ function RideDetailsScreen(): React.JSX.Element {
 
   const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
   const accentGreen = "#03CD8C";
+  const driverLabel = isMotorbike ? "Rider" : "Driver";
 
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: theme.palette.background.default }}>
@@ -162,58 +199,201 @@ function RideDetailsScreen(): React.JSX.Element {
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-            <Typography
+          <Typography
             variant="h6"
-        sx={{
+            sx={{
               fontWeight: 600,
               letterSpacing: "-0.01em",
               color: theme.palette.text.primary
             }}
-                >
-            Ride Details.
-                </Typography>
-              </Box>
+          >
+            Ride Details
+          </Typography>
+        </Box>
         <IconButton
-              size="small"
+          size="small"
           onClick={handleNotificationClick}
-              sx={{
-                borderRadius: 999,
+          sx={{
+            borderRadius: 999,
             bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.9)",
             "&:hover": {
               bgcolor: theme.palette.mode === "light" ? "#E5E7EB" : "rgba(15,23,42,1)"
             }
-              }}
+          }}
         >
           <NotificationsRoundedIcon sx={{ fontSize: 20 }} />
         </IconButton>
       </Box>
 
       <Box sx={{ px: 2.5, pt: 2, pb: 10 }}>
-        {/* Trip Summary Section */}
-      <Card
-        elevation={0}
-        sx={{
+        {/* Matched Driver/Rider Card - Highlighted */}
+        <Card
+          elevation={0}
+          sx={{
             mb: 2.5,
-          borderRadius: 2,
+            borderRadius: 2,
             bgcolor: contentBg,
-            border: theme.palette.mode === "light"
-              ? "1px solid rgba(0,0,0,0.1)"
-              : "1px solid rgba(255,255,255,0.1)"
-        }}
-      >
+            border: `2px solid ${accentGreen}`,
+            overflow: "hidden"
+          }}
+        >
+          <Box sx={{ bgcolor: accentGreen, px: 2, py: 0.8 }}>
+            <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, color: "#FFFFFF", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              Your {driverLabel} • {rideDetails.driver.distanceAway} away
+            </Typography>
+          </Box>
           <CardContent sx={{ px: 2, py: 2 }}>
-            {/* Date Label */}
+            {/* Profile Section */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+              <Avatar
+                sx={{
+                  width: 64,
+                  height: 64,
+                  bgcolor: accentGreen,
+                  fontSize: 24,
+                  fontWeight: 600,
+                  color: "#FFFFFF"
+                }}
+              >
+                {rideDetails.driver.photo}
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography
+                  variant="body1"
+                  sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.5, color: theme.palette.text.primary }}
+                >
+                  {rideDetails.driver.name}
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5 }}>
+                  {isMotorbike ? (
+                    <TwoWheelerRoundedIcon sx={{ fontSize: 16, color: theme.palette.text.secondary }} />
+                  ) : (
+                    <DirectionsCarRoundedIcon sx={{ fontSize: 16, color: theme.palette.text.secondary }} />
+                  )}
+                  <Typography
+                    variant="caption"
+                    sx={{ fontSize: 12, color: theme.palette.text.secondary }}
+                  >
+                    {rideDetails.driver.vehicle} – {rideDetails.driver.licensePlate}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  {Array.from({ length: fullStars }).map((_, i) => (
+                    <StarRoundedIcon key={i} sx={{ fontSize: 14, color: "#FFC107" }} />
+                  ))}
+                  {hasHalfStar && (
+                    <StarRoundedIcon sx={{ fontSize: 14, color: "#FFC107", opacity: 0.5 }} />
+                  )}
+                  {Array.from({ length: 5 - fullStars - (hasHalfStar ? 1 : 0) }).map((_, i) => (
+                    <StarRoundedIcon key={`empty-${i}`} sx={{ fontSize: 14, color: "#D1D5DB" }} />
+                  ))}
+                  <Typography variant="caption" sx={{ fontSize: 11, ml: 0.5, color: theme.palette.text.secondary }}>
+                    {rideDetails.driver.rating} ({rideDetails.driver.totalRatings})
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Driver Stats */}
+            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+              <Box>
+                <Typography variant="caption" sx={{ fontSize: 11, color: theme.palette.text.secondary, display: "block" }}>
+                  Rides
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                  {rideDetails.driver.rides}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" sx={{ fontSize: 11, color: theme.palette.text.secondary, display: "block" }}>
+                  Experience
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                  {rideDetails.driver.experience}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" sx={{ fontSize: 11, color: theme.palette.text.secondary, display: "block" }}>
+                  ETA
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: accentGreen }}>
+                  {rideDetails.driver.etaMinutes} min
+                </Typography>
+              </Box>
+            </Box>
+
+            <Divider sx={{ my: 1.5 }} />
+
+            {/* Action Buttons - Call & Chat */}
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Button
+                variant="outlined"
+                startIcon={<PhoneRoundedIcon sx={{ fontSize: 18 }} />}
+                onClick={handleCallDriver}
+                sx={{
+                  flex: 1,
+                  borderRadius: 999,
+                  textTransform: "none",
+                  fontWeight: 600,
+                  borderColor: accentGreen,
+                  color: accentGreen,
+                  "&:hover": {
+                    borderColor: accentGreen,
+                    bgcolor: "rgba(3,205,140,0.1)"
+                  }
+                }}
+              >
+                Call {driverLabel}
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<MessageRoundedIcon sx={{ fontSize: 18 }} />}
+                onClick={handleMessageDriver}
+                sx={{
+                  flex: 1,
+                  borderRadius: 999,
+                  textTransform: "none",
+                  fontWeight: 600,
+                  borderColor: theme.palette.mode === "light" ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.2)",
+                  color: theme.palette.text.primary,
+                  "&:hover": {
+                    borderColor: accentGreen,
+                    bgcolor: "rgba(3,205,140,0.1)"
+                  }
+                }}
+              >
+                Chat
+              </Button>
+              <IconButton
+                onClick={handleViewDriverProfile}
+                sx={{
+                  borderRadius: 999,
+                  border: theme.palette.mode === "light" ? "1px solid rgba(0,0,0,0.15)" : "1px solid rgba(255,255,255,0.2)",
+                  "&:hover": {
+                    bgcolor: theme.palette.mode === "light" ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)"
+                  }
+                }}
+              >
+                <ChevronRightRoundedIcon sx={{ fontSize: 20 }} />
+              </IconButton>
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Trip Summary Section */}
+        <Card
+          elevation={0}
+          sx={{
+            mb: 2.5,
+            borderRadius: 2,
+            bgcolor: contentBg,
+            border: theme.palette.mode === "light" ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)"
+          }}
+        >
+          <CardContent sx={{ px: 2, py: 2 }}>
             <Typography
               variant="caption"
-              sx={{
-                fontSize: 11,
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                color: theme.palette.text.secondary,
-                mb: 2,
-                display: "block"
-              }}
+              sx={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: theme.palette.text.secondary, mb: 2, display: "block" }}
             >
               {rideDetails.dateLabel}
             </Typography>
@@ -233,61 +413,14 @@ function RideDetailsScreen(): React.JSX.Element {
                   boxShadow: "0 2px 8px rgba(34,197,94,0.4)"
                 }}
               />
-            <Typography
-                variant="body1"
-                sx={{
-                  fontWeight: 600,
-                  letterSpacing: "-0.01em",
-                  mb: 0.5,
-                  color: theme.palette.text.primary
-                }}
-            >
+              <Typography variant="body1" sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.5 }}>
                 {rideDetails.origin.name}
-            </Typography>
-            <Typography
-              variant="caption"
-                sx={{
-                  fontSize: 11,
-                  color: theme.palette.text.secondary,
-                  display: "block",
-                  mb: 0.5
-                }}
-            >
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11, color: theme.palette.text.secondary, display: "block", mb: 0.5 }}>
                 {rideDetails.origin.address}
-            </Typography>
-            <Typography
-                variant="caption"
-                sx={{
-                  fontSize: 11,
-                  fontWeight: 500,
-                  color: theme.palette.text.secondary
-                }}
-            >
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 500, color: theme.palette.text.secondary }}>
                 {rideDetails.origin.time}
-            </Typography>
-          </Box>
-
-            {/* Duration Indicator */}
-            <Box
-              sx={{
-                position: "absolute",
-                left: "50%",
-                transform: "translateX(-50%)",
-                mt: -1,
-                bgcolor: contentBg,
-                px: 1,
-                zIndex: 1
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: theme.palette.text.secondary
-                }}
-              >
-                {rideDetails.duration}
               </Typography>
             </Box>
 
@@ -295,9 +428,9 @@ function RideDetailsScreen(): React.JSX.Element {
             <Box
               sx={{
                 position: "absolute",
-                left: 5,
-                top: 48,
-                bottom: 48,
+                left: 21,
+                top: 100,
+                bottom: 60,
                 width: 2,
                 borderLeft: `2px dashed ${theme.palette.mode === "light" ? "#D1D5DB" : "#4B5563"}`,
                 zIndex: 0
@@ -328,262 +461,54 @@ function RideDetailsScreen(): React.JSX.Element {
                   color: "#FF9800"
                 }}
               />
-              <Typography
-                variant="body1"
-                sx={{
-                  fontWeight: 600,
-                  letterSpacing: "-0.01em",
-                  mb: 0.5,
-                  color: theme.palette.text.primary
-                }}
-              >
+              <Typography variant="body1" sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.5 }}>
                 {rideDetails.destination.name}
               </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontSize: 11,
-                  color: theme.palette.text.secondary,
-                  display: "block",
-                  mb: 0.5
-                }}
-              >
+              <Typography variant="caption" sx={{ fontSize: 11, color: theme.palette.text.secondary, display: "block", mb: 0.5 }}>
                 {rideDetails.destination.address}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontSize: 11,
-                  fontWeight: 500,
-                  color: theme.palette.text.secondary
-                }}
-              >
-                {rideDetails.destination.time}
-              </Typography>
-            </Box>
-        </CardContent>
-      </Card>
-
-        {/* Fare & Passenger Info */}
-      <Card
-        elevation={0}
-        sx={{
-            mb: 2.5,
-          borderRadius: 2,
-            bgcolor: contentBg,
-            border: theme.palette.mode === "light"
-              ? "1px solid rgba(0,0,0,0.1)"
-              : "1px solid rgba(255,255,255,0.1)"
-        }}
-      >
-          <CardContent sx={{ px: 2, py: 1.5 }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontSize: 13,
-                  color: theme.palette.text.secondary
-                }}
-              >
-                Passengers: {rideDetails.passengers} {rideDetails.passengers === 1 ? "Passenger" : "Passengers"}
-              </Typography>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 700,
-                  letterSpacing: "-0.02em",
-                  color: "#22C55E"
-                }}
-              >
-                {rideDetails.fare}
               </Typography>
             </Box>
           </CardContent>
         </Card>
 
-        {/* Driver Information Card */}
+        {/* Fare, Distance & Passenger Info */}
         <Card
           elevation={0}
           sx={{
             mb: 2.5,
             borderRadius: 2,
             bgcolor: contentBg,
-            border: theme.palette.mode === "light"
-              ? "1px solid rgba(0,0,0,0.1)"
-              : "1px solid rgba(255,255,255,0.1)"
+            border: theme.palette.mode === "light" ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)"
           }}
         >
-          <CardContent sx={{ px: 2, py: 2 }}>
-            {/* Profile Section */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-              <Avatar
-                sx={{
-                  width: 64,
-                  height: 64,
-                  bgcolor: accentGreen,
-                  fontSize: 24,
-                  fontWeight: 600,
-                  color: "#FFFFFF"
-                }}
-              >
-                {rideDetails.driver.photo}
-              </Avatar>
-              <Box sx={{ flex: 1 }}>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 600,
-                    letterSpacing: "-0.01em",
-                    mb: 0.5,
-                    color: theme.palette.text.primary
-                  }}
-                >
-                  {rideDetails.driver.name}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontSize: 11,
-                    color: theme.palette.text.secondary,
-                    display: "block",
-                    mb: 0.5
-                  }}
-                >
-                  {rideDetails.driver.vehicle} – {rideDetails.driver.licensePlate}
-                </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                  {Array.from({ length: fullStars }).map((_, i) => (
-                    <StarRoundedIcon key={i} sx={{ fontSize: 14, color: "#FFC107" }} />
-                  ))}
-                  {hasHalfStar && (
-                    <StarRoundedIcon sx={{ fontSize: 14, color: "#FFC107", opacity: 0.5 }} />
-                  )}
-                  {Array.from({ length: 5 - fullStars - (hasHalfStar ? 1 : 0) }).map((_, i) => (
-                    <StarRoundedIcon key={`empty-${i}`} sx={{ fontSize: 14, color: "#D1D5DB" }} />
-                  ))}
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontSize: 11,
-                      ml: 0.5,
-                      color: theme.palette.text.secondary
-                    }}
-                  >
-                    {rideDetails.driver.rating} ({rideDetails.driver.totalRatings} ratings)
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-
-            {/* Driver Stats */}
-            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-              <Box>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontSize: 11,
-                    color: theme.palette.text.secondary,
-                    display: "block"
-                  }}
-                >
-                  Rides
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: 600,
-                    color: theme.palette.text.primary
-                  }}
-                >
-                  {rideDetails.driver.rides}
+          <CardContent sx={{ px: 2, py: 1.5 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+              <Typography variant="body2" sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
+                {rideDetails.passengers} {rideDetails.passengers === 1 ? "Passenger" : "Passengers"}
               </Typography>
-            </Box>
-            <Box>
-              <Typography
-                variant="caption"
-                  sx={{
-                    fontSize: 11,
-                    color: theme.palette.text.secondary,
-                    display: "block"
-                  }}
-              >
-                  Experience
+              <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.02em", color: "#22C55E" }}>
+                {rideDetails.fare}
               </Typography>
-              <Typography
-                variant="body2"
-                  sx={{
-                    fontWeight: 600,
-                    color: theme.palette.text.primary
-                  }}
-                >
-                  {rideDetails.driver.experience}
+            </Stack>
+            <Stack direction="row" spacing={2}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <StraightenRoundedIcon sx={{ fontSize: 16, color: theme.palette.text.secondary }} />
+                <Typography variant="caption" sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
+                  {rideDetails.distance}
                 </Typography>
               </Box>
-            </Box>
-
-            <Divider sx={{ my: 1.5 }} />
-
-            {/* Action Buttons */}
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <Button
-                variant="outlined"
-                startIcon={<PhoneRoundedIcon sx={{ fontSize: 18 }} />}
-                onClick={handleCallDriver}
-                sx={{
-                  flex: 1,
-                  borderRadius: 999,
-                  textTransform: "none",
-                  borderColor: theme.palette.mode === "light"
-                    ? "rgba(0,0,0,0.15)"
-                    : "rgba(255,255,255,0.2)",
-                  color: theme.palette.text.primary,
-                  "&:hover": {
-                    borderColor: accentGreen,
-                    bgcolor: "rgba(3,205,140,0.1)"
-                  }
-                }}
-              >
-                Call
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<MessageRoundedIcon sx={{ fontSize: 18 }} />}
-                onClick={handleMessageDriver}
-                sx={{
-                  flex: 1,
-                  borderRadius: 999,
-                  textTransform: "none",
-                  borderColor: theme.palette.mode === "light"
-                    ? "rgba(0,0,0,0.15)"
-                    : "rgba(255,255,255,0.2)",
-                  color: theme.palette.text.primary,
-                  "&:hover": {
-                    borderColor: accentGreen,
-                    bgcolor: "rgba(3,205,140,0.1)"
-                  }
-                }}
-              >
-                Message
-              </Button>
-              <IconButton
-                onClick={handleViewDriverProfile}
-                sx={{
-                  borderRadius: 999,
-                  border: theme.palette.mode === "light"
-                    ? "1px solid rgba(0,0,0,0.15)"
-                    : "1px solid rgba(255,255,255,0.2)",
-                  "&:hover": {
-                    bgcolor: theme.palette.mode === "light"
-                      ? "rgba(0,0,0,0.05)"
-                      : "rgba(255,255,255,0.05)"
-                  }
-                }}
-              >
-                <ChevronRightRoundedIcon sx={{ fontSize: 20 }} />
-              </IconButton>
-            </Box>
-        </CardContent>
-      </Card>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <AccessTimeRoundedIcon sx={{ fontSize: 16, color: theme.palette.text.secondary }} />
+                <Typography variant="caption" sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
+                  Max {rideDetails.estimatedTime}
+                </Typography>
+              </Box>
+              <Typography variant="caption" sx={{ fontSize: 12, color: "#F77F00", fontWeight: 600 }}>
+                {rideDetails.rideType === "premium" ? "Premium" : "Standard"}
+              </Typography>
+            </Stack>
+          </CardContent>
+        </Card>
 
         {/* Vehicle Preview Section */}
         <Card
@@ -592,15 +517,13 @@ function RideDetailsScreen(): React.JSX.Element {
             mb: 2.5,
             borderRadius: 2,
             bgcolor: contentBg,
-            border: theme.palette.mode === "light"
-              ? "1px solid rgba(0,0,0,0.1)"
-              : "1px solid rgba(255,255,255,0.1)",
+            border: theme.palette.mode === "light" ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)",
             overflow: "hidden"
           }}
         >
           <Box
             sx={{
-              height: 180,
+              height: 140,
               bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.5)",
               display: "flex",
               alignItems: "center",
@@ -608,44 +531,33 @@ function RideDetailsScreen(): React.JSX.Element {
               position: "relative"
             }}
           >
-            {rideDetails.vehicleImage ? (
-              <Box
-                component="img"
-                src={rideDetails.vehicleImage}
-                alt={rideDetails.driver.vehicle}
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover"
-                }}
-              />
-            ) : (
-              <Box
-                sx={{
-                  textAlign: "center",
-                  color: theme.palette.text.secondary
-                }}
-              >
-                <PlaceRoundedIcon sx={{ fontSize: 48, mb: 1, opacity: 0.5 }} />
-                <Typography variant="caption" sx={{ fontSize: 11, display: "block" }}>
-                  {rideDetails.driver.vehicle}
-                </Typography>
-              </Box>
-            )}
+            <Box sx={{ textAlign: "center", color: theme.palette.text.secondary }}>
+              {isMotorbike ? (
+                <TwoWheelerRoundedIcon sx={{ fontSize: 56, mb: 1, opacity: 0.7, color: accentGreen }} />
+              ) : (
+                <DirectionsCarRoundedIcon sx={{ fontSize: 56, mb: 1, opacity: 0.7, color: accentGreen }} />
+              )}
+              <Typography variant="caption" sx={{ fontSize: 12, display: "block", fontWeight: 500 }}>
+                {rideDetails.driver.vehicle}
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11, display: "block", color: theme.palette.text.secondary }}>
+                {rideDetails.driver.licensePlate}
+              </Typography>
+            </Box>
           </Box>
         </Card>
 
-        {/* Book Trip Button */}
-      <Button
-        fullWidth
-        variant="contained"
-          onClick={handleBookTrip}
-        sx={{
-          borderRadius: 999,
+        {/* Proceed to Payment Button */}
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={handleProceedToPayment}
+          sx={{
+            borderRadius: 999,
             py: 1.5,
             fontSize: 16,
-          fontWeight: 600,
-          textTransform: "none",
+            fontWeight: 600,
+            textTransform: "none",
             bgcolor: accentGreen,
             color: "#FFFFFF",
             "&:hover": {
@@ -653,89 +565,130 @@ function RideDetailsScreen(): React.JSX.Element {
             }
           }}
         >
-          Book Trip
+          Proceed to Payment
         </Button>
       </Box>
 
-      {/* Bottom Navigation Bar */}
-      <Box
-        sx={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          bgcolor: contentBg,
-          borderTop: theme.palette.mode === "light"
-            ? "1px solid rgba(0,0,0,0.1)"
-            : "1px solid rgba(255,255,255,0.1)",
-          display: "flex",
-          justifyContent: "space-around",
-          py: 1,
-          zIndex: 100
+      {/* In-App Chat Dialog */}
+      <Dialog
+        open={showChatDialog}
+        onClose={() => setShowChatDialog(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            bgcolor: contentBg,
+            maxHeight: "70vh"
+          }
         }}
       >
-        <IconButton
-          onClick={() => navigate("/")}
-          sx={{
-            color: theme.palette.text.secondary,
-            "&:hover": {
-              bgcolor: theme.palette.mode === "light"
-                ? "rgba(0,0,0,0.05)"
-                : "rgba(255,255,255,0.05)"
-            }
-          }}
-        >
-          <HomeRoundedIcon sx={{ fontSize: 24 }} />
-        </IconButton>
-        <IconButton
-          onClick={() => navigate("/rides/history")}
-          sx={{
-            color: accentGreen,
-            "&:hover": {
-              bgcolor: "rgba(3,205,140,0.1)"
-            }
-          }}
-        >
-          <CalendarTodayRoundedIcon sx={{ fontSize: 24 }} />
-        </IconButton>
-        <IconButton
-          onClick={() => navigate("/wallet")}
-          sx={{
-            color: theme.palette.text.secondary,
-            "&:hover": {
-              bgcolor: theme.palette.mode === "light"
-                ? "rgba(0,0,0,0.05)"
-                : "rgba(255,255,255,0.05)"
-            }
-          }}
-        >
-          <AccountBalanceWalletRoundedIcon sx={{ fontSize: 24 }} />
-        </IconButton>
-        <IconButton
-          onClick={() => navigate("/settings")}
-          sx={{
-            color: theme.palette.text.secondary,
-            "&:hover": {
-              bgcolor: theme.palette.mode === "light"
-                ? "rgba(0,0,0,0.05)"
-                : "rgba(255,255,255,0.05)"
-            }
-        }}
-      >
-          <SettingsRoundedIcon sx={{ fontSize: 24 }} />
-        </IconButton>
-      </Box>
+        <DialogTitle sx={{ fontWeight: 600, pb: 1, display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Avatar
+            sx={{ width: 36, height: 36, bgcolor: accentGreen, fontSize: 14, fontWeight: 600, color: "#FFFFFF" }}
+          >
+            {rideDetails.driver.photo}
+          </Avatar>
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>{rideDetails.driver.name}</Typography>
+            <Typography variant="caption" sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
+              {driverLabel} • Online
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ px: 2, pb: 1 }}>
+          {/* Chat Messages */}
+          <Box sx={{ minHeight: 200, maxHeight: 300, overflow: "auto", mb: 1 }}>
+            {chatMessages.map((msg) => (
+              <Box
+                key={msg.id}
+                sx={{
+                  display: "flex",
+                  justifyContent: msg.sender === "user" ? "flex-end" : "flex-start",
+                  mb: 1
+                }}
+              >
+                <Box
+                  sx={{
+                    maxWidth: "75%",
+                    bgcolor: msg.sender === "user"
+                      ? accentGreen
+                      : theme.palette.mode === "light" ? "#F3F4F6" : "rgba(51,65,85,0.5)",
+                    color: msg.sender === "user" ? "#FFFFFF" : theme.palette.text.primary,
+                    borderRadius: 2,
+                    px: 1.5,
+                    py: 1
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontSize: 13 }}>
+                    {msg.message}
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontSize: 10, opacity: 0.7, display: "block", textAlign: "right", mt: 0.3 }}>
+                    {msg.time}
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
+          </Box>
+
+          {/* Message Input */}
+          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Type a message..."
+              value={chatMessage}
+              onChange={(e) => setChatMessage(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") handleSendMessage();
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 999
+                }
+              }}
+            />
+            <IconButton
+              onClick={handleSendMessage}
+              disabled={!chatMessage.trim()}
+              sx={{
+                bgcolor: accentGreen,
+                color: "#FFFFFF",
+                "&:hover": { bgcolor: "#22C55E" },
+                "&.Mui-disabled": { bgcolor: "rgba(3,205,140,0.3)", color: "rgba(255,255,255,0.5)" }
+              }}
+            >
+              <SendRoundedIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 2, pb: 2 }}>
+          <Button
+            onClick={handleCallDriver}
+            startIcon={<PhoneRoundedIcon />}
+            sx={{ textTransform: "none", color: accentGreen }}
+          >
+            Call instead
+          </Button>
+          <Button
+            onClick={() => setShowChatDialog(false)}
+            sx={{ textTransform: "none" }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
 
 export default function RiderScreen47RideDetailsCanvas_v2() {
-      return (
+  return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (theme) => theme.palette.background.default }}>
-        <DarkModeToggle />
-        <MobileShell>
+      <DarkModeToggle />
+      <MobileShell>
         <RideDetailsScreen />
-        </MobileShell>
-      </Box>
+      </MobileShell>
+    </Box>
   );
 }

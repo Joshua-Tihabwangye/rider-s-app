@@ -32,6 +32,9 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
   // Get trip data from navigation state
   const tripData = location.state || {};
   
+  // Check if this was a cash payment
+  const isCashPayment = tripData.cashPayment === true || tripData.paymentMethod === "cash";
+  
   // Mock driver data - would come from API
   const driverData = {
     name: tripData.driver?.name || "Tim Smith",
@@ -490,27 +493,50 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
             </Button>
           </Stack>
 
-          {/* Payment and Completion Actions */}
-          <Stack spacing={1.5}>
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handlePayNow}
+          {/* Cash payment notice */}
+          {isCashPayment && (
+            <Box
               sx={{
-                borderRadius: 999,
-                py: 1.4,
-                fontSize: 15,
-                fontWeight: 600,
-                textTransform: "none",
-                bgcolor: greenAccent,
-                color: "#FFFFFF",
-                "&:hover": {
-                  bgcolor: "#16A34A"
-                }
+                mb: 2,
+                p: 2,
+                borderRadius: 2,
+                bgcolor: theme.palette.mode === "light" ? "#FFF3E0" : "rgba(255,152,0,0.1)",
+                border: "1px solid rgba(255,152,0,0.3)",
+                textAlign: "center"
               }}
             >
-              Pay Now
-            </Button>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: "#E65100", mb: 0.5 }}>
+                Cash Payment
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
+                Please pay <strong>{tripData.fare || tripData.rideDetails?.fare || "the fare"}</strong> in cash to your {tripData.vehicleType === "motorbike" || tripData.selectedRide === "scooter" ? "rider" : "driver"} at the end of the trip.
+              </Typography>
+            </Box>
+          )}
+
+          {/* Payment and Completion Actions */}
+          <Stack spacing={1.5}>
+            {!isCashPayment && (
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={handlePayNow}
+                sx={{
+                  borderRadius: 999,
+                  py: 1.4,
+                  fontSize: 15,
+                  fontWeight: 600,
+                  textTransform: "none",
+                  bgcolor: greenAccent,
+                  color: "#FFFFFF",
+                  "&:hover": {
+                    bgcolor: "#16A34A"
+                  }
+                }}
+              >
+                Pay Now
+              </Button>
+            )}
             
             <Button
               fullWidth
@@ -522,10 +548,10 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
                 fontSize: 15,
                 fontWeight: 600,
                 textTransform: "none",
-                bgcolor: "#1F2937",
+                bgcolor: isCashPayment ? greenAccent : "#1F2937",
                 color: "#FFFFFF",
                 "&:hover": {
-                  bgcolor: "#111827"
+                  bgcolor: isCashPayment ? "#16A34A" : "#111827"
                 }
               }}
             >

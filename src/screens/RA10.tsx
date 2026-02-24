@@ -54,7 +54,7 @@ function SwitchRiderChooserScreen(): React.JSX.Element {
   const passengers = initialState.passengers || 1;
   
   const passengerOptions = [1, 2, 3, 4, 5, 6];
-  const rideTypeOptions = ["Personal", "Business", "Delivery"];
+  const rideTypeOptions = ["Personal", "Business", "Organization"];
   
   const handleClose = () => {
     setIsOpen(false);
