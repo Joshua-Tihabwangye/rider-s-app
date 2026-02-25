@@ -8,7 +8,6 @@ import {
   Stack,
   Chip,
   Button,
-  Divider,
   Tabs,
   Tab,
   IconButton,
@@ -16,17 +15,15 @@ import {
   MenuItem
 } from "@mui/material";
 
-import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import TrackChangesRoundedIcon from "@mui/icons-material/TrackChangesRounded";
-import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
-import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
-import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import PersonAddRoundedIcon from "@mui/icons-material/PersonAddRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
+import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import Badge from "@mui/material/Badge";
@@ -36,10 +33,136 @@ import DarkModeToggle from "../components/DarkModeToggle";
 import DeliveryCard from "../components/deliveries/DeliveryCard";
 import { COLORS } from "../constants/colors";
 
+// Types for orders
+interface SenderInfo {
+  city: string;
+  code: string;
+  icon: string;
+  name: string;
+  avatar: string;
+  address: string;
+  profileImage?: string | null;
+}
+
+interface ReceiverInfo {
+  city: string;
+  code: string;
+  icon: string;
+}
+
+interface DeliveringOrder {
+  id: string;
+  packageName: string;
+  sender: SenderInfo;
+  receiver: ReceiverInfo;
+  date: Date;
+  status: string;
+  progress: number;
+}
+
+interface ReceivedOrder {
+  id: string;
+  packageName: string;
+  sender: { city: string; code: string; icon: string; name: string; avatar: string; profileImage: string | null };
+  receiver: { city: string; code: string; icon: string };
+  time: string;
+  status: string;
+  progress: number;
+  needsPayment: boolean;
+  paymentMethod?: "gateway" | "cash" | null;
+}
+
+// Initial delivering orders
+const INITIAL_DELIVERING_ORDERS: DeliveringOrder[] = [
+  {
+    id: "WC12564897",
+    packageName: "The Pair of Sneakers",
+    sender: {
+      city: "Atlanta",
+      code: "5243",
+      icon: "A",
+      name: "John Doe",
+      avatar: "JD",
+      address: "123 Main Street, Atlanta, GA 30309, United States"
+    },
+    receiver: { city: "Chicago", code: "6342", icon: "C" },
+    date: new Date(2024, 1, 7),
+    status: "Waiting to accept",
+    progress: 20
+  },
+  {
+    id: "WC12564898",
+    packageName: "Electronics Package",
+    sender: {
+      city: "Kampala",
+      code: "256",
+      icon: "K",
+      name: "Sarah M.",
+      avatar: "SM",
+      address: "45 Nakasero Road, Kampala, Central Region, Uganda"
+    },
+    receiver: { city: "Entebbe", code: "256", icon: "E" },
+    date: new Date(2024, 1, 8),
+    status: "Waiting to accept",
+    progress: 20
+  },
+  {
+    id: "WC12564900",
+    packageName: "Gift Box",
+    sender: {
+      city: "Nairobi",
+      code: "254",
+      icon: "N",
+      name: "Michael K.",
+      avatar: "MK",
+      address: "78 Moi Avenue, Nairobi, Kenya"
+    },
+    receiver: { city: "Kampala", code: "256", icon: "K" },
+    date: new Date(2024, 1, 9),
+    status: "Waiting to accept",
+    progress: 10
+  }
+];
+
+// Initial received/accepted orders
+const INITIAL_RECEIVED_ORDERS: ReceivedOrder[] = [
+  {
+    id: "WC12564899",
+    packageName: "The Pair of Sneakers",
+    sender: { city: "Atlanta", code: "5243", icon: "A", name: "John Doe", avatar: "JD", profileImage: null },
+    receiver: { city: "Chicago", code: "6342", icon: "C" },
+    time: "2 day – 3 days",
+    status: "Waiting to collect",
+    progress: 100,
+    needsPayment: true,
+    paymentMethod: null
+  },
+  {
+    id: "WC12564901",
+    packageName: "Electronics Package",
+    sender: { city: "Kampala", code: "256", icon: "K", name: "Peter W.", avatar: "PW", profileImage: null },
+    receiver: { city: "Entebbe", code: "256", icon: "E" },
+    time: "3 days – 5 days",
+    status: "Waiting to collect",
+    progress: 100,
+    needsPayment: true,
+    paymentMethod: null
+  },
+  {
+    id: "WC12564902",
+    packageName: "Clothing Bundle",
+    sender: { city: "Makerere", code: "256", icon: "M", name: "Mary K.", avatar: "MK", profileImage: null },
+    receiver: { city: "Nsambya", code: "256", icon: "N" },
+    time: "1 day – 2 days",
+    status: "Delivered",
+    progress: 100,
+    needsPayment: false,
+    paymentMethod: "gateway"
+  }
+];
+
 function DeliveryDashboardHomeScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [ctaState, setCtaState] = useState<string>("idle");
-  const [viewMode, setViewMode] = useState<string>("sending");
   const [activeTab, setActiveTab] = useState<string>("delivering");
   const [menuAnchor, setMenuAnchor] = useState<{ open: boolean; anchorEl: HTMLElement | null; orderId: string | null }>({ 
     open: false, 
@@ -47,101 +170,27 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
     orderId: null 
   });
   const [trackingNumber, setTrackingNumber] = useState<string>("");
-  // For demo - can be toggled to show empty states
-  const hasRecentDeliveries = true;
+
+  // Stateful orders so accept/reject updates in-place
+  const [deliveringOrders, setDeliveringOrders] = useState<DeliveringOrder[]>(INITIAL_DELIVERING_ORDERS);
+  const [receivedOrders, setReceivedOrders] = useState<ReceivedOrder[]>(INITIAL_RECEIVED_ORDERS);
+  
+  // Toggle for showing/hiding delivered (completed) items
+  const [showDelivered, setShowDelivered] = useState(false);
 
   const greenPrimary = COLORS.green.primary;
   const greenSecondary = COLORS.green.secondary;
 
-  // Mock delivery orders data - Incoming deliveries
-  const deliveringOrders = [
-    {
-      id: "WC12564897",
-      packageName: "The Pair of Sneakers",
-      sender: {
-        city: "Atlanta",
-        code: "5243",
-        icon: "A",
-        name: "John Doe",
-        avatar: "JD",
-        address: "123 Main Street, Atlanta, GA 30309, United States"
-      },
-      receiver: { city: "Chicago", code: "6342", icon: "C" },
-      date: new Date(2024, 1, 7), // Feb 7, 2024
-      status: "Waiting to accept",
-      progress: 20
-    },
-    {
-      id: "WC12564898",
-      packageName: "Electronics Package",
-      sender: {
-        city: "Kampala",
-        code: "256",
-        icon: "K",
-        name: "Sarah M.",
-        avatar: "SM",
-        address: "45 Nakasero Road, Kampala, Central Region, Uganda"
-      },
-      receiver: { city: "Entebbe", code: "256", icon: "E" },
-      date: new Date(2024, 1, 8), // Feb 8, 2024
-      status: "Request accepted",
-      progress: 60
-    },
-    {
-      id: "WC12564900",
-      packageName: "Gift Box",
-      sender: {
-        city: "Nairobi",
-        code: "254",
-        icon: "N",
-        name: "Michael K.",
-        avatar: "MK",
-        address: "78 Moi Avenue, Nairobi, Kenya"
-      },
-      receiver: { city: "Kampala", code: "256", icon: "K" },
-      date: new Date(2024, 1, 9), // Feb 9, 2024
-      status: "Waiting to accept",
-      progress: 10
-    }
-  ];
-
-  // Count pending deliveries (Waiting to accept)
+  // Counts
   const pendingDeliveriesCount = deliveringOrders.filter(
     (order) => order.status === "Waiting to accept"
   ).length;
-
-  const receivedOrders = [
-    {
-      id: "WC12564899",
-      packageName: "The Pair of Sneakers",
-      sender: { city: "Atlanta", code: "5243", icon: "A", name: "John Doe", avatar: "JD", profileImage: null },
-      receiver: { city: "Chicago", code: "6342", icon: "C" },
-      time: "2 day – 3 days",
-      status: "Waiting to collect",
-      progress: 100,
-      needsPayment: true
-    },
-    {
-      id: "WC12564900",
-      packageName: "Clothing Bundle",
-      sender: { city: "Makerere", code: "256", icon: "M", name: "Mary K.", avatar: "MK", profileImage: null },
-      receiver: { city: "Nsambya", code: "256", icon: "N" },
-      time: "1 day – 2 days",
-      status: "Delivered",
-      progress: 100,
-      needsPayment: false
-    },
-    {
-      id: "WC12564901",
-      packageName: "Electronics Package",
-      sender: { city: "Kampala", code: "256", icon: "K", name: "Peter W.", avatar: "PW", profileImage: null },
-      receiver: { city: "Entebbe", code: "256", icon: "E" },
-      time: "3 days – 5 days",
-      status: "Waiting to collect",
-      progress: 100,
-      needsPayment: true
-    }
-  ];
+  const activeDeliveriesCount = deliveringOrders.length;
+  
+  // Separate received orders into active (not delivered) and delivered
+  const activeReceivedOrders = receivedOrders.filter(o => o.status !== "Delivered");
+  const deliveredOrders = receivedOrders.filter(o => o.status === "Delivered");
+  const activeReceivedCount = activeReceivedOrders.length;
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string): void => {
     setActiveTab(newValue);
@@ -161,29 +210,69 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
   };
 
   const handleInvite = () => {
-    // Navigate to invitations page
     handleMenuClose();
     navigate("/deliveries/invitations");
   };
 
   const handleShare = (): void => {
-    // Handle share action
     console.log("Share for order:", menuAnchor.orderId);
     handleMenuClose();
   };
 
   const handleTrackShipment = () => {
     if (trackingNumber.trim()) {
-      // Navigate to tracking details page - using the tracking number as orderId
-      // The route will handle looking up the order by tracking number
-      navigate(`/deliveries/tracking/${trackingNumber.trim()}/details`, {
-        state: { trackingNumber: trackingNumber.trim() }
+      const searchId = trackingNumber.trim();
+      // Look up order in both delivering and received lists
+      const fromDelivering = deliveringOrders.find(o => o.id === searchId);
+      const fromReceived = receivedOrders.find(o => o.id === searchId);
+      const matchedOrder = fromDelivering
+        ? {
+            id: fromDelivering.id,
+            packageName: fromDelivering.packageName,
+            sender: fromDelivering.sender,
+            receiver: fromDelivering.receiver,
+            date: fromDelivering.date.toISOString(),
+            status: fromDelivering.status,
+            progress: fromDelivering.progress,
+            source: "incoming" as const
+          }
+        : fromReceived
+        ? {
+            id: fromReceived.id,
+            packageName: fromReceived.packageName,
+            sender: fromReceived.sender,
+            receiver: fromReceived.receiver,
+            time: fromReceived.time,
+            status: fromReceived.status,
+            progress: fromReceived.progress,
+            needsPayment: fromReceived.needsPayment,
+            paymentMethod: fromReceived.paymentMethod,
+            source: "accepted" as const
+          }
+        : null;
+
+      navigate(`/deliveries/tracking/${searchId}/details`, {
+        state: { trackingNumber: searchId, order: matchedOrder }
       });
     }
   };
 
-  const handleMakePayment = (orderId: string): void => {
-    // Navigate to payment page with delivery context
+  // Make payment via gateway — after payment, mark as paid and hide Make Payment button
+  const handleMakePayment = (orderId: string, method: "gateway" | "cash"): void => {
+    if (method === "cash") {
+      // Cash: just record it, payment stays active (user pays driver directly)
+      // Nothing changes — the Make Payment button remains visible for cash
+      return;
+    }
+    // Gateway payment: navigate to payment, then on return mark as paid
+    setReceivedOrders(prev =>
+      prev.map(order =>
+        order.id === orderId
+          ? { ...order, needsPayment: false, paymentMethod: "gateway" }
+          : order
+      )
+    );
+    // Simulate navigating to payment gateway and returning
     navigate("/rides/payment", {
       state: {
         type: "delivery",
@@ -193,39 +282,80 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
     });
   };
 
-  const handleAcceptDelivery = (orderId: string): void => {
-    // Navigate to acceptance confirmation or tracking
-    navigate(`/deliveries/tracking/${orderId}/received`, {
-      state: { action: "accept", orderId }
+  // Simple make payment handler that shows payment options
+  const handleMakePaymentClick = (orderId: string): void => {
+    // Navigate to payment — on success it will mark as paid
+    // For simulation, we mark as paid via gateway immediately
+    setReceivedOrders(prev =>
+      prev.map(order =>
+        order.id === orderId
+          ? { ...order, needsPayment: false, paymentMethod: "gateway" }
+          : order
+      )
+    );
+    navigate("/rides/payment", {
+      state: {
+        type: "delivery",
+        orderId: orderId,
+        fromDelivery: true
+      }
     });
   };
 
-  const handleRejectDelivery = (orderId: string): void => {
-    // Show confirmation dialog or navigate to rejection screen
-    if (window.confirm("Are you sure you want to reject this delivery?")) {
-      // Navigate to rejection screen or update order status
-      navigate(`/deliveries/tracking/${orderId}/cancel`, {
-        state: { action: "reject", orderId }
-      });
+  // Accept delivery: remove from Incoming Deliveries and add to Accepted Deliveries
+  const handleAcceptDelivery = (orderId: string): void => {
+    const order = deliveringOrders.find(o => o.id === orderId);
+    if (order) {
+      // Remove from delivering
+      setDeliveringOrders(prev => prev.filter(o => o.id !== orderId));
+      // Add to received/accepted orders
+      const newReceivedOrder: ReceivedOrder = {
+        id: order.id,
+        packageName: order.packageName,
+        sender: {
+          city: order.sender.city,
+          code: order.sender.code,
+          icon: order.sender.icon,
+          name: order.sender.name,
+          avatar: order.sender.avatar,
+          profileImage: order.sender.profileImage || null
+        },
+        receiver: {
+          city: order.receiver.city,
+          code: order.receiver.code,
+          icon: order.receiver.icon
+        },
+        time: "1 day – 3 days",
+        status: "Waiting to collect",
+        progress: 100,
+        needsPayment: true,
+        paymentMethod: null
+      };
+      setReceivedOrders(prev => [newReceivedOrder, ...prev]);
     }
   };
 
-  // Date formatting is now handled by utils/dateUtils
-
-  const handleSendParcel = () => {
-    setCtaState("send");
+  // Reject delivery IN-PLACE: remove from list
+  const handleRejectDelivery = (orderId: string): void => {
+    if (window.confirm("Are you sure you want to reject this delivery?")) {
+      setDeliveringOrders(prev => prev.filter(order => order.id !== orderId));
+    }
   };
 
-  const handleTrackParcel = () => {
-    setCtaState("track");
+  // Mark a received order as delivered (hide it)
+  const handleMarkDelivered = (orderId: string): void => {
+    setReceivedOrders(prev =>
+      prev.map(order =>
+        order.id === orderId
+          ? { ...order, status: "Delivered", needsPayment: false }
+          : order
+      )
+    );
   };
 
-  const handleViewIncoming = () => {
-    navigate("/deliveries/tracking/incoming");
-  };
-
-  const handleViewHistory = () => {
-    setCtaState("history");
+  // Toggle delivered items visibility
+  const handleToggleDelivered = () => {
+    setShowDelivered(prev => !prev);
   };
 
   return (
@@ -265,7 +395,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Send parcels, track EV riders, and see incoming packages
+              Make deliveries, track EV riders, and see incoming packages
             </Typography>
           </Box>
         </Box>
@@ -350,13 +480,13 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
                 color: (t) => t.palette.text.primary
               }}
             >
-              Create new
+              Create new delivery
             </Typography>
           </Stack>
         </CardContent>
       </Card>
 
-      {/* Active summary */}
+      {/* Active summary - Dynamic counts */}
       <Card
         elevation={0}
         sx={{
@@ -394,7 +524,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
                   color: (t) => t.palette.text.primary
                 }}
               >
-                3 active • 5 completed
+                {activeDeliveriesCount} incoming • {activeReceivedCount} accepted • {deliveredOrders.length} completed
               </Typography>
             </Box>
             <Chip
@@ -414,176 +544,90 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
             />
           </Stack>
 
-          <Stack direction="row" spacing={1.25}>
-            <Button
-              fullWidth
-              variant="contained"
-              startIcon={<Inventory2RoundedIcon sx={{ fontSize: 18 }} />}
-              onClick={handleSendParcel}
-              sx={{
-                borderRadius: 999,
-                py: 0.9,
-                fontSize: 13,
-                fontWeight: 600,
-                textTransform: "none",
-                bgcolor: "#7C2D12",
-                color: "#FFFBEB",
-                "&:hover": { bgcolor: "#9A3412" }
-              }}
-            >
-              Send a parcel
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              startIcon={<TrackChangesRoundedIcon sx={{ fontSize: 18 }} />}
-              onClick={handleTrackParcel}
-              sx={{
-                borderRadius: 999,
-                py: 0.9,
-                fontSize: 13,
-                textTransform: "none",
-                borderColor: (t) =>
-                  t.palette.mode === "light"
-                    ? "rgba(120,53,15,0.5)"
-                    : "rgba(251,191,36,0.5)",
-                color: (t) =>
-                  t.palette.mode === "light"
-                    ? "rgba(67,20,7,0.9)"
-                    : "rgba(251,191,36,0.9)",
-                "&:hover": {
-                  borderColor: (t) =>
-                    t.palette.mode === "light"
-                      ? "rgba(120,53,15,0.9)"
-                      : "rgba(251,191,36,0.9)",
-                  bgcolor: (t) =>
-                    t.palette.mode === "light"
-                      ? "rgba(120,53,15,0.06)"
-                      : "rgba(251,191,36,0.1)"
-                }
-              }}
-            >
-              Track a parcel
-            </Button>
-          </Stack>
-
-          {ctaState !== "idle" && (
-            <Box
-              sx={{
-                mt: 1.1,
-                px: 1.1,
-                py: 0.7,
-                borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light"
-                    ? "rgba(255,255,255,0.9)"
-                    : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(248,171,85,0.35)"
-                    : "1px solid rgba(248,171,85,0.7)"
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-              >
-                {ctaState === "send" &&
-                  "Next step: open the delivery creation flow with pickup, drop-off and parcel details (RA59)."}
-                {ctaState === "track" &&
-                  "Next step: open the live tracking view for an active parcel with map, ETA and courier info (RA60–RA63)."}
-                {ctaState === "incoming" &&
-                  "Switch to incoming view and show parcels that are on the way to you (RA51/RA53/RA54)."}
-                {ctaState === "history" &&
-                  "Open the full deliveries history, including sent and received parcels (RA50–RA54/RA68)."}
-              </Typography>
-            </Box>
-          )}
         </CardContent>
       </Card>
 
-      {/* Track Your Shipment Section - Show on both tabs */}
-      {(activeTab === "received" || activeTab === "delivering") && (
-        <Box sx={{ mb: 2.5 }}>
-          <Typography
-            variant="subtitle1"
-            sx={{
-              fontSize: 16,
-              fontWeight: 600,
-              letterSpacing: "-0.01em",
-              mb: 0.5,
-              color: (t) => t.palette.text.primary
-            }}
-          >
-            Track your shipment
-          </Typography>
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 1.5, display: "block" }}
-          >
-            Type your tracking number and find your order.
-          </Typography>
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Order Id"
-            value={trackingNumber}
-            onChange={(e) => setTrackingNumber(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === "Enter") {
-                handleTrackShipment();
+      {/* Track Deliveries and Shipments Section */}
+      <Box sx={{ mb: 2.5 }}>
+        <Typography
+          variant="subtitle1"
+          sx={{
+            fontSize: 16,
+            fontWeight: 600,
+            letterSpacing: "-0.01em",
+            mb: 0.5,
+            color: (t) => t.palette.text.primary
+          }}
+        >
+          Track deliveries and shipments
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 1.5, display: "block" }}
+        >
+          Type your tracking number and find your order.
+        </Typography>
+        <TextField
+          id="tracking-input"
+          fullWidth
+          size="small"
+          placeholder="Order Id"
+          value={trackingNumber}
+          onChange={(e) => setTrackingNumber(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === "Enter") {
+              handleTrackShipment();
+            }
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Inventory2RoundedIcon sx={{ fontSize: 20, color: (t) => t.palette.text.secondary }} />
+              </InputAdornment>
+            ),
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  size="small"
+                  onClick={handleTrackShipment}
+                  sx={{
+                    bgcolor: greenPrimary,
+                    color: "#FFFFFF",
+                    width: 32,
+                    height: 32,
+                    "&:hover": {
+                      bgcolor: greenSecondary
+                    }
+                  }}
+                >
+                  <SearchRoundedIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 2,
+              bgcolor: (t) =>
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+              "& fieldset": {
+                borderColor: (t) =>
+                  t.palette.mode === "light"
+                    ? "rgba(209,213,219,0.9)"
+                    : "rgba(51,65,85,0.9)"
+              },
+              "&:hover fieldset": {
+                borderColor: greenPrimary
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: greenPrimary
               }
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Inventory2RoundedIcon sx={{ fontSize: 20, color: (t) => t.palette.text.secondary }} />
-                </InputAdornment>
-              ),
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    size="small"
-                    onClick={handleTrackShipment}
-                    sx={{
-                      bgcolor: greenPrimary,
-                      color: "#FFFFFF",
-                      width: 32,
-                      height: 32,
-                      "&:hover": {
-                        bgcolor: greenSecondary
-                      }
-                    }}
-                  >
-                    <SearchRoundedIcon sx={{ fontSize: 18 }} />
-                  </IconButton>
-                </InputAdornment>
-              )
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-                "& fieldset": {
-                  borderColor: (t) =>
-                    t.palette.mode === "light"
-                      ? "rgba(209,213,219,0.9)"
-                      : "rgba(51,65,85,0.9)"
-                },
-                "&:hover fieldset": {
-                  borderColor: greenPrimary
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: greenPrimary
-                }
-              }
-            }}
-          />
-        </Box>
-      )}
+            }
+          }}
+        />
+      </Box>
 
-      {/* Tabs: Delivering / Received */}
+      {/* Tabs: Incoming Deliveries / Accepted Deliveries */}
       <Tabs
         value={activeTab}
         onChange={handleTabChange}
@@ -592,7 +636,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
           mb: 2,
           "& .MuiTab-root": {
             textTransform: "none",
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: 600,
             minHeight: 44,
             color: (t) => t.palette.text.secondary,
@@ -625,7 +669,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
                 }
               }}
             >
-              Delivering
+              Incoming Deliveries
             </Badge>
           }
         />
@@ -633,7 +677,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
           value="received"
           label={
             <Badge
-              badgeContent={receivedOrders.length}
+              badgeContent={activeReceivedCount}
               color="error"
               sx={{
                 "& .MuiBadge-badge": {
@@ -646,13 +690,13 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
                 }
               }}
             >
-              Received
+              Accepted Deliveries
             </Badge>
           }
         />
       </Tabs>
 
-      {/* Delivery Cards - Delivering Tab */}
+      {/* Delivery Cards - Incoming Deliveries Tab */}
       {activeTab === "delivering" && (
         <Box sx={{ mb: 2 }}>
           {deliveringOrders.length > 0 ? (
@@ -681,10 +725,10 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
             >
               <CardContent sx={{ py: 4, textAlign: "center" }}>
                 <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
-                  No active deliveries
+                  No incoming deliveries
                 </Typography>
                 <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
-                  Create a new order to get started
+                  New delivery requests will appear here
                 </Typography>
               </CardContent>
             </Card>
@@ -692,17 +736,19 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
         </Box>
       )}
 
-      {/* Delivery Cards - Received Tab */}
+      {/* Delivery Cards - Accepted Deliveries Tab */}
       {activeTab === "received" && (
         <Box sx={{ mb: 2 }}>
-          {receivedOrders.length > 0 ? (
-            receivedOrders.map((order) => (
+          {/* Active (non-delivered) accepted orders */}
+          {activeReceivedOrders.length > 0 ? (
+            activeReceivedOrders.map((order) => (
               <DeliveryCard
                 key={order.id}
                 order={order}
                 variant="received"
                 onMenuClick={handleMenuOpen}
-                onMakePayment={handleMakePayment}
+                onMakePayment={order.paymentMethod === "gateway" ? undefined : handleMakePaymentClick}
+                onMarkDelivered={!order.needsPayment || order.paymentMethod === "gateway" ? handleMarkDelivered : undefined}
                 showTruckIcon={true}
               />
             ))
@@ -721,13 +767,76 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
             >
               <CardContent sx={{ py: 4, textAlign: "center" }}>
                 <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
-                  No received deliveries
+                  No accepted deliveries
                 </Typography>
                 <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
-                  Completed deliveries will appear here
+                  Accept incoming deliveries to see them here
                 </Typography>
               </CardContent>
             </Card>
+          )}
+
+          {/* Show/Hide Delivered Button */}
+          {deliveredOrders.length > 0 && (
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={showDelivered ? <VisibilityOffRoundedIcon sx={{ fontSize: 18 }} /> : <VisibilityRoundedIcon sx={{ fontSize: 18 }} />}
+              onClick={handleToggleDelivered}
+              sx={{
+                mt: 1,
+                mb: 1.5,
+                borderRadius: 2,
+                py: 1,
+                fontSize: 13,
+                fontWeight: 600,
+                textTransform: "none",
+                borderColor: (t) =>
+                  t.palette.mode === "light"
+                    ? "rgba(209,213,219,0.9)"
+                    : "rgba(51,65,85,0.9)",
+                color: (t) => t.palette.text.secondary,
+                "&:hover": {
+                  borderColor: greenPrimary,
+                  color: greenPrimary,
+                  bgcolor: "rgba(3,205,140,0.08)"
+                }
+              }}
+            >
+              {showDelivered
+                ? `Hide delivered (${deliveredOrders.length})`
+                : `Show delivered (${deliveredOrders.length})`}
+            </Button>
+          )}
+
+          {/* Delivered orders - only shown when toggled */}
+          {showDelivered && deliveredOrders.length > 0 && (
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  color: (t) => t.palette.text.secondary,
+                  mb: 1.5,
+                  display: "block"
+                }}
+              >
+                Delivered & Completed
+              </Typography>
+              {deliveredOrders.map((order) => (
+                <Box key={order.id} sx={{ opacity: 0.7 }}>
+                  <DeliveryCard
+                    order={order}
+                    variant="received"
+                    onMenuClick={handleMenuOpen}
+                    showTruckIcon={false}
+                  />
+                </Box>
+              ))}
+            </Box>
           )}
         </Box>
       )}
@@ -759,320 +868,12 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
         </MenuItem>
       </Menu>
 
-      {/* Sending vs Receiving tiles */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.7 }}>
-          <Stack direction="row" spacing={1.3}>
-            <Card
-              elevation={0}
-              sx={{
-                flex: 1,
-                borderRadius: 2,
-                cursor: "pointer",
-                bgcolor:
-                  viewMode === "sending"
-                    ? (t) =>
-                        t.palette.mode === "light"
-                          ? "#FEF3C7"
-                          : "rgba(15,23,42,0.96)"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "#F9FAFB"
-                          : "rgba(15,23,42,0.96)",
-                border:
-                  viewMode === "sending"
-                    ? (t) =>
-                        t.palette.mode === "light"
-                          ? "1px solid rgba(245,158,11,0.7)"
-                          : "1px solid rgba(251,191,36,0.7)"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "1px solid rgba(209,213,219,0.9)"
-                          : "1px solid rgba(51,65,85,0.9)"
-              }}
-              onClick={() => setViewMode("sending")}
-            >
-              <CardContent sx={{ px: 1.4, py: 1.3, position: "relative" }}>
-                <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.5 }}>
-                  <ArrowUpwardRoundedIcon
-                    sx={{ fontSize: 16, color: "#F59E0B", transform: "rotate(45deg)" }}
-                  />
-                <Typography
-                  variant="caption"
-                    sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-                >
-                  Sending
-                </Typography>
-                </Stack>
-                <Typography
-                  variant="body2"
-                  sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
-                >
-                  Next: Bugolobi → Makerere
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-                >
-                  ETA 14:32
-                </Typography>
-                <ArrowForwardIosRoundedIcon
-                  sx={{
-                    fontSize: 14,
-                    color: (t) => t.palette.text.secondary,
-                    opacity: 0.5,
-                    position: "absolute",
-                    right: 12,
-                    top: "50%",
-                    transform: "translateY(-50%)"
-                  }}
-                />
-              </CardContent>
-            </Card>
-
-            <Card
-              elevation={0}
-              sx={{
-                flex: 1,
-                borderRadius: 2,
-                cursor: "pointer",
-                bgcolor:
-                  viewMode === "receiving"
-                    ? (t) =>
-                        t.palette.mode === "light"
-                          ? "#EFF6FF"
-                          : "rgba(15,23,42,0.96)"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "#F9FAFB"
-                          : "rgba(15,23,42,0.96)",
-                border:
-                  viewMode === "receiving"
-                    ? (t) =>
-                        t.palette.mode === "light"
-                          ? "1px solid rgba(59,130,246,0.6)"
-                          : "1px solid rgba(59,130,246,0.7)"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "1px solid rgba(209,213,219,0.9)"
-                          : "1px solid rgba(51,65,85,0.9)"
-              }}
-              onClick={handleViewIncoming}
-            >
-              <CardContent sx={{ px: 1.4, py: 1.3, position: "relative" }}>
-                <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.5 }}>
-                  <ArrowDownwardRoundedIcon
-                    sx={{ fontSize: 16, color: "#03CD8C", transform: "rotate(-45deg)" }}
-                  />
-                <Typography
-                  variant="caption"
-                    sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-                >
-                  Receiving
-                </Typography>
-                </Stack>
-                <Typography
-                  variant="body2"
-                  sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
-                >
-                  Arriving: Kansanga → City centre
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-                >
-                  Arriving today
-                </Typography>
-                <ArrowForwardIosRoundedIcon
-                  sx={{
-                    fontSize: 14,
-                    color: (t) => t.palette.text.secondary,
-                    opacity: 0.5,
-                    position: "absolute",
-                    right: 12,
-                    top: "50%",
-                    transform: "translateY(-50%)"
-                  }}
-                />
-              </CardContent>
-            </Card>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      {/* Recent deliveries */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: 1.5,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.6 }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{ mb: 1 }}
-          >
-            <Stack direction="row" spacing={0.75} alignItems="center">
-              <LocalMallRoundedIcon
-                sx={{ fontSize: 18, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Recent deliveries
-              </Typography>
-            </Stack>
-            <Button
-              variant="text"
-              size="small"
-              onClick={handleViewHistory}
-              sx={{
-                fontSize: 10.5,
-                color: (t) => t.palette.text.secondary,
-                textTransform: "none",
-                minWidth: "auto",
-                px: 1,
-                py: 0.5,
-                "&:hover": {
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "rgba(3,205,140,0.08)" : "rgba(3,205,140,0.15)",
-                  color: "#03CD8C"
-                }
-              }}
-            >
-              View history
-            </Button>
-          </Stack>
-          <Divider sx={{ mb: 1, borderColor: (t) => t.palette.divider }} />
-
-          {hasRecentDeliveries ? (
-            [
-              { route: "Nsambya → EV Hub", status: "Delivered", code: "DLV-001", date: "Today • 14:32", type: "sent" },
-              { route: "Kampala → Entebbe", status: "In transit", code: "DLV-002", date: "Mon • 11:03", type: "sent" },
-              { route: "Makerere → Bugolobi", status: "Delivered", code: "DLV-003", date: "Sun • 09:15", type: "received" }
-            ].map((delivery, i) => (
-            <Box
-              key={i}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                py: 0.6,
-                "&:not(:last-of-type)": {
-                  borderBottom: (t) => `1px dashed ${t.palette.divider}`
-                }
-              }}
-            >
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1 }}>
-                {delivery.type === "sent" ? (
-                  <ArrowUpwardRoundedIcon
-                    sx={{ fontSize: 16, color: "#F59E0B", transform: "rotate(45deg)" }}
-                  />
-                ) : (
-                  <ArrowDownwardRoundedIcon
-                    sx={{ fontSize: 16, color: "#03CD8C", transform: "rotate(-45deg)" }}
-                  />
-                )}
-                <Box sx={{ flex: 1 }}>
-                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.25 }}>
-                <Typography
-                  variant="body2"
-                  sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
-                >
-                      {delivery.route}
-                </Typography>
-                    <Chip
-                      label={delivery.status}
-                      size="small"
-                      sx={{
-                        height: 18,
-                        fontSize: 9,
-                        fontWeight: 600,
-                        bgcolor: delivery.status === "Delivered" ? "#D1FAE5" : "#FEF3C7",
-                        color: delivery.status === "Delivered" ? "#064E3B" : "#78350F"
-                      }}
-                    />
-                  </Stack>
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-                >
-                    {delivery.code} • {delivery.date}
-                </Typography>
-              </Box>
-              </Stack>
-              <ArrowForwardIosRoundedIcon
-                sx={{ fontSize: 14, color: (t) => t.palette.text.secondary, opacity: 0.5 }}
-              />
-            </Box>
-            ))
-          ) : (
-            <Box sx={{ py: 4, textAlign: "center" }}>
-              <Typography
-                variant="body2"
-                sx={{ fontSize: 12, color: (t) => t.palette.text.secondary, mb: 1 }}
-              >
-                No recent deliveries
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, mb: 2, display: "block" }}
-              >
-                Send a parcel or track one using its code
-              </Typography>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={handleSendParcel}
-                sx={{
-                  bgcolor: "#03CD8C",
-                  color: "#FFFFFF",
-                  borderRadius: 999,
-                  px: 2.5,
-                  py: 0.75,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: "none",
-                  "&:hover": {
-                    bgcolor: "#22C55E"
-                  }
-                }}
-              >
-                Send a parcel
-              </Button>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
-
       <Typography
         variant="caption"
         sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
       >
-        The deliveries dashboard helps you send parcels in a few taps, track EV
-        couriers in real time and stay on top of what’s coming to you.
+        The deliveries dashboard helps you make deliveries in a few taps, track EV
+        couriers in real time and stay on top of what's coming to you.
       </Typography>
     </Box>
   );

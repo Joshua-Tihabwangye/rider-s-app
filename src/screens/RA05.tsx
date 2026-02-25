@@ -268,32 +268,6 @@ function EnterDestinationScreen(): React.JSX.Element {
     }
   };
 
-  const handleLocateOnMap = () => {
-    // Create a clean, serializable state object
-    const mapState = {
-      pickup,
-      destination,
-      passengers,
-      rideType,
-      tripType,
-      schedule,
-      riderType,
-      // Ensure selectedContact is a plain object
-      selectedContact: selectedContact 
-        ? {
-            id: selectedContact.id,
-            name: selectedContact.name,
-            relation: selectedContact.relation,
-            phone: selectedContact.phone,
-            initials: selectedContact.initials
-          }
-        : null
-    };
-    
-    navigate("/rides/enter/preferences", {
-      state: mapState
-    });
-  };
 
   const handleContinue = (riderData: {
     riderType?: string;
@@ -1497,7 +1471,7 @@ function EnterDestinationScreen(): React.JSX.Element {
         )}
       </Box>
 
-      {/* Fixed Bottom Section with Locate on Map and Continue Button */}
+      {/* Fixed Bottom Section with Continue Button */}
       <Box
         sx={{
           position: "fixed",
@@ -1515,25 +1489,6 @@ function EnterDestinationScreen(): React.JSX.Element {
           margin: { lg: "0 auto", xl: "0 auto" }
         }}
       >
-        {/* Locate on Map Button */}
-        <Button
-          fullWidth
-          onClick={handleLocateOnMap}
-          sx={{
-            mb: 1.5,
-            color: accentGreen,
-            textTransform: "none",
-            fontSize: 14,
-            fontWeight: 500,
-            "&:hover": {
-              bgcolor: "rgba(3,205,140,0.1)"
-            }
-          }}
-          startIcon={<MapRoundedIcon />}
-        >
-          Locate on Map
-        </Button>
-
         {/* Continue Button */}
         <Button
           fullWidth

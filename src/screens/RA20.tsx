@@ -47,17 +47,6 @@ function MapBackground({ onBackClick, pickup, destination, distance, estimatedTi
         overflow: "hidden"
       }}
     >
-      {/* Grid overlay */}
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          opacity: 0.15,
-          backgroundImage:
-            "linear-gradient(to right, rgba(148,163,184,0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.3) 1px, transparent 1px)",
-          backgroundSize: "30px 30px"
-        }}
-      />
       
       {/* Water body on the right */}
       <Box
@@ -629,7 +618,7 @@ function SelectYourRideScreen(): React.JSX.Element {
               }
             }}
           >
-            Search for {selectedRide === "scooter" ? "Rider" : "Driver"}
+            Continue
           </Button>
         </Box>
       </Box>
