@@ -424,19 +424,6 @@ function RideDetailsScreen(): React.JSX.Element {
               </Typography>
             </Box>
 
-            {/* Visual Route Line (Dotted) */}
-            <Box
-              sx={{
-                position: "absolute",
-                left: 21,
-                top: 100,
-                bottom: 60,
-                width: 2,
-                borderLeft: `2px dashed ${theme.palette.mode === "light" ? "#D1D5DB" : "#4B5563"}`,
-                zIndex: 0
-              }}
-            />
-
             {/* Destination */}
             <Box sx={{ position: "relative", pl: 3 }}>
               <Box

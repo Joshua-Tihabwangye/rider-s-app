@@ -97,6 +97,7 @@ import ToursDashboard from "../screens/ToursDashboard";
 import AmbulanceDashboard from "../screens/AmbulanceDashboard";
 import SchoolDashboard from "../screens/SchoolDashboard";
 import PaymentGatewayPage from "../screens/PaymentGateway";
+import DeliveryCreateForm from "../screens/DeliveryCreateForm";
 
 export default function AppRouter(): React.JSX.Element {
   return (
@@ -171,7 +172,7 @@ export default function AppRouter(): React.JSX.Element {
           <Route path="received" element={<RA51 />} />
           <Route path="received-v2" element={<RA53 />} />
           <Route path="received-v3" element={<RA54 />} />
-          <Route path="new" element={<RA59 />} />
+          <Route path="new" element={<DeliveryCreateForm />} />
           <Route path="tracking/incoming" element={<RA56 />} />
           <Route path="invitations" element={<RA57 />} />
           <Route path="invitations/v2" element={<RA58 />} />

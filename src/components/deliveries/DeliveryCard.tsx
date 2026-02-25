@@ -16,6 +16,7 @@ import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
 import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import { COLORS } from "../../constants/colors";
 import { formatDeliveryDateParts } from "../../utils/dateUtils";
 
@@ -54,6 +55,7 @@ interface DeliveryCardProps {
   onAccept?: (orderId: string) => void;
   onReject?: (orderId: string) => void;
   onMakePayment?: (orderId: string) => void;
+  onMarkDelivered?: (orderId: string) => void;
   showTruckIcon?: boolean;
 }
 
@@ -68,12 +70,14 @@ export default function DeliveryCard({
   onAccept,
   onReject,
   onMakePayment,
+  onMarkDelivered,
   showTruckIcon = false
 }: DeliveryCardProps): React.JSX.Element {
   const greenPrimary = COLORS.green.primary;
   const greenSecondary = COLORS.green.secondary;
   const isReceived = variant === "received";
   const showAcceptReject = variant === "delivering" && order.status === "Waiting to accept";
+  const isDelivered = order.status === "Delivered";
 
   return (
     <Card
@@ -343,7 +347,7 @@ export default function DeliveryCard({
         </Stack>
 
         {/* Status and Progress */}
-        <Stack spacing={1} sx={{ mb: showAcceptReject || order.needsPayment ? 1.5 : 0 }}>
+        <Stack spacing={1} sx={{ mb: showAcceptReject || (order.needsPayment && !isDelivered) || (isReceived && !isDelivered && onMarkDelivered) ? 1.5 : 0 }}>
           <Chip
             label={order.status}
             size="small"
@@ -455,30 +459,59 @@ export default function DeliveryCard({
           </Stack>
         )}
 
-        {/* Make Payment Button - Only for received variant when payment is needed */}
-        {order.needsPayment && isReceived && (
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={() => onMakePayment?.(order.id)}
-            sx={{
-              bgcolor: greenPrimary,
-              color: "#FFFFFF",
-              borderRadius: 2,
-              py: 1.2,
-              fontSize: 13,
-              fontWeight: 600,
-              textTransform: "none",
-              "&:hover": {
-                bgcolor: greenSecondary
-              }
-            }}
-          >
-            Make Payment
-          </Button>
+        {/* Received items action buttons: Make Payment + Mark as Delivered */}
+        {isReceived && !isDelivered && (
+          <Stack spacing={1} sx={{ mt: 1 }}>
+            {/* Make Payment Button */}
+            {order.needsPayment && onMakePayment && (
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={() => onMakePayment(order.id)}
+                sx={{
+                  bgcolor: greenPrimary,
+                  color: "#FFFFFF",
+                  borderRadius: 2,
+                  py: 1.2,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textTransform: "none",
+                  "&:hover": {
+                    bgcolor: greenSecondary
+                  }
+                }}
+              >
+                Make Payment
+              </Button>
+            )}
+
+            {/* Mark as Delivered Button */}
+            {onMarkDelivered && (
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<CheckCircleRoundedIcon sx={{ fontSize: 18 }} />}
+                onClick={() => onMarkDelivered(order.id)}
+                sx={{
+                  borderColor: greenPrimary,
+                  color: greenPrimary,
+                  borderRadius: 2,
+                  py: 1,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textTransform: "none",
+                  "&:hover": {
+                    borderColor: greenSecondary,
+                    bgcolor: "rgba(3,205,140,0.08)"
+                  }
+                }}
+              >
+                Mark as Delivered
+              </Button>
+            )}
+          </Stack>
         )}
       </CardContent>
     </Card>
   );
 }
-
