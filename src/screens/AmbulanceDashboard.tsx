@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -20,24 +21,19 @@ import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 
 function AmbulanceDashboardHomeScreen(): React.JSX.Element {
-  const [ctaState, setCtaState] = useState("idle");
+  const navigate = useNavigate();
   const [forWhom, setForWhom] = useState("me");
 
   const handleRequestNow = () => {
-    setCtaState("urgent");
+    navigate("/ambulance/location", { state: { mode: "urgent", forWhom } });
   };
 
   const handlePlanTransfer = () => {
-    setCtaState("planned");
-  };
-
-  const handleSetForWhom = (value: string): void => {
-    setForWhom(value);
-    setCtaState(`for-${value}`);
+    navigate("/ambulance/book-transfer", { state: { forWhom } });
   };
 
   const handleViewHistory = () => {
-    setCtaState("history");
+    navigate("/ambulance/history");
   };
 
   return (
@@ -154,7 +150,13 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
                 textTransform: "none",
                 bgcolor: "#B91C1C",
                 color: "#FEF2F2",
-                "&:hover": { bgcolor: "#991B1B" }
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  bgcolor: "#991B1B",
+                  transform: "translateY(-1px)",
+                  boxShadow: "0 4px 12px rgba(185,28,28,0.4)"
+                },
+                "&:active": { transform: "translateY(0)" }
               }}
             >
               Request ambulance now
@@ -167,6 +169,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
                 borderRadius: 999,
                 py: 0.9,
                 fontSize: 13,
+                fontWeight: 600,
                 textTransform: "none",
                 borderColor: (t) =>
                   t.palette.mode === "light"
@@ -176,58 +179,23 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
                   t.palette.mode === "light"
                     ? "rgba(88,28,28,0.95)"
                     : "rgba(239,68,68,0.9)",
+                transition: "all 0.2s ease",
+                cursor: "pointer",
                 "&:hover": {
-                  borderColor: (t) =>
-                    t.palette.mode === "light"
-                      ? "rgba(127,29,29,0.9)"
-                      : "rgba(239,68,68,0.9)",
+                  borderColor: "#DC2626",
                   bgcolor: (t) =>
                     t.palette.mode === "light"
-                      ? "rgba(127,29,29,0.06)"
-                      : "rgba(239,68,68,0.1)"
-                }
+                      ? "rgba(220,38,38,0.08)"
+                      : "rgba(239,68,68,0.15)",
+                  transform: "translateY(-1px)",
+                  boxShadow: "0 4px 12px rgba(220,38,38,0.2)"
+                },
+                "&:active": { transform: "translateY(0)" }
               }}
             >
               Plan a transfer
             </Button>
           </Stack>
-
-          {ctaState !== "idle" && (
-            <Box
-              sx={{
-                mt: 1,
-                px: 1.1,
-                py: 0.7,
-                borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light"
-                    ? "rgba(255,255,255,0.9)"
-                    : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(220,38,38,0.35)"
-                    : "1px solid rgba(220,38,38,0.7)"
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-              >
-                {ctaState === "urgent" &&
-                  "Next step: open the urgent ambulance request flow with current location, patient details and priority hospital (RA84–RA86)."}
-                {ctaState === "planned" &&
-                  "Next step: choose date, time and destination hospital for a planned transfer (e.g. RA85 + schedule)."}
-                {ctaState === "for-me" &&
-                  "Preparing a request for you. Ask a nearby adult to assist if possible and stay reachable on this phone."}
-                {ctaState === "for-family" &&
-                  "You’re booking for a family member or friend. In the next step you’ll confirm their contact and location."}
-                {ctaState === "for-facility" &&
-                  "You’re booking from a clinic or hospital. In the next step, confirm ward/bed, referring doctor and destination facility."}
-                {ctaState === "history" &&
-                  "Open your ambulance request history to see previous calls, outcomes and reference IDs (RA88)."}
-              </Typography>
-            </Box>
-          )}
         </CardContent>
       </Card>
 
@@ -266,81 +234,48 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
           </Stack>
 
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
-            <Chip
-              label="Me"
-              size="small"
-              onClick={() => handleSetForWhom("me")}
-              sx={{
-                borderRadius: 999,
-                fontSize: 11,
-                height: 26,
-                bgcolor:
-                  forWhom === "me"
-                    ? "rgba(239,68,68,0.15)"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "#F9FAFB"
-                          : "rgba(15,23,42,0.96)",
-                border:
-                  forWhom === "me"
-                    ? "1px solid #DC2626"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "1px solid rgba(209,213,219,0.9)"
-                          : "1px solid rgba(51,65,85,0.9)",
-                color: (t) => t.palette.text.primary
-              }}
-            />
-            <Chip
-              label="Family / friend"
-              size="small"
-              onClick={() => handleSetForWhom("family")}
-              sx={{
-                borderRadius: 999,
-                fontSize: 11,
-                height: 26,
-                bgcolor:
-                  forWhom === "family"
-                    ? "rgba(239,68,68,0.15)"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "#F9FAFB"
-                          : "rgba(15,23,42,0.96)",
-                border:
-                  forWhom === "family"
-                    ? "1px solid #DC2626"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "1px solid rgba(209,213,219,0.9)"
-                          : "1px solid rgba(51,65,85,0.9)",
-                color: (t) => t.palette.text.primary
-              }}
-            />
-            <Chip
-              label="Clinic / hospital"
-              size="small"
-              onClick={() => handleSetForWhom("facility")}
-              sx={{
-                borderRadius: 999,
-                fontSize: 11,
-                height: 26,
-                bgcolor:
-                  forWhom === "facility"
-                    ? "rgba(239,68,68,0.15)"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "#F9FAFB"
-                          : "rgba(15,23,42,0.96)",
-                border:
-                  forWhom === "facility"
-                    ? "1px solid #DC2626"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "1px solid rgba(209,213,219,0.9)"
-                          : "1px solid rgba(51,65,85,0.9)",
-                color: (t) => t.palette.text.primary
-              }}
-            />
+            {[
+              { id: "me", label: "Me" },
+              { id: "family", label: "Family / friend" },
+              { id: "facility", label: "Clinic / hospital" }
+            ].map((opt) => (
+              <Chip
+                key={opt.id}
+                label={opt.label}
+                size="small"
+                onClick={() => setForWhom(opt.id)}
+                sx={{
+                  borderRadius: 999,
+                  fontSize: 11,
+                  height: 26,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                  bgcolor:
+                    forWhom === opt.id
+                      ? "rgba(239,68,68,0.15)"
+                      : (t) =>
+                          t.palette.mode === "light"
+                            ? "#F9FAFB"
+                            : "rgba(15,23,42,0.96)",
+                  border:
+                    forWhom === opt.id
+                      ? "1px solid #DC2626"
+                      : (t) =>
+                          t.palette.mode === "light"
+                            ? "1px solid rgba(209,213,219,0.9)"
+                            : "1px solid rgba(51,65,85,0.9)",
+                  color: (t) => t.palette.text.primary,
+                  "&:hover": {
+                    bgcolor: forWhom === opt.id
+                      ? "rgba(239,68,68,0.2)"
+                      : (t) =>
+                          t.palette.mode === "light"
+                            ? "rgba(239,68,68,0.06)"
+                            : "rgba(239,68,68,0.08)"
+                  }
+                }}
+              />
+            ))}
           </Stack>
         </CardContent>
       </Card>
@@ -375,21 +310,47 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
             <Typography
               variant="caption"
               onClick={handleViewHistory}
-              sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, cursor: "pointer" }}
+              sx={{
+                fontSize: 10.5,
+                color: (t) => t.palette.text.secondary,
+                cursor: "pointer",
+                transition: "color 0.15s ease",
+                "&:hover": { color: "#DC2626", textDecoration: "underline" }
+              }}
             >
               View history
             </Typography>
           </Stack>
           <Divider sx={{ mb: 1, borderColor: (t) => t.palette.divider }} />
 
-          {[0, 1].map((i) => (
+          {[
+            {
+              id: "AMB-REQ-2025-10-07-001",
+              route: "Nsambya Road 472 → Nsambya Hospital",
+              time: "Today • 14:32 • Completed"
+            },
+            {
+              id: "AMB-REQ-2025-09-25-004",
+              route: "Bugolobi Clinic → Mulago",
+              time: "Last week • 22:15 • Completed"
+            }
+          ].map((req, i) => (
             <Box
-              key={i}
+              key={req.id}
+              onClick={() => navigate(`/ambulance/tracking/${req.id}`)}
               sx={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
                 py: 0.6,
+                cursor: "pointer",
+                borderRadius: 1,
+                px: 0.5,
+                transition: "all 0.15s ease",
+                "&:hover": {
+                  bgcolor: (t) => t.palette.action.hover,
+                  transform: "translateX(2px)"
+                },
                 "&:not(:last-of-type)": {
                   borderBottom: (t) => `1px dashed ${t.palette.divider}`
                 }
@@ -400,9 +361,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
                   variant="body2"
                   sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
                 >
-                  {i === 0
-                    ? "Nsambya Road 472 → Nsambya Hospital"
-                    : "Bugolobi Clinic → Mulago"}
+                  {req.route}
                 </Typography>
                 <Stack direction="row" spacing={0.75} alignItems="center">
                   <AccessTimeRoundedIcon
@@ -412,9 +371,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
                     variant="caption"
                     sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
                   >
-                    {i === 0
-                      ? "Today • 14:32 • Completed"
-                      : "Last week • 22:15 • Completed"}
+                    {req.time}
                   </Typography>
                 </Stack>
               </Box>
@@ -425,16 +382,6 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
           ))}
         </CardContent>
       </Card>
-
-      <Typography
-        variant="caption"
-        sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-      >
-        The ambulance dashboard gives you a calm, focused way to request help in
-        emergencies or plan medical transfers. From here you jump into the
-        detailed flows for location, patient details, hospital selection and live
-        tracking.
-      </Typography>
     </Box>
   );
 }

@@ -242,6 +242,9 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         disabled={!canContinue}
+        onClick={() => navigate("/ambulance/confirmation", {
+          state: { destinationMode, selectedHospital }
+        })}
         sx={{
           borderRadius: 999,
           py: 1.1,
@@ -250,9 +253,13 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
           textTransform: "none",
           bgcolor: canContinue ? "primary.main" : "#9CA3AF",
           color: canContinue ? "#020617" : "#E5E7EB",
+          transition: "all 0.2s ease",
           "&:hover": {
-            bgcolor: canContinue ? "#06e29a" : "#9CA3AF"
-          }
+            bgcolor: canContinue ? "#06e29a" : "#9CA3AF",
+            transform: canContinue ? "translateY(-1px)" : "none",
+            boxShadow: canContinue ? 4 : 0
+          },
+          "&:active": { transform: "translateY(0)" }
         }}
       >
         Continue to request confirmation

@@ -62,15 +62,18 @@ interface Tour {
 
 interface TourCardProps {
   tour: Tour;
+  onSelect?: (tourId: string) => void;
 }
 
-function TourCard({ tour }: TourCardProps): React.JSX.Element {
+function TourCard({ tour, onSelect }: TourCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
+      onClick={() => onSelect?.(tour.id)}
       sx={{
         mb: 1.75,
         borderRadius: 2,
+        cursor: "pointer",
         bgcolor: (t) =>
           t.palette.mode === "light"
             ? "linear-gradient(135deg,#FFFFFF,#F9FAFB)"
@@ -78,7 +81,8 @@ function TourCard({ tour }: TourCardProps): React.JSX.Element {
         border: (t) =>
           t.palette.mode === "light"
             ? "1px solid rgba(209,213,219,0.9)"
-            : "1px solid rgba(51,65,85,0.9)"
+            : "1px solid rgba(51,65,85,0.9)",
+        "&:hover": { borderColor: "primary.main" }
       }}
     >
       <CardContent sx={{ px: 1.75, py: 1.6 }}>
@@ -344,7 +348,9 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
           No tours match your search. Try a different date, city or category.
         </Typography>
       ) : (
-        filteredTours.map((tour) => <TourCard key={tour.id} tour={tour} />)
+        filteredTours.map((tour) => (
+          <TourCard key={tour.id} tour={tour} onSelect={(id) => navigate(`/tours/${id}`)} />
+        ))
       )}
     </Box>
   );

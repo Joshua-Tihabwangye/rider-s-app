@@ -54,9 +54,10 @@ interface Booking {
 
 interface TourBookingCardProps {
   booking: Booking;
+  onViewDetails?: (id: string) => void;
 }
 
-function TourBookingCard({ booking }: TourBookingCardProps): React.JSX.Element {
+function TourBookingCard({ booking, onViewDetails }: TourBookingCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -139,6 +140,7 @@ function TourBookingCard({ booking }: TourBookingCardProps): React.JSX.Element {
           <Button
             size="small"
             variant="outlined"
+            onClick={() => onViewDetails?.(booking.id)}
             sx={{
               borderRadius: 999,
               px: 2,
@@ -248,7 +250,11 @@ function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
         </Typography>
       ) : (
         bookings.map((booking) => (
-          <TourBookingCard key={booking.id} booking={booking} />
+          <TourBookingCard
+            key={booking.id}
+            booking={booking}
+            onViewDetails={(id) => navigate(`/tours/${id}`)}
+          />
         ))
       )}
     </Box>
