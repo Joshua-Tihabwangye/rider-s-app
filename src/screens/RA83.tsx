@@ -163,6 +163,7 @@ function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
               <Button
                 fullWidth
                 variant="contained"
+                onClick={() => navigate("/ambulance/location", { state: { mode: "urgent" } })}
                 sx={{
                   mt: 1,
                   borderRadius: 999,
@@ -172,7 +173,13 @@ function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
                   textTransform: "none",
                   bgcolor: "primary.main",
                   color: "#020617",
-                  "&:hover": { bgcolor: "#06e29a" }
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    bgcolor: "#06e29a",
+                    transform: "translateY(-1px)",
+                    boxShadow: 4
+                  },
+                  "&:active": { transform: "translateY(0)" }
                 }}
               >
                 Request ambulance now
@@ -196,13 +203,20 @@ function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
               <Button
                 fullWidth
                 variant="outlined"
+                onClick={() => navigate("/ambulance/book-transfer")}
                 sx={{
                   mt: 1,
                   borderRadius: 999,
                   py: 1,
                   fontSize: 14,
                   fontWeight: 600,
-                  textTransform: "none"
+                  textTransform: "none",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    transform: "translateY(-1px)",
+                    boxShadow: 2
+                  },
+                  "&:active": { transform: "translateY(0)" }
                 }}
               >
                 Schedule a transfer

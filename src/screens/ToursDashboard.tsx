@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -19,21 +20,16 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 
+// Tour IDs used in routing
+const FEATURED_TOUR_ID = "tour-02"; // Jinja Day Trip
+const UPCOMING_TOURS = [
+  { id: "tour-01", title: "Kampala City EV Highlights", date: "18 Oct • 14:00 – 18:30", guests: "2 adults" },
+  { id: "tour-03", title: "Weekend EV Safari – Lake Mburo", date: "25–26 Oct • 2 days", guests: "4 guests" }
+];
+
 function ToursDashboardHomeScreen(): React.JSX.Element {
-  const [highlightState, setHighlightState] = useState("idle");
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("daytrips");
-
-  const handleBookFeatured = () => {
-    setHighlightState("booking");
-  };
-
-  const handleViewDetails = () => {
-    setHighlightState("details");
-  };
-
-  const handleCreateCustom = () => {
-    setHighlightState("custom");
-  };
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -130,11 +126,11 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             </Typography>
           </Stack>
 
-          <Stack direction="row" spacing={1.25} sx={{ mb: highlightState === "idle" ? 0 : 1 }}>
+          <Stack direction="row" spacing={1.25}>
             <Button
               fullWidth
               variant="contained"
-              onClick={handleBookFeatured}
+              onClick={() => navigate(`/tours/${FEATURED_TOUR_ID}/dates`)}
               sx={{
                 borderRadius: 999,
                 py: 0.9,
@@ -151,7 +147,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             <Button
               fullWidth
               variant="outlined"
-              onClick={handleViewDetails}
+              onClick={() => navigate(`/tours/${FEATURED_TOUR_ID}`)}
               sx={{
                 borderRadius: 999,
                 py: 0.9,
@@ -162,36 +158,6 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               View details
             </Button>
           </Stack>
-
-          {highlightState !== "idle" && (
-            <Box
-              sx={{
-                mt: 0.75,
-                px: 1.1,
-                py: 0.75,
-                borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light"
-                    ? "rgba(255,255,255,0.9)"
-                    : "rgba(15,23,42,0.95)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(59,130,246,0.25)"
-                    : "1px solid rgba(59,130,246,0.6)"
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-              >
-                {highlightState === "booking"
-                  ? "Next step: open the EV Day Trip booking flow (dates & guests)."
-                  : highlightState === "details"
-                  ? "Next step: open the detailed tour page with full itinerary, inclusions and photos."
-                  : "Next step: open the custom tour/charter builder to choose your own dates, destinations and group size."}
-              </Typography>
-            </Box>
-          )}
         </CardContent>
       </Card>
 
@@ -279,21 +245,31 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             </Typography>
             <Typography
               variant="caption"
-              sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, cursor: "pointer" }}
+              onClick={() => navigate("/tours/history")}
+              sx={{
+                fontSize: 10.5,
+                color: (t) => t.palette.text.secondary,
+                cursor: "pointer",
+                "&:hover": { color: "primary.main", textDecoration: "underline" }
+              }}
             >
               View all
             </Typography>
           </Stack>
           <Divider sx={{ mb: 1, borderColor: (t) => t.palette.divider }} />
 
-          {[0, 1].map((i) => (
+          {UPCOMING_TOURS.map((tour) => (
             <Box
-              key={i}
+              key={tour.id}
+              onClick={() => navigate(`/tours/${tour.id}`)}
               sx={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
                 py: 0.6,
+                cursor: "pointer",
+                borderRadius: 1,
+                "&:hover": { bgcolor: (t) => t.palette.action.hover },
                 "&:not(:last-of-type)": {
                   borderBottom: (t) => `1px dashed ${t.palette.divider}`
                 }
@@ -304,9 +280,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
                   variant="body2"
                   sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
                 >
-                  {i === 0
-                    ? "Kampala City EV Highlights"
-                    : "Weekend EV Safari – Lake Mburo"}
+                  {tour.title}
                 </Typography>
                 <Stack direction="row" spacing={0.75} alignItems="center">
                   <CalendarMonthRoundedIcon
@@ -316,9 +290,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
                     variant="caption"
                     sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
                   >
-                    {i === 0
-                      ? "18 Oct • 14:00 – 18:30"
-                      : "25–26 Oct • 2 days"}
+                    {tour.date}
                   </Typography>
                 </Stack>
                 <Stack direction="row" spacing={0.75} alignItems="center">
@@ -329,7 +301,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
                     variant="caption"
                     sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
                   >
-                    {i === 0 ? "2 adults" : "4 guests"}
+                    {tour.guests}
                   </Typography>
                 </Stack>
               </Box>
@@ -368,25 +340,6 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             >
               Custom tour or charter
             </Typography>
-            {highlightState === "custom" && (
-              <Chip
-                size="small"
-                label="Started"
-                sx={{
-                  borderRadius: 999,
-                  fontSize: 10,
-                  height: 22,
-                  bgcolor: (t) =>
-                    t.palette.mode === "light"
-                      ? "rgba(3,205,140,0.12)"
-                      : "rgba(16,185,129,0.2)",
-                  color: (t) =>
-                    t.palette.mode === "light"
-                      ? "#059669"
-                      : "#10B981"
-                }}
-              />
-            )}
           </Stack>
 
           <Typography
@@ -401,7 +354,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             <Button
               fullWidth
               variant="outlined"
-              onClick={handleCreateCustom}
+              onClick={() => navigate("/tours/custom")}
               sx={{
                 borderRadius: 999,
                 py: 0.85,
@@ -414,6 +367,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             <Button
               fullWidth
               variant="outlined"
+              onClick={() => navigate("/tours/quote")}
               sx={{
                 borderRadius: 999,
                 py: 0.85,
@@ -427,6 +381,26 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
           </Stack>
         </CardContent>
       </Card>
+
+      {/* Browse all tours */}
+      <Button
+        fullWidth
+        variant="contained"
+        onClick={() => navigate("/tours/browse")}
+        sx={{
+          borderRadius: 999,
+          py: 1,
+          mb: 1.5,
+          fontSize: 14,
+          fontWeight: 600,
+          textTransform: "none",
+          bgcolor: "primary.main",
+          color: "#020617",
+          "&:hover": { bgcolor: "#06e29a" }
+        }}
+      >
+        Browse all tours
+      </Button>
 
       <Typography
         variant="caption"

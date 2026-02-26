@@ -263,6 +263,7 @@ function TourDetailsScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
+        onClick={() => navigate("/tours/tour-01/dates")}
         sx={{
           borderRadius: 999,
           py: 1.1,

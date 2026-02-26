@@ -177,11 +177,17 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
               fullWidth
               variant="outlined"
               startIcon={<PhoneEnabledRoundedIcon sx={{ fontSize: 18 }} />}
+              onClick={() => window.open("tel:+256800100100")}
               sx={{
                 borderRadius: 999,
                 py: 0.9,
                 fontSize: 13,
-                textTransform: "none"
+                textTransform: "none",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  transform: "translateY(-1px)",
+                  boxShadow: 2
+                }
               }}
             >
               Call control room
@@ -190,11 +196,17 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
               fullWidth
               variant="outlined"
               startIcon={<PhoneIphoneRoundedIcon sx={{ fontSize: 18 }} />}
+              onClick={() => window.open("tel:+256700000001")}
               sx={{
                 borderRadius: 999,
                 py: 0.9,
                 fontSize: 13,
-                textTransform: "none"
+                textTransform: "none",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  transform: "translateY(-1px)",
+                  boxShadow: 2
+                }
               }}
             >
               Call ambulance
@@ -203,12 +215,37 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
         </CardContent>
       </Card>
 
+      <Button
+        fullWidth
+        variant="contained"
+        onClick={() => navigate(`/ambulance/tracking/${requestId}`)}
+        sx={{
+          borderRadius: 999,
+          py: 1,
+          mb: 1.5,
+          fontSize: 14,
+          fontWeight: 600,
+          textTransform: "none",
+          bgcolor: "#B91C1C",
+          color: "#FEF2F2",
+          transition: "all 0.2s ease",
+          "&:hover": {
+            bgcolor: "#991B1B",
+            transform: "translateY(-1px)",
+            boxShadow: "0 4px 12px rgba(185,28,28,0.4)"
+          },
+          "&:active": { transform: "translateY(0)" }
+        }}
+      >
+        Track ambulance live
+      </Button>
+
       <Typography
         variant="caption"
         sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
       >
-        If the patient’s condition changes or you move from this location, use
-        these contact options to update the response team immediately.
+        If the patient's condition changes or you move from this location, use
+        the contact options to update the response team immediately.
       </Typography>
     </Box>
   );

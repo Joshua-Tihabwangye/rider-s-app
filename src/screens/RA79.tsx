@@ -310,6 +310,9 @@ function TourDateGuestsScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         disabled={!canContinue}
+        onClick={() => navigate("/tours/tour-01/summary", {
+          state: { date, timeSlot, adults, children }
+        })}
         sx={{
           borderRadius: 999,
           py: 1.1,

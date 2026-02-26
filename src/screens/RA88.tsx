@@ -56,18 +56,26 @@ interface AmbulanceRequestCardProps {
 }
 
 function AmbulanceRequestCard({ req }: AmbulanceRequestCardProps): React.JSX.Element {
+  const navigate = useNavigate();
   return (
     <Card
       elevation={0}
+      onClick={() => navigate(`/ambulance/tracking/${req.id}`)}
       sx={{
         mb: 1.75,
         borderRadius: 2,
+        cursor: "pointer",
         bgcolor: (t) =>
           t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
         border: (t) =>
           t.palette.mode === "light"
             ? "1px solid rgba(209,213,219,0.9)"
-            : "1px solid rgba(51,65,85,0.9)"
+            : "1px solid rgba(51,65,85,0.9)",
+        transition: "all 0.2s ease",
+        "&:hover": {
+          transform: "translateY(-2px)",
+          boxShadow: 4
+        }
       }}
     >
       <CardContent sx={{ px: 1.75, py: 1.6 }}>
@@ -151,12 +159,21 @@ function AmbulanceRequestCard({ req }: AmbulanceRequestCardProps): React.JSX.Ele
           <Button
             size="small"
             variant="outlined"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/ambulance/tracking/${req.id}`);
+            }}
             sx={{
               borderRadius: 999,
               px: 2,
               py: 0.4,
               fontSize: 12,
-              textTransform: "none"
+              textTransform: "none",
+              transition: "all 0.15s ease",
+              "&:hover": {
+                transform: "translateY(-1px)",
+                boxShadow: 2
+              }
             }}
           >
             View details
