@@ -20,16 +20,22 @@ import {
   DialogContentText,
   DialogActions
 } from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import type { Dayjs } from "dayjs";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
-import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import BoltRoundedIcon from "@mui/icons-material/BoltRounded";
+import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded";
 
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
@@ -48,12 +54,13 @@ function BookTransferScreen(): React.JSX.Element {
   const location = useLocation();
   const passedForWhom = (location.state as { forWhom?: string })?.forWhom || "me";
 
+  const [timingMode, setTimingMode] = useState<"now" | "schedule">("now");
   const [pickupLocation, setPickupLocation] = useState("");
   const [destinationHospital, setDestinationHospital] = useState("");
   const [patientName, setPatientName] = useState("");
   const [patientPhone, setPatientPhone] = useState("");
-  const [transferDate, setTransferDate] = useState("");
-  const [transferTime, setTransferTime] = useState("");
+  const [transferDate, setTransferDate] = useState<Dayjs | null>(null);
+  const [transferTime, setTransferTime] = useState<Dayjs | null>(null);
   const [forWhom, setForWhom] = useState(passedForWhom);
   const [transferReason, setTransferReason] = useState("");
   const [notes, setNotes] = useState("");
@@ -64,14 +71,15 @@ function BookTransferScreen(): React.JSX.Element {
     destinationHospital.trim().length > 0 &&
     patientName.trim().length > 0 &&
     patientPhone.trim().length > 0 &&
-    transferDate.trim().length > 0 &&
-    transferTime.trim().length > 0;
+    (timingMode === "now" ||
+      (transferDate !== null && transferTime !== null));
 
   const handleSubmit = () => {
     setShowSuccess(true);
   };
 
   return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
       {/* Header */}
       <Box
@@ -104,13 +112,13 @@ function BookTransferScreen(): React.JSX.Element {
               variant="subtitle1"
               sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
             >
-              Book a planned transfer
+              Request ambulance
             </Typography>
             <Typography
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Schedule a hospital or clinic transfer in advance
+              Get an ambulance now or schedule one in advance
             </Typography>
           </Box>
         </Box>
@@ -165,6 +173,133 @@ function BookTransferScreen(): React.JSX.Element {
               }
             }}
           />
+        </CardContent>
+      </Card>
+
+      {/* When do you need the ambulance? */}
+      <Card
+        elevation={0}
+        sx={{
+          mb: 2,
+          borderRadius: 2,
+          bgcolor: (t) =>
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          border: (t) =>
+            t.palette.mode === "light"
+              ? "1px solid rgba(209,213,219,0.9)"
+              : "1px solid rgba(51,65,85,0.9)"
+        }}
+      >
+        <CardContent sx={{ px: 1.75, py: 1.75 }}>
+          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+            <AccessTimeRoundedIcon sx={{ fontSize: 18, color: (t) => t.palette.text.secondary }} />
+            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+              When do you need the ambulance?
+            </Typography>
+          </Stack>
+
+          <Stack direction="row" spacing={1.25}>
+            <Button
+              fullWidth
+              variant={timingMode === "now" ? "contained" : "outlined"}
+              onClick={() => setTimingMode("now")}
+              startIcon={<BoltRoundedIcon sx={{ fontSize: 18 }} />}
+              sx={{
+                borderRadius: 999,
+                py: 1,
+                fontSize: 13,
+                fontWeight: timingMode === "now" ? 700 : 600,
+                textTransform: "none",
+                ...(timingMode === "now"
+                  ? {
+                      bgcolor: "#B91C1C",
+                      color: "#FEF2F2",
+                      "&:hover": {
+                        bgcolor: "#991B1B",
+                        transform: "translateY(-1px)",
+                        boxShadow: "0 4px 12px rgba(185,28,28,0.4)"
+                      }
+                    }
+                  : {
+                      borderColor: (t: any) =>
+                        t.palette.mode === "light"
+                          ? "rgba(209,213,219,0.9)"
+                          : "rgba(51,65,85,0.9)",
+                      color: (t: any) => t.palette.text.primary,
+                      "&:hover": {
+                        borderColor: "#DC2626",
+                        bgcolor: (t: any) =>
+                          t.palette.mode === "light"
+                            ? "rgba(220,38,38,0.06)"
+                            : "rgba(239,68,68,0.1)"
+                      }
+                    }),
+                transition: "all 0.2s ease",
+                "&:active": { transform: "translateY(0)" }
+              }}
+            >
+              Now
+            </Button>
+            <Button
+              fullWidth
+              variant={timingMode === "schedule" ? "contained" : "outlined"}
+              onClick={() => setTimingMode("schedule")}
+              startIcon={<ScheduleRoundedIcon sx={{ fontSize: 18 }} />}
+              sx={{
+                borderRadius: 999,
+                py: 1,
+                fontSize: 13,
+                fontWeight: timingMode === "schedule" ? 700 : 600,
+                textTransform: "none",
+                ...(timingMode === "schedule"
+                  ? {
+                      bgcolor: "#B91C1C",
+                      color: "#FEF2F2",
+                      "&:hover": {
+                        bgcolor: "#991B1B",
+                        transform: "translateY(-1px)",
+                        boxShadow: "0 4px 12px rgba(185,28,28,0.4)"
+                      }
+                    }
+                  : {
+                      borderColor: (t: any) =>
+                        t.palette.mode === "light"
+                          ? "rgba(209,213,219,0.9)"
+                          : "rgba(51,65,85,0.9)",
+                      color: (t: any) => t.palette.text.primary,
+                      "&:hover": {
+                        borderColor: "#DC2626",
+                        bgcolor: (t: any) =>
+                          t.palette.mode === "light"
+                            ? "rgba(220,38,38,0.06)"
+                            : "rgba(239,68,68,0.1)"
+                      }
+                    }),
+                transition: "all 0.2s ease",
+                "&:active": { transform: "translateY(0)" }
+              }}
+            >
+              Schedule
+            </Button>
+          </Stack>
+
+          {timingMode === "now" && (
+            <Typography
+              variant="caption"
+              sx={{
+                mt: 1,
+                fontSize: 11,
+                color: "#B91C1C",
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                fontWeight: 600
+              }}
+            >
+              <BoltRoundedIcon sx={{ fontSize: 14 }} />
+              An ambulance will be dispatched immediately after confirmation
+            </Typography>
+          )}
         </CardContent>
       </Card>
 
@@ -325,64 +460,61 @@ function BookTransferScreen(): React.JSX.Element {
             }}
           />
 
-          <Stack direction="row" spacing={1.25} sx={{ mb: 1.2 }}>
-            <TextField
-              fullWidth
-              size="small"
-              type="date"
-              value={transferDate}
-              onChange={(e) => setTransferDate(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <CalendarMonthRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
-                  </InputAdornment>
-                )
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 999,
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                  "& fieldset": {
-                    borderColor: (t) =>
-                      t.palette.mode === "light"
-                        ? "rgba(209,213,219,0.9)"
-                        : "rgba(51,65,85,0.9)"
-                  },
-                  "&:hover fieldset": { borderColor: "primary.main" }
-                }
-              }}
-            />
-            <TextField
-              fullWidth
-              size="small"
-              type="time"
-              value={transferTime}
-              onChange={(e) => setTransferTime(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <AccessTimeRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
-                  </InputAdornment>
-                )
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 999,
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                  "& fieldset": {
-                    borderColor: (t) =>
-                      t.palette.mode === "light"
-                        ? "rgba(209,213,219,0.9)"
-                        : "rgba(51,65,85,0.9)"
-                  },
-                  "&:hover fieldset": { borderColor: "primary.main" }
-                }
-              }}
-            />
-          </Stack>
+          {timingMode === "schedule" && (
+            <Stack direction="row" spacing={1.25} sx={{ mb: 1.2 }}>
+              <DatePicker
+                label="Select date"
+                value={transferDate}
+                onChange={(val) => setTransferDate(val)}
+                disablePast
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    size: "small",
+                    sx: {
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 999,
+                        bgcolor: (t: any) =>
+                          t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+                        "& fieldset": {
+                          borderColor: (t: any) =>
+                            t.palette.mode === "light"
+                              ? "rgba(209,213,219,0.9)"
+                              : "rgba(51,65,85,0.9)"
+                        },
+                        "&:hover fieldset": { borderColor: "primary.main" }
+                      }
+                    }
+                  }
+                }}
+              />
+              <TimePicker
+                label="Select time"
+                value={transferTime}
+                onChange={(val) => setTransferTime(val)}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    size: "small",
+                    sx: {
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 999,
+                        bgcolor: (t: any) =>
+                          t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+                        "& fieldset": {
+                          borderColor: (t: any) =>
+                            t.palette.mode === "light"
+                              ? "rgba(209,213,219,0.9)"
+                              : "rgba(51,65,85,0.9)"
+                        },
+                        "&:hover fieldset": { borderColor: "primary.main" }
+                      }
+                    }
+                  }
+                }}
+              />
+            </Stack>
+          )}
 
           <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block" }}>
             This request is for
@@ -510,15 +642,16 @@ function BookTransferScreen(): React.JSX.Element {
           "&:active": { transform: "translateY(0)" }
         }}
       >
-        Schedule transfer
+        {timingMode === "now" ? "Request ambulance now" : "Schedule transfer"}
       </Button>
 
       <Typography
         variant="caption"
         sx={{ mt: 1.2, fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
       >
-        A partner ambulance will be assigned closer to your scheduled time.
-        You'll receive a confirmation with the driver's details.
+        {timingMode === "now"
+          ? "An ambulance will be dispatched to your pickup location immediately. You'll receive the driver's details shortly."
+          : "A partner ambulance will be assigned closer to your scheduled time. You'll receive a confirmation with the driver's details."}
       </Typography>
 
       {/* Success Dialog */}
@@ -537,15 +670,25 @@ function BookTransferScreen(): React.JSX.Element {
         <DialogTitle sx={{ pb: 0.5 }}>
           <CheckCircleRoundedIcon sx={{ fontSize: 48, color: "#16A34A", mb: 0.5 }} />
           <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.02em" }}>
-            Transfer scheduled
+            {timingMode === "now" ? "Ambulance requested" : "Transfer scheduled"}
           </Typography>
         </DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ fontSize: 13 }}>
-            Your ambulance transfer to <strong>{destinationHospital}</strong> has
-            been scheduled for <strong>{transferDate}</strong> at{" "}
-            <strong>{transferTime}</strong>. You'll receive a confirmation
-            notification shortly.
+            {timingMode === "now" ? (
+              <>
+                Your ambulance to <strong>{destinationHospital}</strong> has been
+                requested and is being dispatched now. You'll receive the driver's
+                details shortly.
+              </>
+            ) : (
+              <>
+                Your ambulance transfer to <strong>{destinationHospital}</strong> has
+                been scheduled for <strong>{transferDate?.format("DD MMM YYYY")}</strong> at{" "}
+                <strong>{transferTime?.format("hh:mm A")}</strong>. You'll receive a confirmation
+                notification shortly.
+              </>
+            )}
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ justifyContent: "center", pb: 2, gap: 1 }}>
@@ -574,6 +717,7 @@ function BookTransferScreen(): React.JSX.Element {
         </DialogActions>
       </Dialog>
     </Box>
+    </LocalizationProvider>
   );
 }
 
