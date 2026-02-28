@@ -81,7 +81,7 @@ import RA84 from "../screens/RA84";
 import RA85 from "../screens/RA85";
 import RA86 from "../screens/RA86";
 import RA87 from "../screens/RA87";
-import RA88 from "../screens/RA88";
+
 import RA89 from "../screens/RA89";
 import RA90 from "../screens/RA90";
 import RA91 from "../screens/RA91";
@@ -228,7 +228,6 @@ export default function AppRouter(): React.JSX.Element {
           <Route path="destination" element={<RA85 />} />
           <Route path="confirmation" element={<RA86 />} />
           <Route path="tracking/:requestId" element={<RA87 />} />
-          <Route path="history" element={<RA88 />} />
         </Route>
 
         {/* Payment Gateway Simulation */}

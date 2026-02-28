@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
@@ -17,8 +17,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogContentText,
-  DialogActions
+  DialogContentText
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -77,6 +76,15 @@ function BookTransferScreen(): React.JSX.Element {
   const handleSubmit = () => {
     setShowSuccess(true);
   };
+
+  useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => {
+        navigate("/ambulance");
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccess, navigate]);
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -654,16 +662,15 @@ function BookTransferScreen(): React.JSX.Element {
           : "A partner ambulance will be assigned closer to your scheduled time. You'll receive a confirmation with the driver's details."}
       </Typography>
 
-      {/* Success Dialog */}
+      {/* Success Dialog — auto-redirects after 2.5s */}
       <Dialog
         open={showSuccess}
-        onClose={() => setShowSuccess(false)}
         PaperProps={{
           sx: {
             borderRadius: 3,
             maxWidth: 340,
             textAlign: "center",
-            p: 1
+            p: 2
           }
         }}
       >
@@ -690,31 +697,13 @@ function BookTransferScreen(): React.JSX.Element {
               </>
             )}
           </DialogContentText>
+          <Typography
+            variant="caption"
+            sx={{ mt: 1.5, fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
+          >
+            Redirecting to dashboard...
+          </Typography>
         </DialogContent>
-        <DialogActions sx={{ justifyContent: "center", pb: 2, gap: 1 }}>
-          <Button
-            variant="contained"
-            onClick={() => navigate("/ambulance")}
-            sx={{
-              borderRadius: 999,
-              px: 3,
-              textTransform: "none",
-              fontWeight: 600,
-              bgcolor: "#B91C1C",
-              color: "#FEF2F2",
-              "&:hover": { bgcolor: "#991B1B" }
-            }}
-          >
-            Back to dashboard
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => navigate("/ambulance/history")}
-            sx={{ borderRadius: 999, px: 3, textTransform: "none" }}
-          >
-            View bookings
-          </Button>
-        </DialogActions>
       </Dialog>
     </Box>
     </LocalizationProvider>

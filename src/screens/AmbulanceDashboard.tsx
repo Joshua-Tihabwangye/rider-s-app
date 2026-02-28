@@ -26,6 +26,7 @@ import BadgeRoundedIcon from "@mui/icons-material/BadgeRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import PendingRoundedIcon from "@mui/icons-material/PendingRounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
+import MapRoundedIcon from "@mui/icons-material/MapRounded";
 
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
@@ -172,6 +173,7 @@ const statusConfig: Record<AmbulanceRequest["status"], { color: string; bgcolor:
 function AmbulanceDashboardHomeScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showPastRequests, setShowPastRequests] = useState(false);
 
   const handleRequestAmbulance = () => {
     navigate("/ambulance/book-transfer");
@@ -180,6 +182,10 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
   const handleToggleDetails = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
+
+  const activeRequests = AMBULANCE_REQUESTS.filter((r) => r.status !== "Completed");
+  const pastRequests = AMBULANCE_REQUESTS.filter((r) => r.status === "Completed");
+  const displayedRequests = showPastRequests ? AMBULANCE_REQUESTS : activeRequests;
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -322,24 +328,63 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
           >
             Ambulance requests
           </Typography>
-          <Chip
-            size="small"
-            label={`${AMBULANCE_REQUESTS.length} total`}
-            sx={{
-              borderRadius: 999,
-              fontSize: 10,
-              height: 22,
-              bgcolor: (t) =>
-                t.palette.mode === "light"
-                  ? "rgba(220,38,38,0.08)"
-                  : "rgba(239,68,68,0.12)",
-              color: "#DC2626",
-              fontWeight: 600
-            }}
-          />
+          <Stack direction="row" spacing={0.75} alignItems="center">
+            <Chip
+              size="small"
+              label={`${displayedRequests.length} shown`}
+              sx={{
+                borderRadius: 999,
+                fontSize: 10,
+                height: 22,
+                bgcolor: (t) =>
+                  t.palette.mode === "light"
+                    ? "rgba(220,38,38,0.08)"
+                    : "rgba(239,68,68,0.12)",
+                color: "#DC2626",
+                fontWeight: 600
+              }}
+            />
+            <Button
+              size="small"
+              variant={showPastRequests ? "contained" : "outlined"}
+              onClick={() => setShowPastRequests((prev) => !prev)}
+              sx={{
+                borderRadius: 999,
+                px: 1.5,
+                py: 0.3,
+                fontSize: 10.5,
+                fontWeight: 600,
+                textTransform: "none",
+                minWidth: 0,
+                ...(showPastRequests
+                  ? {
+                      bgcolor: "#B91C1C",
+                      color: "#FEF2F2",
+                      "&:hover": { bgcolor: "#991B1B" }
+                    }
+                  : {
+                      borderColor: (t: any) =>
+                        t.palette.mode === "light"
+                          ? "rgba(209,213,219,0.9)"
+                          : "rgba(51,65,85,0.9)",
+                      color: (t: any) => t.palette.text.secondary,
+                      "&:hover": {
+                        borderColor: "#DC2626",
+                        color: "#DC2626",
+                        bgcolor: "rgba(220,38,38,0.06)"
+                      }
+                    }),
+                transition: "all 0.2s ease"
+              }}
+            >
+              {showPastRequests
+                ? `Hide past (${pastRequests.length})`
+                : `Show past (${pastRequests.length})`}
+            </Button>
+          </Stack>
         </Stack>
 
-        {AMBULANCE_REQUESTS.map((req) => {
+        {displayedRequests.map((req) => {
           const isExpanded = expandedId === req.id;
           const sc = statusConfig[req.status];
 
@@ -547,55 +592,34 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
                     </Box>
                   </Box>
 
-                  {/* Action buttons */}
-                  {(req.status === "In Transit" || req.status === "Scheduled") && (
-                    <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
-                      {req.driver.phone !== "—" && (
-                        <Button
-                          fullWidth
-                          size="small"
-                          variant="outlined"
-                          onClick={() => window.location.href = `tel:${req.driver.phone.replace(/\s/g, "")}`}
-                          startIcon={<PhoneIphoneRoundedIcon sx={{ fontSize: 16 }} />}
-                          sx={{
-                            borderRadius: 999,
-                            py: 0.6,
-                            fontSize: 11,
-                            textTransform: "none",
-                            fontWeight: 600,
-                            borderColor: "#F59E0B",
-                            color: "#F59E0B",
-                            "&:hover": {
-                              borderColor: "#D97706",
-                              bgcolor: "rgba(245,158,11,0.08)"
-                            }
-                          }}
-                        >
-                          Call driver
-                        </Button>
-                      )}
-                      {req.status === "In Transit" && (
-                        <Button
-                          fullWidth
-                          size="small"
-                          variant="contained"
-                          onClick={() => navigate(`/ambulance/tracking/${req.id}`)}
-                          startIcon={<LocalShippingRoundedIcon sx={{ fontSize: 16 }} />}
-                          sx={{
-                            borderRadius: 999,
-                            py: 0.6,
-                            fontSize: 11,
-                            textTransform: "none",
-                            fontWeight: 600,
-                            bgcolor: "#B91C1C",
-                            color: "#FEF2F2",
-                            "&:hover": { bgcolor: "#991B1B" }
-                          }}
-                        >
-                          Track live
-                        </Button>
-                      )}
-                    </Stack>
+                  {/* Track the movement button */}
+                  {req.status !== "Completed" && (
+                    <Button
+                      fullWidth
+                      size="small"
+                      variant="contained"
+                      onClick={() => navigate(`/ambulance/tracking/${req.id}`, { state: { request: req } })}
+                      startIcon={<MapRoundedIcon sx={{ fontSize: 16 }} />}
+                      sx={{
+                        mt: 1.5,
+                        borderRadius: 999,
+                        py: 0.7,
+                        fontSize: 12,
+                        textTransform: "none",
+                        fontWeight: 700,
+                        bgcolor: "#B91C1C",
+                        color: "#FEF2F2",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          bgcolor: "#991B1B",
+                          transform: "translateY(-1px)",
+                          boxShadow: "0 4px 12px rgba(185,28,28,0.4)"
+                        },
+                        "&:active": { transform: "translateY(0)" }
+                      }}
+                    >
+                      Track the movement
+                    </Button>
                   )}
                 </Collapse>
               </CardContent>
