@@ -1,31 +1,84 @@
 import React, { useState } from "react";
 import DarkModeToggle from "../components/DarkModeToggle";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
-  
   Box,
   IconButton,
   Typography,
   Card,
   CardContent,
   Stack,
+  Chip,
   Button,
   Divider
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
+import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+import BusinessRoundedIcon from "@mui/icons-material/BusinessRounded";
+import CorporateFareRoundedIcon from "@mui/icons-material/CorporateFareRounded";
+import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
+import BatteryChargingFullRoundedIcon from "@mui/icons-material/BatteryChargingFullRounded";
+import LocalGasStationRoundedIcon from "@mui/icons-material/LocalGasStationRounded";
+import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 
 import MobileShell from "../components/MobileShell";
 
+const formatPrice = (amount: number): string => `UGX ${amount.toLocaleString()}`;
+
+const bookerTypeLabels: Record<string, { label: string; icon: React.ReactNode }> = {
+  individual: { label: "Individual", icon: <PersonRoundedIcon sx={{ fontSize: 16 }} /> },
+  organization: { label: "Organization", icon: <CorporateFareRoundedIcon sx={{ fontSize: 16 }} /> },
+  business: { label: "Business", icon: <BusinessRoundedIcon sx={{ fontSize: 16 }} /> }
+};
+
+const fuelIcons: Record<string, React.ReactNode> = {
+  EV: <BatteryChargingFullRoundedIcon sx={{ fontSize: 16, color: "#16A34A" }} />,
+  Petrol: <LocalGasStationRoundedIcon sx={{ fontSize: 16, color: "#F59E0B" }} />,
+  Diesel: <LocalGasStationRoundedIcon sx={{ fontSize: 16, color: "#6366F1" }} />,
+  Hybrid: <ElectricCarRoundedIcon sx={{ fontSize: 16, color: "#0EA5E9" }} />
+};
+
 function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as {
+    vehicle?: any;
+    bookerType?: string;
+    driverOption?: string;
+    rentalPeriod?: string;
+    days?: number;
+    pickupLocation?: string;
+    returnLocation?: string;
+    extras?: { addGps?: boolean; addChildSeat?: boolean; addInsurancePlus?: boolean };
+    totalCost?: number;
+  } | null;
+
+  const vehicle = state?.vehicle;
+  const bookerType = state?.bookerType || "individual";
+  const driverOption = state?.driverOption || "self";
+  const days = state?.days || 3;
+  const pickupLocation = state?.pickupLocation || "Nsambya Hub";
+  const returnLocation = state?.returnLocation || pickupLocation;
+  const extras = state?.extras || {};
+  const totalCost = state?.totalCost || 580000;
+  const deposit = vehicle?.deposit || 300000;
+
   const [paymentMethod, setPaymentMethod] = useState("wallet");
+
+  const vehicleName = vehicle?.name || "Nissan Leaf";
+  const vehicleCategory = vehicle?.category || "Hatchback";
+  const vehicleFuelType = vehicle?.fuelType || "EV";
+  const vehicleSeats = vehicle?.seats || 5;
+  const vehicleRange = vehicle?.range || "220 km";
+
+  const bt = bookerTypeLabels[bookerType] || bookerTypeLabels.individual;
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -66,7 +119,7 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Nissan Leaf • Self-drive • 3 days
+              {vehicleName} • {driverOption === "with-driver" ? "With driver" : "Self-drive"} • {days} {days === 1 ? "day" : "days"}
             </Typography>
           </Box>
         </Box>
@@ -76,7 +129,7 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2,
+          mb: 1.5,
           borderRadius: 2,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
@@ -86,61 +139,82 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
+        <CardContent sx={{ px: 1.75, py: 1.5, "&:last-child": { pb: 1.5 } }}>
           <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.2 }}>
-            <Box
-              sx={{
-                width: 44,
-                height: 44,
-                borderRadius: 999,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#E0F2FE" : "rgba(15,23,42,0.9)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-            >
-              <ElectricCarRoundedIcon sx={{ fontSize: 26, color: "primary.main" }} />
-            </Box>
+            {vehicle?.image ? (
+              <Box
+                component="img"
+                src={vehicle.image}
+                alt={vehicleName}
+                sx={{ width: 60, height: 44, borderRadius: 1.5, objectFit: "cover" }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 999,
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "#E0F2FE" : "rgba(15,23,42,0.9)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
+                <DirectionsCarRoundedIcon sx={{ fontSize: 26, color: "primary.main" }} />
+              </Box>
+            )}
             <Box>
-              <Typography
-                variant="body2"
-                sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                Nissan Leaf • EV hatchback
+              <Typography variant="body2" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
+                {vehicleName} • {vehicleCategory}
               </Typography>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Self-drive • 5 seats • 220 km range
-              </Typography>
+              <Stack direction="row" spacing={1} alignItems="center">
+                {fuelIcons[vehicleFuelType]}
+                <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
+                  {vehicleFuelType} • {vehicleSeats} seats • {vehicleRange}
+                </Typography>
+              </Stack>
             </Box>
           </Stack>
 
-          <Stack spacing={0.4} sx={{ mb: 0.8 }}>
+          {/* Booking details */}
+          <Stack spacing={0.4}>
             <Stack direction="row" spacing={0.75} alignItems="center">
-              <CalendarMonthRoundedIcon
-                sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Thu, 10 Oct 10:00 → Sun, 13 Oct 10:00 (3 days)
+              {bt.icon}
+              <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
+                Booking type: {bt.label}
               </Typography>
             </Stack>
             <Stack direction="row" spacing={0.75} alignItems="center">
-              <PlaceRoundedIcon
-                sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Pickup: Nsambya EV Hub • Return: Bugolobi EV Hub
+              <DirectionsCarRoundedIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+              <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
+                {driverOption === "with-driver" ? "With professional driver" : "Self-drive (driver's license required)"}
               </Typography>
             </Stack>
+            <Stack direction="row" spacing={0.75} alignItems="center">
+              <CalendarMonthRoundedIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+              <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
+                {days} {days === 1 ? "day" : "days"} rental
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={0.75} alignItems="center">
+              <PlaceRoundedIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+              <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
+                Pickup: {pickupLocation} • Return: {returnLocation}
+              </Typography>
+            </Stack>
+            {extras.addGps && (
+              <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary", pl: 2.75 }}>+ GPS navigation</Typography>
+            )}
+            {extras.addChildSeat && (
+              <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary", pl: 2.75 }}>+ Child seat</Typography>
+            )}
+            {extras.addInsurancePlus && (
+              <Stack direction="row" spacing={0.75} alignItems="center">
+                <ShieldRoundedIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>Premium insurance</Typography>
+              </Stack>
+            )}
           </Stack>
         </CardContent>
       </Card>
@@ -149,7 +223,7 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2,
+          mb: 1.5,
           borderRadius: 2,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
@@ -159,45 +233,22 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 1, display: "block" }}
-          >
+        <CardContent sx={{ px: 1.75, py: 1.5, "&:last-child": { pb: 1.5 } }}>
+          <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary", mb: 0.75, display: "block" }}>
             Price breakdown
           </Typography>
-          <Stack spacing={0.4}>
+          <Stack spacing={0.35}>
             <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Rental (3 days × UGX 180,000)
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                UGX 540,000
-              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11 }}>Rental + extras</Typography>
+              <Typography variant="caption" sx={{ fontSize: 11 }}>{formatPrice(totalCost)}</Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                One‑way drop‑off fee
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                UGX 40,000
-              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11 }}>Refundable deposit</Typography>
+              <Typography variant="caption" sx={{ fontSize: 11 }}>{formatPrice(deposit)}</Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Insurance & roadside support
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Included
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Refundable deposit
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                UGX 300,000
-              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11 }}>Insurance & roadside support</Typography>
+              <Typography variant="caption" sx={{ fontSize: 11, color: "#16A34A" }}>Included</Typography>
             </Stack>
           </Stack>
 
@@ -205,19 +256,18 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
 
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Box>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase" }}
-              >
+              <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase" }}>
                 Total due now
               </Typography>
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 700, letterSpacing: "-0.02em" }}
-              >
-                UGX 580,000
+              <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.02em" }}>
+                {formatPrice(totalCost + deposit)}
               </Typography>
             </Box>
+            <Chip
+              size="small"
+              label="Free cancellation 24h"
+              sx={{ borderRadius: 999, fontSize: 10, height: 22, bgcolor: "rgba(22,163,74,0.12)", color: "#16A34A", fontWeight: 600 }}
+            />
           </Stack>
         </CardContent>
       </Card>
@@ -236,133 +286,45 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 1, display: "block" }}
-          >
+        <CardContent sx={{ px: 1.75, py: 1.5, "&:last-child": { pb: 1.5 } }}>
+          <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary", mb: 0.75, display: "block" }}>
             Payment method
           </Typography>
-          <Stack spacing={1}>
-            <Card
-              elevation={0}
-              onClick={() => setPaymentMethod("wallet")}
-              sx={{
-                borderRadius: 2,
-                bgcolor:
-                  paymentMethod === "wallet"
-                    ? "rgba(3,205,140,0.12)"
-                    : (t) =>
-                        t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border:
-                  paymentMethod === "wallet"
-                    ? "1px solid #03CD8C"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "1px solid rgba(209,213,219,0.9)"
-                          : "1px solid rgba(51,65,85,0.9)",
-                cursor: "pointer"
-              }}
-            >
-              <CardContent sx={{ px: 1.4, py: 1.1 }}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <AccountBalanceWalletRoundedIcon
-                    sx={{ fontSize: 20, color: "primary.main" }}
-                  />
-                  <Box>
-                    <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600 }}>
-                      EVzone Wallet
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-                    >
-                      Balance: UGX 750,000
-                    </Typography>
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
-
-            <Card
-              elevation={0}
-              onClick={() => setPaymentMethod("card")}
-              sx={{
-                borderRadius: 2,
-                bgcolor:
-                  paymentMethod === "card"
-                    ? "rgba(3,105,161,0.12)"
-                    : (t) =>
-                        t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border:
-                  paymentMethod === "card"
-                    ? "1px solid #03CD8C"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "1px solid rgba(209,213,219,0.9)"
-                          : "1px solid rgba(51,65,85,0.9)",
-                cursor: "pointer"
-              }}
-            >
-              <CardContent sx={{ px: 1.4, py: 1.1 }}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <CreditCardRoundedIcon
-                    sx={{ fontSize: 20, color: (t) => t.palette.text.secondary }}
-                  />
-                  <Box>
-                    <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600 }}>
-                      Bank card
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-                    >
-                      Pay with Visa / MasterCard
-                    </Typography>
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
-
-            <Card
-              elevation={0}
-              onClick={() => setPaymentMethod("mobile")}
-              sx={{
-                borderRadius: 2,
-                bgcolor:
-                  paymentMethod === "mobile"
-                    ? "rgba(245,158,11,0.12)"
-                    : (t) =>
-                        t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border:
-                  paymentMethod === "mobile"
-                    ? "1px solid #F59E0B"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "1px solid rgba(209,213,219,0.9)"
-                          : "1px solid rgba(51,65,85,0.9)",
-                cursor: "pointer"
-              }}
-            >
-              <CardContent sx={{ px: 1.4, py: 1.1 }}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <PhoneIphoneRoundedIcon
-                    sx={{ fontSize: 20, color: (t) => t.palette.text.secondary }}
-                  />
-                  <Box>
-                    <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600 }}>
-                      Mobile money
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-                    >
-                      MTN / Airtel (where supported)
-                    </Typography>
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
+          <Stack spacing={0.75}>
+            {[
+              { key: "wallet", label: "EVzone Wallet", sub: "Balance: UGX 750,000", icon: <AccountBalanceWalletRoundedIcon sx={{ fontSize: 20, color: "primary.main" }} />, activeColor: "#03CD8C" },
+              { key: "card", label: "Bank card", sub: "Pay with Visa / MasterCard", icon: <CreditCardRoundedIcon sx={{ fontSize: 20, color: "text.secondary" }} />, activeColor: "#03CD8C" },
+              { key: "mobile", label: "Mobile money", sub: "MTN / Airtel", icon: <PhoneIphoneRoundedIcon sx={{ fontSize: 20, color: "text.secondary" }} />, activeColor: "#F59E0B" }
+            ].map((pm) => (
+              <Card
+                key={pm.key}
+                elevation={0}
+                onClick={() => setPaymentMethod(pm.key)}
+                sx={{
+                  borderRadius: 2,
+                  cursor: "pointer",
+                  bgcolor: paymentMethod === pm.key
+                    ? `rgba(${pm.activeColor === "#F59E0B" ? "245,158,11" : "3,205,140"},0.1)`
+                    : (t) => t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+                  border: paymentMethod === pm.key
+                    ? `1px solid ${pm.activeColor}`
+                    : (t) => t.palette.mode === "light"
+                      ? "1px solid rgba(209,213,219,0.9)"
+                      : "1px solid rgba(51,65,85,0.9)",
+                  transition: "all 0.15s ease"
+                }}
+              >
+                <CardContent sx={{ px: 1.4, py: 0.9, "&:last-child": { pb: 0.9 } }}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    {pm.icon}
+                    <Box>
+                      <Typography variant="body2" sx={{ fontSize: 12.5, fontWeight: 600 }}>{pm.label}</Typography>
+                      <Typography variant="caption" sx={{ fontSize: 10.5, color: "text.secondary" }}>{pm.sub}</Typography>
+                    </Box>
+                  </Stack>
+                </CardContent>
+              </Card>
+            ))}
           </Stack>
         </CardContent>
       </Card>
@@ -373,13 +335,13 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
         onClick={() => {
           navigate("/payment/process", {
             state: {
-              paymentMethod: paymentMethod,
-              amount: "UGX 580,000",
-              description: "Nissan Leaf • Self-drive • 3 days rental",
+              paymentMethod,
+              amount: formatPrice(totalCost + deposit),
+              description: `${vehicleName} • ${driverOption === "with-driver" ? "With driver" : "Self-drive"} • ${days} ${days === 1 ? "day" : "days"} rental`,
               returnPath: "/rental/confirmation",
               cancelPath: "/rental/summary",
               serviceName: "Rental",
-              extraData: {}
+              extraData: state || {}
             }
           });
         }}
@@ -399,36 +361,22 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
 
       <Typography
         variant="caption"
-        sx={{ mt: 1, display: "block", fontSize: 11, color: (t) => t.palette.text.secondary }}
+        sx={{ mt: 1, display: "block", fontSize: 11, color: "text.secondary" }}
       >
-        By confirming, you agree to the rental terms, deposit conditions and EV
-        usage policy.
+        By confirming, you agree to the rental terms, deposit conditions, EV usage
+        policy, and cancellation terms.
       </Typography>
     </Box>
   );
 }
 
 export default function RiderScreen74RentalBookingSummaryPaymentCanvas_v2() {
-      return (
-    
-      
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: (t) => t.palette.background.default
-        }}
-      >
-        
-
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
-          <RentalBookingSummaryPaymentScreen />
-        </MobileShell>
-      </Box>
-    
+  return (
+    <>
+      <DarkModeToggle />
+      <MobileShell>
+        <RentalBookingSummaryPaymentScreen />
+      </MobileShell>
+    </>
   );
 }
