@@ -6,7 +6,6 @@ import {
   Card,
   CardContent,
   Stack,
-  Chip,
   Avatar,
   TextField,
   InputAdornment,
@@ -19,13 +18,7 @@ import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
 import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
-import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
-import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
-import RouteRoundedIcon from "@mui/icons-material/RouteRounded";
-import WorkRoundedIcon from "@mui/icons-material/WorkRounded";
-import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
@@ -95,10 +88,6 @@ function HomeMultiServiceScreen(): React.JSX.Element {
     }
   };
 
-  const handleDownloadClick = () => {
-    // Handle download action
-    console.log("Download clicked");
-  };
   
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -175,23 +164,6 @@ function HomeMultiServiceScreen(): React.JSX.Element {
             }}
           />
         </Box>
-
-        {/* Download/Action Button */}
-        <IconButton
-          onClick={handleDownloadClick}
-          sx={{
-            width: 40,
-            height: 40,
-            bgcolor: greenPrimary,
-            color: "#FFFFFF",
-            flexShrink: 0,
-            "&:hover": {
-              bgcolor: greenSecondary
-            }
-          }}
-        >
-          <ArrowDownwardRoundedIcon sx={{ fontSize: 20 }} />
-        </IconButton>
       </Box>
 
       {/* Notification Banner (Reminder Card) */}
@@ -210,7 +182,11 @@ function HomeMultiServiceScreen(): React.JSX.Element {
                 ? "1px solid rgba(3,205,140,0.2)"
                 : "1px solid rgba(3,205,140,0.3)",
             position: "relative",
-            overflow: "hidden"
+            overflow: "hidden",
+            transition: "border-color 0.12s ease",
+            "&:hover": {
+              borderColor: orangeCTA
+            }
           }}
         >
           <CardContent sx={{ px: 1.8, py: 1.6, position: "relative" }}>
@@ -269,8 +245,8 @@ function HomeMultiServiceScreen(): React.JSX.Element {
             )}
 
             {/* Reminder Content */}
-            <Box sx={{ px: reminders.length > 1 ? 4 : 0 }}>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+            <Box sx={{ px: reminders.length > 1 ? 4 : 0, textAlign: "center" }}>
+              <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ mb: 1 }}>
                 <NotificationsRoundedIcon
                   sx={{
                     fontSize: 18,
@@ -388,52 +364,52 @@ function HomeMultiServiceScreen(): React.JSX.Element {
           border: (t) =>
             t.palette.mode === "light"
               ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
+              : "1px solid rgba(51,65,85,0.9)",
+          transition: "border-color 0.12s ease",
+          "&:hover": {
+            borderColor: orangeCTA
+          }
         }}
       >
-        <CardContent sx={{ px: 1.8, py: 1.5 }}>
+        <CardContent sx={{ px: 1.8, py: 1.5, textAlign: "center" }}>
           <Typography
             variant="caption"
             sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block", textTransform: "uppercase", letterSpacing: "0.5px" }}
           >
             YOUR LAST RIDE
           </Typography>
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Box>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
-              >
-                Home → Office
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                12 min • UGX 5,000
-              </Typography>
-            </Box>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => navigate("/rides/enter")}
-              sx={{
-                bgcolor: greenPrimary,
-                color: "#FFFFFF",
-                borderRadius: 999,
-                px: 2,
-                py: 0.75,
-                fontSize: 11,
-                fontWeight: 600,
-                textTransform: "none",
-                "&:hover": {
-                  bgcolor: greenSecondary
-                }
-              }}
-            >
-              Rebook
-            </Button>
-          </Stack>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
+          >
+            Home → Office
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block", mb: 1 }}
+          >
+            12 min • UGX 5,000
+          </Typography>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={() => navigate("/rides/enter")}
+            sx={{
+              bgcolor: greenPrimary,
+              color: "#FFFFFF",
+              borderRadius: 999,
+              px: 2.5,
+              py: 0.75,
+              fontSize: 11,
+              fontWeight: 600,
+              textTransform: "none",
+              "&:hover": {
+                bgcolor: greenSecondary
+              }
+            }}
+          >
+            Rebook
+          </Button>
         </CardContent>
       </Card>
 
@@ -441,7 +417,7 @@ function HomeMultiServiceScreen(): React.JSX.Element {
       <Box sx={{ mb: 2.5 }}>
         <Typography
           variant="caption"
-          sx={{ fontSize: 9, color: (t) => t.palette.text.secondary, mb: 1, display: "block", opacity: 0.7 }}
+          sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, mb: 1.5, display: "block", opacity: 0.7, textAlign: "center", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 600 }}
         >
           EVzone services
         </Typography>
@@ -470,28 +446,19 @@ function HomeMultiServiceScreen(): React.JSX.Element {
                 }
               }}
             >
-              <CardContent sx={{ px: 1.4, py: 1.4, position: "relative" }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.4 }}>
-                  <ElectricCarRoundedIcon sx={{ fontSize: 20, color: greenPrimary }} />
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", flex: 1 }}
-                  >
-                    Ride
-                  </Typography>
-                  <ArrowForwardIosRoundedIcon 
-                    sx={{ 
-                      fontSize: 12, 
-                      color: (t) => t.palette.text.secondary,
-                      opacity: 0.5
-                    }} 
-                  />
-                </Stack>
+              <CardContent sx={{ px: 1.4, py: 1.8, textAlign: "center", "&:last-child": { pb: 1.8 } }}>
+                <ElectricCarRoundedIcon sx={{ fontSize: 28, color: greenPrimary, mb: 0.5 }} />
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em", mb: 0.25 }}
+                >
+                  Ride
+                </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+                  sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, lineHeight: 1.3 }}
                 >
-                  Book an electric ride now or later
+                  Book an electric ride
                 </Typography>
               </CardContent>
             </Card>
@@ -518,28 +485,19 @@ function HomeMultiServiceScreen(): React.JSX.Element {
                 }
               }}
             >
-              <CardContent sx={{ px: 1.4, py: 1.4, position: "relative" }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.4 }}>
-                  <LocalShippingRoundedIcon sx={{ fontSize: 20, color: greenPrimary }} />
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", flex: 1 }}
-                  >
-                    Delivery
-                  </Typography>
-                  <ArrowForwardIosRoundedIcon 
-                    sx={{ 
-                      fontSize: 12, 
-                      color: (t) => t.palette.text.secondary,
-                      opacity: 0.5
-                    }} 
-                  />
-                </Stack>
+              <CardContent sx={{ px: 1.4, py: 1.8, textAlign: "center", "&:last-child": { pb: 1.8 } }}>
+                <LocalShippingRoundedIcon sx={{ fontSize: 28, color: greenPrimary, mb: 0.5 }} />
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em", mb: 0.25 }}
+                >
+                  Delivery
+                </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+                  sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, lineHeight: 1.3 }}
                 >
-                  Send or receive parcels with EV couriers
+                  Send or receive parcels
                 </Typography>
               </CardContent>
             </Card>
@@ -568,28 +526,19 @@ function HomeMultiServiceScreen(): React.JSX.Element {
                 }
               }}
             >
-              <CardContent sx={{ px: 1.4, py: 1.4, position: "relative" }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.4 }}>
-                  <LuggageRoundedIcon sx={{ fontSize: 20, color: greenPrimary }} />
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", flex: 1 }}
-                  >
-                    Rental
-                  </Typography>
-                  <ArrowForwardIosRoundedIcon 
-                    sx={{ 
-                      fontSize: 12, 
-                      color: (t) => t.palette.text.secondary,
-                      opacity: 0.5
-                    }} 
-                  />
-                </Stack>
+              <CardContent sx={{ px: 1.4, py: 1.8, textAlign: "center", "&:last-child": { pb: 1.8 } }}>
+                <LuggageRoundedIcon sx={{ fontSize: 28, color: greenPrimary, mb: 0.5 }} />
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em", mb: 0.25 }}
+                >
+                  Rental
+                </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+                  sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, lineHeight: 1.3 }}
                 >
-                  Rent an EV for self-drive or chauffeur
+                  Self-drive or chauffeur
                 </Typography>
               </CardContent>
             </Card>
@@ -616,28 +565,19 @@ function HomeMultiServiceScreen(): React.JSX.Element {
                 }
               }}
             >
-              <CardContent sx={{ px: 1.4, py: 1.4, position: "relative" }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.4 }}>
-                  <TourRoundedIcon sx={{ fontSize: 20, color: greenPrimary }} />
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", flex: 1 }}
-                  >
-                    Tours
-                  </Typography>
-                  <ArrowForwardIosRoundedIcon 
-                    sx={{ 
-                      fontSize: 12, 
-                      color: (t) => t.palette.text.secondary,
-                      opacity: 0.5
-                    }} 
-                  />
-                </Stack>
+              <CardContent sx={{ px: 1.4, py: 1.8, textAlign: "center", "&:last-child": { pb: 1.8 } }}>
+                <TourRoundedIcon sx={{ fontSize: 28, color: greenPrimary, mb: 0.5 }} />
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em", mb: 0.25 }}
+                >
+                  Tours
+                </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+                  sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, lineHeight: 1.3 }}
                 >
-                  Book EV tours, day trips
+                  Book EV tours & trips
                 </Typography>
               </CardContent>
             </Card>
@@ -666,28 +606,19 @@ function HomeMultiServiceScreen(): React.JSX.Element {
                 }
               }}
             >
-              <CardContent sx={{ px: 1.4, py: 1.4, position: "relative" }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.4 }}>
-                  <SchoolRoundedIcon sx={{ fontSize: 20, color: greenPrimary }} />
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", flex: 1 }}
-                  >
-                    School
-                  </Typography>
-                  <ArrowForwardIosRoundedIcon 
-                    sx={{ 
-                      fontSize: 12, 
-                      color: (t) => t.palette.text.secondary,
-                      opacity: 0.5
-                    }} 
-                  />
-                </Stack>
+              <CardContent sx={{ px: 1.4, py: 1.8, textAlign: "center", "&:last-child": { pb: 1.8 } }}>
+                <SchoolRoundedIcon sx={{ fontSize: 28, color: greenPrimary, mb: 0.5 }} />
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em", mb: 0.25 }}
+                >
+                  School
+                </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+                  sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, lineHeight: 1.3 }}
                 >
-                  Manage your school shuttle rides
+                  School shuttle rides
                 </Typography>
               </CardContent>
             </Card>
@@ -706,35 +637,27 @@ function HomeMultiServiceScreen(): React.JSX.Element {
                   t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
                     : "1px solid rgba(51,65,85,0.9)",
-                transition: "transform 0.12s ease, box-shadow 0.12s ease",
+                transition: "transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease",
                 "&:hover": {
                   transform: "translateY(-1px)",
-                  boxShadow: 4
+                  boxShadow: 4,
+                  borderColor: orangeCTA
                 }
               }}
             >
-              <CardContent sx={{ px: 1.4, py: 1.4, position: "relative" }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.4 }}>
-                  <LocalHospitalRoundedIcon sx={{ fontSize: 20, color: "#DC2626" }} />
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", flex: 1 }}
-                  >
-                    Ambulance
-                  </Typography>
-                  <ArrowForwardIosRoundedIcon 
-                    sx={{ 
-                      fontSize: 12, 
-                      color: (t) => t.palette.text.secondary,
-                      opacity: 0.5
-                    }} 
-                  />
-                </Stack>
+              <CardContent sx={{ px: 1.4, py: 1.8, textAlign: "center", "&:last-child": { pb: 1.8 } }}>
+                <LocalHospitalRoundedIcon sx={{ fontSize: 28, color: "#DC2626", mb: 0.5 }} />
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em", mb: 0.25 }}
+                >
+                  Ambulance
+                </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+                  sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, lineHeight: 1.3 }}
                 >
-                  Request an emergency or transfer ambulance
+                  Emergency or transfer
                 </Typography>
               </CardContent>
             </Card>
@@ -742,193 +665,6 @@ function HomeMultiServiceScreen(): React.JSX.Element {
         </Stack>
       </Box>
 
-      {/* Quick actions - Redesigned with better styling */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2.5,
-          borderRadius: 2.5,
-          bgcolor: (t) =>
-            t.palette.mode === "light"
-              ? "linear-gradient(135deg, rgba(3,205,140,0.05) 0%, rgba(255,255,255,1) 100%)"
-              : "linear-gradient(135deg, rgba(3,205,140,0.1) 0%, rgba(15,23,42,0.98) 100%)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(3,205,140,0.15)"
-              : "1px solid rgba(3,205,140,0.25)"
-        }}
-      >
-        <CardContent sx={{ px: 1.8, py: 1.8 }}>
-          <Typography
-            variant="caption"
-            sx={{
-              fontSize: 10,
-              color: (t) => t.palette.text.secondary,
-              mb: 1.5,
-              display: "block",
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              fontWeight: 600
-            }}
-          >
-            Quick actions
-          </Typography>
-          <Stack direction="row" spacing={1.25} sx={{ flexWrap: "wrap" }}>
-            <Chip
-              icon={<RouteRoundedIcon sx={{ fontSize: 18, color: greenPrimary }} />}
-              label="Book usual route"
-              size="small"
-              onClick={() => navigate("/rides/enter")}
-              sx={{
-                borderRadius: 999,
-                fontSize: 12,
-                height: 36,
-                cursor: "pointer",
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(3,205,140,0.3)"
-                    : "1px solid rgba(3,205,140,0.4)",
-                color: greenPrimary,
-                fontWeight: 600,
-                boxShadow: (t) =>
-                  t.palette.mode === "light"
-                    ? "0 2px 8px rgba(3,205,140,0.1)"
-                    : "0 2px 8px rgba(3,205,140,0.15)",
-                transition: "all 0.2s ease",
-                "&:hover": {
-                  borderColor: greenPrimary,
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "rgba(3,205,140,0.1)" : "rgba(3,205,140,0.2)",
-                  transform: "translateY(-2px)",
-                  boxShadow: (t) =>
-                    t.palette.mode === "light"
-                      ? "0 4px 12px rgba(3,205,140,0.2)"
-                      : "0 4px 12px rgba(3,205,140,0.25)"
-                },
-                "&:active": {
-                  transform: "translateY(0px)"
-                }
-              }}
-            />
-            <Chip
-              icon={<WorkRoundedIcon sx={{ fontSize: 18, color: greenPrimary }} />}
-              label="Go to work"
-              size="small"
-              onClick={() => navigate("/rides/enter")}
-              sx={{
-                borderRadius: 999,
-                fontSize: 12,
-                height: 36,
-                cursor: "pointer",
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(3,205,140,0.3)"
-                    : "1px solid rgba(3,205,140,0.4)",
-                color: greenPrimary,
-                fontWeight: 600,
-                boxShadow: (t) =>
-                  t.palette.mode === "light"
-                    ? "0 2px 8px rgba(3,205,140,0.1)"
-                    : "0 2px 8px rgba(3,205,140,0.15)",
-                transition: "all 0.2s ease",
-                "&:hover": {
-                  borderColor: greenPrimary,
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "rgba(3,205,140,0.1)" : "rgba(3,205,140,0.2)",
-                  transform: "translateY(-2px)",
-                  boxShadow: (t) =>
-                    t.palette.mode === "light"
-                      ? "0 4px 12px rgba(3,205,140,0.2)"
-                      : "0 4px 12px rgba(3,205,140,0.25)"
-                },
-                "&:active": {
-                  transform: "translateY(0px)"
-                }
-              }}
-            />
-            <Chip
-              icon={<ElectricCarRoundedIcon sx={{ fontSize: 18, color: greenPrimary }} />}
-              label="Rebook last ride"
-              size="small"
-              onClick={() => navigate("/rides/enter")}
-              sx={{
-                borderRadius: 999,
-                fontSize: 12,
-                height: 36,
-                cursor: "pointer",
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(3,205,140,0.3)"
-                    : "1px solid rgba(3,205,140,0.4)",
-                color: greenPrimary,
-                fontWeight: 600,
-                boxShadow: (t) =>
-                  t.palette.mode === "light"
-                    ? "0 2px 8px rgba(3,205,140,0.1)"
-                    : "0 2px 8px rgba(3,205,140,0.15)",
-                transition: "all 0.2s ease",
-                "&:hover": {
-                  borderColor: greenPrimary,
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "rgba(3,205,140,0.1)" : "rgba(3,205,140,0.2)",
-                  transform: "translateY(-2px)",
-                  boxShadow: (t) =>
-                    t.palette.mode === "light"
-                      ? "0 4px 12px rgba(3,205,140,0.2)"
-                      : "0 4px 12px rgba(3,205,140,0.25)"
-                },
-                "&:active": {
-                  transform: "translateY(0px)"
-                }
-              }}
-            />
-            <Chip
-              icon={<LocalShippingRoundedIcon sx={{ fontSize: 18, color: greenPrimary }} />}
-              label="Track a parcel"
-              size="small"
-              onClick={() => navigate("/deliveries")}
-              sx={{
-                borderRadius: 999,
-                fontSize: 12,
-                height: 36,
-                cursor: "pointer",
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(3,205,140,0.3)"
-                    : "1px solid rgba(3,205,140,0.4)",
-                color: greenPrimary,
-                fontWeight: 600,
-                boxShadow: (t) =>
-                  t.palette.mode === "light"
-                    ? "0 2px 8px rgba(3,205,140,0.1)"
-                    : "0 2px 8px rgba(3,205,140,0.15)",
-                transition: "all 0.2s ease",
-                "&:hover": {
-                  borderColor: greenPrimary,
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "rgba(3,205,140,0.1)" : "rgba(3,205,140,0.2)",
-                  transform: "translateY(-2px)",
-                  boxShadow: (t) =>
-                    t.palette.mode === "light"
-                      ? "0 4px 12px rgba(3,205,140,0.2)"
-                      : "0 4px 12px rgba(3,205,140,0.25)"
-                },
-                "&:active": {
-                  transform: "translateY(0px)"
-                }
-              }}
-            />
-          </Stack>
-        </CardContent>
-      </Card>
     </Box>
   );
 }
