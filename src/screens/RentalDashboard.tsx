@@ -62,7 +62,6 @@ import CompareArrowsRoundedIcon from "@mui/icons-material/CompareArrowsRounded";
 import TwoWheelerRoundedIcon from "@mui/icons-material/TwoWheelerRounded";
 import SportsMotorsportsRoundedIcon from "@mui/icons-material/SportsMotorsportsRounded";
 import FitnessCenterRoundedIcon from "@mui/icons-material/FitnessCenterRounded";
-import ElectricMopedRoundedIcon from "@mui/icons-material/ElectricMopedRounded";
 import InventoryRoundedIcon from "@mui/icons-material/InventoryRounded";
 
 import MobileShell from "../components/MobileShell";
