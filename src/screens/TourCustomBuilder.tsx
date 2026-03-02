@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box, Typography, Card, CardContent, Stack, TextField, Button,
-  Chip, Divider, IconButton, Snackbar, Alert, Collapse, Slider
+  Chip, Divider, IconButton, Snackbar, Alert, Collapse, Slider,
+  Autocomplete
 } from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
@@ -15,6 +16,14 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import NearMeRoundedIcon from "@mui/icons-material/NearMeRounded";
 import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
+import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import LocalTaxiRoundedIcon from "@mui/icons-material/LocalTaxiRounded";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import dayjs, { Dayjs } from "dayjs";
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 import {
@@ -22,6 +31,22 @@ import {
   searchDestinations, findDestination, estimateDuration, calculateTourPrice,
   formatUGX, addCustomTour, buildCustomTour
 } from "../data/tours";
+
+/* ── Pickup location options ── */
+const PICKUP_LOCATIONS = [
+  "Garden City Mall, Kampala",
+  "Kampala Serena Hotel",
+  "Sheraton Kampala Hotel",
+  "Protea Hotel by Marriott Kampala",
+  "Entebbe International Airport",
+  "Acacia Mall, Kisementi",
+  "Forest Mall, Lugogo",
+  "Makerere University Main Gate",
+  "Nakasero Market, Kampala",
+  "Munyonyo Commonwealth Resort",
+  "National Theatre, Kampala",
+  "Uganda Museum, Kampala",
+];
 
 /* ── Helper: generate a map position for a custom destination ── */
 function generateMapPosition(name: string, distanceKm: number): { x: number; y: number } {
@@ -214,6 +239,16 @@ function TourCustomBuilderScreen(): React.JSX.Element {
   const [children, setChildren] = useState(0);
   const [notes, setNotes] = useState("");
 
+  // Date & time
+  const [departureDate, setDepartureDate] = useState<Dayjs | null>(null);
+  const [returnDate, setReturnDate] = useState<Dayjs | null>(null);
+  const [departureTime, setDepartureTime] = useState<Dayjs | null>(dayjs().hour(8).minute(0));
+  const [returnTime, setReturnTime] = useState<Dayjs | null>(dayjs().hour(17).minute(0));
+
+  // Pickup location
+  const [pickupLocation, setPickupLocation] = useState<string>("");
+  const [pickupInputValue, setPickupInputValue] = useState("");
+
   // UI states
   const [toast, setToast] = useState<string | null>(null);
   const [created, setCreated] = useState(false);
@@ -280,19 +315,43 @@ function TourCustomBuilderScreen(): React.JSX.Element {
     selectDestination(dest);
   };
 
+  // Computed trip days from dates
+  const tripDays = useMemo(() => {
+    if (!departureDate || !returnDate) return null;
+    const diff = returnDate.diff(departureDate, "day");
+    return Math.max(1, diff + 1);
+  }, [departureDate, returnDate]);
+
+  // Auto-set return date when departure is picked (based on estimated duration)
+  useEffect(() => {
+    if (departureDate && selectedDest && !returnDate) {
+      const est = estimateDuration(selectedDest.distanceKm);
+      const days = Math.max(1, Math.ceil(est.durationDays));
+      setReturnDate(departureDate.add(days - 1, "day"));
+    }
+  }, [departureDate, selectedDest]);
+
   // Price calculation
   const groupSize = adults + children;
   const duration = selectedDest ? estimateDuration(selectedDest.distanceKm) : null;
-  const pricePerPerson = selectedDest && duration
-    ? calculateTourPrice(selectedDest.distanceKm, duration.durationDays, groupSize)
+  const effectiveDays = tripDays ?? (duration ? Math.max(1, Math.ceil(duration.durationDays)) : 1);
+  const pricePerPerson = selectedDest
+    ? calculateTourPrice(selectedDest.distanceKm, effectiveDays, groupSize)
     : 0;
   const totalCost = pricePerPerson * adults + pricePerPerson * children * 0.5;
 
-  const canCreate = selectedDest && tourName.trim() && selectedCategory && adults >= 1;
+  const canCreate = selectedDest && tourName.trim() && selectedCategory && adults >= 1 && departureDate && returnDate && pickupLocation.trim();
 
   const handleCreate = () => {
     if (!selectedDest || !selectedCategory || !tourName.trim()) return;
-    const tour = buildCustomTour(tourName, selectedDest, selectedCategory, description, groupSize);
+    const tour = buildCustomTour(tourName, selectedDest, selectedCategory, description, groupSize, {
+      departureDate: departureDate?.format("YYYY-MM-DD"),
+      returnDate: returnDate?.format("YYYY-MM-DD"),
+      departureTime: departureTime?.format("HH:mm"),
+      returnTime: returnTime?.format("HH:mm"),
+      pickupLocation: pickupLocation || "Kampala — hotel pickup",
+      tripDays: effectiveDays,
+    });
     addCustomTour(tour);
     setCreated(true);
     setToast("Tour route created! Redirecting...");
@@ -304,6 +363,7 @@ function TourCustomBuilderScreen(): React.JSX.Element {
   };
 
   return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
     <Box sx={{ px: 2.5, pt: 2, pb: 4 }}>
       {/* ── Header ──────────────────────────────────────── */}
       <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
@@ -581,6 +641,146 @@ function TourCustomBuilderScreen(): React.JSX.Element {
               </CardContent>
             </Card>
 
+            {/* ── Departure & Return Dates ──────────────── */}
+            <Card elevation={0} sx={{
+              mb: 2, borderRadius: 2,
+              bgcolor: t => t.palette.mode === "light" ? "#fff" : "rgba(15,23,42,0.98)",
+              border: t => t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)"
+            }}>
+              <CardContent sx={{ px: 1.75, py: 1.5 }}>
+                <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1.25 }}>
+                  <CalendarMonthRoundedIcon sx={{ fontSize: 18, color: G }} />
+                  <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: t => t.palette.text.secondary }}>
+                    Travel dates
+                  </Typography>
+                </Stack>
+
+                <Stack spacing={1.5}>
+                  <DatePicker
+                    label="Departure date"
+                    value={departureDate}
+                    onChange={v => {
+                      setDepartureDate(v);
+                      // If return is before new departure, reset it
+                      if (v && returnDate && returnDate.isBefore(v)) setReturnDate(null);
+                    }}
+                    minDate={dayjs().add(1, "day")}
+                    maxDate={dayjs().add(180, "day")}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true, size: "small",
+                        sx: { "& .MuiOutlinedInput-root": { borderRadius: 2, "&.Mui-focused fieldset": { borderColor: G } } }
+                      }
+                    }}
+                  />
+                  <DatePicker
+                    label="Return date"
+                    value={returnDate}
+                    onChange={v => setReturnDate(v)}
+                    minDate={departureDate || dayjs().add(1, "day")}
+                    maxDate={dayjs().add(180, "day")}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true, size: "small",
+                        sx: { "& .MuiOutlinedInput-root": { borderRadius: 2, "&.Mui-focused fieldset": { borderColor: G } } }
+                      }
+                    }}
+                  />
+                </Stack>
+
+                {tripDays && (
+                  <Chip
+                    label={`${tripDays} day${tripDays !== 1 ? "s" : ""} trip`}
+                    size="small"
+                    sx={{ mt: 1.25, bgcolor: "rgba(3,205,140,0.12)", color: G, fontSize: 11, fontWeight: 600, borderRadius: 999 }}
+                  />
+                )}
+              </CardContent>
+            </Card>
+
+            {/* ── Departure & Return Times ─────────────────── */}
+            <Card elevation={0} sx={{
+              mb: 2, borderRadius: 2,
+              bgcolor: t => t.palette.mode === "light" ? "#fff" : "rgba(15,23,42,0.98)",
+              border: t => t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)"
+            }}>
+              <CardContent sx={{ px: 1.75, py: 1.5 }}>
+                <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1.25 }}>
+                  <AccessTimeRoundedIcon sx={{ fontSize: 18, color: G }} />
+                  <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: t => t.palette.text.secondary }}>
+                    Preferred times
+                  </Typography>
+                </Stack>
+
+                <Stack direction="row" spacing={1.5}>
+                  <TimePicker
+                    label="Departure time"
+                    value={departureTime}
+                    onChange={v => setDepartureTime(v)}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true, size: "small",
+                        sx: { "& .MuiOutlinedInput-root": { borderRadius: 2, "&.Mui-focused fieldset": { borderColor: G } } }
+                      }
+                    }}
+                  />
+                  <TimePicker
+                    label="Return time"
+                    value={returnTime}
+                    onChange={v => setReturnTime(v)}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true, size: "small",
+                        sx: { "& .MuiOutlinedInput-root": { borderRadius: 2, "&.Mui-focused fieldset": { borderColor: G } } }
+                      }
+                    }}
+                  />
+                </Stack>
+
+                <Typography variant="caption" sx={{ fontSize: 10, color: t => t.palette.text.secondary, mt: 1, display: "block" }}>
+                  The driver will pick you up at the departure time. Times may be adjusted slightly based on route.
+                </Typography>
+              </CardContent>
+            </Card>
+
+            {/* ── Pickup Location ──────────────────────────── */}
+            <Card elevation={0} sx={{
+              mb: 2, borderRadius: 2,
+              bgcolor: t => t.palette.mode === "light" ? "#fff" : "rgba(15,23,42,0.98)",
+              border: t => t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)"
+            }}>
+              <CardContent sx={{ px: 1.75, py: 1.5 }}>
+                <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1.25 }}>
+                  <LocalTaxiRoundedIcon sx={{ fontSize: 18, color: G }} />
+                  <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: t => t.palette.text.secondary }}>
+                    Pickup location
+                  </Typography>
+                </Stack>
+
+                <Autocomplete
+                  freeSolo
+                  options={PICKUP_LOCATIONS}
+                  value={pickupLocation}
+                  onChange={(_, v) => setPickupLocation(v || "")}
+                  inputValue={pickupInputValue}
+                  onInputChange={(_, v) => { setPickupInputValue(v); setPickupLocation(v); }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      size="small"
+                      placeholder="Select or type your pickup point..."
+                      sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, "&.Mui-focused fieldset": { borderColor: G } } }}
+                    />
+                  )}
+                  sx={{ "& .MuiAutocomplete-option": { fontSize: 12 } }}
+                />
+
+                <Typography variant="caption" sx={{ fontSize: 10, color: t => t.palette.text.secondary, mt: 1, display: "block" }}>
+                  Choose from popular locations or type your own address. Pickup is included within Kampala.
+                </Typography>
+              </CardContent>
+            </Card>
+
             {/* Group size */}
             <Card elevation={0} sx={{
               mb: 2, borderRadius: 2,
@@ -678,9 +878,23 @@ function TourCustomBuilderScreen(): React.JSX.Element {
                   </Stack>
                   <Stack direction="row" justifyContent="space-between">
                     <Typography variant="caption" sx={{ fontSize: 11, color: t => t.palette.text.secondary }}>
-                      Duration: {duration?.durationStr}
+                      Duration: {tripDays ? `${tripDays} day${tripDays !== 1 ? "s" : ""}` : duration?.durationStr}
                     </Typography>
                   </Stack>
+                  {departureDate && returnDate && (
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="caption" sx={{ fontSize: 11, color: t => t.palette.text.secondary }}>
+                        {departureDate.format("D MMM YYYY")} → {returnDate.format("D MMM YYYY")}
+                      </Typography>
+                    </Stack>
+                  )}
+                  {pickupLocation && (
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="caption" sx={{ fontSize: 11, color: t => t.palette.text.secondary }}>
+                        Pickup: {pickupLocation}
+                      </Typography>
+                    </Stack>
+                  )}
                   <Divider sx={{ my: 0.5 }} />
                   <Stack direction="row" justifyContent="space-between">
                     <Typography variant="caption" sx={{ fontSize: 11, color: t => t.palette.text.secondary }}>
@@ -811,6 +1025,7 @@ function TourCustomBuilderScreen(): React.JSX.Element {
         </Alert>
       </Snackbar>
     </Box>
+    </LocalizationProvider>
   );
 }
 

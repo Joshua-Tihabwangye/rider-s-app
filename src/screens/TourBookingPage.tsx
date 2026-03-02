@@ -4,7 +4,7 @@ import {
   Box, Typography, Card, CardContent, Stack, Chip, Button, TextField,
   IconButton, Divider, Checkbox, FormControlLabel, Stepper, Step,
   StepLabel, CircularProgress, Snackbar, Alert, Select, MenuItem,
-  FormControl, InputLabel, Skeleton
+  FormControl, InputLabel, Skeleton, Autocomplete
 } from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
@@ -17,6 +17,12 @@ import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded";
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import EventAvailableRoundedIcon from "@mui/icons-material/EventAvailableRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import LocalTaxiRoundedIcon from "@mui/icons-material/LocalTaxiRounded";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import dayjs, { Dayjs } from "dayjs";
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 import {
@@ -27,6 +33,21 @@ import {
 const G = "#03CD8C";
 const G2 = "#22C55E";
 const STEPS = ["Date & guests", "Add-ons", "Details", "Payment"];
+
+const PICKUP_LOCATIONS = [
+  "Garden City Mall, Kampala",
+  "Kampala Serena Hotel",
+  "Sheraton Kampala Hotel",
+  "Protea Hotel by Marriott Kampala",
+  "Entebbe International Airport",
+  "Acacia Mall, Kisementi",
+  "Forest Mall, Lugogo",
+  "Makerere University Main Gate",
+  "Nakasero Market, Kampala",
+  "Munyonyo Commonwealth Resort",
+  "National Theatre, Kampala",
+  "Uganda Museum, Kampala",
+];
 
 /* ═══════════════════════════════════════════════════════════
    Booking Page Screen
@@ -45,9 +66,16 @@ function TourBookingScreen() {
   // Step 1: Date, duration & guests
   const [selectedDate, setSelectedDate] = useState<TourDate | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+  const [pickedDate, setPickedDate] = useState<Dayjs | null>(null);
+  const [pickedStartTime, setPickedStartTime] = useState<Dayjs | null>(null);
+  const [pickedEndTime, setPickedEndTime] = useState<Dayjs | null>(null);
   const [tourDays, setTourDays] = useState(1);      // number of days for the tour
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+
+  // Pickup location
+  const [pickupLocation, setPickupLocation] = useState("");
+  const [pickupInputValue, setPickupInputValue] = useState("");
 
   // Step 2: Add-ons
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
@@ -93,6 +121,37 @@ function TourBookingScreen() {
     if (tour) setTourDays(tourBaseDays);
   }, [tour, tourBaseDays]);
 
+  // Sync date/time pickers → internal selectedDate/selectedSlot for booking submission
+  useEffect(() => {
+    if (!tour || !pickedDate) { setSelectedDate(null); return; }
+    const dateStr = pickedDate.format("YYYY-MM-DD");
+    // Find matching available date or create a synthetic one
+    const matched = tour.availableDates.find(d => d.date === dateStr);
+    if (matched) {
+      setSelectedDate(matched);
+    } else {
+      // Allow any picked date – create a synthetic TourDate
+      setSelectedDate({
+        date: dateStr,
+        timeSlots: [{ id: "custom-slot", startTime: "08:00", endTime: "18:00", spotsLeft: 10 }]
+      });
+    }
+  }, [tour, pickedDate]);
+
+  useEffect(() => {
+    if (!pickedStartTime || !pickedEndTime) { setSelectedSlot(null); return; }
+    setSelectedSlot({
+      id: "picked-slot",
+      startTime: pickedStartTime.format("HH:mm"),
+      endTime: pickedEndTime.format("HH:mm"),
+      spotsLeft: 10
+    });
+  }, [pickedStartTime, pickedEndTime]);
+
+  // Available date range for the picker
+  const minDate = useMemo(() => dayjs(), []);
+  const maxDate = useMemo(() => dayjs().add(90, "day"), []);
+
   // Daily rate per person (tour price ÷ default days so scaling stays fair)
   const dailyRate = useMemo(() => {
     if (!tour) return 0;
@@ -117,8 +176,8 @@ function TourBookingScreen() {
   const validateStep = (s: number): boolean => {
     const errs: Record<string, string> = {};
     if (s === 0) {
-      if (!selectedDate) errs.date = "Please select a date";
-      if (!selectedSlot) errs.slot = "Please select a time slot";
+      if (!pickedDate) errs.date = "Please select a date";
+      if (!pickedStartTime) errs.slot = "Please select a start time";
       if (adults < 1) errs.adults = "At least 1 adult required";
       if (tour && adults + children > tour.maxGroupSize) errs.group = `Max group size is ${tour.maxGroupSize}`;
     }
@@ -219,6 +278,7 @@ function TourBookingScreen() {
   );
 
   return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
     <Box sx={{ px: 2, pt: 2, pb: 3 }}>
       {/* Header */}
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
@@ -242,66 +302,66 @@ function TourBookingScreen() {
       {/* ── Step 1: Date & Guests ────────────────────── */}
       {step === 0 && (
         <Box>
+          {/* Date picker */}
           <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: 14, mb: 1 }}>Select a date</Typography>
-          <Box sx={{ overflowX: "auto", mb: 2, "&::-webkit-scrollbar": { display: "none" } }}>
-            <Stack direction="row" spacing={0.75} sx={{ pb: 0.5 }}>
-              {tour.availableDates.slice(0, 14).map(td => {
-                const d = new Date(td.date);
-                const dayName = d.toLocaleDateString("en", { weekday: "short" });
-                const dayNum = d.getDate();
-                const month = d.toLocaleDateString("en", { month: "short" });
-                const isSelected = selectedDate?.date === td.date;
-                const minSpots = Math.min(...td.timeSlots.map(s => s.spotsLeft));
-                return (
-                  <Box key={td.date} onClick={() => { setSelectedDate(td); setSelectedSlot(null); }}
-                    sx={{
-                      minWidth: 62, px: 1.2, py: 1, borderRadius: 2, cursor: "pointer", textAlign: "center",
-                      bgcolor: isSelected ? G : (t => t.palette.mode === "light" ? "#fff" : "rgba(15,23,42,0.98)"),
-                      border: isSelected ? `2px solid ${G}` : (t => `1px solid ${t.palette.mode === "light" ? "rgba(209,213,219,0.9)" : "rgba(51,65,85,0.7)"}`),
-                      transition: "all 0.15s ease", flexShrink: 0,
-                      "&:hover": { borderColor: G }
-                    }}>
-                    <Typography sx={{ fontSize: 10, fontWeight: 600, color: isSelected ? "#020617" : (t => t.palette.text.secondary) }}>{dayName}</Typography>
-                    <Typography sx={{ fontSize: 18, fontWeight: 800, color: isSelected ? "#020617" : undefined }}>{dayNum}</Typography>
-                    <Typography sx={{ fontSize: 10, color: isSelected ? "#020617" : (t => t.palette.text.secondary) }}>{month}</Typography>
-                    {minSpots <= 3 && <Typography sx={{ fontSize: 8, color: isSelected ? "#020617" : "#F59E0B", fontWeight: 700 }}>{minSpots} left</Typography>}
-                  </Box>
-                );
-              })}
-            </Stack>
-          </Box>
-          {errors.date && <Typography variant="caption" sx={{ color: "#EF4444", fontSize: 11, mb: 1, display: "block" }}>{errors.date}</Typography>}
+          <DatePicker
+            label="Tour date"
+            value={pickedDate}
+            onChange={v => setPickedDate(v)}
+            minDate={minDate}
+            maxDate={maxDate}
+            slotProps={{
+              textField: {
+                fullWidth: true, size: "small",
+                error: !!errors.date, helperText: errors.date,
+                sx: {
+                  mb: 2,
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    "&.Mui-focused fieldset": { borderColor: G }
+                  }
+                }
+              }
+            }}
+          />
 
-          {/* Time slots */}
-          {selectedDate && (
-            <>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: 14, mb: 1 }}>Select time</Typography>
-              <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-                {selectedDate.timeSlots.map(slot => {
-                  const isSel = selectedSlot?.id === slot.id;
-                  return (
-                    <Card key={slot.id} elevation={0} onClick={() => setSelectedSlot(slot)}
-                      sx={{
-                        flex: 1, borderRadius: 2, cursor: "pointer", textAlign: "center",
-                        bgcolor: isSel ? G : (t => t.palette.mode === "light" ? "#fff" : "rgba(15,23,42,0.98)"),
-                        border: isSel ? `2px solid ${G}` : (t => `1px solid ${t.palette.mode === "light" ? "rgba(209,213,219,0.9)" : "rgba(51,65,85,0.7)"}`),
-                        transition: "all 0.15s", "&:hover": { borderColor: G }
-                      }}>
-                      <CardContent sx={{ px: 1, py: 1.2 }}>
-                        <Typography sx={{ fontSize: 13, fontWeight: 700, color: isSel ? "#020617" : undefined }}>
-                          {slot.startTime} – {slot.endTime}
-                        </Typography>
-                        <Typography sx={{ fontSize: 10, color: isSel ? "#020617" : (t => t.palette.text.secondary) }}>
-                          {slot.spotsLeft} spot{slot.spotsLeft !== 1 ? "s" : ""} left
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </Stack>
-              {errors.slot && <Typography variant="caption" sx={{ color: "#EF4444", fontSize: 11, mb: 1, display: "block" }}>{errors.slot}</Typography>}
-            </>
-          )}
+          {/* Time pickers */}
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: 14, mb: 1 }}>Select time</Typography>
+          <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
+            <TimePicker
+              label="Start time"
+              value={pickedStartTime}
+              onChange={v => setPickedStartTime(v)}
+              slotProps={{
+                textField: {
+                  fullWidth: true, size: "small",
+                  error: !!errors.slot, helperText: errors.slot,
+                  sx: {
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                      "&.Mui-focused fieldset": { borderColor: G }
+                    }
+                  }
+                }
+              }}
+            />
+            <TimePicker
+              label="End time"
+              value={pickedEndTime}
+              onChange={v => setPickedEndTime(v)}
+              slotProps={{
+                textField: {
+                  fullWidth: true, size: "small",
+                  sx: {
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                      "&.Mui-focused fieldset": { borderColor: G }
+                    }
+                  }
+                }
+              }}
+            />
+          </Stack>
 
           {/* Tour duration */}
           <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: 14, mb: 1 }}>Tour duration</Typography>
@@ -410,6 +470,44 @@ function TourBookingScreen() {
           </Card>
           {errors.adults && <Typography variant="caption" sx={{ color: "#EF4444", fontSize: 11 }}>{errors.adults}</Typography>}
           {errors.group && <Typography variant="caption" sx={{ color: "#EF4444", fontSize: 11 }}>{errors.group}</Typography>}
+
+          {/* Pickup location */}
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: 14, mb: 1, mt: 2 }}>Pickup location</Typography>
+          <Card elevation={0} sx={{
+            borderRadius: 2, mb: 1,
+            bgcolor: t => t.palette.mode === "light" ? "#fff" : "rgba(15,23,42,0.98)",
+            border: t => `1px solid ${t.palette.mode === "light" ? "rgba(209,213,219,0.9)" : "rgba(51,65,85,0.7)"}`
+          }}>
+            <CardContent sx={{ px: 1.5, py: 1.2 }}>
+              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                <LocalTaxiRoundedIcon sx={{ fontSize: 16, color: G }} />
+                <Typography variant="caption" sx={{ fontSize: 11, color: t => t.palette.text.secondary }}>
+                  Where should we pick you up?
+                </Typography>
+              </Stack>
+              <Autocomplete
+                freeSolo
+                options={PICKUP_LOCATIONS}
+                value={pickupLocation}
+                onChange={(_, v) => setPickupLocation(v || "")}
+                inputValue={pickupInputValue}
+                onInputChange={(_, v) => { setPickupInputValue(v); setPickupLocation(v); }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    size="small"
+                    placeholder="Select or type your pickup point..."
+                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2, "&.Mui-focused fieldset": { borderColor: G } } }}
+                  />
+                )}
+              />
+              {tour.meetingPoint && (
+                <Typography variant="caption" sx={{ fontSize: 10, color: t => t.palette.text.secondary, mt: 0.75, display: "block" }}>
+                  Default: {tour.meetingPoint}
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
         </Box>
       )}
 
@@ -572,8 +670,9 @@ function TourBookingScreen() {
             <Box>
               <Typography variant="body2" sx={{ fontWeight: 700, fontSize: 13 }}>{tour.title}</Typography>
               <Typography variant="caption" sx={{ fontSize: 10.5, color: t => t.palette.text.secondary }}>
-                {selectedDate ? new Date(selectedDate.date).toLocaleDateString("en", { weekday: "short", day: "numeric", month: "short" }) : "Select a date"}
-                {selectedSlot ? ` • ${selectedSlot.startTime} – ${selectedSlot.endTime}` : ""}
+                {pickedDate ? pickedDate.format("ddd, D MMM YYYY") : "Select a date"}
+                {pickedStartTime ? ` • ${pickedStartTime.format("HH:mm")}` : ""}
+                {pickedEndTime ? ` – ${pickedEndTime.format("HH:mm")}` : ""}
               </Typography>
               <Typography variant="caption" sx={{ fontSize: 10.5, color: t => t.palette.text.secondary, display: "block" }}>
                 {tourDays} day{tourDays !== 1 ? "s" : ""} • {adults} adult{adults !== 1 ? "s" : ""}{children > 0 ? `, ${children} child${children !== 1 ? "ren" : ""}` : ""}
@@ -648,6 +747,7 @@ function TourBookingScreen() {
         <Alert severity="error" variant="filled">{submitError}</Alert>
       </Snackbar>
     </Box>
+    </LocalizationProvider>
   );
 }
 

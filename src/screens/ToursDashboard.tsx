@@ -311,7 +311,7 @@ function ToursBrowseScreen() {
   return (
     <Box sx={{ px: 2, pt: 2, pb: 3 }}>
       {/* ── Header ──────────────────────────────────────── */}
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 2, textAlign: "center" }}>
         <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em" }}>
           Tours & Experiences
         </Typography>
@@ -339,31 +339,32 @@ function ToursBrowseScreen() {
         }}
       />
 
-      {/* ── Tour count ─────────────────────────────────── */}
-      <Typography variant="caption" sx={{ fontSize: 11, color: t => t.palette.text.secondary, mb: 1.5, display: "block" }}>
-        {loading ? "Loading..." : `${filteredTours.length} tour${filteredTours.length !== 1 ? "s" : ""} found`}
-      </Typography>
+      {/* ── Tour count + Category dropdown (same line) ── */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+        <Typography variant="caption" sx={{ fontSize: 12, color: t => t.palette.text.secondary, fontWeight: 500 }}>
+          {loading ? "Loading..." : `${filteredTours.length} tour${filteredTours.length !== 1 ? "s" : ""} found`}
+        </Typography>
 
-      {/* ── Category dropdown ────────────────────────────── */}
-      <FormControl size="small" sx={{ mb: 2, minWidth: 160 }}>
-        <Select
-          value={category}
-          onChange={e => setCategory(e.target.value)}
-          displayEmpty
-          sx={{
-            borderRadius: 2, fontSize: 13, fontWeight: 600,
-            "& .MuiSelect-select": { py: 0.9, display: "flex", alignItems: "center", gap: 0.75 },
-            "& fieldset": { borderColor: t => t.palette.divider },
-            "&:hover fieldset": { borderColor: `${G} !important` },
-            "&.Mui-focused fieldset": { borderColor: `${G} !important` }
-          }}
-        >
-          <MenuItem value="all" sx={{ fontSize: 13, fontWeight: 600 }}>All categories</MenuItem>
-          {(Object.keys(CATEGORY_LABELS) as Array<Tour["category"]>).map(cat => (
-            <MenuItem key={cat} value={cat} sx={{ fontSize: 13 }}>{CATEGORY_LABELS[cat]}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <Select
+            value={category}
+            onChange={e => setCategory(e.target.value)}
+            displayEmpty
+            sx={{
+              borderRadius: 2, fontSize: 12, fontWeight: 600, height: 34,
+              "& .MuiSelect-select": { py: 0.6, display: "flex", alignItems: "center", gap: 0.75 },
+              "& fieldset": { borderColor: t => t.palette.divider },
+              "&:hover fieldset": { borderColor: `${G} !important` },
+              "&.Mui-focused fieldset": { borderColor: `${G} !important` }
+            }}
+          >
+            <MenuItem value="all" sx={{ fontSize: 12, fontWeight: 600 }}>All categories</MenuItem>
+            {(Object.keys(CATEGORY_LABELS) as Array<Tour["category"]>).map(cat => (
+              <MenuItem key={cat} value={cat} sx={{ fontSize: 12 }}>{CATEGORY_LABELS[cat]}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Stack>
 
       {/* ── Add custom destination CTA ─────────────────── */}
       <Card
