@@ -630,6 +630,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     destination: "Kampala",
     date: "2026-03-15",
     timeSlot: "14:00 – 18:30",
+    tourDays: 1,
     adults: 2,
     children: 1,
     addons: ["Lunch package"],
@@ -660,6 +661,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     destination: "Jinja",
     date: "2026-03-22",
     timeSlot: "08:00 – 19:00",
+    tourDays: 1,
     adults: 3,
     children: 0,
     addons: ["White-water rafting", "Professional photos"],
@@ -690,6 +692,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     destination: "Kampala",
     date: "2026-02-15",
     timeSlot: "14:00 – 18:30",
+    tourDays: 1,
     adults: 2,
     children: 0,
     addons: [],
@@ -720,6 +723,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     destination: "Lake Mburo",
     date: "2026-01-25",
     timeSlot: "07:00 – 14:00 (next day)",
+    tourDays: 2,
     adults: 4,
     children: 0,
     addons: ["Lake boat cruise"],
@@ -750,6 +754,7 @@ export const MOCK_BOOKINGS: Booking[] = [
     destination: "Entebbe",
     date: "2026-01-10",
     timeSlot: "09:00 – 13:00",
+    tourDays: 1,
     adults: 1,
     children: 0,
     addons: [],
@@ -965,11 +970,24 @@ export function buildCustomTour(
   destination: DestinationInfo,
   category: Tour["category"],
   description: string,
-  groupSize: number
+  groupSize: number,
+  travelDetails?: {
+    departureDate?: string;
+    returnDate?: string;
+    departureTime?: string;
+    returnTime?: string;
+    pickupLocation?: string;
+    tripDays?: number;
+  }
 ): Tour {
   const dur = estimateDuration(destination.distanceKm);
-  const price = calculateTourPrice(destination.distanceKm, dur.durationDays, groupSize);
+  const effectiveDays = travelDetails?.tripDays ?? Math.max(1, Math.ceil(dur.durationDays));
+  const price = calculateTourPrice(destination.distanceKm, effectiveDays, groupSize);
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `custom-${Date.now()}`;
+  const durationStr = travelDetails?.tripDays
+    ? `${effectiveDays} day${effectiveDays !== 1 ? "s" : ""}${effectiveDays > 1 ? ` / ${effectiveDays - 1} night${effectiveDays > 2 ? "s" : ""}` : ""}`
+    : dur.durationStr;
+  const durationHours = effectiveDays * 24;
 
   return {
     slug,
@@ -978,8 +996,8 @@ export function buildCustomTour(
     destination: destination.name,
     category,
     images: [],
-    duration: dur.durationStr,
-    durationHours: dur.durationHours,
+    duration: durationStr,
+    durationHours,
     rating: 0,
     reviewCount: 0,
     pricePerPerson: price,
@@ -1012,7 +1030,10 @@ export function buildCustomTour(
         ],
     included: ["EV transport with A/C", "English-speaking guide", "Bottled water", "Hotel pickup & drop-off"],
     notIncluded: ["Meals (unless added)", "Personal expenses", "Gratuities", "Travel insurance"],
-    meetingPoint: "Kampala — hotel pickup or central meeting point",
+    meetingPoint: travelDetails?.pickupLocation || "Kampala — hotel pickup or central meeting point",
+    pickupDetails: travelDetails?.pickupLocation
+      ? `Pickup at ${travelDetails.pickupLocation}${travelDetails.departureTime ? ` at ${travelDetails.departureTime}` : ""}. Your driver will contact you 30 minutes before.`
+      : undefined,
     cancellationPolicy: "Free cancellation up to 48 hours before the tour.",
     cancellationHours: 48,
     faqs: [
