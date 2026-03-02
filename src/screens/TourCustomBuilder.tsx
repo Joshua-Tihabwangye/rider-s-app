@@ -227,8 +227,8 @@ function TourCustomBuilderScreen(): React.JSX.Element {
   const [selectedDest, setSelectedDest] = useState<DestinationInfo | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Custom (free-typed) destination flow
-  const [customMode, setCustomMode] = useState(false);      // user is adding a brand-new place
+  // Custom destination – user can adjust distance on the map page
+  const [isCustomDest, setIsCustomDest] = useState(false);
   const [customDistanceKm, setCustomDistanceKm] = useState(150);
 
   // Tour details
@@ -279,11 +279,12 @@ function TourCustomBuilderScreen(): React.JSX.Element {
     }
   }, [selectedDest]);
 
-  const selectDestination = (dest: DestinationInfo) => {
+  const selectDestination = (dest: DestinationInfo, custom = false) => {
     setSelectedDest(dest);
     setDestQuery(dest.name);
     setShowSuggestions(false);
-    setCustomMode(false);
+    setIsCustomDest(custom);
+    if (custom) setCustomDistanceKm(dest.distanceKm);
   };
 
   const clearDestination = () => {
@@ -292,15 +293,15 @@ function TourCustomBuilderScreen(): React.JSX.Element {
     setTourName("");
     setSelectedCategory("");
     setDescription("");
-    setCustomMode(false);
+    setIsCustomDest(false);
   };
 
   const handleDestInputChange = (val: string) => {
     setDestQuery(val);
     setShowSuggestions(true);
-    setCustomMode(false);
     if (selectedDest && val !== selectedDest.name) {
       setSelectedDest(null);
+      setIsCustomDest(false);
     }
     // Try auto-match
     const found = findDestination(val);
@@ -309,10 +310,17 @@ function TourCustomBuilderScreen(): React.JSX.Element {
     }
   };
 
-  // Confirm a custom (free-typed) destination
-  const confirmCustomDestination = () => {
-    const dest = buildCustomDestInfo(destQuery.trim(), customDistanceKm);
-    selectDestination(dest);
+  // Add a custom destination — skip straight to the map
+  const addCustomDestination = () => {
+    const dest = buildCustomDestInfo(destQuery.trim(), 150); // default 150 km
+    selectDestination(dest, true);
+  };
+
+  // Update distance for custom destination (called from map section)
+  const updateCustomDistance = (newDist: number) => {
+    setCustomDistanceKm(newDist);
+    const dest = buildCustomDestInfo(destQuery.trim() || selectedDest?.name || "Custom", newDist);
+    setSelectedDest(dest);
   };
 
   // Computed trip days from dates
@@ -426,7 +434,7 @@ function TourCustomBuilderScreen(): React.JSX.Element {
           />
 
           {/* Suggestions dropdown */}
-          <Collapse in={showSuggestions && suggestions.length > 0 && !selectedDest && !customMode}>
+          <Collapse in={showSuggestions && suggestions.length > 0 && !selectedDest}>
             <Box sx={{
               mt: 1, borderRadius: 2, overflow: "hidden",
               border: t => `1px solid ${t.palette.mode === "light" ? "rgba(209,213,219,0.9)" : "rgba(51,65,85,0.7)"}`,
@@ -456,8 +464,8 @@ function TourCustomBuilderScreen(): React.JSX.Element {
             </Box>
           </Collapse>
 
-          {/* "Add as custom destination" prompt — shown when typed text has no match */}
-          <Collapse in={!selectedDest && !customMode && destQuery.trim().length >= 2 && !hasMatch}>
+          {/* "Add as custom destination" — skip straight to the map */}
+          <Collapse in={!selectedDest && destQuery.trim().length >= 2 && !hasMatch}>
             <Box sx={{
               mt: 1, p: 1.5, borderRadius: 2,
               border: t => `1px dashed ${t.palette.mode === "light" ? "rgba(245,158,11,0.5)" : "rgba(245,158,11,0.35)"}`,
@@ -470,78 +478,14 @@ function TourCustomBuilderScreen(): React.JSX.Element {
               </Typography>
               <Button
                 size="small" variant="contained"
-                onClick={() => setCustomMode(true)}
+                onClick={addCustomDestination}
                 sx={{
                   borderRadius: 999, fontSize: 11, fontWeight: 600, textTransform: "none",
                   bgcolor: "#F59E0B", color: "#020617",
                   "&:hover": { bgcolor: "#EAB308" }
                 }}
               >
-                Add as custom destination
-              </Button>
-            </Box>
-          </Collapse>
-
-          {/* Custom destination distance configurator */}
-          <Collapse in={customMode && !selectedDest}>
-            <Box sx={{
-              mt: 1.5, p: 1.75, borderRadius: 2.5,
-              border: t => `1px solid ${t.palette.mode === "light" ? "rgba(3,205,140,0.3)" : "rgba(3,205,140,0.2)"}`,
-              bgcolor: t => t.palette.mode === "light" ? "rgba(3,205,140,0.03)" : "rgba(3,205,140,0.04)"
-            }}>
-              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1.25 }}>
-                <EditLocationAltRoundedIcon sx={{ fontSize: 16, color: G }} />
-                <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: G }}>
-                  Set up "{destQuery.trim()}"
-                </Typography>
-              </Stack>
-
-              <Typography variant="caption" sx={{ fontSize: 11.5, display: "block", mb: 0.5 }}>
-                Approximate distance from Kampala (km)
-              </Typography>
-              <Stack direction="row" spacing={2} alignItems="center">
-                <Slider
-                  value={customDistanceKm}
-                  onChange={(_, v) => setCustomDistanceKm(v as number)}
-                  min={10} max={800} step={10}
-                  valueLabelDisplay="auto"
-                  sx={{
-                    color: G, flex: 1,
-                    "& .MuiSlider-thumb": { width: 18, height: 18 },
-                    "& .MuiSlider-valueLabel": { bgcolor: G, color: "#020617", fontWeight: 700, fontSize: 11 }
-                  }}
-                />
-                <TextField
-                  size="small" type="number"
-                  value={customDistanceKm}
-                  onChange={e => {
-                    const v = Math.max(10, Math.min(800, Number(e.target.value) || 10));
-                    setCustomDistanceKm(v);
-                  }}
-                  InputProps={{ endAdornment: <Typography variant="caption" sx={{ fontSize: 10, color: "text.secondary", ml: 0.5 }}>km</Typography> }}
-                  sx={{
-                    width: 90,
-                    "& .MuiOutlinedInput-root": { borderRadius: 1.5 },
-                    "& input": { textAlign: "center", fontSize: 13, fontWeight: 600, py: 0.75 }
-                  }}
-                />
-              </Stack>
-
-              <Typography variant="caption" sx={{ fontSize: 10, color: t => t.palette.text.secondary, display: "block", mt: 0.5 }}>
-                Estimated drive: ~{Math.round((customDistanceKm / 60) * 10) / 10}h &nbsp;•&nbsp; Round trip: {customDistanceKm * 2} km
-              </Typography>
-
-              <Button
-                fullWidth variant="contained"
-                onClick={confirmCustomDestination}
-                disabled={!destQuery.trim()}
-                sx={{
-                  mt: 1.5, borderRadius: 999, py: 0.9, fontSize: 13, fontWeight: 700,
-                  textTransform: "none", bgcolor: G, color: "#020617",
-                  "&:hover": { bgcolor: G2 }
-                }}
-              >
-                Confirm destination
+                Add &amp; view on map
               </Button>
             </Box>
           </Collapse>
@@ -597,6 +541,54 @@ function TourCustomBuilderScreen(): React.JSX.Element {
                 </CardContent>
               </Card>
             </Stack>
+
+            {/* Distance adjuster — for custom destinations */}
+            {isCustomDest && (
+              <Card elevation={0} sx={{
+                mt: 1.25, borderRadius: 2,
+                bgcolor: t => t.palette.mode === "light" ? "#fff" : "rgba(15,23,42,0.98)",
+                border: t => t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.7)"
+              }}>
+                <CardContent sx={{ px: 1.5, py: 1.2 }}>
+                  <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.75 }}>
+                    <RouteRoundedIcon sx={{ fontSize: 14, color: G }} />
+                    <Typography variant="caption" sx={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: t => t.palette.text.secondary }}>
+                      Adjust distance from Kampala
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Slider
+                      value={customDistanceKm}
+                      onChange={(_, v) => updateCustomDistance(v as number)}
+                      min={10} max={800} step={10}
+                      valueLabelDisplay="auto"
+                      sx={{
+                        color: G, flex: 1,
+                        "& .MuiSlider-thumb": { width: 16, height: 16 },
+                        "& .MuiSlider-valueLabel": { bgcolor: G, color: "#020617", fontWeight: 700, fontSize: 10 }
+                      }}
+                    />
+                    <TextField
+                      size="small" type="number"
+                      value={customDistanceKm}
+                      onChange={e => {
+                        const v = Math.max(10, Math.min(800, Number(e.target.value) || 10));
+                        updateCustomDistance(v);
+                      }}
+                      InputProps={{ endAdornment: <Typography variant="caption" sx={{ fontSize: 9, color: "text.secondary", ml: 0.5 }}>km</Typography> }}
+                      sx={{
+                        width: 80,
+                        "& .MuiOutlinedInput-root": { borderRadius: 1.5 },
+                        "& input": { textAlign: "center", fontSize: 12, fontWeight: 600, py: 0.6 }
+                      }}
+                    />
+                  </Stack>
+                  <Typography variant="caption" sx={{ fontSize: 9, color: t => t.palette.text.secondary, mt: 0.5, display: "block" }}>
+                    Drag the slider or type a distance. The map, drive time, and price update automatically.
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
           </Box>
         )}
       </Collapse>
@@ -962,7 +954,7 @@ function TourCustomBuilderScreen(): React.JSX.Element {
       </Collapse>
 
       {/* ── Popular destinations (when no selection) ─── */}
-      {!selectedDest && !customMode && (
+      {!selectedDest && (
         <Box sx={{ mt: 1 }}>
           <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: t => t.palette.text.secondary, mb: 1.2, display: "block" }}>
             Popular destinations
