@@ -103,6 +103,10 @@ import DeliveryCreateForm from "../screens/DeliveryCreateForm";
 import RA77 from "../screens/RA77";
 import TourCustomBuilder from "../screens/TourCustomBuilder";
 import TourQuoteRequest from "../screens/TourQuoteRequest";
+import TourDetailPage from "../screens/TourDetailPage";
+import TourBookingPage from "../screens/TourBookingPage";
+import TourBookingsList from "../screens/TourBookingsList";
+import TourBookingDetail from "../screens/TourBookingDetail";
 
 export default function AppRouter(): React.JSX.Element {
   return (
@@ -209,15 +213,25 @@ export default function AppRouter(): React.JSX.Element {
         {/* Tours */}
         <Route path="tours">
           <Route index element={<ToursDashboard />} />
-          <Route path="browse" element={<RA77 />} />
+          <Route path="browse" element={<ToursDashboard />} />
           <Route path="custom" element={<TourCustomBuilder />} />
           <Route path="quote" element={<TourQuoteRequest />} />
           <Route path="history" element={<RA82 />} />
-          <Route path=":tourId" element={<RA78 />} />
+          <Route path=":slug" element={<TourDetailPage />} />
+          <Route path=":slug/book" element={<TourBookingPage />} />
           <Route path=":tourId/dates" element={<RA79 />} />
           <Route path=":tourId/summary" element={<RA80 />} />
           <Route path=":tourId/confirmation" element={<RA81 />} />
         </Route>
+
+        {/* Bookings */}
+        <Route path="bookings">
+          <Route index element={<TourBookingsList />} />
+          <Route path=":id" element={<TourBookingDetail />} />
+        </Route>
+
+        {/* Custom Tour */}
+        <Route path="custom-tour" element={<TourCustomBuilder />} />
 
         {/* Ambulance */}
         <Route path="ambulance">
