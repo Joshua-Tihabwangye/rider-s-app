@@ -378,38 +378,38 @@ function HomeMultiServiceScreen(): React.JSX.Element {
           >
             YOUR LAST RIDE
           </Typography>
-          <Typography
-            variant="subtitle1"
-            sx={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
-          >
-            Home → Office
-          </Typography>
-          <Typography
-            variant="caption"
+              <Typography
+                variant="subtitle1"
+                sx={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
+              >
+                Home → Office
+              </Typography>
+              <Typography
+                variant="caption"
             sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block", mb: 1 }}
-          >
-            12 min • UGX 5,000
-          </Typography>
-          <Button
-            variant="contained"
-            size="small"
-            onClick={() => navigate("/rides/enter")}
-            sx={{
-              bgcolor: greenPrimary,
-              color: "#FFFFFF",
-              borderRadius: 999,
+              >
+                12 min • UGX 5,000
+              </Typography>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => navigate("/rides/enter")}
+              sx={{
+                bgcolor: greenPrimary,
+                color: "#FFFFFF",
+                borderRadius: 999,
               px: 2.5,
-              py: 0.75,
-              fontSize: 11,
-              fontWeight: 600,
-              textTransform: "none",
-              "&:hover": {
-                bgcolor: greenSecondary
-              }
-            }}
-          >
-            Rebook
-          </Button>
+                py: 0.75,
+                fontSize: 11,
+                fontWeight: 600,
+                textTransform: "none",
+                "&:hover": {
+                  bgcolor: greenSecondary
+                }
+              }}
+            >
+              Rebook
+            </Button>
         </CardContent>
       </Card>
 
@@ -448,12 +448,12 @@ function HomeMultiServiceScreen(): React.JSX.Element {
             >
               <CardContent sx={{ px: 1.4, py: 1.8, textAlign: "center", "&:last-child": { pb: 1.8 } }}>
                 <ElectricCarRoundedIcon sx={{ fontSize: 28, color: greenPrimary, mb: 0.5 }} />
-                <Typography
-                  variant="subtitle2"
+                  <Typography
+                    variant="subtitle2"
                   sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em", mb: 0.25 }}
-                >
-                  Ride
-                </Typography>
+                  >
+                    Ride
+                  </Typography>
                 <Typography
                   variant="caption"
                   sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, lineHeight: 1.3 }}
@@ -487,12 +487,12 @@ function HomeMultiServiceScreen(): React.JSX.Element {
             >
               <CardContent sx={{ px: 1.4, py: 1.8, textAlign: "center", "&:last-child": { pb: 1.8 } }}>
                 <LocalShippingRoundedIcon sx={{ fontSize: 28, color: greenPrimary, mb: 0.5 }} />
-                <Typography
-                  variant="subtitle2"
+                  <Typography
+                    variant="subtitle2"
                   sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em", mb: 0.25 }}
-                >
-                  Delivery
-                </Typography>
+                  >
+                    Delivery
+                  </Typography>
                 <Typography
                   variant="caption"
                   sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, lineHeight: 1.3 }}
@@ -528,12 +528,12 @@ function HomeMultiServiceScreen(): React.JSX.Element {
             >
               <CardContent sx={{ px: 1.4, py: 1.8, textAlign: "center", "&:last-child": { pb: 1.8 } }}>
                 <LuggageRoundedIcon sx={{ fontSize: 28, color: greenPrimary, mb: 0.5 }} />
-                <Typography
-                  variant="subtitle2"
+                  <Typography
+                    variant="subtitle2"
                   sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em", mb: 0.25 }}
-                >
-                  Rental
-                </Typography>
+                  >
+                    Rental
+                  </Typography>
                 <Typography
                   variant="caption"
                   sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, lineHeight: 1.3 }}
@@ -567,12 +567,12 @@ function HomeMultiServiceScreen(): React.JSX.Element {
             >
               <CardContent sx={{ px: 1.4, py: 1.8, textAlign: "center", "&:last-child": { pb: 1.8 } }}>
                 <TourRoundedIcon sx={{ fontSize: 28, color: greenPrimary, mb: 0.5 }} />
-                <Typography
-                  variant="subtitle2"
+                  <Typography
+                    variant="subtitle2"
                   sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em", mb: 0.25 }}
-                >
-                  Tours
-                </Typography>
+                  >
+                    Tours
+                  </Typography>
                 <Typography
                   variant="caption"
                   sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, lineHeight: 1.3 }}
@@ -608,12 +608,12 @@ function HomeMultiServiceScreen(): React.JSX.Element {
             >
               <CardContent sx={{ px: 1.4, py: 1.8, textAlign: "center", "&:last-child": { pb: 1.8 } }}>
                 <SchoolRoundedIcon sx={{ fontSize: 28, color: greenPrimary, mb: 0.5 }} />
-                <Typography
-                  variant="subtitle2"
+                  <Typography
+                    variant="subtitle2"
                   sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em", mb: 0.25 }}
-                >
-                  School
-                </Typography>
+                  >
+                    School
+                  </Typography>
                 <Typography
                   variant="caption"
                   sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, lineHeight: 1.3 }}
@@ -647,12 +647,12 @@ function HomeMultiServiceScreen(): React.JSX.Element {
             >
               <CardContent sx={{ px: 1.4, py: 1.8, textAlign: "center", "&:last-child": { pb: 1.8 } }}>
                 <LocalHospitalRoundedIcon sx={{ fontSize: 28, color: "#DC2626", mb: 0.5 }} />
-                <Typography
-                  variant="subtitle2"
+                  <Typography
+                    variant="subtitle2"
                   sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em", mb: 0.25 }}
-                >
-                  Ambulance
-                </Typography>
+                  >
+                    Ambulance
+                  </Typography>
                 <Typography
                   variant="caption"
                   sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, lineHeight: 1.3 }}

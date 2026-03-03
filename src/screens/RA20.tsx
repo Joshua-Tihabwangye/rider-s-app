@@ -423,13 +423,13 @@ function SelectYourRideScreen(): React.JSX.Element {
   };
   
   const isPremium = rideType === "premium";
-
+  
   const handleConfirm = () => {
     const selectedRideOption = RIDE_OPTIONS.find(opt => opt.id === selectedRide);
     const fare = isPremium
       ? (selectedRideOption?.premiumFare || "UGX 40,365")
       : (selectedRideOption?.fare || "UGX 28,500");
-
+    
     // Navigate to searching screen (RA22) to find nearest driver/rider
     navigate("/rides/searching", {
       state: {
@@ -521,7 +521,7 @@ function SelectYourRideScreen(): React.JSX.Element {
               </Box>
               <Typography variant="body2" sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
                 • {passengers} {passengers === 1 ? "passenger" : "passengers"}
-              </Typography>
+            </Typography>
             </Box>
           </Box>
           

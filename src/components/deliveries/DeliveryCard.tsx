@@ -464,25 +464,25 @@ export default function DeliveryCard({
           <Stack spacing={1} sx={{ mt: 1 }}>
             {/* Make Payment Button */}
             {order.needsPayment && onMakePayment && (
-              <Button
-                fullWidth
-                variant="contained"
+          <Button
+            fullWidth
+            variant="contained"
                 onClick={() => onMakePayment(order.id)}
-                sx={{
-                  bgcolor: greenPrimary,
-                  color: "#FFFFFF",
-                  borderRadius: 2,
-                  py: 1.2,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  textTransform: "none",
-                  "&:hover": {
-                    bgcolor: greenSecondary
-                  }
-                }}
-              >
-                Make Payment
-              </Button>
+            sx={{
+              bgcolor: greenPrimary,
+              color: "#FFFFFF",
+              borderRadius: 2,
+              py: 1.2,
+              fontSize: 13,
+              fontWeight: 600,
+              textTransform: "none",
+              "&:hover": {
+                bgcolor: greenSecondary
+              }
+            }}
+          >
+            Make Payment
+          </Button>
             )}
 
             {/* Mark as Delivered Button */}

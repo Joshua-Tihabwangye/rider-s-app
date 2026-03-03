@@ -1309,157 +1309,46 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           </Stack>
           <Box
             sx={{
-              display: "flex",
-              overflowX: "auto",
-              overflowY: "hidden",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
               gap: 1,
               pb: 0.5,
-              "&::-webkit-scrollbar": {
-                height: 4
-              },
-              "&::-webkit-scrollbar-thumb": {
-                bgcolor: (t) => t.palette.mode === "light" ? "#D1D5DB" : "#4B5563",
-                borderRadius: 2
-              },
-              WebkitOverflowScrolling: "touch"
             }}
           >
-            <Chip
-              label="Book ride now"
-              size="small"
-              onClick={() => handleQuickAction("book-now")}
-              icon={<DirectionsCarFilledRoundedIcon sx={{ fontSize: 16 }} />}
-              sx={{
-                borderRadius: 999,
-                fontSize: 11,
-                height: 28,
-                flexShrink: 0,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
-                cursor: "pointer",
-                "&:hover": {
+            {[
+              { label: "Book ride now", action: "book-now", icon: <DirectionsCarFilledRoundedIcon sx={{ fontSize: 16 }} /> },
+              { label: "Schedule ride", action: "schedule", icon: <AccessTimeRoundedIcon sx={{ fontSize: 16 }} /> },
+              { label: "Book for a contact", action: "book-contact" },
+              { label: "Book for someone", action: "book-someone" },
+              { label: "Multi-stop trip", action: "multi-stop", icon: <ArrowForwardIosRoundedIcon sx={{ fontSize: 14 }} /> },
+              { label: "View ride history", action: "history", icon: <ReceiptLongRoundedIcon sx={{ fontSize: 14 }} /> },
+            ].map((item) => (
+              <Chip
+                key={item.action}
+                label={item.label}
+                size="small"
+                onClick={() => handleQuickAction(item.action)}
+                {...(item.icon ? { icon: item.icon } : {})}
+                sx={{
+                  borderRadius: 999,
+                  fontSize: 11,
+                  height: 28,
+                  width: "100%",
+                  justifyContent: "flex-start",
                   bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
-                }
-              }}
-            />
-            <Chip
-              label="Schedule ride"
-              size="small"
-              onClick={() => handleQuickAction("schedule")}
-              icon={<AccessTimeRoundedIcon sx={{ fontSize: 16 }} />}
-              sx={{
-                borderRadius: 999,
-                fontSize: 11,
-                height: 28,
-                flexShrink: 0,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
-                cursor: "pointer",
-                "&:hover": {
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
-                }
-              }}
-            />
-            <Chip
-              label="Book for a contact"
-              size="small"
-              onClick={() => handleQuickAction("book-contact")}
-              sx={{
-                borderRadius: 999,
-                fontSize: 11,
-                height: 28,
-                flexShrink: 0,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
-                cursor: "pointer",
-                "&:hover": {
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
-                }
-              }}
-            />
-            <Chip
-              label="Book for someone"
-              size="small"
-              onClick={() => handleQuickAction("book-someone")}
-              sx={{
-                borderRadius: 999,
-                fontSize: 11,
-                height: 28,
-                flexShrink: 0,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
-                cursor: "pointer",
-                "&:hover": {
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
-                }
-              }}
-            />
-            <Chip
-              label="Multi-stop trip"
-              size="small"
-              onClick={() => handleQuickAction("multi-stop")}
-              icon={<ArrowForwardIosRoundedIcon sx={{ fontSize: 14 }} />}
-              sx={{
-                borderRadius: 999,
-                fontSize: 11,
-                height: 28,
-                flexShrink: 0,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
-                cursor: "pointer",
-                "&:hover": {
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
-                }
-              }}
-            />
-            <Chip
-              label="View ride history"
-              size="small"
-              onClick={() => handleQuickAction("history")}
-              icon={<ReceiptLongRoundedIcon sx={{ fontSize: 14 }} />}
-              sx={{
-                borderRadius: 999,
-                fontSize: 11,
-                height: 28,
-                flexShrink: 0,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
-                cursor: "pointer",
-                "&:hover": {
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
-                }
-              }}
-            />
+                    t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+                  border: (t) =>
+                    t.palette.mode === "light"
+                      ? "1px solid rgba(209,213,219,0.9)"
+                      : "1px solid rgba(51,65,85,0.9)",
+                  cursor: "pointer",
+                  "&:hover": {
+                    bgcolor: (t) =>
+                      t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
+                  }
+                }}
+              />
+            ))}
           </Box>
         </CardContent>
       </Card>
