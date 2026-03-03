@@ -517,25 +517,25 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
           {/* Payment and Completion Actions */}
           <Stack spacing={1.5}>
             {!isCashPayment && (
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={handlePayNow}
-                sx={{
-                  borderRadius: 999,
-                  py: 1.4,
-                  fontSize: 15,
-                  fontWeight: 600,
-                  textTransform: "none",
-                  bgcolor: greenAccent,
-                  color: "#FFFFFF",
-                  "&:hover": {
-                    bgcolor: "#16A34A"
-                  }
-                }}
-              >
-                Pay Now
-              </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handlePayNow}
+              sx={{
+                borderRadius: 999,
+                py: 1.4,
+                fontSize: 15,
+                fontWeight: 600,
+                textTransform: "none",
+                bgcolor: greenAccent,
+                color: "#FFFFFF",
+                "&:hover": {
+                  bgcolor: "#16A34A"
+                }
+              }}
+            >
+              Pay Now
+            </Button>
             )}
             
             <Button

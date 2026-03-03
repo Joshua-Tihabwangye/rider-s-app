@@ -952,12 +952,12 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
         {/* ── STEP 1: Select Payment Method ── */}
         {addMoneyStep === "select_method" && (
           <>
-            <DialogTitle sx={{ fontWeight: 600 }}>Add Money to Wallet</DialogTitle>
-            <DialogContent>
+        <DialogTitle sx={{ fontWeight: 600 }}>Add Money to Wallet</DialogTitle>
+        <DialogContent>
               <DialogContentText sx={{ color: (t) => t.palette.text.secondary, mb: 2.5 }}>
                 Choose where to add money from.
-              </DialogContentText>
-              <Stack spacing={1.5}>
+          </DialogContentText>
+          <Stack spacing={1.5}>
                 {/* EVzone Wallet */}
                 <Card
                   elevation={0}
@@ -1041,9 +1041,9 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                     </Stack>
                   </CardContent>
                 </Card>
-              </Stack>
-            </DialogContent>
-            <DialogActions sx={{ px: 2.5, pb: 2 }}>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 2.5, pb: 2 }}>
               <Button onClick={() => setShowAddMoneyDialog(false)} sx={{ textTransform: "none" }}>Cancel</Button>
             </DialogActions>
           </>
@@ -1167,7 +1167,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 }
               />
 
-              <Button
+          <Button
                 fullWidth
                 variant="contained"
                 onClick={handleAddMoneyProceed}
@@ -1187,15 +1187,15 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                   "&:hover": { bgcolor: "#02B87A" },
                   "&.Mui-disabled": { bgcolor: "rgba(0,0,0,0.12)", color: "rgba(0,0,0,0.4)" }
                 }}
-              >
+          >
                 {addMoneyAmount && parseInt(addMoneyAmount, 10) > 0
                   ? `Proceed — UGX ${parseInt(addMoneyAmount, 10).toLocaleString()}`
                   : "Enter amount to proceed"}
-              </Button>
+          </Button>
             </DialogContent>
             <DialogActions sx={{ px: 2.5, pb: 2 }}>
               <Button onClick={() => setShowAddMoneyDialog(false)} sx={{ textTransform: "none" }}>Cancel</Button>
-            </DialogActions>
+        </DialogActions>
           </>
         )}
       </Dialog>
@@ -1216,12 +1216,12 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
         {/* ── STEP 1: Select Withdrawal Destination ── */}
         {withdrawStep === "select_method" && (
           <>
-            <DialogTitle sx={{ fontWeight: 600 }}>Withdraw Funds</DialogTitle>
-            <DialogContent>
+        <DialogTitle sx={{ fontWeight: 600 }}>Withdraw Funds</DialogTitle>
+        <DialogContent>
               <DialogContentText sx={{ color: (t) => t.palette.text.secondary, mb: 2.5 }}>
                 Choose where to withdraw to.
-              </DialogContentText>
-              <Stack spacing={1.5}>
+          </DialogContentText>
+          <Stack spacing={1.5}>
                 {/* EVzone Wallet */}
                 <Card
                   elevation={0}
@@ -1305,9 +1305,9 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                     </Stack>
                   </CardContent>
                 </Card>
-              </Stack>
-            </DialogContent>
-            <DialogActions sx={{ px: 2.5, pb: 2 }}>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 2.5, pb: 2 }}>
               <Button onClick={() => setShowWithdrawDialog(false)} sx={{ textTransform: "none" }}>Cancel</Button>
             </DialogActions>
           </>
@@ -1439,7 +1439,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 }
               />
 
-              <Button
+          <Button
                 fullWidth
                 variant="contained"
                 onClick={handleWithdrawProceed}
@@ -1460,15 +1460,15 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                   "&:hover": { bgcolor: "#02B87A" },
                   "&.Mui-disabled": { bgcolor: "rgba(0,0,0,0.12)", color: "rgba(0,0,0,0.4)" }
                 }}
-              >
+          >
                 {withdrawAmount && parseInt(withdrawAmount, 10) > 0 && parseInt(withdrawAmount, 10) <= balance
                   ? `Withdraw — UGX ${parseInt(withdrawAmount, 10).toLocaleString()}`
                   : "Enter amount to proceed"}
-              </Button>
+          </Button>
             </DialogContent>
             <DialogActions sx={{ px: 2.5, pb: 2 }}>
               <Button onClick={() => setShowWithdrawDialog(false)} sx={{ textTransform: "none" }}>Cancel</Button>
-            </DialogActions>
+        </DialogActions>
           </>
         )}
       </Dialog>

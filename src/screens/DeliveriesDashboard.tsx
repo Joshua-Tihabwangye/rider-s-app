@@ -74,77 +74,77 @@ interface ReceivedOrder {
 
 // Initial delivering orders
 const INITIAL_DELIVERING_ORDERS: DeliveringOrder[] = [
-  {
-    id: "WC12564897",
-    packageName: "The Pair of Sneakers",
-    sender: {
-      city: "Atlanta",
-      code: "5243",
-      icon: "A",
-      name: "John Doe",
-      avatar: "JD",
-      address: "123 Main Street, Atlanta, GA 30309, United States"
-    },
-    receiver: { city: "Chicago", code: "6342", icon: "C" },
+    {
+      id: "WC12564897",
+      packageName: "The Pair of Sneakers",
+      sender: {
+        city: "Atlanta",
+        code: "5243",
+        icon: "A",
+        name: "John Doe",
+        avatar: "JD",
+        address: "123 Main Street, Atlanta, GA 30309, United States"
+      },
+      receiver: { city: "Chicago", code: "6342", icon: "C" },
     date: new Date(2024, 1, 7),
-    status: "Waiting to accept",
-    progress: 20
-  },
-  {
-    id: "WC12564898",
-    packageName: "Electronics Package",
-    sender: {
-      city: "Kampala",
-      code: "256",
-      icon: "K",
-      name: "Sarah M.",
-      avatar: "SM",
-      address: "45 Nakasero Road, Kampala, Central Region, Uganda"
+      status: "Waiting to accept",
+      progress: 20
     },
-    receiver: { city: "Entebbe", code: "256", icon: "E" },
+    {
+      id: "WC12564898",
+      packageName: "Electronics Package",
+      sender: {
+        city: "Kampala",
+        code: "256",
+        icon: "K",
+        name: "Sarah M.",
+        avatar: "SM",
+        address: "45 Nakasero Road, Kampala, Central Region, Uganda"
+      },
+      receiver: { city: "Entebbe", code: "256", icon: "E" },
     date: new Date(2024, 1, 8),
     status: "Waiting to accept",
     progress: 20
-  },
-  {
-    id: "WC12564900",
-    packageName: "Gift Box",
-    sender: {
-      city: "Nairobi",
-      code: "254",
-      icon: "N",
-      name: "Michael K.",
-      avatar: "MK",
-      address: "78 Moi Avenue, Nairobi, Kenya"
     },
-    receiver: { city: "Kampala", code: "256", icon: "K" },
+    {
+      id: "WC12564900",
+      packageName: "Gift Box",
+      sender: {
+        city: "Nairobi",
+        code: "254",
+        icon: "N",
+        name: "Michael K.",
+        avatar: "MK",
+        address: "78 Moi Avenue, Nairobi, Kenya"
+      },
+      receiver: { city: "Kampala", code: "256", icon: "K" },
     date: new Date(2024, 1, 9),
-    status: "Waiting to accept",
-    progress: 10
-  }
-];
+      status: "Waiting to accept",
+      progress: 10
+    }
+  ];
 
 // Initial received/accepted orders
 const INITIAL_RECEIVED_ORDERS: ReceivedOrder[] = [
-  {
-    id: "WC12564899",
-    packageName: "The Pair of Sneakers",
-    sender: { city: "Atlanta", code: "5243", icon: "A", name: "John Doe", avatar: "JD", profileImage: null },
-    receiver: { city: "Chicago", code: "6342", icon: "C" },
-    time: "2 day – 3 days",
-    status: "Waiting to collect",
-    progress: 100,
+    {
+      id: "WC12564899",
+      packageName: "The Pair of Sneakers",
+      sender: { city: "Atlanta", code: "5243", icon: "A", name: "John Doe", avatar: "JD", profileImage: null },
+      receiver: { city: "Chicago", code: "6342", icon: "C" },
+      time: "2 day – 3 days",
+      status: "Waiting to collect",
+      progress: 100,
     needsPayment: true,
     paymentMethod: null
-  },
-  {
-    id: "WC12564901",
-    packageName: "Electronics Package",
-    sender: { city: "Kampala", code: "256", icon: "K", name: "Peter W.", avatar: "PW", profileImage: null },
-    receiver: { city: "Entebbe", code: "256", icon: "E" },
-    time: "3 days – 5 days",
-    status: "Waiting to collect",
-    progress: 100,
+    },
+    {
+      id: "WC12564901",
+      packageName: "Electronics Package",
+      sender: { city: "Kampala", code: "256", icon: "K", name: "Peter W.", avatar: "PW", profileImage: null },
+      receiver: { city: "Entebbe", code: "256", icon: "E" },
+      time: "3 days – 5 days",
+      status: "Waiting to collect",
+      progress: 100,
     needsPayment: true,
     paymentMethod: null
   },
@@ -158,8 +158,8 @@ const INITIAL_RECEIVED_ORDERS: ReceivedOrder[] = [
     progress: 100,
     needsPayment: false,
     paymentMethod: "gateway"
-  }
-];
+    }
+  ];
 
 function DeliveryDashboardHomeScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -548,84 +548,84 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
       </Card>
 
       {/* Track Deliveries and Shipments Section */}
-      <Box sx={{ mb: 2.5 }}>
-        <Typography
-          variant="subtitle1"
-          sx={{
-            fontSize: 16,
-            fontWeight: 600,
-            letterSpacing: "-0.01em",
-            mb: 0.5,
-            color: (t) => t.palette.text.primary
-          }}
-        >
+        <Box sx={{ mb: 2.5 }}>
+          <Typography
+            variant="subtitle1"
+            sx={{
+              fontSize: 16,
+              fontWeight: 600,
+              letterSpacing: "-0.01em",
+              mb: 0.5,
+              color: (t) => t.palette.text.primary
+            }}
+          >
           Track deliveries and shipments
-        </Typography>
-        <Typography
-          variant="caption"
-          sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 1.5, display: "block" }}
-        >
-          Type your tracking number and find your order.
-        </Typography>
-        <TextField
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 1.5, display: "block" }}
+          >
+            Type your tracking number and find your order.
+          </Typography>
+          <TextField
           id="tracking-input"
-          fullWidth
-          size="small"
-          placeholder="Order Id"
-          value={trackingNumber}
-          onChange={(e) => setTrackingNumber(e.target.value)}
-          onKeyPress={(e) => {
-            if (e.key === "Enter") {
-              handleTrackShipment();
-            }
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Inventory2RoundedIcon sx={{ fontSize: 20, color: (t) => t.palette.text.secondary }} />
-              </InputAdornment>
-            ),
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  size="small"
-                  onClick={handleTrackShipment}
-                  sx={{
-                    bgcolor: greenPrimary,
-                    color: "#FFFFFF",
-                    width: 32,
-                    height: 32,
-                    "&:hover": {
-                      bgcolor: greenSecondary
-                    }
-                  }}
-                >
-                  <SearchRoundedIcon sx={{ fontSize: 18 }} />
-                </IconButton>
-              </InputAdornment>
-            )
-          }}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: 2,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              "& fieldset": {
-                borderColor: (t) =>
-                  t.palette.mode === "light"
-                    ? "rgba(209,213,219,0.9)"
-                    : "rgba(51,65,85,0.9)"
-              },
-              "&:hover fieldset": {
-                borderColor: greenPrimary
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: greenPrimary
+            fullWidth
+            size="small"
+            placeholder="Order Id"
+            value={trackingNumber}
+            onChange={(e) => setTrackingNumber(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === "Enter") {
+                handleTrackShipment();
               }
-            }
-          }}
-        />
-      </Box>
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Inventory2RoundedIcon sx={{ fontSize: 20, color: (t) => t.palette.text.secondary }} />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    onClick={handleTrackShipment}
+                    sx={{
+                      bgcolor: greenPrimary,
+                      color: "#FFFFFF",
+                      width: 32,
+                      height: 32,
+                      "&:hover": {
+                        bgcolor: greenSecondary
+                      }
+                    }}
+                  >
+                    <SearchRoundedIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+                "& fieldset": {
+                  borderColor: (t) =>
+                    t.palette.mode === "light"
+                      ? "rgba(209,213,219,0.9)"
+                      : "rgba(51,65,85,0.9)"
+                },
+                "&:hover fieldset": {
+                  borderColor: greenPrimary
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: greenPrimary
+                }
+              }
+            }}
+          />
+        </Box>
 
       {/* Tabs: Incoming Deliveries / Accepted Deliveries */}
       <Tabs
@@ -868,10 +868,10 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
         </MenuItem>
       </Menu>
 
-      <Typography
-        variant="caption"
-        sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-      >
+                <Typography
+                  variant="caption"
+                  sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
+                >
         The deliveries dashboard helps you make deliveries in a few taps, track EV
         couriers in real time and stay on top of what's coming to you.
       </Typography>

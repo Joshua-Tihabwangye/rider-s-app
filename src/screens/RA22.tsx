@@ -123,7 +123,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
 
     return () => clearInterval(searchInterval);
   }, []);
-
+      
   // Find a matching driver after 4 seconds
   useEffect(() => {
     if (searchTime >= 4 && !driverFound) {
@@ -221,36 +221,36 @@ function SearchingForDriverScreen(): React.JSX.Element {
 
         {/* Origin label */}
         {tripData.pickup && (
-          <Typography
-            sx={{
-              position: "absolute",
-              top: "8%",
-              left: "10%",
-              fontSize: 11,
-              fontWeight: 500,
-              color: "#03CD8C"
-            }}
-          >
+        <Typography
+          sx={{
+            position: "absolute",
+            top: "8%",
+            left: "10%",
+            fontSize: 11,
+            fontWeight: 500,
+            color: "#03CD8C"
+          }}
+        >
             {tripData.pickup}
-          </Typography>
+        </Typography>
         )}
 
         {/* Destination label */}
         {tripData.destination && (
-          <Typography
-            sx={{
-              position: "absolute",
-              top: "12%",
-              right: "8%",
-              fontSize: 10,
-              fontWeight: 500,
-              color: "#03CD8C",
-              maxWidth: "30%",
-              textAlign: "right"
-            }}
-          >
+        <Typography
+          sx={{
+            position: "absolute",
+            top: "12%",
+            right: "8%",
+            fontSize: 10,
+            fontWeight: 500,
+            color: "#03CD8C",
+            maxWidth: "30%",
+            textAlign: "right"
+          }}
+        >
             {tripData.destination}
-          </Typography>
+        </Typography>
         )}
 
         {/* Back button on map */}
@@ -426,39 +426,39 @@ function SearchingForDriverScreen(): React.JSX.Element {
             </Box>
           </Box>
         ) : (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2.5 }}>
-            <Avatar
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2.5 }}>
+          <Avatar
+            sx={{
+              width: 70,
+              height: 70,
+              bgcolor: (theme) =>
+                theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)"
+            }}
+          >
+            <PersonRoundedIcon sx={{ fontSize: 36, color: (theme) => theme.palette.text.secondary }} />
+          </Avatar>
+          <Box sx={{ flex: 1 }}>
+            <Box
               sx={{
-                width: 70,
-                height: 70,
+                height: 18,
+                width: "70%",
+                borderRadius: 1,
+                bgcolor: (theme) =>
+                  theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)",
+                mb: 1.2
+              }}
+            />
+            <Box
+              sx={{
+                height: 14,
+                width: "50%",
+                borderRadius: 1,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)"
               }}
-            >
-              <PersonRoundedIcon sx={{ fontSize: 36, color: (theme) => theme.palette.text.secondary }} />
-            </Avatar>
-            <Box sx={{ flex: 1 }}>
-              <Box
-                sx={{
-                  height: 18,
-                  width: "70%",
-                  borderRadius: 1,
-                  bgcolor: (theme) =>
-                    theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)",
-                  mb: 1.2
-                }}
-              />
-              <Box
-                sx={{
-                  height: 14,
-                  width: "50%",
-                  borderRadius: 1,
-                  bgcolor: (theme) =>
-                    theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)"
-                }}
-              />
-            </Box>
+            />
           </Box>
+        </Box>
         )}
 
         {/* Search status card */}
@@ -516,17 +516,17 @@ function SearchingForDriverScreen(): React.JSX.Element {
                   : `Searching for nearest ${searchLabel}${dots}`}
               </Typography>
               {!driverFound && (
-                <RefreshRoundedIcon
-                  sx={{
-                    fontSize: 20,
-                    color: "#FFFFFF",
-                    animation: "spin 2s linear infinite",
-                    "@keyframes spin": {
-                      "0%": { transform: "rotate(0deg)" },
-                      "100%": { transform: "rotate(360deg)" }
-                    }
-                  }}
-                />
+              <RefreshRoundedIcon
+                sx={{
+                  fontSize: 20,
+                  color: "#FFFFFF",
+                  animation: "spin 2s linear infinite",
+                  "@keyframes spin": {
+                    "0%": { transform: "rotate(0deg)" },
+                    "100%": { transform: "rotate(360deg)" }
+                  }
+                }}
+              />
               )}
             </Box>
           </CardContent>
@@ -596,31 +596,31 @@ function SearchingForDriverScreen(): React.JSX.Element {
 
         {/* Cancel button */}
         {!driverFound && (
-          <Button
-            fullWidth
-            variant="outlined"
-            onClick={handleCancelClick}
-            sx={{
-              borderRadius: 999,
-              py: 1.2,
-              fontSize: 14,
-              fontWeight: 500,
-              textTransform: "none",
+        <Button
+          fullWidth
+          variant="outlined"
+          onClick={handleCancelClick}
+          sx={{
+            borderRadius: 999,
+            py: 1.2,
+            fontSize: 14,
+            fontWeight: 500,
+            textTransform: "none",
+            bgcolor: (theme) =>
+              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+            border: (theme) =>
+              theme.palette.mode === "light"
+                ? "1px solid rgba(209,213,219,0.9)"
+                : "1px solid rgba(51,65,85,0.9)",
+            color: (theme) => theme.palette.text.primary,
+            "&:hover": {
               bgcolor: (theme) =>
-                theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (theme) =>
-                theme.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)",
-              color: (theme) => theme.palette.text.primary,
-              "&:hover": {
-                bgcolor: (theme) =>
-                  theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.8)"
-              }
-            }}
-          >
-            Cancel
-          </Button>
+                theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.8)"
+            }
+          }}
+        >
+          Cancel
+        </Button>
         )}
       </Box>
 

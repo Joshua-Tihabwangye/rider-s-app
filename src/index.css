@@ -5,9 +5,8 @@
 html {
   width: 100%;
   overflow-x: hidden;
-  /* Use dynamic viewport height on mobile */
   height: 100dvh;
-  height: 100vh; /* Fallback */
+  height: 100vh;
 }
 
 body {
@@ -20,13 +19,11 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Prevent text size adjustment on iOS */
   -webkit-text-size-adjust: 100%;
-  /* Prevent pull-to-refresh on mobile */
   overscroll-behavior-y: none;
-  /* Use dynamic viewport height on mobile */
   min-height: 100dvh;
-  min-height: 100vh; /* Fallback */
+  min-height: 100vh;
+  background-color: #0f172a;
 }
 
 #root {
@@ -34,36 +31,54 @@ body {
   width: 100%;
   overflow-x: hidden;
   min-height: 100dvh;
-  min-height: 100vh; /* Fallback */
-  /* Ensure root takes full viewport */
+  min-height: 100vh;
   position: relative;
 }
 
-/* Mobile-specific optimizations */
-@media (max-width: 640px) {
+/* ──────────────────────────────────────────────
+   Phone-frame layout on desktop (>480px)
+   ────────────────────────────────────────────── */
+@media (min-width: 481px) {
   body {
-    /* Prevent horizontal scroll on mobile */
+    background: #0f172a;
+    overflow-y: auto;
+  }
+
+  #root {
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    transform: translateZ(0);
+    box-shadow:
+      0 0 0 1px rgba(148, 163, 184, 0.15),
+      0 0 80px rgba(0, 0, 0, 0.45),
+      0 0 160px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    border-radius: 0;
+  }
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 480px) {
+  body {
+    background-color: inherit;
     overflow-x: hidden;
     width: 100%;
-    /* Use dynamic viewport height */
     height: 100dvh;
-    height: 100vh; /* Fallback for browsers that don't support dvh */
+    height: 100vh;
   }
-  
-  /* Ensure touch targets are at least 44x44px */
+
   button, a, [role="button"] {
     min-height: 44px;
     min-width: 44px;
   }
-  
-  /* Prevent text selection on tap */
+
   * {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
   }
-  
-  /* Allow text selection in input fields */
+
   input, textarea {
     -webkit-user-select: text;
     user-select: text;
@@ -78,12 +93,7 @@ body {
   }
 }
 
-/* Smooth scrolling */
 * {
   scroll-behavior: smooth;
-}
-
-/* Prevent tap highlight on mobile */
-* {
   -webkit-tap-highlight-color: transparent;
 }

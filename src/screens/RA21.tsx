@@ -137,9 +137,9 @@ function MapBackground({ onBackClick, pickup, destination, distance, estimatedTi
       
       {/* Route info badge */}
       {distance && estimatedTime && (
-        <Box
-          sx={{
-            position: "absolute",
+      <Box
+        sx={{
+          position: "absolute",
             top: "48%",
             left: "50%",
             bgcolor: "rgba(0,0,0,0.75)",
@@ -151,8 +151,8 @@ function MapBackground({ onBackClick, pickup, destination, distance, estimatedTi
             display: "flex",
             alignItems: "center",
             gap: 1
-          }}
-        >
+        }}
+      >
           <StraightenRoundedIcon sx={{ fontSize: 14, color: "#FFFFFF" }} />
           <Typography
             variant="caption"
@@ -161,8 +161,8 @@ function MapBackground({ onBackClick, pickup, destination, distance, estimatedTi
             {distance}
           </Typography>
           <AccessTimeRoundedIcon sx={{ fontSize: 14, color: "#FFFFFF" }} />
-          <Typography
-            variant="caption"
+        <Typography
+          variant="caption"
             sx={{ fontSize: 11, fontWeight: 600, color: "#FFFFFF", whiteSpace: "nowrap" }}
           >
             {estimatedTime}
@@ -210,8 +210,8 @@ function MapBackground({ onBackClick, pickup, destination, distance, estimatedTi
         >
           <Typography variant="caption" sx={{ fontSize: 9, color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>
             {destination}
-          </Typography>
-        </Box>
+        </Typography>
+      </Box>
       )}
 
       {/* Back button */}
@@ -326,12 +326,12 @@ function PaymentMethodCard({ method, selected, onSelect }: PaymentMethodCardProp
               {method.icon}
             </Box>
             <Box>
-              <Typography
-                variant="body2"
+            <Typography
+              variant="body2"
                 sx={{ fontWeight: 600, fontSize: 14 }}
-              >
-                {method.name}
-              </Typography>
+            >
+              {method.name}
+            </Typography>
               {method.description && (
                 <Typography
                   variant="caption"
@@ -379,7 +379,7 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
   const vehicleType = rideData.vehicleType || (rideData.selectedRide === "scooter" ? "motorbike" : "car");
   const isMotorbike = vehicleType === "motorbike";
   const driverLabel = isMotorbike ? "Rider" : "Driver";
-
+  
   const handleConfirm = () => {
     if (selected === "cash") {
       // Cash payment: show confirmation dialog, record amount, but don't process
@@ -395,7 +395,7 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
     };
 
     navigate("/payment/process", {
-      state: {
+        state: {
         paymentMethod: paymentMethodMap[selected] || "wallet",
         amount: fare,
         description: `EV Ride – ${pickup} → ${destination}`,
@@ -407,8 +407,8 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
           paymentMethod: selected,
           paymentMethodName: PAYMENT_METHODS.find(pm => pm.id === selected)?.name || "EVzone Wallet"
         }
-      }
-    });
+        }
+      });
   };
 
   const handleCashConfirm = () => {
@@ -494,12 +494,12 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
               justifyContent: "space-between"
             }}
           >
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
+              >
               Choose Payment Method
-            </Typography>
+              </Typography>
             
             {/* Fare Summary on the right */}
             <Box sx={{ textAlign: "right" }}>

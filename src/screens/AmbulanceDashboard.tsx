@@ -288,38 +288,38 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
             />
           </Stack>
 
-          <Button
-            fullWidth
-            variant="contained"
+            <Button
+              fullWidth
+              variant="contained"
             onClick={handleRequestAmbulance}
-            sx={{
-              borderRadius: 999,
-              py: 0.9,
-              fontSize: 13,
-              fontWeight: 700,
-              textTransform: "none",
-              bgcolor: "#B91C1C",
-              color: "#FEF2F2",
+              sx={{
+                borderRadius: 999,
+                py: 0.9,
+                fontSize: 13,
+                fontWeight: 700,
+                textTransform: "none",
+                bgcolor: "#B91C1C",
+                color: "#FEF2F2",
               transition: "all 0.2s ease",
-              "&:hover": {
+                "&:hover": {
                 bgcolor: "#991B1B",
                 transform: "translateY(-1px)",
                 boxShadow: "0 4px 12px rgba(185,28,28,0.4)"
               },
               "&:active": { transform: "translateY(0)" }
-            }}
-          >
+              }}
+            >
             Request ambulance
-          </Button>
+            </Button>
         </CardContent>
       </Card>
 
       {/* Ambulance Requests List */}
       <Box sx={{ mb: 1 }}>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
           sx={{ mb: 1.5 }}
         >
           <Typography
@@ -328,7 +328,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
           >
             Ambulance requests
           </Typography>
-          <Stack direction="row" spacing={0.75} alignItems="center">
+            <Stack direction="row" spacing={0.75} alignItems="center">
             <Chip
               size="small"
               label={`${displayedRequests.length} shown`}
@@ -337,7 +337,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
                 fontSize: 10,
                 height: 22,
                 bgcolor: (t) =>
-                  t.palette.mode === "light"
+                        t.palette.mode === "light"
                     ? "rgba(220,38,38,0.08)"
                     : "rgba(239,68,68,0.12)",
                 color: "#DC2626",
@@ -389,34 +389,34 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
           const sc = statusConfig[req.status];
 
           return (
-            <Card
+      <Card
               key={req.id}
-              elevation={0}
-              sx={{
-                mb: 1.5,
-                borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-                border: (t) =>
+        elevation={0}
+        sx={{
+          mb: 1.5,
+          borderRadius: 2,
+          bgcolor: (t) =>
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          border: (t) =>
                   isExpanded
                     ? `1px solid ${sc.color}`
                     : t.palette.mode === "light"
-                      ? "1px solid rgba(209,213,219,0.9)"
+              ? "1px solid rgba(209,213,219,0.9)"
                       : "1px solid rgba(51,65,85,0.9)",
                 transition: "border-color 0.2s ease"
-              }}
-            >
+        }}
+      >
               <CardContent sx={{ px: 1.75, py: 1.5, "&:last-child": { pb: 1.5 } }}>
                 {/* Request summary row */}
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
+          <Stack
+            direction="row"
+            justifyContent="space-between"
                   alignItems="flex-start"
-                >
+          >
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.4 }}>
                       <PlaceRoundedIcon sx={{ fontSize: 14, color: "#DC2626" }} />
-                      <Typography
+            <Typography
                         variant="body2"
                         sx={{
                           fontSize: 12.5,
@@ -426,10 +426,10 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
                           overflow: "hidden",
                           textOverflow: "ellipsis"
                         }}
-                      >
+            >
                         {req.pickup} → {req.destination}
-                      </Typography>
-                    </Stack>
+            </Typography>
+          </Stack>
 
                     <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
                       <Chip
@@ -449,7 +449,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
                       <Chip
                         size="small"
                         label={req.type === "now" ? "Urgent" : "Scheduled"}
-                        sx={{
+              sx={{
                           borderRadius: 999,
                           fontSize: 10,
                           height: 22,
@@ -462,15 +462,15 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
                     </Stack>
 
                     <Stack direction="row" spacing={0.5} alignItems="center">
-                      <AccessTimeRoundedIcon
+                  <AccessTimeRoundedIcon
                         sx={{ fontSize: 13, color: (t) => t.palette.text.secondary }}
-                      />
-                      <Typography
-                        variant="caption"
-                        sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-                      >
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
+                  >
                         {req.date} • {req.time}
-                      </Typography>
+                  </Typography>
                     </Stack>
                   </Box>
 
@@ -541,18 +541,18 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
                             ⭐ {req.driver.rating} rating
                           </Typography>
                         )}
-                      </Stack>
-                    </Box>
-                  </Box>
+                </Stack>
+              </Box>
+            </Box>
 
                   {/* Requester details */}
                   <Box>
                     <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.75 }}>
                       <PersonRoundedIcon sx={{ fontSize: 15, color: "#3B82F6" }} />
-                      <Typography
-                        variant="caption"
+      <Typography
+        variant="caption"
                         sx={{ fontSize: 11, fontWeight: 700, color: (t) => t.palette.text.primary }}
-                      >
+      >
                         Requester details
                       </Typography>
                     </Stack>
@@ -586,7 +586,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
                         {req.requester.notes && (
                           <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, pl: 2.5, fontStyle: "italic" }}>
                             Notes: {req.requester.notes}
-                          </Typography>
+      </Typography>
                         )}
                       </Stack>
                     </Box>

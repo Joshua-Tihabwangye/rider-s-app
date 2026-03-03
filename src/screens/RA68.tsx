@@ -376,12 +376,12 @@ function OrderDeliveryDetailedViewScreen(): React.JSX.Element {
         }}
       >
         <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Typography
-            variant="subtitle2"
+            <Typography
+              variant="subtitle2"
             sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 1.2 }}
-          >
+            >
             Package details
-          </Typography>
+            </Typography>
 
           <Stack spacing={0.75}>
             <Stack direction="row" justifyContent="space-between">
@@ -394,21 +394,21 @@ function OrderDeliveryDetailedViewScreen(): React.JSX.Element {
             </Stack>
 
             {source === "accepted" && estimatedTime && (
-              <Stack direction="row" justifyContent="space-between">
+            <Stack direction="row" justifyContent="space-between">
                 <Typography variant="caption" sx={{ fontSize: 12, color: (t) => t.palette.text.secondary }}>
                   Est. time
-                </Typography>
+              </Typography>
                 <Typography variant="body2" sx={{ fontSize: 12, fontWeight: 500 }}>
                   {estimatedTime}
-                </Typography>
-              </Stack>
+              </Typography>
+            </Stack>
             )}
 
             {source === "accepted" && (
-              <Stack direction="row" justifyContent="space-between">
+            <Stack direction="row" justifyContent="space-between">
                 <Typography variant="caption" sx={{ fontSize: 12, color: (t) => t.palette.text.secondary }}>
                   Payment
-                </Typography>
+              </Typography>
                 <Typography variant="body2" sx={{ fontSize: 12, fontWeight: 500 }}>
                   {needsPayment
                     ? paymentMethod === "cash"
@@ -417,8 +417,8 @@ function OrderDeliveryDetailedViewScreen(): React.JSX.Element {
                     : paymentMethod === "gateway"
                     ? "Paid (gateway)"
                     : "Paid"}
-                </Typography>
-              </Stack>
+              </Typography>
+            </Stack>
             )}
           </Stack>
 
@@ -580,18 +580,18 @@ function OrderDeliveryDetailedViewScreen(): React.JSX.Element {
 }
 
 export default function RiderScreen68OrderDeliveryDetailedViewCanvas_v2() {
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (t) => t.palette.background.default
-      }}
-    >
-      <DarkModeToggle />
-      <MobileShell>
-        <OrderDeliveryDetailedViewScreen />
-      </MobileShell>
-    </Box>
+      return (
+      <Box
+        sx={{
+          position: "relative",
+          minHeight: "100vh",
+          bgcolor: (t) => t.palette.background.default
+        }}
+      >
+        <DarkModeToggle />
+        <MobileShell>
+          <OrderDeliveryDetailedViewScreen />
+        </MobileShell>
+      </Box>
   );
 }
