@@ -188,47 +188,41 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
   const displayedRequests = showPastRequests ? AMBULANCE_REQUESTS : activeRequests;
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
+    <Box>
+      {/* Green Header */}
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Box
             sx={{
               width: 40,
               height: 40,
               borderRadius: 999,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FEE2E2" : "rgba(15,23,42,0.9)",
+              bgcolor: "rgba(255,255,255,0.2)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center"
             }}
           >
-            <LocalHospitalRoundedIcon sx={{ fontSize: 22, color: "#DC2626" }} />
+            <LocalHospitalRoundedIcon sx={{ fontSize: 22, color: "#FFFFFF" }} />
           </Box>
           <Box>
             <Typography
               variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
+              sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
             >
               Ambulance & medical transport
             </Typography>
             <Typography
               variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+              sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}
             >
               Request urgent help or plan a hospital transfer
             </Typography>
           </Box>
         </Box>
       </Box>
+
+    <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
 
       {/* Request ambulance card */}
       <Card
@@ -626,6 +620,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
             </Card>
           );
         })}
+      </Box>
       </Box>
     </Box>
   );

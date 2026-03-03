@@ -182,19 +182,23 @@ function BookingDetailScreen() {
   const canReschedule = booking.status === "confirmed" || booking.status === "upcoming";
 
   return (
+    <Box>
+      {/* Green Header */}
+      <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <IconButton onClick={() => navigate("/bookings")} size="small"
+            sx={{ borderRadius: 999, bgcolor: "rgba(255,255,255,0.2)", color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.3)" } }}>
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: 16, color: "#FFFFFF" }}>Booking Details</Typography>
+          </Box>
+          <Chip label={statusConf.label} size="small"
+            sx={{ borderRadius: 999, fontSize: 10, height: 24, fontWeight: 600, bgcolor: "rgba(255,255,255,0.2)", color: "#FFFFFF" }} />
+        </Stack>
+      </Box>
+
     <Box sx={{ px: 2, pt: 2, pb: 3 }}>
-      {/* Header */}
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-        <IconButton onClick={() => navigate("/bookings")} size="small"
-          sx={{ borderRadius: 999, bgcolor: t => t.palette.mode === "light" ? "#fff" : "rgba(15,23,42,0.9)", border: t => `1px solid ${t.palette.divider}` }}>
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 16 }} />
-        </IconButton>
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: 16 }}>Booking Details</Typography>
-        </Box>
-        <Chip label={statusConf.label} size="small"
-          sx={{ borderRadius: 999, fontSize: 10, height: 24, fontWeight: 600, bgcolor: statusConf.bg, color: statusConf.color }} />
-      </Stack>
 
       {/* Confirmation banner */}
       {justBooked && (
@@ -459,6 +463,7 @@ function BookingDetailScreen() {
       <Snackbar open={!!toast} autoHideDuration={4000} onClose={() => setToast(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
         <Alert severity="success" variant="filled" sx={{ bgcolor: G, color: "#020617", fontWeight: 600 }}>{toast}</Alert>
       </Snackbar>
+      </Box>
     </Box>
   );
 }

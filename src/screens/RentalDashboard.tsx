@@ -1920,35 +1920,38 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
   const totalCount = rentalMode === "cars" ? VEHICLES.length : MOTORBIKES.length;
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box sx={{ mb: 2 }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
+    <Box>
+      {/* Green Header */}
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2 }}>
+        <Stack direction="row" spacing={1.5} alignItems="center">
           <Box
             sx={{
               width: 40,
               height: 40,
               borderRadius: 999,
-              bgcolor: (t) => t.palette.mode === "light" ? "#DCFCE7" : "rgba(15,23,42,0.9)",
+              bgcolor: "rgba(255,255,255,0.2)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center"
             }}
           >
             {rentalMode === "cars"
-              ? <DirectionsCarRoundedIcon sx={{ fontSize: 22, color: "#059669" }} />
-              : <TwoWheelerRoundedIcon sx={{ fontSize: 22, color: "#059669" }} />
+              ? <DirectionsCarRoundedIcon sx={{ fontSize: 22, color: "#FFFFFF" }} />
+              : <TwoWheelerRoundedIcon sx={{ fontSize: 22, color: "#FFFFFF" }} />
             }
           </Box>
           <Box sx={{ flex: 1 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: "-0.01em", color: "#FFFFFF" }}>
               {rentalMode === "cars" ? "Car rentals" : "Motorbike rentals"}
             </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
+            <Typography variant="caption" sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}>
               {totalCount} {rentalMode === "cars" ? "vehicles" : "bikes"} • {evCount} EV • {nonEvCount} fuel
             </Typography>
           </Box>
         </Stack>
+      </Box>
+
+    <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
 
         {/* Cars / Bikes toggle */}
         <Stack direction="row" spacing={0.75}>
@@ -2001,7 +2004,6 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             Motorbikes ({MOTORBIKES.length})
           </Button>
         </Stack>
-      </Box>
 
       {/* Search bar */}
       <TextField
@@ -2418,6 +2420,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
           }
         }}
       />
+      </Box>
     </Box>
   );
 }

@@ -359,69 +359,41 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
   };
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
+    <Box>
+      {/* Green Header */}
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Box
             sx={{
               width: 40,
               height: 40,
               borderRadius: 999,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FEF3C7" : "rgba(15,23,42,0.9)",
+              bgcolor: "rgba(255,255,255,0.2)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center"
             }}
           >
-            <LocalShippingRoundedIcon sx={{ fontSize: 22, color: "#EA580C" }} />
+            <LocalShippingRoundedIcon sx={{ fontSize: 22, color: "#FFFFFF" }} />
           </Box>
           <Box>
             <Typography
               variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
+              sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
             >
               Deliveries
             </Typography>
             <Typography
               variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+              sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}
             >
-              Make deliveries, track EV riders, and see incoming packages
+              We deliver happiness!
             </Typography>
           </Box>
         </Box>
       </Box>
 
-      {/* Tagline Section */}
-      <Box sx={{ mb: 2 }}>
-        <Typography
-          variant="h6"
-          sx={{
-            fontSize: 18,
-            fontWeight: 700,
-            letterSpacing: "-0.02em",
-            mb: 0.5,
-            color: greenPrimary
-          }}
-        >
-          We deliver happiness!
-        </Typography>
-        <Typography
-          variant="caption"
-          sx={{ fontSize: 12, color: (t) => t.palette.text.secondary }}
-        >
-          Make your Order Now.
-        </Typography>
-      </Box>
+    <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
 
       {/* Create New Card */}
       <Card
@@ -875,6 +847,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
         The deliveries dashboard helps you make deliveries in a few taps, track EV
         couriers in real time and stay on top of what's coming to you.
       </Typography>
+      </Box>
     </Box>
   );
 }

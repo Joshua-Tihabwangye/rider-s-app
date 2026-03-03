@@ -82,26 +82,31 @@ function BookingsListScreen() {
   };
 
   return (
+    <Box>
+      {/* Green Header */}
+      <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <IconButton onClick={() => navigate("/tours")} size="small"
+            sx={{
+              borderRadius: 999,
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
+            }}>
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.02em", color: "#FFFFFF" }}>
+              My Bookings
+            </Typography>
+            <Typography variant="caption" sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}>
+              {bookings.length} total booking{bookings.length !== 1 ? "s" : ""}
+            </Typography>
+          </Box>
+        </Stack>
+      </Box>
+
     <Box sx={{ px: 2, pt: 2, pb: 3 }}>
-      {/* Header */}
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-        <IconButton onClick={() => navigate("/tours")} size="small"
-          sx={{
-            borderRadius: 999,
-            bgcolor: t => t.palette.mode === "light" ? "#fff" : "rgba(15,23,42,0.9)",
-            border: t => `1px solid ${t.palette.divider}`
-          }}>
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 16 }} />
-        </IconButton>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.02em" }}>
-            My Bookings
-          </Typography>
-          <Typography variant="caption" sx={{ fontSize: 11, color: t => t.palette.text.secondary }}>
-            {bookings.length} total booking{bookings.length !== 1 ? "s" : ""}
-          </Typography>
-        </Box>
-      </Stack>
 
       {/* Search bar */}
       <Box sx={{ position: "relative", mb: 2 }}>
@@ -282,6 +287,7 @@ function BookingsListScreen() {
           })}
         </Stack>
       )}
+      </Box>
     </Box>
   );
 }
