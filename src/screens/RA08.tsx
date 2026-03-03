@@ -14,6 +14,7 @@ import {
   Paper
 } from "@mui/material";
 
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
 import MobileShell from "../components/MobileShell";
@@ -195,42 +196,30 @@ function ScheduleRideScreen(): React.JSX.Element {
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-            {/* Header Section */}
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                <Checkbox
-                  checked={rideLater}
-                  onChange={(e) => setRideLater(e.target.checked)}
-                  icon={<CircleOutlinedIcon sx={{ color: accentGreen }} />}
-                  checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentGreen }} />}
-                  sx={{ p: 0 }}
-                />
-                <Typography
-                  variant="h6"
-                  sx={{ 
-                    fontWeight: 600, 
-                    letterSpacing: "-0.01em",
-                    color: theme.palette.text.primary
-                  }}
-                >
-                  Ride Later
-                </Typography>
-              </Box>
-              <IconButton
-                size="small"
-                onClick={handleClose}
-                sx={{
-                  borderRadius: 999,
-                  bgcolor: theme.palette.mode === "light"
-                    ? "rgba(0,0,0,0.05)"
-                    : "rgba(255,255,255,0.1)",
-                  color: theme.palette.text.primary
-                }}
-              >
-                <Typography sx={{ fontSize: 20 }}>×</Typography>
-              </IconButton>
-            </Box>
+          {/* Green Header */}
+        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+          <IconButton
+            size="small"
+            aria-label="Back"
+            onClick={() => navigate(-1)}
+            sx={{
+              borderRadius: 999,
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
+          >
+            Ride Later
+          </Typography>
+        </Box>
+        <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
+
 
             {rideLater && (
               <>

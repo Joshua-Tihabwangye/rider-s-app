@@ -82,28 +82,43 @@ function TourDetailScreen() {
 
   return (
     <Box sx={{ pb: 10 }}>
+      {/* Green Header */}
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+        <IconButton
+          size="small"
+          aria-label="Back"
+          onClick={() => navigate(-1)}
+          sx={{
+            borderRadius: 999,
+            bgcolor: "rgba(255,255,255,0.2)",
+            color: "#FFFFFF",
+            "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
+          }}
+        >
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+        <Typography
+          variant="subtitle1"
+          sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF", flex: 1 }}
+        >
+          {tour.name}
+        </Typography>
+        <Stack direction="row" spacing={0.5}>
+          <IconButton onClick={() => setWishlisted(!wishlisted)} size="small"
+            sx={{ color: wishlisted ? "#EF4444" : "#FFFFFF" }}>
+            {wishlisted ? <FavoriteRoundedIcon sx={{ fontSize: 18 }} /> : <FavoriteBorderRoundedIcon sx={{ fontSize: 18 }} />}
+          </IconButton>
+          <IconButton size="small" sx={{ color: "#FFFFFF" }}>
+            <ShareRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Stack>
+      </Box>
+
       {/* ── Image gallery ──────────────────────────────── */}
-      <Box sx={{ position: "relative", height: 240, background: gradient, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <Box sx={{ position: "relative", height: 200, background: gradient, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Typography sx={{ color: "rgba(255,255,255,0.2)", fontSize: 64, fontWeight: 900 }}>
           {tour.destination.charAt(0)}
         </Typography>
-
-        {/* Top bar */}
-        <Box sx={{ position: "absolute", top: 12, left: 12, right: 12, display: "flex", justifyContent: "space-between" }}>
-          <IconButton onClick={() => navigate(-1)}
-            sx={{ bgcolor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", "&:hover": { bgcolor: "rgba(0,0,0,0.6)" } }}>
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18, color: "#fff" }} />
-          </IconButton>
-          <Stack direction="row" spacing={0.5}>
-            <IconButton onClick={() => setWishlisted(!wishlisted)}
-              sx={{ bgcolor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", "&:hover": { bgcolor: "rgba(0,0,0,0.6)" } }}>
-              {wishlisted ? <FavoriteRoundedIcon sx={{ fontSize: 18, color: "#EF4444" }} /> : <FavoriteBorderRoundedIcon sx={{ fontSize: 18, color: "#fff" }} />}
-            </IconButton>
-            <IconButton sx={{ bgcolor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", "&:hover": { bgcolor: "rgba(0,0,0,0.6)" } }}>
-              <ShareRoundedIcon sx={{ fontSize: 18, color: "#fff" }} />
-            </IconButton>
-          </Stack>
-        </Box>
 
         {/* Image navigation */}
         {tour.images.length > 1 && (

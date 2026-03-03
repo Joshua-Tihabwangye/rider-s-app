@@ -163,49 +163,31 @@ function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
   const bookings = tab === "upcoming" ? UPCOMING_TOURS : PAST_TOURS;
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+    <>
+    {/* Green Header */}
+        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
           <IconButton
             size="small"
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
               borderRadius: 999,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
             }}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              My tours
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              Upcoming and past EV tours
-            </Typography>
-          </Box>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
+          >
+            My tours
+          </Typography>
         </Box>
-      </Box>
+        <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
+
 
       {/* Tabs */}
       <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
@@ -258,6 +240,8 @@ function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
         ))
       )}
     </Box>
+    </>
+
   );
 }
 

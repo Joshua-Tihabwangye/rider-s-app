@@ -1197,26 +1197,26 @@ function PaymentGatewayScreen(): React.JSX.Element {
 
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: theme.palette.background.default }}>
-      <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-        {/* Header */}
-        <Box sx={{ mb: 2.5, display: "flex", alignItems: "center", gap: 1.5 }}>
-          {canGoBack && (
-            <IconButton
-              size="small"
-              aria-label="Back"
-              onClick={handleBack}
-              sx={{
-                borderRadius: 999,
-                bgcolor: theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-                border: theme.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)"
-              }}
-            >
-              <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-          )}
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
-              {step === "review" && (isTopUp ? "Review Top-up" : "Review Payment")}
+      {/* Green Header */}
+        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+          <IconButton
+            size="small"
+            aria-label="Back"
+            onClick={() => navigate(-1)}
+            sx={{
+              borderRadius: 999,
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
+          >
+            {step === "review" && (isTopUp ? "Review Top-up" : "Review Payment")}
               {step === "input" && (paymentMethod === "wallet"
                 ? (isTopUp ? "Wallet Top-up" : "Wallet Payment")
                 : paymentMethod === "card"
@@ -1228,12 +1228,10 @@ function PaymentGatewayScreen(): React.JSX.Element {
               {step === "result" && (result === "success"
                 ? (isTopUp ? "Top-up Complete" : "Payment Complete")
                 : (isTopUp ? "Top-up Failed" : "Payment Failed"))}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
-              {step === "processing" ? "Please wait" : `${serviceName} • ${amount}`}
-            </Typography>
-          </Box>
+          </Typography>
         </Box>
+        <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
+
 
         {/* Step Progress Dots */}
         {step !== "processing" && step !== "result" && (

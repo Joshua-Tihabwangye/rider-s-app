@@ -28,168 +28,32 @@ function WhereToTodayAlternateScreen(): React.JSX.Element {
   const [query, setQuery] = useState("");
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <IconButton
-          size="small"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-          sx={{
-            borderRadius: 999,
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
-          }}
-        >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-        <Box sx={{ width: 32 }} />
-      </Box>
-      {/* Top bar */}
-      <Box sx={{ mb: 3, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <Avatar
+    <>
+    {/* Green Header */}
+        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+          <IconButton
+            size="small"
+            aria-label="Back"
+            onClick={() => navigate(-1)}
             sx={{
-              width: 36,
-              height: 36,
-              bgcolor: "primary.main",
-              fontSize: 18,
-              fontWeight: 600,
-              color: "#020617"
+              borderRadius: 999,
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
             }}
           >
-            RZ
-          </Avatar>
-          <Box>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              Good afternoon,
-            </Typography>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
-              Where to today?
-            </Typography>
-          </Box>
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
+          >
+            Where to today?
+          </Typography>
         </Box>
-        <IconButton size="small" aria-label="Notifications">
-          <NotificationsNoneRoundedIcon sx={{ fontSize: 22 }} />
-        </IconButton>
-      </Box>
+        </>
 
-      {/* Main search */}
-      <TextField
-        fullWidth
-        size="medium"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Enter destination, place or address"
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchRoundedIcon sx={{ fontSize: 22, color: "text.secondary" }} />
-            </InputAdornment>
-          )
-        }}
-        sx={{
-          mb: 2.5,
-          "& .MuiOutlinedInput-root": {
-            borderRadius: 999,
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
-            "& fieldset": {
-              borderColor: (t) =>
-                t.palette.mode === "light" ? "rgba(209,213,219,0.9)" : "rgba(51,65,85,0.9)"
-            },
-            "&:hover fieldset": { borderColor: "primary.main" }
-          }
-        }}
-      />
 
-      {/* Quick shortcuts */}
-      <Typography
-        variant="caption"
-        sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 1, display: "block" }}
-      >
-        Quick shortcuts
-      </Typography>
-      <Stack direction="row" spacing={1} sx={{ mb: 2.5, flexWrap: "wrap" }}>
-        <Chip
-          icon={<HomeRoundedIcon sx={{ fontSize: 16 }} />}
-          label="Home"
-          sx={{
-            borderRadius: 999,
-            fontSize: 11,
-            height: 28,
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-            color: (t) => t.palette.text.primary
-          }}
-        />
-        <Chip
-          icon={<ApartmentRoundedIcon sx={{ fontSize: 16 }} />}
-          label="Work"
-          sx={{
-            borderRadius: 999,
-            fontSize: 11,
-            height: 28,
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-            color: (t) => t.palette.text.primary
-          }}
-        />
-        <Chip
-          icon={<SchoolRoundedIcon sx={{ fontSize: 16 }} />}
-          label="School runs"
-          sx={{
-            borderRadius: 999,
-            fontSize: 11,
-            height: 28,
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-            color: (t) => t.palette.text.primary
-          }}
-        />
-        <Chip
-          icon={<AccessTimeRoundedIcon sx={{ fontSize: 16 }} />}
-          label="Recent places"
-          sx={{
-            borderRadius: 999,
-            fontSize: 11,
-            height: 28,
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-            color: (t) => t.palette.text.primary
-          }}
-        />
-      </Stack>
-
-      {/* Suggestion text */}
-      <Typography
-        variant="caption"
-        sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block" }}
-      >
-        Pro tip
-      </Typography>
-      <Typography
-        variant="caption"
-        sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
-      >
-        Save your home, work and school locations once, and book EV rides even
-        faster next time.
-      </Typography>
-    </Box>
   );
 }
 
