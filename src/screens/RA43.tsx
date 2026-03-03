@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   
   Box,
@@ -14,6 +15,7 @@ import {
   Stack
 } from "@mui/material";
 
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
@@ -38,6 +40,7 @@ const MOCK_RESULTS = [
 ];
 
 function AddStopSearchResultsScreen(): React.JSX.Element {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
@@ -99,47 +102,29 @@ function AddStopSearchResultsScreen(): React.JSX.Element {
           />
         </Box>
 
-        {/* Header */}
-        <Box
-          sx={{
-            px: 2.5,
-            pb: 1.5,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between"
-          }}
-        >
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              Add a stop
-            </Typography>
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.2 }}>
-              <Chip
-                size="small"
-                label="Stop C"
-                sx={{
-                  borderRadius: 999,
-                  fontSize: 10,
-                  height: 22,
-                  bgcolor: "primary.main",
-                  color: "#020617"
-                }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Tap a location below to set as Stop C
-              </Typography>
-            </Stack>
-          </Box>
-          <IconButton size="small" aria-label="Close">
-            <CloseRoundedIcon sx={{ fontSize: 20 }} />
+        {/* Green Header */}
+        <Box sx={{ bgcolor: "#03CD8C", mx: -2.5, px: 2.5, mt: -2.5, pt: 2, pb: 2, mb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+          <IconButton
+            size="small"
+            aria-label="Back"
+            onClick={() => navigate(-1)}
+            sx={{
+              borderRadius: 999,
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
+          >
+            Add a stop
+          </Typography>
         </Box>
+
 
         {/* Search */}
         <Box sx={{ px: 2.5, pb: 1.5 }}>

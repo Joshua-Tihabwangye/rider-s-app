@@ -176,29 +176,31 @@ function DeliveryCreateFormScreen(): React.JSX.Element {
   }
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box sx={{ mb: 2.5, display: "flex", alignItems: "center", gap: 1.5 }}>
-        <IconButton
-          size="small"
-          onClick={() => navigate("/deliveries")}
-          sx={{
-            borderRadius: 999,
-            bgcolor: contentBg,
-            border: `1px solid ${borderColor}`
-          }}
-        >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 18, letterSpacing: "-0.02em" }}>
+    <>
+    {/* Green Header */}
+        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+          <IconButton
+            size="small"
+            aria-label="Back"
+            onClick={() => navigate(-1)}
+            sx={{
+              borderRadius: 999,
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
+          >
             Send a Parcel
           </Typography>
-          <Typography variant="caption" sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
-            Fill in pickup, drop-off and parcel details
-          </Typography>
         </Box>
-      </Box>
+        <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
+
 
       {/* Pickup Location */}
       <Card
@@ -644,6 +646,8 @@ function DeliveryCreateFormScreen(): React.JSX.Element {
         </Typography>
       )}
     </Box>
+    </>
+
   );
 }
 

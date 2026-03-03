@@ -285,49 +285,35 @@ function PickDestinationMapScreen(): React.JSX.Element {
         flexDirection: "column"
       }}
     >
-      {/* Header with Title and Destination Field */}
+      {/* Green Header */}
       <Box
         sx={{
+          bgcolor: "#03CD8C",
           px: 2.5,
-          pt: 2.5,
-          pb: 2.5,
-          bgcolor: theme.palette.mode === "light" ? "#FFFFFF" : "#1E2A47"
+          pt: 2,
+          pb: 2
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
           <IconButton
             size="small"
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
               borderRadius: 999,
-              bgcolor: theme.palette.mode === "light"
-                ? "rgba(0,0,0,0.05)"
-                : "rgba(255,255,255,0.1)",
-              color: theme.palette.mode === "light" 
-                ? theme.palette.text.primary 
-                : "#FFFFFF",
-              "&:hover": {
-                bgcolor: theme.palette.mode === "light"
-                  ? "rgba(0,0,0,0.1)"
-                  : "rgba(255,255,255,0.2)"
-              }
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
             }}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-            <Typography
-              variant="subtitle1"
-            sx={{ 
-              fontWeight: 600, 
-              letterSpacing: "-0.01em",
-              color: theme.palette.mode === "light" 
-                ? theme.palette.text.primary 
-                : "#FFFFFF"
-            }}
-            >
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
+          >
             Pick Your Destination
-            </Typography>
+          </Typography>
         </Box>
 
         {/* Destination Field */}
@@ -342,37 +328,16 @@ function PickDestinationMapScreen(): React.JSX.Element {
           sx={{
             "& .MuiOutlinedInput-root": {
               borderRadius: 999,
-              bgcolor: theme.palette.mode === "light"
-                ? "#FFFFFF"
-                : "rgba(255,255,255,0.1)",
-              color: theme.palette.mode === "light"
-                ? theme.palette.text.primary
-                : "#FFFFFF",
-              "& fieldset": {
-                borderColor: theme.palette.mode === "light"
-                  ? "rgba(0,0,0,0.15)"
-                  : "rgba(255,255,255,0.2)"
-              },
-              "&:hover fieldset": {
-                borderColor: theme.palette.mode === "light"
-                  ? "rgba(0,0,0,0.25)"
-                  : "rgba(255,255,255,0.3)"
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: "#03CD8C"
-              }
+              bgcolor: "rgba(255,255,255,0.9)",
+              color: "#020617",
+              "& fieldset": { borderColor: "rgba(255,255,255,0.3)" },
+              "&:hover fieldset": { borderColor: "rgba(255,255,255,0.5)" },
+              "&.Mui-focused fieldset": { borderColor: "#FFFFFF" }
             },
             "& .MuiInputBase-input": {
-              color: theme.palette.mode === "light"
-                ? theme.palette.text.primary
-                : "#FFFFFF",
+              color: "#020617",
               pl: 1.5,
-              "&::placeholder": {
-                color: theme.palette.mode === "light"
-                  ? "rgba(0,0,0,0.5)"
-                  : "rgba(255,255,255,0.6)",
-                opacity: 1
-              }
+              "&::placeholder": { color: "rgba(0,0,0,0.5)", opacity: 1 }
             }
           }}
         />

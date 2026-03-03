@@ -112,51 +112,31 @@ function PreferenceSelectionScreen(): React.JSX.Element {
   const canContinue = selectedPreferences.length > 0;
   
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box sx={{ mb: 2.5, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+    <>
+    {/* Green Header */}
+        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
           <IconButton
             size="small"
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
               borderRadius: 999,
-              bgcolor: contentBg,
-              border: theme.palette.mode === "light"
-                ? "1px solid rgba(0,0,0,0.1)"
-                : "1px solid rgba(255,255,255,0.1)"
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
             }}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
           <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 600,
-              letterSpacing: "-0.01em",
-              color: theme.palette.text.primary
-            }}
+            variant="subtitle1"
+            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
           >
             Enter Destination
           </Typography>
         </Box>
-        <IconButton
-          size="small"
-          aria-label="Setup Preferences"
-          onClick={() => navigate("/rides/preferences/setup")}
-          sx={{
-            borderRadius: 999,
-            bgcolor: contentBg,
-            border: theme.palette.mode === "light"
-              ? "1px solid rgba(0,0,0,0.1)"
-              : "1px solid rgba(255,255,255,0.1)",
-            color: accentGreen
-          }}
-        >
-          <SettingsRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-      </Box>
+        <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
+
 
       {/* Trip Details Section */}
       <Card
@@ -554,6 +534,8 @@ function PreferenceSelectionScreen(): React.JSX.Element {
         Continue
       </Button>
     </Box>
+    </>
+
   );
 }
 

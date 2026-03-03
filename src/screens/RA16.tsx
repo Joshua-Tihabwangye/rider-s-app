@@ -127,66 +127,31 @@ function RidePreferencesScreen(): React.JSX.Element {
   const hasPrefs = activePrefs.length > 0;
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+    <>
+    {/* Green Header */}
+        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
           <IconButton
             size="small"
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
               borderRadius: 999,
-              bgcolor: (theme) =>
-                theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (theme) =>
-                theme.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
             }}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              Ride preferences
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (theme) => theme.palette.text.secondary }}
-            >
-              We’ll share this with your driver where possible
-            </Typography>
-          </Box>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
+          >
+            Ride preferences
+          </Typography>
         </Box>
-        <IconButton
-          size="small"
-          aria-label="Setup Preferences"
-          onClick={() => navigate("/rides/preferences/setup")}
-          sx={{
-            borderRadius: 999,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-            border: (theme) =>
-              theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            color: "#03CD8C"
-          }}
-        >
-          <SettingsRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-      </Box>
+        <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
+
 
       {/* Preferences card */}
       <Card
@@ -292,6 +257,8 @@ function RidePreferencesScreen(): React.JSX.Element {
         Save preferences
       </Button>
     </Box>
+    </>
+
   );
 }
 

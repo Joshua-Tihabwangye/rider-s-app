@@ -439,19 +439,18 @@ function DriverPreferencesScreen(): React.JSX.Element {
               {/* Header */}
               <Box
                 sx={{
+                  bgcolor: "#03CD8C",
                   px: 2.5,
-                  pt: 2.5,
-                  pb: 1.5,
+                  pt: 2,
+                  pb: 2,
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "space-between",
+                  gap: 1.5,
                   position: "sticky",
                   top: 0,
-                  bgcolor: contentBg,
                   zIndex: 10,
-                  borderBottom: theme.palette.mode === "light"
-                    ? "1px solid rgba(0,0,0,0.05)"
-                    : "1px solid rgba(255,255,255,0.05)"
+                  borderTopLeftRadius: 24,
+                  borderTopRightRadius: 24
                 }}
               >
                 <IconButton
@@ -460,33 +459,24 @@ function DriverPreferencesScreen(): React.JSX.Element {
                   onClick={handleClose}
                   sx={{
                     borderRadius: 999,
-                    bgcolor: theme.palette.mode === "light"
-                      ? "rgba(0,0,0,0.05)"
-                      : "rgba(255,255,255,0.05)",
-                    border: theme.palette.mode === "light"
-                      ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)"
+                    bgcolor: "rgba(255,255,255,0.2)",
+                    color: "#FFFFFF",
+                    "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
                   }}
                 >
                   <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
                 </IconButton>
                 
                 <Typography
-                  variant="h6"
+                  variant="subtitle1"
                   sx={{
                     fontWeight: 600,
                     letterSpacing: "-0.01em",
-                    color: theme.palette.text.primary,
-                    position: "absolute",
-                    left: "50%",
-                    transform: "translateX(-50%)"
+                    color: "#FFFFFF"
                   }}
                 >
                   Preferences
                 </Typography>
-                
-                {/* Spacer for centering */}
-                <Box sx={{ width: 40 }} />
               </Box>
 
               {/* Preference Cards */}
@@ -543,19 +533,18 @@ function DriverPreferencesScreen(): React.JSX.Element {
         {/* Header */}
         <Box
           sx={{
+            bgcolor: "#03CD8C",
             px: 2.5,
-            pt: 2.5,
-            pb: 1.5,
+            pt: 2,
+            pb: 2,
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            gap: 1.5,
             position: "sticky",
             top: 0,
-            bgcolor: contentBg,
             zIndex: 10,
-            borderBottom: theme.palette.mode === "light"
-              ? "1px solid rgba(0,0,0,0.05)"
-              : "1px solid rgba(255,255,255,0.05)"
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24
           }}
         >
           <IconButton
@@ -564,33 +553,24 @@ function DriverPreferencesScreen(): React.JSX.Element {
             onClick={() => navigate(-1)}
             sx={{
               borderRadius: 999,
-              bgcolor: theme.palette.mode === "light"
-                ? "rgba(0,0,0,0.05)"
-                : "rgba(255,255,255,0.05)",
-              border: theme.palette.mode === "light"
-                ? "1px solid rgba(0,0,0,0.1)"
-                : "1px solid rgba(255,255,255,0.1)"
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
             }}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
           
           <Typography
-            variant="h6"
+            variant="subtitle1"
             sx={{
               fontWeight: 600,
               letterSpacing: "-0.01em",
-              color: theme.palette.text.primary,
-              position: "absolute",
-              left: "50%",
-              transform: "translateX(-50%)"
+              color: "#FFFFFF"
             }}
           >
             Preferences
           </Typography>
-          
-          {/* Spacer for centering */}
-          <Box sx={{ width: 40 }} />
         </Box>
 
         {/* Preference Cards */}
