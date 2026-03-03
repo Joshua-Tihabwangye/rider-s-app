@@ -90,81 +90,80 @@ function HomeMultiServiceScreen(): React.JSX.Element {
 
   
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Top Section: Avatar, Search Bar, and Action Button */}
-      <Box
-        sx={{
-          mb: 3,
-          display: "flex",
-          alignItems: "center",
-          gap: 1.5
-        }}
-      >
-        {/* Avatar */}
-        <Avatar
+    <Box>
+      {/* Green Header */}
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2 }}>
+        <Box
           sx={{
-            width: 40,
-            height: 40,
-            bgcolor: greenPrimary,
-            fontSize: 18,
-            fontWeight: 600,
-            color: "#FFFFFF",
-            flexShrink: 0
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5
           }}
         >
-          RZ
-        </Avatar>
-
-        {/* Search Bar */}
-        <Box sx={{ flex: 1 }}>
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Search rides, shops, c..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                if (searchQuery.trim()) {
-                  navigate("/rides/enter", { state: { searchQuery: searchQuery.trim() } });
-                }
-              }
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchRoundedIcon 
-                    sx={{ 
-                      fontSize: 20, 
-                      color: (t) => t.palette.text.secondary 
-                    }} 
-                  />
-                </InputAdornment>
-              )
-            }}
+          {/* Avatar */}
+          <Avatar
             sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
-                "& fieldset": {
-                  borderColor: (t) =>
-                    t.palette.mode === "light"
-                      ? "rgba(209,213,219,0.9)"
-                      : "rgba(51,65,85,0.9)"
-                },
-                "&:hover fieldset": {
-                  borderColor: greenPrimary
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: greenPrimary
-                }
-              }
+              width: 40,
+              height: 40,
+              bgcolor: "rgba(255,255,255,0.25)",
+              fontSize: 18,
+              fontWeight: 600,
+              color: "#FFFFFF",
+              flexShrink: 0
             }}
-          />
+          >
+            RZ
+          </Avatar>
+
+          {/* Search Bar */}
+          <Box sx={{ flex: 1 }}>
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Search rides, shops, c..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (searchQuery.trim()) {
+                    navigate("/rides/enter", { state: { searchQuery: searchQuery.trim() } });
+                  }
+                }
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRoundedIcon 
+                      sx={{ 
+                        fontSize: 20, 
+                        color: (t) => t.palette.text.secondary 
+                      }} 
+                    />
+                  </InputAdornment>
+                )
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 999,
+                  bgcolor: "#FFFFFF",
+                  "& fieldset": {
+                    borderColor: "rgba(209,213,219,0.9)"
+                  },
+                  "&:hover fieldset": {
+                    borderColor: greenPrimary
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: greenPrimary
+                  }
+                }
+              }}
+            />
+          </Box>
         </Box>
       </Box>
+
+      <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
 
       {/* Notification Banner (Reminder Card) */}
       {reminders.length > 0 && (
@@ -664,7 +663,7 @@ function HomeMultiServiceScreen(): React.JSX.Element {
           </Stack>
         </Stack>
       </Box>
-
+      </Box>
     </Box>
   );
 }

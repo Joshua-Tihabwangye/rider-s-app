@@ -279,18 +279,22 @@ function TourBookingScreen() {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
+    <Box>
+      {/* Green Header */}
+      <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <IconButton onClick={() => step > 0 ? handleBack() : navigate(-1)} size="small"
+            sx={{ borderRadius: 999, bgcolor: "rgba(255,255,255,0.2)", color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.3)" } }}>
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.01em", color: "#FFFFFF" }}>Book your tour</Typography>
+            <Typography variant="caption" sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}>{tour.title}</Typography>
+          </Box>
+        </Stack>
+      </Box>
+
     <Box sx={{ px: 2, pt: 2, pb: 3 }}>
-      {/* Header */}
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-        <IconButton onClick={() => step > 0 ? handleBack() : navigate(-1)} size="small"
-          sx={{ borderRadius: 999, bgcolor: t => t.palette.mode === "light" ? "#fff" : "rgba(15,23,42,0.9)", border: t => `1px solid ${t.palette.divider}` }}>
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 16 }} />
-        </IconButton>
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.01em" }}>Book your tour</Typography>
-          <Typography variant="caption" sx={{ fontSize: 11, color: t => t.palette.text.secondary }}>{tour.title}</Typography>
-        </Box>
-      </Stack>
 
       {/* Stepper */}
       <Stepper activeStep={step} alternativeLabel sx={{ mb: 2.5, "& .MuiStepIcon-root.Mui-active": { color: G }, "& .MuiStepIcon-root.Mui-completed": { color: G }, "& .MuiStepLabel-label": { fontSize: 10 } }}>
@@ -746,6 +750,7 @@ function TourBookingScreen() {
       <Snackbar open={!!submitError} autoHideDuration={4000} onClose={() => setSubmitError(null)} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
         <Alert severity="error" variant="filled">{submitError}</Alert>
       </Snackbar>
+      </Box>
     </Box>
     </LocalizationProvider>
   );

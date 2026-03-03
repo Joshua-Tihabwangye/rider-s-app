@@ -22,47 +22,41 @@ import DarkModeToggle from "../components/DarkModeToggle";
 
 function SchoolDashboardHomeScreen(): React.JSX.Element {
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
+    <Box>
+      {/* Green Header */}
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Box
             sx={{
               width: 40,
               height: 40,
               borderRadius: 999,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
+              bgcolor: "rgba(255,255,255,0.2)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center"
             }}
           >
-            <SchoolRoundedIcon sx={{ fontSize: 22, color: "#1D4ED8" }} />
+            <SchoolRoundedIcon sx={{ fontSize: 22, color: "#FFFFFF" }} />
           </Box>
           <Box>
             <Typography
               variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
+              sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
             >
               EVzone School
             </Typography>
             <Typography
               variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+              sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}
             >
               Manage school shuttles and student transport
             </Typography>
           </Box>
         </Box>
       </Box>
+
+    <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
 
       {/* App handoff card */}
       <Card
@@ -303,6 +297,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
         inside the dedicated School / Parents experience. This dashboard just gives
         you a quick overview and a fast way to jump into the School app.
       </Typography>
+      </Box>
     </Box>
   );
 }

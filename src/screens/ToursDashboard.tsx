@@ -309,35 +309,38 @@ function ToursBrowseScreen() {
   };
 
   return (
-    <Box sx={{ px: 2, pt: 2, pb: 3 }}>
-      {/* ── Header ──────────────────────────────────────── */}
-      <Box sx={{ mb: 2, textAlign: "center" }}>
-        <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em" }}>
-          Tours & Experiences
-        </Typography>
-        <Typography variant="body2" sx={{ fontSize: 13, color: t => t.palette.text.secondary, mt: 0.25 }}>
-          Discover EV-powered tours across Uganda
-        </Typography>
+    <Box>
+      {/* Green Header */}
+      <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2 }}>
+        <Box sx={{ mb: 1.5, textAlign: "center" }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", color: "#FFFFFF" }}>
+            Tours & Experiences
+          </Typography>
+          <Typography variant="body2" sx={{ fontSize: 13, color: "rgba(255,255,255,0.85)", mt: 0.25 }}>
+            Discover EV-powered tours across Uganda
+          </Typography>
+        </Box>
+
+        {/* Search bar */}
+        <TextField
+          fullWidth size="small" placeholder="Search tours, destinations..."
+          value={search} onChange={e => setSearch(e.target.value)}
+          InputProps={{
+            startAdornment: <InputAdornment position="start"><SearchRoundedIcon sx={{ fontSize: 20, color: t => t.palette.text.secondary }} /></InputAdornment>
+          }}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 999,
+              bgcolor: "#FFFFFF",
+              "& fieldset": { borderColor: "rgba(209,213,219,0.9)" },
+              "&:hover fieldset": { borderColor: G },
+              "&.Mui-focused fieldset": { borderColor: G }
+            }
+          }}
+        />
       </Box>
 
-      {/* ── Search bar (full width) ──────────────────────── */}
-      <TextField
-        fullWidth size="small" placeholder="Search tours, destinations..."
-        value={search} onChange={e => setSearch(e.target.value)}
-        InputProps={{
-          startAdornment: <InputAdornment position="start"><SearchRoundedIcon sx={{ fontSize: 20, color: t => t.palette.text.secondary }} /></InputAdornment>
-        }}
-        sx={{
-          mb: 2,
-          "& .MuiOutlinedInput-root": {
-            borderRadius: 999,
-            bgcolor: t => t.palette.mode === "light" ? "#fff" : "rgba(15,23,42,0.96)",
-            "& fieldset": { borderColor: t => t.palette.mode === "light" ? "rgba(209,213,219,0.9)" : "rgba(51,65,85,0.9)" },
-            "&:hover fieldset": { borderColor: G },
-            "&.Mui-focused fieldset": { borderColor: G }
-          }
-        }}
-      />
+    <Box sx={{ px: 2, pt: 2, pb: 3 }}>
 
       {/* ── Tour count + Category dropdown (same line) ── */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
@@ -514,6 +517,7 @@ function ToursBrowseScreen() {
           {toast}
         </Alert>
       </Snackbar>
+      </Box>
     </Box>
   );
 }

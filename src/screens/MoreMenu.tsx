@@ -85,29 +85,31 @@ export default function MoreMenu(): React.JSX.Element {
     >
       <DarkModeToggle />
       <MobileShell>
-        <Box sx={{ px: 2.5, pt: 3, pb: 3 }}>
-          {/* Header */}
-          <Box sx={{ mb: 3 }}>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 600,
-                letterSpacing: "-0.01em",
-                mb: 0.5
-              }}
-            >
-              More
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{
-                fontSize: 12,
-                color: (t) => t.palette.text.secondary
-              }}
-            >
-              Settings, history, help and more
-            </Typography>
-          </Box>
+        {/* Green Header */}
+        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              letterSpacing: "-0.01em",
+              mb: 0.3,
+              color: "#FFFFFF"
+            }}
+          >
+            More
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: 12,
+              color: "rgba(255,255,255,0.85)"
+            }}
+          >
+            Settings, history, help and more
+          </Typography>
+        </Box>
+
+        <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
 
           {/* Profile Header */}
           <Card

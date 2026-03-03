@@ -290,73 +290,62 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
   };
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={onBack}
-            sx={{
-              borderRadius: 999,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
+    <Box>
+      {/* Green Header */}
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+        <IconButton
+          size="small"
+          aria-label="Back"
+          onClick={onBack}
+          sx={{
+            borderRadius: 999,
+            bgcolor: "rgba(255,255,255,0.2)",
+            color: "#FFFFFF",
+            "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
+          }}
+        >
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.25
+          }}
+        >
           <Box
             sx={{
+              width: 40,
+              height: 40,
+              borderRadius: 999,
+              bgcolor: "rgba(255,255,255,0.2)",
               display: "flex",
               alignItems: "center",
-              gap: 1.25
+              justifyContent: "center"
             }}
           >
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: 999,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#ECFDF5" : "rgba(15,23,42,0.9)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
+            <AccountBalanceWalletRoundedIcon
+              sx={{ fontSize: 22, color: "#FFFFFF" }}
+            />
+          </Box>
+          <Box>
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
             >
-              <AccountBalanceWalletRoundedIcon
-                sx={{ fontSize: 22, color: "#03CD8C" }}
-              />
-            </Box>
-            <Box>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                Wallet
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                EVzone Pay • Rides, deliveries, rentals & tours
-              </Typography>
-            </Box>
+              Wallet
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}
+            >
+              EVzone Pay • Rides, deliveries, rentals & tours
+            </Typography>
           </Box>
         </Box>
       </Box>
+
+    <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
 
       {/* Balance card */}
       <Card
@@ -1669,6 +1658,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
           {snackbar.message}
         </Alert>
       </Snackbar>
+      </Box>
     </Box>
   );
 }
