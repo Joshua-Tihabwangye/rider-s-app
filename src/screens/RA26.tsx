@@ -81,13 +81,11 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
   }, []);
 
   const handleEmergency = () => {
-    console.log("Emergency button pressed");
-    // In production: Trigger emergency contact API
+    navigate("/emergency");
   };
 
   const handleShare = () => {
-    console.log("Share live trip status");
-    // In production: Share live trip updates or location
+    navigate("/rides/trip/sharing");
   };
 
   const handleShareDriverDetails = () => {

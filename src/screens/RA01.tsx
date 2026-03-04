@@ -42,13 +42,13 @@ function HomeMultiServiceScreen(): React.JSX.Element {
       id: 1,
       title: "Student Bus Fees",
       description: "John Doe - Expires in 5 days. Grace period: 2 days remaining.",
-      actionRoute: "/school-handoff/fees"
+      actionRoute: "/school-handoff"
     },
     {
       id: 2,
       title: "Ride Promotion",
       description: "Get 20% off your next ride. Valid until end of month.",
-      actionRoute: "/rides/promotions"
+      actionRoute: "/rides/enter"
     },
     {
       id: 3,
@@ -80,13 +80,13 @@ function HomeMultiServiceScreen(): React.JSX.Element {
     setCurrentReminderIndex((prev) => (prev + 1) % reminders.length);
   };
   
-  const handleSearch = (e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLDivElement>): void => {
+  /* const handleSearch = (e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLDivElement>): void => {
     e.preventDefault();
     if (searchQuery.trim()) {
       // Navigate to search results or rides dashboard
       navigate("/rides/enter", { state: { searchQuery: searchQuery.trim() } });
     }
-  };
+  }; */
 
   
   return (
@@ -102,6 +102,7 @@ function HomeMultiServiceScreen(): React.JSX.Element {
         >
           {/* Avatar */}
           <Avatar
+            onClick={() => navigate("/profile")}
             sx={{
               width: 40,
               height: 40,
@@ -109,7 +110,9 @@ function HomeMultiServiceScreen(): React.JSX.Element {
               fontSize: 18,
               fontWeight: 600,
               color: "#FFFFFF",
-              flexShrink: 0
+              flexShrink: 0,
+              cursor: "pointer",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.35)" }
             }}
           >
             RZ

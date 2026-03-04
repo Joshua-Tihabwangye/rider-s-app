@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
-  
   Box,
   IconButton,
   Typography,
@@ -10,7 +9,13 @@ import {
   CardContent,
   Stack,
   Chip,
-  Button
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Divider,
+  Avatar
 } from "@mui/material";
 
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
@@ -21,10 +26,25 @@ import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 
 import MobileShell from "../components/MobileShell";
 
-const ALL_ORDERS = [
+interface Order {
+  id: string;
+  type: string;
+  title: string;
+  date: string;
+  from: string;
+  to: string;
+  status: "Ordered" | "Delivery" | "In Transit" | "Completed" | "Cancelled";
+  fare: string;
+  driver?: string;
+  vehicle?: string;
+}
+
+const ALL_ORDERS: Order[] = [
   {
     id: "RIDE-2025-10-01-001",
     type: "Ride",
@@ -32,7 +52,10 @@ const ALL_ORDERS = [
     date: "01 Oct 2025 • 09:20",
     from: "Nsambya",
     to: "Bugolobi",
-    status: "Completed"
+    status: "Completed",
+    fare: "UGX 5,500",
+    driver: "Tim Smith",
+    vehicle: "Tesla Model Y"
   },
   {
     id: "DLV-2025-10-05-002",
@@ -41,7 +64,8 @@ const ALL_ORDERS = [
     date: "05 Oct 2025 • 16:05",
     from: "Kansanga",
     to: "Nsambya EV Hub",
-    status: "Completed"
+    status: "In Transit",
+    fare: "UGX 8,000"
   },
   {
     id: "RENT-2025-10-07-001",
@@ -50,7 +74,8 @@ const ALL_ORDERS = [
     date: "07 Oct 2025 • 10:00",
     from: "Nsambya EV Hub",
     to: "Bugolobi EV Hub",
-    status: "Upcoming"
+    status: "Delivery",
+    fare: "UGX 450,000"
   },
   {
     id: "TOUR-BOOK-2025-10-12-001",
@@ -59,7 +84,8 @@ const ALL_ORDERS = [
     date: "12 Oct 2025 • 14:00",
     from: "Central Kampala",
     to: "City loop",
-    status: "Upcoming"
+    status: "Ordered",
+    fare: "UGX 120,000"
   },
   {
     id: "AMB-REQ-2025-10-07-001",
@@ -68,7 +94,8 @@ const ALL_ORDERS = [
     date: "07 Oct 2025 • 14:32",
     from: "Nsambya Road 472",
     to: "Nsambya Hospital",
-    status: "Completed"
+    status: "Completed",
+    fare: "UGX 25,000"
   }
 ];
 
@@ -89,61 +116,34 @@ function getTypeIcon(type: string): React.ReactElement {
   }
 }
 
-interface Order {
-  id: string;
-  type: string;
-  title: string;
-  date: string;
-  from: string;
-  to: string;
-  status: string;
+function getStatusColor(status: string) {
+  switch (status) {
+    case "Completed": return { bg: "rgba(34,197,94,0.12)", text: "#16A34A" };
+    case "In Transit": return { bg: "rgba(59,130,246,0.12)", text: "#2563EB" };
+    case "Ordered": return { bg: "rgba(245,158,11,0.12)", text: "#D97706" };
+    case "Delivery": return { bg: "rgba(139,92,246,0.12)", text: "#7C3AED" };
+    default: return { bg: "rgba(148,163,184,0.18)", text: "rgba(148,163,184,1)" };
+  }
 }
 
-interface AllOrdersCardProps {
-  order: Order;
-}
-
-function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
-  const navigate = useNavigate();
-  
-  const handleViewDetails = () => {
-    // Navigate based on order type according to routing guide
-    if (order.type === "Ride") {
-      // Ride → /rides/history/:rideId (RA37)
-      navigate(`/rides/history/${order.id}`);
-    } else if (order.type === "Delivery") {
-      // Delivery → /deliveries/tracking/:orderId/details (RA68)
-      navigate(`/deliveries/tracking/${order.id}/details`);
-    } else if (order.type === "Rental") {
-      // Rental → /rental/history/:rentalId (RA90)
-      navigate(`/rental/history/${order.id}`);
-    } else if (order.type === "Tour") {
-      // Tour → /tours/history (RA82) then specific tour
-      navigate("/tours/history");
-    } else if (order.type === "Ambulance") {
-      // Ambulance → /ambulance/history (RA88) and tracking
-      navigate("/ambulance/history");
-    }
-  };
+function AllOrdersCard({ order, onOpenDetail }: { order: Order; onOpenDetail: (o: Order) => void }): React.JSX.Element {
+  const statusColors = getStatusColor(order.status);
   
   return (
     <Card
       elevation={0}
-      onClick={handleViewDetails}
+      onClick={() => onOpenDetail(order)}
       sx={{
         mb: 1.75,
         borderRadius: 2,
         cursor: "pointer",
-        bgcolor: (t) =>
-          t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-        border: (t) =>
-          t.palette.mode === "light"
-            ? "1px solid rgba(209,213,219,0.9)"
-            : "1px solid rgba(51,65,85,0.9)",
+        bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+        border: (t) => t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)",
         transition: "transform 0.2s ease, box-shadow 0.2s ease",
         "&:hover": {
           transform: "translateY(-2px)",
-          boxShadow: 4
+          boxShadow: 4,
+          borderColor: "#03CD8C"
         }
       }}
     >
@@ -154,81 +154,63 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
               width: 40,
               height: 40,
               borderRadius: 999,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#E5E7EB" : "rgba(15,23,42,0.9)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
+              bgcolor: (t) => t.palette.mode === "light" ? "#F3F4F6" : "rgba(255,255,255,0.05)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#03CD8C"
             }}
           >
             {getTypeIcon(order.type)}
           </Box>
           <Box sx={{ flex: 1 }}>
-            <Typography
-              variant="body2"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
+            <Typography variant="body2" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
               {order.title}
             </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              {order.type} • {order.date}
+            <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
+              {order.date}
             </Typography>
-            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.4 }}>
-              <PlaceRoundedIcon
-                sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                {order.from} → {order.to}
-              </Typography>
-            </Stack>
           </Box>
           <Chip
             size="small"
             label={order.status}
-            sx={{
-              borderRadius: 999,
-              fontSize: 10,
-              height: 22,
-              bgcolor:
-                order.status === "Upcoming"
-                  ? "rgba(34,197,94,0.12)"
-                  : "rgba(148,163,184,0.18)",
-              color:
-                order.status === "Upcoming" ? "#16A34A" : "rgba(148,163,184,1)"
+            sx={{ 
+              borderRadius: 1, 
+              fontSize: 10, 
+              fontWeight: 700, 
+              height: 22, 
+              bgcolor: statusColors.bg, 
+              color: statusColors.text 
             }}
           />
         </Stack>
 
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-          >
-            ID: {order.id}
+        <Stack direction="row" spacing={0.75} alignItems="flex-start" sx={{ mb: 1.5, pl: 0.5 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mt: 0.5 }}>
+            <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "#03CD8C" }} />
+            <Box sx={{ width: 1, height: 12, bgcolor: "rgba(0,0,0,0.1)" }} />
+            <PlaceRoundedIcon sx={{ fontSize: 14, color: "#F77F00", mt: -0.5 }} />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary", display: "block", lineHeight: 1.2 }}>
+              {order.from}
+            </Typography>
+            <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, display: "block", mt: 0.5 }}>
+              {order.to}
+            </Typography>
+          </Box>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#03CD8C" }}>
+            {order.fare}
           </Typography>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleViewDetails();
-            }}
-            sx={{
-              borderRadius: 999,
-              px: 2,
-              py: 0.4,
-              fontSize: 12,
-              textTransform: "none"
-            }}
-          >
+        </Stack>
+        
+        <Divider sx={{ mb: 1.5, opacity: 0.5 }} />
+        
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="caption" sx={{ fontSize: 10, color: "text.secondary", fontStyle: "italic" }}>
+            {order.id}
+          </Typography>
+          <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, color: "#03CD8C" }}>
             View details
-          </Button>
+          </Typography>
         </Stack>
       </CardContent>
     </Card>
@@ -238,6 +220,7 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
 function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("all");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const filtered = ALL_ORDERS.filter((order) => {
     if (filter === "all") return true;
@@ -245,175 +228,165 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
   });
 
   return (
-    <>
-    {/* Green Header */}
-        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
-            sx={{
-              borderRadius: 999,
-              bgcolor: "rgba(255,255,255,0.2)",
-              color: "#FFFFFF",
-              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-          <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
-          >
-            All orders
-          </Typography>
-        </Box>
-        <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
-
-
-      {/* Filters */}
-      <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: "wrap" }}>
-        <Chip
-          label="All"
-          onClick={() => setFilter("all")}
+    <Box>
+      {/* Green Header */}
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+        <IconButton
           size="small"
-          sx={{
-            borderRadius: 999,
-            fontSize: 11,
-            height: 26,
-            bgcolor: filter === "all" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            color: filter === "all" ? "#020617" : (t) => t.palette.text.primary
-          }}
-        />
-        <Chip
-          label="Rides"
-          onClick={() => setFilter("Ride")}
-          size="small"
-          sx={{
-            borderRadius: 999,
-            fontSize: 11,
-            height: 26,
-            bgcolor: filter === "Ride" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            color: filter === "Ride" ? "#020617" : (t) => t.palette.text.primary
-          }}
-        />
-        <Chip
-          label="Deliveries"
-          onClick={() => setFilter("Delivery")}
-          size="small"
-          sx={{
-            borderRadius: 999,
-            fontSize: 11,
-            height: 26,
-            bgcolor: filter === "Delivery" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            color: filter === "Delivery" ? "#020617" : (t) => t.palette.text.primary
-          }}
-        />
-        <Chip
-          label="Rentals"
-          onClick={() => setFilter("Rental")}
-          size="small"
-          sx={{
-            borderRadius: 999,
-            fontSize: 11,
-            height: 26,
-            bgcolor: filter === "Rental" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            color: filter === "Rental" ? "#020617" : (t) => t.palette.text.primary
-          }}
-        />
-        <Chip
-          label="Tours"
-          onClick={() => setFilter("Tour")}
-          size="small"
-          sx={{
-            borderRadius: 999,
-            fontSize: 11,
-            height: 26,
-            bgcolor: filter === "Tour" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            color: filter === "Tour" ? "#020617" : (t) => t.palette.text.primary
-          }}
-        />
-        <Chip
-          label="Ambulance"
-          onClick={() => setFilter("Ambulance")}
-          size="small"
-          sx={{
-            borderRadius: 999,
-            fontSize: 11,
-            height: 26,
-            bgcolor: filter === "Ambulance" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            color: filter === "Ambulance" ? "#020617" : (t) => t.palette.text.primary
-          }}
-        />
-      </Stack>
-
-      {filtered.length === 0 ? (
-        <Typography
-          variant="caption"
-          sx={{ mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
+          onClick={() => navigate(-1)}
+          sx={{ borderRadius: 999, bgcolor: "rgba(255,255,255,0.2)", color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.3)" } }}
         >
-          No orders in this view yet.
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#FFFFFF" }}>
+          All Orders History
         </Typography>
-      ) : (
-        filtered.map((order) => <AllOrdersCard key={order.id} order={order} />)
-      )}
-    </Box>
-    </>
+      </Box>
 
+      <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
+        {/* Filters */}
+        <Stack direction="row" spacing={1} sx={{ mb: 3, overflowX: "auto", pb: 1, "&::-webkit-scrollbar": { display: "none" } }}>
+          {["all", "Ride", "Delivery", "Rental", "Tour", "Ambulance"].map((tag) => (
+            <Chip
+              key={tag}
+              label={tag === "all" ? "All" : tag}
+              onClick={() => setFilter(tag)}
+              size="small"
+              sx={{
+                borderRadius: 999,
+                fontSize: 11,
+                fontWeight: filter === tag ? 700 : 500,
+                height: 28,
+                px: 1,
+                bgcolor: filter === tag ? "#03CD8C" : "transparent",
+                color: filter === tag ? "#FFFFFF" : "text.secondary",
+                border: filter === tag ? "none" : "1px solid rgba(0,0,0,0.1)",
+                "&:hover": { bgcolor: filter === tag ? "#02b57b" : "rgba(0,0,0,0.05)" }
+              }}
+            />
+          ))}
+        </Stack>
+
+        {filtered.length === 0 ? (
+          <Box sx={{ py: 10, textAlign: "center", opacity: 0.5 }}>
+            <AccessTimeRoundedIcon sx={{ fontSize: 48, mb: 1 }} />
+            <Typography variant="body2">No orders found.</Typography>
+          </Box>
+        ) : (
+          filtered.map((order) => (
+            <AllOrdersCard key={order.id} order={order} onOpenDetail={setSelectedOrder} />
+          ))
+        )}
+      </Box>
+
+      {/* Detail Dialog */}
+      <Dialog 
+        open={!!selectedOrder} 
+        onClose={() => setSelectedOrder(null)}
+        fullWidth
+        maxWidth="xs"
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>Order Details</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2.5}>
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ textTransform: "uppercase", fontWeight: 700, fontSize: 10 }}>
+                Status
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                <Chip 
+                  label={selectedOrder?.status} 
+                  size="small" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    borderRadius: 1,
+                    ...getStatusColor(selectedOrder?.status || "") 
+                  }} 
+                />
+                <Typography variant="caption">{selectedOrder?.date}</Typography>
+              </Box>
+            </Box>
+
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ textTransform: "uppercase", fontWeight: 700, fontSize: 10 }}>
+                Service Type
+              </Typography>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                <Avatar sx={{ width: 32, height: 32, bgcolor: "#03CD8C", color: "#FFFFFF" }}>
+                  {selectedOrder && getTypeIcon(selectedOrder.type)}
+                </Avatar>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>{selectedOrder?.type}</Typography>
+              </Stack>
+            </Box>
+
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ textTransform: "uppercase", fontWeight: 700, fontSize: 10 }}>
+                Route
+              </Typography>
+              <Box sx={{ mt: 1, position: "relative", pl: 3 }}>
+                <Box sx={{ position: "absolute", left: 0, top: 4, bottom: 4, width: 2, bgcolor: "rgba(0,0,0,0.1)", borderRadius: 1 }} />
+                <Box sx={{ position: "absolute", left: -3, top: 0, width: 8, height: 8, borderRadius: "50%", bgcolor: "#03CD8C" }} />
+                <Box sx={{ position: "absolute", left: -3, bottom: 0, width: 8, height: 8, borderRadius: "50%", bgcolor: "#F77F00" }} />
+                
+                <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5 }}>{selectedOrder?.from}</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>{selectedOrder?.to}</Typography>
+              </Box>
+            </Box>
+
+            {selectedOrder?.driver && (
+              <Box>
+                <Typography variant="caption" color="text.secondary" sx={{ textTransform: "uppercase", fontWeight: 700, fontSize: 10 }}>
+                  Driver & Vehicle
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, mt: 0.5 }}>
+                  {selectedOrder.driver} • {selectedOrder.vehicle}
+                </Typography>
+              </Box>
+            )}
+
+            <Box sx={{ bgcolor: (t) => t.palette.mode === "light" ? "#F9FAFB" : "rgba(255,255,255,0.03)", p: 2, borderRadius: 2 }}>
+              <Stack direction="row" justifyContent="space-between">
+                <Typography variant="body2" color="text.secondary">Total Fare</Typography>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#03CD8C" }}>{selectedOrder?.fare}</Typography>
+              </Stack>
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, justifyContent: "center" }}>
+          <Button 
+            fullWidth
+            onClick={() => setSelectedOrder(null)}
+            sx={{ borderRadius: 999, textTransform: "none", fontWeight: 700, color: "text.secondary" }}
+          >
+            Close
+          </Button>
+          {(selectedOrder?.status === "In Transit" || selectedOrder?.status === "Ordered") && (
+            <Button 
+              fullWidth
+              variant="contained" 
+              sx={{ borderRadius: 999, bgcolor: "#03CD8C", textTransform: "none", fontWeight: 700 }}
+              onClick={() => {
+                if (selectedOrder.type === "Ride") navigate("/rides/trip/details");
+                if (selectedOrder.type === "Delivery") navigate("/deliveries/tracking/123/live");
+              }}
+            >
+              Track Order
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }
 
 export default function RiderScreen91AllOrdersCombinedHistoryCanvas_v2() {
-      return (
-    
-      
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: (t) => t.palette.background.default
-        }}
-      >
-        
-
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
-          <AllOrdersCombinedHistoryScreen />
-        </MobileShell>
-      </Box>
-    
+  return (
+    <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
+      <DarkModeToggle />
+      <MobileShell>
+        <AllOrdersCombinedHistoryScreen />
+      </MobileShell>
+    </Box>
   );
 }
