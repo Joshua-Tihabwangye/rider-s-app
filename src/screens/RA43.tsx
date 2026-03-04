@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  
   Box,
   Paper,
   IconButton,
@@ -19,6 +18,8 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import DarkModeToggle from "../components/DarkModeToggle";
+import MobileShell from "../components/MobileShell";
 
 const MOCK_RESULTS = [
   {
@@ -242,14 +243,18 @@ function AddStopSearchResultsScreen(): React.JSX.Element {
 }
 
 export default function RiderScreen43AddStopSearchResultsCanvas_v2() {
-      return (
-    
-      
-      <Box sx={{ position: "relative", minHeight: "100vh" }}>
-        
-
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        minHeight: "100vh",
+        bgcolor: (t) => t.palette.background.default
+      }}
+    >
+      <DarkModeToggle />
+      <MobileShell>
         <AddStopSearchResultsScreen />
-      </Box>
-    
+      </MobileShell>
+    </Box>
   );
 }
