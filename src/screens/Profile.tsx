@@ -150,11 +150,11 @@ function ProfileScreen(): React.JSX.Element {
 
 export default function Profile() {
   return (
-    <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
+    <>
       <DarkModeToggle />
       <MobileShell>
         <ProfileScreen />
       </MobileShell>
-    </Box>
+    </>
   );
 }

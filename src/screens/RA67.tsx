@@ -297,26 +297,12 @@ function OrderCompletionRatingPromptScreen(): React.JSX.Element {
 }
 
 export default function RiderScreen67OrderCompletionRatingPromptCanvas_v2() {
-      return (
-    
-      
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: (t) => t.palette.background.default
-        }}
-      >
-        
-
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
-          <OrderCompletionRatingPromptScreen />
-        </MobileShell>
-      </Box>
-    
+  return (
+    <>
+      <DarkModeToggle />
+      <MobileShell>
+        <OrderCompletionRatingPromptScreen />
+      </MobileShell>
+    </>
   );
 }
