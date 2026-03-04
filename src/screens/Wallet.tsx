@@ -1667,17 +1667,11 @@ export default function Wallet(): React.JSX.Element {
   const navigate = useNavigate();
 
   return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (t) => t.palette.background.default
-      }}
-    >
+    <>
       <DarkModeToggle />
       <MobileShell>
         <WalletContent onBack={() => navigate(-1)} />
       </MobileShell>
-    </Box>
+    </>
   );
 }
