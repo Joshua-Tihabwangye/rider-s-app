@@ -48,13 +48,7 @@ export default function About(): React.JSX.Element {
   ];
 
   return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (t) => t.palette.background.default
-      }}
-    >
+    <>
       <DarkModeToggle />
       <MobileShell>
         {/* Green Header */}
@@ -214,7 +208,7 @@ export default function About(): React.JSX.Element {
           </Box>
         </Box>
       </MobileShell>
-    </Box>
+    </>
   );
 }
 

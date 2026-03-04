@@ -76,11 +76,12 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
         right: 0,
         bottom: 0,
         width: "100%",
-        height: "100vh",
+        // Use dvh (Dynamic Viewport Height) to account for mobile browser UI
+        height: { xs: "100dvh", sm: "100vh" },
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        // Premium dark workspace background to make the mobile frame pop
+        // Premium dark workspace background
         bgcolor: "#020617",
         backgroundImage: "radial-gradient(circle at top right, #1E293B 0, #020617 100%)",
         overflow: "hidden",
@@ -92,13 +93,11 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
         sx={{
           position: "relative",
           width: { xs: "100%", sm: "410px", md: "430px" },
-          // Leaving space on top and bottom as requested
           height: { xs: "100%", sm: "calc(100% - 60px)", md: "calc(100% - 80px)" },
           maxHeight: { sm: "840px", md: "900px" },
           display: "flex",
           flexDirection: "column",
           bgcolor: (t) => t.palette.background.default,
-          // Subtle border radius to just "reduce sharpness"
           borderRadius: { xs: 0, sm: "4px" },
           boxShadow: { 
             xs: "none", 
@@ -106,14 +105,12 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
               ? "0 10px 30px -5px rgba(0,0,0,0.1), 0 0 1px rgba(0,0,0,0.05)" 
               : "0 20px 40px -12px rgba(0,0,0,0.4), 0 0 1px rgba(255,255,255,0.05)"
           },
-          // Removed explicit frame borders
           border: "none",
           overflow: "hidden",
           backgroundImage: (t) =>
             t.palette.mode === "light"
               ? "radial-gradient(circle at top, #D1FAE5 0, #F3F4F6 55%, #F3F4F6 100%)"
               : "radial-gradient(circle at top, #064E3B 0, #020617 60%, #020617 100%)",
-          // Safe area support
           paddingTop: { xs: "env(safe-area-inset-top)", sm: 0 },
         }}
       >
@@ -123,8 +120,11 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
             flex: 1,
             overflowY: "auto",
             overflowX: "hidden",
-            // Account for fixed navigation
-            paddingBottom: "64px",
+            // Synchronize padding with navigation height + safe area
+            paddingBottom: { 
+              xs: "calc(64px + env(safe-area-inset-bottom))", 
+              sm: "64px" 
+            },
             WebkitOverflowScrolling: "touch",
             paddingLeft: { xs: "env(safe-area-inset-left)", sm: 0 },
             paddingRight: { xs: "env(safe-area-inset-right)", sm: 0 },
@@ -144,9 +144,14 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
             right: 0,
             width: "100%",
             zIndex: 2000,
+            // Handle bottom safe area for notched phones
             paddingBottom: { xs: "env(safe-area-inset-bottom)", sm: 0 },
             flexShrink: 0,
-            backgroundColor: "transparent"
+            backgroundColor: (t) =>
+              t.palette.mode === "light"
+                ? "rgba(255,255,255,0.95)"
+                : "rgba(15,23,42,0.96)",
+            backdropFilter: "blur(20px)",
           }}
         >
           <Paper
@@ -154,11 +159,7 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
             sx={{
               borderRadius: { xs: 0, sm: "20px 20px 0 0" },
               overflow: "hidden",
-              bgcolor: (t) =>
-                t.palette.mode === "light"
-                  ? "rgba(255,255,255,0.95)"
-                  : "rgba(15,23,42,0.96)",
-              backdropFilter: "blur(20px)",
+              bgcolor: "transparent",
               borderTop: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(229,231,235,1)"
