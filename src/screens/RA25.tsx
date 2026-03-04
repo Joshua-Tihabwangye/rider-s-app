@@ -65,9 +65,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   }, []);
 
   const handleEmergency = () => {
-    // Trigger emergency support
-    console.log("Emergency button pressed");
-    // In production: window.location.href = `tel:911` or open emergency chat
+    navigate("/emergency");
   };
 
   const handleNavigation = () => {
@@ -80,13 +78,11 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   };
 
   const handleGroup = () => {
-    console.log("Open ride sharing/contact support");
-    // In production: Navigate to ride sharing or support
+    navigate("/rides/trip/sharing");
   };
 
   const handleSettings = () => {
-    console.log("Open trip settings");
-    // In production: Open trip options (mute, cancel, help)
+    navigate("/settings");
   };
 
   const handleRating = () => {
@@ -94,8 +90,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   };
 
   const handleShare = () => {
-    console.log("Share live trip link");
-    // In production: Share trip link
+    navigate("/rides/trip/sharing");
   };
 
   const handlePayNow = () => {

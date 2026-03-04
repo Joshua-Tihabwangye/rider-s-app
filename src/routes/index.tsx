@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import RA01 from "../screens/RA01";
+import RA02 from "../screens/RA02";
 import RA03 from "../screens/RA03";
 import RA04 from "../screens/RA04";
 import RA05 from "../screens/RA05";
@@ -47,6 +48,7 @@ import RA46 from "../screens/RA46";
 import RA47 from "../screens/RA47";
 import RA48 from "../screens/RA48";
 import RA49 from "../screens/RA49";
+import RA50 from "../screens/RA50";
 import RA51 from "../screens/RA51";
 import RA52 from "../screens/RA52";
 import RA53 from "../screens/RA53";
@@ -65,6 +67,7 @@ import RA65 from "../screens/RA65";
 import RA66 from "../screens/RA66";
 import RA67 from "../screens/RA67";
 import RA68 from "../screens/RA68";
+import RA69 from "../screens/RA69";
 import RA70 from "../screens/RA70";
 import RA71 from "../screens/RA71";
 import RA72 from "../screens/RA72";
@@ -77,10 +80,12 @@ import RA79 from "../screens/RA79";
 import RA80 from "../screens/RA80";
 import RA81 from "../screens/RA81";
 import RA82 from "../screens/RA82";
+import RA83 from "../screens/RA83";
 import RA84 from "../screens/RA84";
 import RA85 from "../screens/RA85";
 import RA86 from "../screens/RA86";
 import RA87 from "../screens/RA87";
+import RA88 from "../screens/RA88";
 
 import RA89 from "../screens/RA89";
 import RA90 from "../screens/RA90";
@@ -96,7 +101,6 @@ import RentalDashboard from "../screens/RentalDashboard";
 import ToursDashboard from "../screens/ToursDashboard";
 import AmbulanceDashboard from "../screens/AmbulanceDashboard";
 import AmbulanceBookTransfer from "../screens/AmbulanceBookTransfer";
-import RA83 from "../screens/RA83";
 import SchoolDashboard from "../screens/SchoolDashboard";
 import PaymentGatewayPage from "../screens/PaymentGateway";
 import DeliveryCreateForm from "../screens/DeliveryCreateForm";
@@ -107,6 +111,12 @@ import TourDetailPage from "../screens/TourDetailPage";
 import TourBookingPage from "../screens/TourBookingPage";
 import TourBookingsList from "../screens/TourBookingsList";
 import TourBookingDetail from "../screens/TourBookingDetail";
+import Profile from "../screens/Profile";
+import Notifications from "../screens/Notifications";
+import WalletTransactions from "../screens/WalletTransactions";
+import Chat from "../screens/Chat";
+import TripSharing from "../screens/TripSharing";
+import Emergency from "../screens/Emergency";
 
 export default function AppRouter(): React.JSX.Element {
   return (
@@ -115,6 +125,9 @@ export default function AppRouter(): React.JSX.Element {
         {/* Home & Global */}
         <Route index element={<Navigate to="/home" replace />} />
         <Route path="home" element={<RA01 />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="notifications" element={<Notifications />} />
+        <Route path="emergency" element={<Emergency />} />
         <Route path="school-handoff" element={<RA89 />} />
         <Route path="history/all" element={<RA91 />} />
 
@@ -133,6 +146,7 @@ export default function AppRouter(): React.JSX.Element {
           <Route path="enter/multi-stops/max" element={<RA40 />} />
           <Route path="enter/multi-stops/add" element={<RA41 />} />
           <Route path="enter/multi-stops/search-results" element={<RA43 />} />
+          <Route path="dashboard-alt" element={<RA02 />} />
           <Route path="commutes" element={<RA03 />} />
           <Route path="upcoming-inline" element={<RA04 />} />
           <Route path="upcoming" element={<RA49 />} />
@@ -159,7 +173,9 @@ export default function AppRouter(): React.JSX.Element {
           <Route path="trip/driver-profile" element={<RA28 />} />
           <Route path="trip/completed" element={<RA29 />} />
           <Route path="trip/share" element={<RA30 />} />
-          <Route path="trip/sharing" element={<RA31 />} />
+          <Route path="trip/sharing" element={<TripSharing />} />
+          <Route path="chat" element={<Chat />} />
+          <Route path="chat/driver" element={<Chat />} />
           <Route path="rating" element={<RA35 />} />
           <Route path="rating/tip" element={<RA32 />} />
           <Route path="rating/driver" element={<RA35 />} />
@@ -177,6 +193,7 @@ export default function AppRouter(): React.JSX.Element {
         {/* Deliveries */}
         <Route path="deliveries">
           <Route index element={<DeliveriesDashboard />} />
+          <Route path="sending" element={<RA50 />} />
           <Route path="delivering-v2" element={<RA52 />} />
           <Route path="received" element={<RA51 />} />
           <Route path="received-v2" element={<RA53 />} />
@@ -200,6 +217,7 @@ export default function AppRouter(): React.JSX.Element {
         {/* Rental */}
         <Route path="rental">
           <Route index element={<RentalDashboard />} />
+          <Route path="entry" element={<RA69 />} />
           <Route path="list" element={<RA70 />} />
           <Route path="vehicle/:vehicleId" element={<RA71 />} />
           <Route path="dates" element={<RA72 />} />
@@ -213,7 +231,7 @@ export default function AppRouter(): React.JSX.Element {
         {/* Tours */}
         <Route path="tours">
           <Route index element={<ToursDashboard />} />
-          <Route path="browse" element={<ToursDashboard />} />
+          <Route path="browse" element={<RA77 />} />
           <Route path="custom" element={<TourCustomBuilder />} />
           <Route path="quote" element={<TourQuoteRequest />} />
           <Route path="history" element={<RA82 />} />
@@ -242,13 +260,17 @@ export default function AppRouter(): React.JSX.Element {
           <Route path="destination" element={<RA85 />} />
           <Route path="confirmation" element={<RA86 />} />
           <Route path="tracking/:requestId" element={<RA87 />} />
+          <Route path="history" element={<RA88 />} />
         </Route>
 
         {/* Payment Gateway Simulation */}
         <Route path="payment/process" element={<PaymentGatewayPage />} />
 
         {/* Placeholder routes - Wallet is marked as "future work" in routing guide */}
-        <Route path="wallet" element={<Wallet />} />
+        <Route path="wallet">
+          <Route index element={<Wallet />} />
+          <Route path="transactions" element={<WalletTransactions />} />
+        </Route>
         <Route path="manager" element={<MoreMenu />} /> {/* Manager placeholder - using MoreMenu for now */}
         <Route path="more" element={<MoreMenu />} />
         <Route path="settings" element={<Settings />} />

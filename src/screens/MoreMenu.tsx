@@ -44,6 +44,12 @@ export default function MoreMenu(): React.JSX.Element {
       route: "/deliveries/invitations"
     },
     {
+      icon: <PersonRoundedIcon />,
+      label: "Notifications",
+      description: "App alerts and trip updates",
+      route: "/notifications"
+    },
+    {
       icon: <SchoolRoundedIcon />,
       label: "School Shuttles",
       description: "Book and track school shuttles",
