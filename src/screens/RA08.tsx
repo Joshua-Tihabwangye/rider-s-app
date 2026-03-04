@@ -6,17 +6,10 @@ import {
   Box,
   IconButton,
   Typography,
-  Button,
-  Checkbox,
-  Modal,
-  Backdrop,
-  Fade,
-  Paper
+  Button
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
 import MobileShell from "../components/MobileShell";
 
 // Generate date options
@@ -45,8 +38,7 @@ function ScheduleRideScreen(): React.JSX.Element {
   const timeScrollRef = useRef(null);
   
   const initialState = location.state || {};
-  const [isOpen, setIsOpen] = useState(true);
-  const [rideLater, setRideLater] = useState(true);
+  const [rideLater] = useState(true);
   
   // Get current date/time or default
   const now = new Date();
@@ -85,19 +77,6 @@ function ScheduleRideScreen(): React.JSX.Element {
   });
   
   const dateOptions = generateDateOptions();
-  
-  const handleClose = () => {
-    setIsOpen(false);
-    setTimeout(() => {
-      navigate(-1);
-    }, 300);
-  };
-  
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>): void => {
-    if (e.target === e.currentTarget) {
-      handleClose();
-    }
-  };
   
   const handleDone = () => {
     if (!rideLater) {
@@ -164,377 +143,345 @@ function ScheduleRideScreen(): React.JSX.Element {
   
   // Theme-aware colors
   const accentGreen = "#03CD8C";
-  const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
   
   return (
-    <Modal
-      open={isOpen}
-      onClose={handleClose}
-      closeAfterTransition
-      BackdropComponent={Backdrop}
-      BackdropProps={{
-        timeout: 300,
-        sx: {
-          backgroundColor: 'rgba(0, 0, 0, 0.5)'
-        }
-      }}
-      onClick={handleBackdropClick}
-    >
-      <Fade in={isOpen}>
-        <Paper
+    <>
+      {/* Green Header */}
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+        <IconButton
+          size="small"
+          aria-label="Back"
+          onClick={() => navigate(-1)}
           sx={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            bgcolor: contentBg,
-            maxHeight: '90vh',
-            overflow: 'auto',
-            outline: 'none'
+            borderRadius: 999,
+            bgcolor: "rgba(255,255,255,0.2)",
+            color: "#FFFFFF",
+            "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
           }}
-          onClick={(e) => e.stopPropagation()}
         >
-          {/* Green Header */}
-        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
-            sx={{
-              borderRadius: 999,
-              bgcolor: "rgba(255,255,255,0.2)",
-              color: "#FFFFFF",
-              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-          <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
-          >
-            Ride Later
-          </Typography>
-        </Box>
-        <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+        <Typography
+          variant="subtitle1"
+          sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
+        >
+          Ride Later
+        </Typography>
+      </Box>
+      <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
 
-
-            {rideLater && (
-              <>
-                {/* Date Selector - Scrollable Carousel */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ 
-                      fontWeight: 600, 
-                      mb: 1.5,
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    Date
-                  </Typography>
-                  <Box
-                    ref={dateScrollRef}
-                    sx={{
-                      display: "flex",
-                      gap: 2,
-                      overflowX: "auto",
-                      pb: 1,
-                      "&::-webkit-scrollbar": {
-                        display: "none"
-                      },
-                      scrollbarWidth: "none"
-                    }}
-                  >
-                    {dateOptions.map((date, index) => {
-                      const isSelected = 
-                        selectedDate.day === date.day &&
-                        selectedDate.month === date.month &&
-                        selectedDate.year === date.year;
-                      
-                      return (
-                        <Box
-                          key={index}
-                          onClick={() => setSelectedDate(date)}
-                          sx={{
-                            minWidth: 80,
-                            textAlign: "center",
-                            p: 1.5,
-                            borderRadius: 2,
-                            cursor: "pointer",
+          {rideLater && (
+            <>
+              {/* Date Selector - Scrollable Carousel */}
+              <Box sx={{ mb: 3 }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ 
+                    fontWeight: 600, 
+                    mb: 1.5,
+                    color: theme.palette.text.primary
+                  }}
+                >
+                  Date
+                </Typography>
+                <Box
+                  ref={dateScrollRef}
+                  sx={{
+                    display: "flex",
+                    gap: 2,
+                    overflowX: "auto",
+                    pb: 1,
+                    "&::-webkit-scrollbar": {
+                      display: "none"
+                    },
+                    scrollbarWidth: "none"
+                  }}
+                >
+                  {dateOptions.map((date, index) => {
+                    const isSelected = 
+                      selectedDate.day === date.day &&
+                      selectedDate.month === date.month &&
+                      selectedDate.year === date.year;
+                    
+                    return (
+                      <Box
+                        key={index}
+                        onClick={() => setSelectedDate(date)}
+                        sx={{
+                          minWidth: 80,
+                          textAlign: "center",
+                          p: 1.5,
+                          borderRadius: 2,
+                          cursor: "pointer",
+                          bgcolor: isSelected
+                            ? accentGreen
+                            : theme.palette.mode === "light"
+                              ? "rgba(0,0,0,0.05)"
+                              : "rgba(255,255,255,0.05)",
+                          border: isSelected
+                            ? "none"
+                            : `1px solid ${theme.palette.mode === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"}`,
+                          transition: "all 0.2s ease",
+                          "&:hover": {
                             bgcolor: isSelected
                               ? accentGreen
                               : theme.palette.mode === "light"
-                                ? "rgba(0,0,0,0.05)"
-                                : "rgba(255,255,255,0.05)",
-                            border: isSelected
-                              ? "none"
-                              : `1px solid ${theme.palette.mode === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"}`,
+                                ? "rgba(0,0,0,0.1)"
+                                : "rgba(255,255,255,0.1)"
+                          }
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            display: "block",
+                            fontSize: 11,
+                            color: isSelected
+                              ? "#FFFFFF"
+                              : theme.palette.text.secondary,
+                            mb: 0.5
+                          }}
+                        >
+                          {date.month}
+                        </Typography>
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: 600,
+                            color: isSelected
+                              ? "#FFFFFF"
+                              : theme.palette.text.primary
+                          }}
+                        >
+                          {date.day}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            display: "block",
+                            fontSize: 11,
+                            color: isSelected
+                              ? "#FFFFFF"
+                              : theme.palette.text.secondary,
+                            mt: 0.5
+                          }}
+                        >
+                          {date.year}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Box>
+
+              {/* Time Selector - Scrollable Carousel */}
+              <Box sx={{ mb: 3 }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ 
+                    fontWeight: 600, 
+                    mb: 1.5,
+                    color: theme.palette.text.primary
+                  }}
+                >
+                  Time
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 1.5,
+                    alignItems: "center"
+                  }}
+                >
+                  {/* Hour Selector */}
+                  <Box
+                    ref={timeScrollRef}
+                    sx={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1,
+                      maxHeight: 200,
+                      overflowY: "auto",
+                      "&::-webkit-scrollbar": {
+                        width: 4
+                      },
+                      "&::-webkit-scrollbar-thumb": {
+                        bgcolor: accentGreen,
+                        borderRadius: 2
+                      }
+                    }}
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => {
+                      const hourStr = String(hour).padStart(2, '0');
+                      const isSelected = selectedTime.hour === hourStr;
+                      return (
+                        <Box
+                          key={hour}
+                          onClick={() => setSelectedTime({ ...selectedTime, hour: hourStr })}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            textAlign: "center",
+                            cursor: "pointer",
+                            bgcolor: isSelected
+                              ? accentGreen
+                              : "transparent",
+                            color: isSelected
+                              ? "#FFFFFF"
+                              : theme.palette.text.primary,
                             transition: "all 0.2s ease",
                             "&:hover": {
                               bgcolor: isSelected
                                 ? accentGreen
                                 : theme.palette.mode === "light"
-                                  ? "rgba(0,0,0,0.1)"
-                                  : "rgba(255,255,255,0.1)"
+                                  ? "rgba(0,0,0,0.05)"
+                                  : "rgba(255,255,255,0.05)"
                             }
                           }}
                         >
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              display: "block",
-                              fontSize: 11,
-                              color: isSelected
-                                ? "#FFFFFF"
-                                : theme.palette.text.secondary,
-                              mb: 0.5
-                            }}
-                          >
-                            {date.month}
+                          <Typography sx={{ fontWeight: 600 }}>
+                            {hourStr}
                           </Typography>
-                          <Typography
-                            variant="h6"
-                            sx={{
-                              fontWeight: 600,
-                              color: isSelected
-                                ? "#FFFFFF"
-                                : theme.palette.text.primary
-                            }}
-                          >
-                            {date.day}
+                        </Box>
+                      );
+                    })}
+                  </Box>
+
+                  <Typography sx={{ fontSize: 24, color: theme.palette.text.primary }}>:</Typography>
+
+                  {/* Minute Selector */}
+                  <Box
+                    sx={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1,
+                      maxHeight: 200,
+                      overflowY: "auto",
+                      "&::-webkit-scrollbar": {
+                        width: 4
+                      },
+                      "&::-webkit-scrollbar-thumb": {
+                        bgcolor: accentGreen,
+                        borderRadius: 2
+                      }
+                    }}
+                  >
+                    {Array.from({ length: 60 }, (_, i) => i).filter((_, i) => i % 5 === 0).map((minute) => {
+                      const minuteStr = String(minute).padStart(2, '0');
+                      const isSelected = selectedTime.minute === minuteStr;
+                      return (
+                        <Box
+                          key={minute}
+                          onClick={() => setSelectedTime({ ...selectedTime, minute: minuteStr })}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            textAlign: "center",
+                            cursor: "pointer",
+                            bgcolor: isSelected
+                              ? accentGreen
+                              : "transparent",
+                            color: isSelected
+                              ? "#FFFFFF"
+                              : theme.palette.text.primary,
+                            transition: "all 0.2s ease",
+                            "&:hover": {
+                              bgcolor: isSelected
+                                ? accentGreen
+                                : theme.palette.mode === "light"
+                                  ? "rgba(0,0,0,0.05)"
+                                  : "rgba(255,255,255,0.05)"
+                            }
+                          }}
+                        >
+                          <Typography sx={{ fontWeight: 600 }}>
+                            {minuteStr}
                           </Typography>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              display: "block",
-                              fontSize: 11,
-                              color: isSelected
-                                ? "#FFFFFF"
-                                : theme.palette.text.secondary,
-                              mt: 0.5
-                            }}
-                          >
-                            {date.year}
+                        </Box>
+                      );
+                    })}
+                  </Box>
+
+                  {/* AM/PM Selector */}
+                  <Box
+                    sx={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1
+                    }}
+                  >
+                    {['AM', 'PM'].map((period) => {
+                      const isSelected = selectedTime.period === period;
+                      return (
+                        <Box
+                          key={period}
+                          onClick={() => setSelectedTime({ ...selectedTime, period })}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            textAlign: "center",
+                            cursor: "pointer",
+                            bgcolor: isSelected
+                              ? accentGreen
+                              : "transparent",
+                            color: isSelected
+                              ? "#FFFFFF"
+                              : theme.palette.text.primary,
+                            transition: "all 0.2s ease",
+                            "&:hover": {
+                              bgcolor: isSelected
+                                ? accentGreen
+                                : theme.palette.mode === "light"
+                                  ? "rgba(0,0,0,0.05)"
+                                  : "rgba(255,255,255,0.05)"
+                            }
+                          }}
+                        >
+                          <Typography sx={{ fontWeight: 600 }}>
+                            {period}
                           </Typography>
                         </Box>
                       );
                     })}
                   </Box>
                 </Box>
+              </Box>
+            </>
+          )}
 
-                {/* Time Selector - Scrollable Carousel */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ 
-                      fontWeight: 600, 
-                      mb: 1.5,
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    Time
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      gap: 1.5,
-                      alignItems: "center"
-                    }}
-                  >
-                    {/* Hour Selector */}
-                    <Box
-                      ref={timeScrollRef}
-                      sx={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 1,
-                        maxHeight: 200,
-                        overflowY: "auto",
-                        "&::-webkit-scrollbar": {
-                          width: 4
-                        },
-                        "&::-webkit-scrollbar-thumb": {
-                          bgcolor: accentGreen,
-                          borderRadius: 2
-                        }
-                      }}
-                    >
-                      {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => {
-                        const hourStr = String(hour).padStart(2, '0');
-                        const isSelected = selectedTime.hour === hourStr;
-                        return (
-                          <Box
-                            key={hour}
-                            onClick={() => setSelectedTime({ ...selectedTime, hour: hourStr })}
-                            sx={{
-                              p: 1.5,
-                              borderRadius: 2,
-                              textAlign: "center",
-                              cursor: "pointer",
-                              bgcolor: isSelected
-                                ? accentGreen
-                                : "transparent",
-                              color: isSelected
-                                ? "#FFFFFF"
-                                : theme.palette.text.primary,
-                              transition: "all 0.2s ease",
-                              "&:hover": {
-                                bgcolor: isSelected
-                                  ? accentGreen
-                                  : theme.palette.mode === "light"
-                                    ? "rgba(0,0,0,0.05)"
-                                    : "rgba(255,255,255,0.05)"
-                              }
-                            }}
-                          >
-                            <Typography sx={{ fontWeight: 600 }}>
-                              {hourStr}
-                            </Typography>
-                          </Box>
-                        );
-                      })}
-                    </Box>
-
-                    <Typography sx={{ fontSize: 24, color: theme.palette.text.primary }}>:</Typography>
-
-                    {/* Minute Selector */}
-                    <Box
-                      sx={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 1,
-                        maxHeight: 200,
-                        overflowY: "auto",
-                        "&::-webkit-scrollbar": {
-                          width: 4
-                        },
-                        "&::-webkit-scrollbar-thumb": {
-                          bgcolor: accentGreen,
-                          borderRadius: 2
-                        }
-                      }}
-                    >
-                      {Array.from({ length: 60 }, (_, i) => i).filter((_, i) => i % 5 === 0).map((minute) => {
-                        const minuteStr = String(minute).padStart(2, '0');
-                        const isSelected = selectedTime.minute === minuteStr;
-                        return (
-                          <Box
-                            key={minute}
-                            onClick={() => setSelectedTime({ ...selectedTime, minute: minuteStr })}
-                            sx={{
-                              p: 1.5,
-                              borderRadius: 2,
-                              textAlign: "center",
-                              cursor: "pointer",
-                              bgcolor: isSelected
-                                ? accentGreen
-                                : "transparent",
-                              color: isSelected
-                                ? "#FFFFFF"
-                                : theme.palette.text.primary,
-                              transition: "all 0.2s ease",
-                              "&:hover": {
-                                bgcolor: isSelected
-                                  ? accentGreen
-                                  : theme.palette.mode === "light"
-                                    ? "rgba(0,0,0,0.05)"
-                                    : "rgba(255,255,255,0.05)"
-                              }
-                            }}
-                          >
-                            <Typography sx={{ fontWeight: 600 }}>
-                              {minuteStr}
-                            </Typography>
-                          </Box>
-                        );
-                      })}
-                    </Box>
-
-                    {/* AM/PM Selector */}
-                    <Box
-                      sx={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 1
-                      }}
-                    >
-                      {['AM', 'PM'].map((period) => {
-                        const isSelected = selectedTime.period === period;
-                        return (
-                          <Box
-                            key={period}
-                            onClick={() => setSelectedTime({ ...selectedTime, period })}
-                            sx={{
-                              p: 1.5,
-                              borderRadius: 2,
-                              textAlign: "center",
-                              cursor: "pointer",
-                              bgcolor: isSelected
-                                ? accentGreen
-                                : "transparent",
-                              color: isSelected
-                                ? "#FFFFFF"
-                                : theme.palette.text.primary,
-                              transition: "all 0.2s ease",
-                              "&:hover": {
-                                bgcolor: isSelected
-                                  ? accentGreen
-                                  : theme.palette.mode === "light"
-                                    ? "rgba(0,0,0,0.05)"
-                                    : "rgba(255,255,255,0.05)"
-                              }
-                            }}
-                          >
-                            <Typography sx={{ fontWeight: 600 }}>
-                              {period}
-                            </Typography>
-                          </Box>
-                        );
-                      })}
-                    </Box>
-                  </Box>
-                </Box>
-              </>
-            )}
-
-            {/* Done Button */}
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handleDone}
-              disabled={!canDone}
-              sx={{
-                borderRadius: 2,
-                py: 1.5,
-                fontSize: 16,
-                fontWeight: 600,
-                textTransform: "none",
-                bgcolor: canDone ? "#000000" : "rgba(0,0,0,0.2)",
+          {/* Done Button */}
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleDone}
+            disabled={!canDone}
+            sx={{
+              borderRadius: 999,
+              py: 1.5,
+              fontSize: 16,
+              fontWeight: 600,
+              textTransform: "none",
+              bgcolor: canDone ? "#000000" : "rgba(0,0,0,0.2)",
+              color: "#FFFFFF",
+              boxShadow: "none",
+              "&:hover": {
+                bgcolor: canDone ? "#333333" : "rgba(0,0,0,0.3)",
+                boxShadow: "none"
+              },
+              "&.Mui-disabled": {
+                bgcolor: "rgba(0,0,0,0.2)",
                 color: "#FFFFFF",
-                boxShadow: "none",
-                "&:hover": {
-                  bgcolor: canDone ? "#333333" : "rgba(0,0,0,0.3)",
-                  boxShadow: "none"
-                },
-                "&.Mui-disabled": {
-                  bgcolor: "rgba(0,0,0,0.2)",
-                  color: "#FFFFFF",
-                  opacity: 1
-                }
-              }}
-            >
-              Done
-            </Button>
-          </Box>
-        </Paper>
-      </Fade>
-    </Modal>
+                opacity: 1
+              }
+            }}
+          >
+            Done
+          </Button>
+        </Box>
+    </>
   );
 }
 
