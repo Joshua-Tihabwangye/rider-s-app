@@ -272,11 +272,11 @@ function NotificationsScreen(): React.JSX.Element {
 
 export default function Notifications() {
   return (
-    <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
+    <>
       <DarkModeToggle />
       <MobileShell>
         <NotificationsScreen />
       </MobileShell>
-    </Box>
+    </>
   );
 }

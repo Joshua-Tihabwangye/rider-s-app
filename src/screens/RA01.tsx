@@ -673,17 +673,11 @@ function HomeMultiServiceScreen(): React.JSX.Element {
 
 export default function RiderScreen01HomeMultiServiceCanvas_v2() {
   return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (t) => t.palette.background.default
-      }}
-    >
+    <>
       <DarkModeToggle />
       <MobileShell>
         <HomeMultiServiceScreen />
       </MobileShell>
-    </Box>
+    </>
   );
 }
