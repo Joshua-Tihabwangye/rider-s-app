@@ -291,13 +291,14 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
 
   return (
     <Box>
-      {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
         <IconButton
           size="small"
           aria-label="Back"
           onClick={onBack}
           sx={{
+            position: "absolute",
+            left: 20,
             borderRadius: 999,
             bgcolor: "rgba(255,255,255,0.2)",
             color: "#FFFFFF",
@@ -310,13 +311,14 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 1.25
+            gap: 1.25,
+            textAlign: "center"
           }}
         >
           <Box
             sx={{
-              width: 40,
-              height: 40,
+              width: 32,
+              height: 32,
               borderRadius: 999,
               bgcolor: "rgba(255,255,255,0.2)",
               display: "flex",
@@ -325,7 +327,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
             }}
           >
             <AccountBalanceWalletRoundedIcon
-              sx={{ fontSize: 22, color: "#FFFFFF" }}
+              sx={{ fontSize: 18, color: "#FFFFFF" }}
             />
           </Box>
           <Box>
@@ -337,9 +339,9 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
             </Typography>
             <Typography
               variant="caption"
-              sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}
+              sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)", display: "block" }}
             >
-              EVzone Pay • Rides, deliveries, rentals & tours
+              EVzone Pay
             </Typography>
           </Box>
         </Box>

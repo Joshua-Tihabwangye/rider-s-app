@@ -33,12 +33,14 @@ function RideDetailsVariant2Screen(): React.JSX.Element {
   return (
     <Box sx={{ px: 2.5, pt: 2.25, pb: 3 }}>
       {/* Green Header */}
-        <Box sx={{ bgcolor: "#03CD8C", mx: -2.5, px: 2.5, mt: -2.5, pt: 2, pb: 2, mb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+        <Box sx={{ bgcolor: "#03CD8C", mx: -2.5, px: 2.5, mt: -2.5, pt: 2, pb: 2, mb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
           <IconButton
             size="small"
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
+              position: "absolute",
+              left: 20,
               borderRadius: 999,
               bgcolor: "rgba(255,255,255,0.2)",
               color: "#FFFFFF",

@@ -445,9 +445,9 @@ function DriverPreferencesScreen(): React.JSX.Element {
                   pb: 2,
                   display: "flex",
                   alignItems: "center",
-                  gap: 1.5,
-                  position: "sticky",
-                  top: 0,
+                  justifyContent: "center",
+                  position: "relative",
+                  sticky: "top",
                   zIndex: 10,
                   borderTopLeftRadius: 24,
                   borderTopRightRadius: 24
@@ -458,6 +458,8 @@ function DriverPreferencesScreen(): React.JSX.Element {
                   aria-label="Back"
                   onClick={handleClose}
                   sx={{
+                    position: "absolute",
+                    left: 20,
                     borderRadius: 999,
                     bgcolor: "rgba(255,255,255,0.2)",
                     color: "#FFFFFF",
@@ -539,9 +541,9 @@ function DriverPreferencesScreen(): React.JSX.Element {
             pb: 2,
             display: "flex",
             alignItems: "center",
-            gap: 1.5,
-            position: "sticky",
-            top: 0,
+            justifyContent: "center",
+            position: "relative",
+            sticky: "top",
             zIndex: 10,
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24
@@ -552,6 +554,8 @@ function DriverPreferencesScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
+              position: "absolute",
+              left: 20,
               borderRadius: 999,
               bgcolor: "rgba(255,255,255,0.2)",
               color: "#FFFFFF",

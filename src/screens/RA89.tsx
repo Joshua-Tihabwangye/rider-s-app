@@ -19,13 +19,14 @@ function SchoolShuttlesHandoffScreen(): React.JSX.Element {
 
   return (
     <>
-    {/* Green Header */}
-        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
           <IconButton
             size="small"
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
+              position: "absolute",
+              left: 20,
               borderRadius: 999,
               bgcolor: "rgba(255,255,255,0.2)",
               color: "#FFFFFF",
@@ -36,7 +37,7 @@ function SchoolShuttlesHandoffScreen(): React.JSX.Element {
           </IconButton>
           <Typography
             variant="subtitle1"
-            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
+            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF", textAlign: "center" }}
           >
             School shuttles are in EVzone School
           </Typography>

@@ -19,6 +19,7 @@ import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import AddLocationAltRoundedIcon from "@mui/icons-material/AddLocationAltRounded";
 import SentimentDissatisfiedRoundedIcon from "@mui/icons-material/SentimentDissatisfiedRounded";
 import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 import {
@@ -311,17 +312,33 @@ function ToursBrowseScreen() {
   return (
     <Box>
       {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2 }}>
-        <Box sx={{ mb: 1.5, textAlign: "center" }}>
+      <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+          <IconButton
+            size="small"
+            aria-label="Back"
+            onClick={() => navigate(-1)}
+            sx={{
+              position: "absolute",
+              left: 20,
+              borderRadius: 999,
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        <Box sx={{ textAlign: "center" }}>
           <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", color: "#FFFFFF" }}>
             Tours & Experiences
           </Typography>
-          <Typography variant="body2" sx={{ fontSize: 13, color: "rgba(255,255,255,0.85)", mt: 0.25 }}>
+          <Typography variant="body2" sx={{ fontSize: 13, color: "rgba(255,255,255,0.85)", mt: -0.25 }}>
             Discover EV-powered tours across Uganda
           </Typography>
         </Box>
+      </Box>
 
-        {/* Search bar */}
+      {/* Search bar */}
         <TextField
           fullWidth size="small" placeholder="Search tours, destinations..."
           value={search} onChange={e => setSearch(e.target.value)}
@@ -335,12 +352,13 @@ function ToursBrowseScreen() {
               "& fieldset": { borderColor: "rgba(209,213,219,0.9)" },
               "&:hover fieldset": { borderColor: G },
               "&.Mui-focused fieldset": { borderColor: G }
-            }
+            },
+            mt: 1.5,
+            px: 2
           }}
         />
-      </Box>
 
-    <Box sx={{ px: 2, pt: 2, pb: 3 }}>
+      <Box sx={{ px: 2, pt: 2, pb: 3 }}>
 
       {/* ── Tour count + Category dropdown (same line) ── */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>

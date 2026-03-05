@@ -98,60 +98,66 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
       
       {/* Header Bar */}
       <Box
-      sx={{
-          bgcolor: headerBg,
+        sx={{
+          bgcolor: "#03CD8C",
           px: 2.5,
           pt: 2,
           pb: 2,
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between"
+          justifyContent: "center",
+          position: "relative"
         }}
       >
         <IconButton
           size="small"
           onClick={handleBack}
           sx={{
-            color: headerText,
+            position: "absolute",
+            left: 20,
+            borderRadius: 999,
+            bgcolor: "rgba(255,255,255,0.2)",
+            color: "#FFFFFF",
             "&:hover": {
-              bgcolor: "rgba(255,255,255,0.1)"
+              bgcolor: "rgba(255,255,255,0.3)"
             }
           }}
         >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 20 }} />
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
         
-            <Typography
-          variant="h6"
+        <Typography
+          variant="subtitle1"
           sx={{
             fontWeight: 600,
-            color: headerText,
-            fontSize: 18,
-            letterSpacing: "-0.01em"
+            letterSpacing: "-0.01em",
+            color: "#FFFFFF"
           }}
-            >
+        >
           Ride Details
-            </Typography>
-        
-        <Box sx={{ position: "relative" }}>
+        </Typography>
+
+        <Box sx={{ position: "absolute", right: 20 }}>
           <IconButton
             size="small"
             onClick={handleNotifications}
             sx={{
-              color: headerText,
+              borderRadius: 999,
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "#FFFFFF",
               "&:hover": {
-                bgcolor: "rgba(255,255,255,0.1)"
+                bgcolor: "rgba(255,255,255,0.3)"
               }
             }}
           >
-            <NotificationsRoundedIcon sx={{ fontSize: 22 }} />
+            <NotificationsRoundedIcon sx={{ fontSize: 20 }} />
           </IconButton>
           {/* Notification dot */}
           <Box
             sx={{
               position: "absolute",
-              top: 8,
-              right: 8,
+              top: 4,
+              right: 4,
               width: 8,
               height: 8,
               borderRadius: "50%",

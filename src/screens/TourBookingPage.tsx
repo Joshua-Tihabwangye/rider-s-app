@@ -281,17 +281,25 @@ function TourBookingScreen() {
     <LocalizationProvider dateAdapter={AdapterDayjs}>
     <Box>
       {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2 }}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <IconButton onClick={() => step > 0 ? handleBack() : navigate(-1)} size="small"
-            sx={{ borderRadius: 999, bgcolor: "rgba(255,255,255,0.2)", color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.3)" } }}>
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 16 }} />
-          </IconButton>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.01em", color: "#FFFFFF" }}>Book your tour</Typography>
-            <Typography variant="caption" sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}>{tour.title}</Typography>
-          </Box>
-        </Stack>
+      <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+        <IconButton
+          onClick={() => step > 0 ? handleBack() : navigate(-1)}
+          size="small"
+          sx={{
+            position: "absolute",
+            left: 20,
+            borderRadius: 999,
+            bgcolor: "rgba(255,255,255,0.2)",
+            color: "#FFFFFF",
+            "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
+          }}
+        >
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 16 }} />
+        </IconButton>
+        <Box sx={{ textAlign: "center", maxWidth: '70%' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.01em", color: "#FFFFFF" }}>Book your tour</Typography>
+          <Typography variant="caption" sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)", display: "block" }}>{tour.title}</Typography>
+        </Box>
       </Box>
 
     <Box sx={{ px: 2, pt: 2, pb: 3 }}>
