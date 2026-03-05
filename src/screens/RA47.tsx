@@ -174,50 +174,55 @@ function RideDetailsScreen(): React.JSX.Element {
           position: "sticky",
           top: 0,
           zIndex: 100,
-          bgcolor: contentBg,
-          borderBottom: theme.palette.mode === "light"
-            ? "1px solid rgba(0,0,0,0.1)"
-            : "1px solid rgba(255,255,255,0.1)",
+          bgcolor: "#03CD8C",
           px: 2.5,
-          py: 1.5,
+          pt: 2,
+          pb: 2,
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between"
+          justifyContent: "center",
+          position: "relative"
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton
-            size="small"
-            onClick={handleBack}
-            sx={{
-              borderRadius: 999,
-              bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.9)",
-              "&:hover": {
-                bgcolor: theme.palette.mode === "light" ? "#E5E7EB" : "rgba(15,23,42,1)"
-              }
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 600,
-              letterSpacing: "-0.01em",
-              color: theme.palette.text.primary
-            }}
-          >
-            Ride Details
-          </Typography>
-        </Box>
+        <IconButton
+          size="small"
+          onClick={handleBack}
+          sx={{
+            position: "absolute",
+            left: 20,
+            borderRadius: 999,
+            bgcolor: "rgba(255,255,255,0.2)",
+            color: "#FFFFFF",
+            "&:hover": {
+              bgcolor: "rgba(255,255,255,0.3)"
+            }
+          }}
+        >
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+        
+        <Typography
+          variant="subtitle1"
+          sx={{
+            fontWeight: 600,
+            letterSpacing: "-0.01em",
+            color: "#FFFFFF"
+          }}
+        >
+          Ride Details
+        </Typography>
+
         <IconButton
           size="small"
           onClick={handleNotificationClick}
           sx={{
+            position: "absolute",
+            right: 20,
             borderRadius: 999,
-            bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.9)",
+            bgcolor: "rgba(255,255,255,0.2)",
+            color: "#FFFFFF",
             "&:hover": {
-              bgcolor: theme.palette.mode === "light" ? "#E5E7EB" : "rgba(15,23,42,1)"
+              bgcolor: "rgba(255,255,255,0.3)"
             }
           }}
         >

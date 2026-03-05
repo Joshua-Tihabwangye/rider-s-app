@@ -294,12 +294,14 @@ function PickDestinationMapScreen(): React.JSX.Element {
           pb: 2
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", mb: 1.5 }}>
           <IconButton
             size="small"
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
+              position: "absolute",
+              left: 20,
               borderRadius: 999,
               bgcolor: "rgba(255,255,255,0.2)",
               color: "#FFFFFF",

@@ -560,12 +560,19 @@ export default function RiderScreen31SharingPassengersCanvas_v2() {
         <DarkModeToggle />
         <MobileShell>
         {/* Green Header */}
-        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5, position: "relative", zIndex: 2 }}>
+        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 2 }}>
           <IconButton
             size="small"
             aria-label="Back"
             onClick={() => window.history.back()}
-            sx={{ borderRadius: 999, bgcolor: "rgba(255,255,255,0.2)", color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.3)" } }}
+            sx={{
+              position: "absolute",
+              left: 20,
+              borderRadius: 999,
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
+            }}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>

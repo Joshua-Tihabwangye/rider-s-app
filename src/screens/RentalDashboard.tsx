@@ -62,6 +62,7 @@ import CompareArrowsRoundedIcon from "@mui/icons-material/CompareArrowsRounded";
 import TwoWheelerRoundedIcon from "@mui/icons-material/TwoWheelerRounded";
 import SportsMotorsportsRoundedIcon from "@mui/icons-material/SportsMotorsportsRounded";
 import FitnessCenterRoundedIcon from "@mui/icons-material/FitnessCenterRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import InventoryRoundedIcon from "@mui/icons-material/InventoryRounded";
 
 import MobileShell from "../components/MobileShell";
@@ -1922,12 +1923,27 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
   return (
     <Box>
       {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2 }}>
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+        <IconButton
+          size="small"
+          aria-label="Back"
+          onClick={() => navigate(-1)}
+          sx={{
+            position: "absolute",
+            left: 20,
+            borderRadius: 999,
+            bgcolor: "rgba(255,255,255,0.2)",
+            color: "#FFFFFF",
+            "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
+          }}
+        >
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
         <Stack direction="row" spacing={1.5} alignItems="center">
           <Box
             sx={{
-              width: 40,
-              height: 40,
+              width: 36,
+              height: 36,
               borderRadius: 999,
               bgcolor: "rgba(255,255,255,0.2)",
               display: "flex",
@@ -1936,15 +1952,15 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             }}
           >
             {rentalMode === "cars"
-              ? <DirectionsCarRoundedIcon sx={{ fontSize: 22, color: "#FFFFFF" }} />
-              : <TwoWheelerRoundedIcon sx={{ fontSize: 22, color: "#FFFFFF" }} />
+              ? <DirectionsCarRoundedIcon sx={{ fontSize: 20, color: "#FFFFFF" }} />
+              : <TwoWheelerRoundedIcon sx={{ fontSize: 20, color: "#FFFFFF" }} />
             }
           </Box>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: "-0.01em", color: "#FFFFFF" }}>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: "-0.01em", color: "#FFFFFF", lineHeight: 1.2 }}>
               {rentalMode === "cars" ? "Car rentals" : "Motorbike rentals"}
             </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}>
+            <Typography variant="caption" sx={{ fontSize: 10, color: "rgba(255,255,255,0.85)", display: "block" }}>
               {totalCount} {rentalMode === "cars" ? "vehicles" : "bikes"} • {evCount} EV • {nonEvCount} fuel
             </Typography>
           </Box>

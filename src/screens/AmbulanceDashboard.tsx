@@ -27,7 +27,7 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import PendingRoundedIcon from "@mui/icons-material/PendingRounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import MapRoundedIcon from "@mui/icons-material/MapRounded";
-
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import MobileShell from "../components/MobileShell";
 import DarkModeToggle from "../components/DarkModeToggle";
 
@@ -191,35 +191,35 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
     <Box>
       {/* Green Header */}
       <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <Box
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", mb: 0.5 }}>
+          <IconButton
+            size="small"
+            aria-label="Back"
+            onClick={() => navigate(-1)}
             sx={{
-              width: 40,
-              height: 40,
+              position: "absolute",
+              left: 20,
               borderRadius: 999,
               bgcolor: "rgba(255,255,255,0.2)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
+              color: "#FFFFFF",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
             }}
           >
-            <LocalHospitalRoundedIcon sx={{ fontSize: 22, color: "#FFFFFF" }} />
-          </Box>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
-            >
-              Ambulance & medical transport
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}
-            >
-              Request urgent help or plan a hospital transfer
-            </Typography>
-          </Box>
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
+          >
+            Ambulance & medical transport
+          </Typography>
         </Box>
+        <Typography
+          variant="caption"
+          sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)", display: "block", textAlign: "center" }}
+        >
+          Request urgent help or plan a hospital transfer
+        </Typography>
       </Box>
 
     <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>

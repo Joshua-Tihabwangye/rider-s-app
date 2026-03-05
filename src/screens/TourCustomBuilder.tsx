@@ -374,9 +374,11 @@ function TourCustomBuilderScreen(): React.JSX.Element {
     <LocalizationProvider dateAdapter={AdapterDayjs}>
     <Box>
       {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
         <IconButton size="small" onClick={() => navigate(-1)}
           sx={{
+            position: "absolute",
+            left: 20,
             borderRadius: 999,
             bgcolor: "rgba(255,255,255,0.2)",
             color: "#FFFFFF",
@@ -384,11 +386,11 @@ function TourCustomBuilderScreen(): React.JSX.Element {
           }}>
           <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
-        <Box>
+        <Box sx={{ textAlign: "center", maxWidth: '60%' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: "-0.01em", color: "#FFFFFF" }}>
             Add custom destination
           </Typography>
-          <Typography variant="caption" sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}>
+          <Typography variant="caption" sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)", display: "block" }}>
             Create a new EV-powered tour route
           </Typography>
         </Box>

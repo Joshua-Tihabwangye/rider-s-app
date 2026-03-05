@@ -1020,37 +1020,31 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           mb: 0
         }}
       >
-        <Box
-          sx={{
-            mb: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between"
-          }}
-        >
-        <IconButton
-          size="small"
-          aria-label="Open menu"
-          onClick={() => setMenuOpen(true)}
-          sx={{
-            borderRadius: 999,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-            border: (theme) =>
-              theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
-          }}
-        >
-          <MenuRoundedIcon sx={{ fontSize: 22 }} />
-        </IconButton>
-        <Typography
-          variant="subtitle1"
-          sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
-        >
-          Where to today?
-        </Typography>
-        <Box sx={{ width: 32 }} />
+        <Box sx={{ mb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+          <IconButton
+            size="small"
+            aria-label="Open menu"
+            onClick={() => setMenuOpen(true)}
+            sx={{
+              position: "absolute",
+              left: 20,
+              borderRadius: 999,
+              bgcolor: (theme) =>
+                theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+              border: (theme) =>
+                theme.palette.mode === "light"
+                  ? "1px solid rgba(209,213,219,0.9)"
+                  : "1px solid rgba(51,65,85,0.9)"
+            }}
+          >
+            <MenuRoundedIcon sx={{ fontSize: 22 }} />
+          </IconButton>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
+          >
+            Where to today?
+          </Typography>
         </Box>
 
         {/* Search with Autocomplete */}

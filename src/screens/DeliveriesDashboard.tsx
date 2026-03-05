@@ -361,12 +361,12 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
   return (
     <Box>
       {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2 }}>
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Box
             sx={{
-              width: 40,
-              height: 40,
+              width: 36,
+              height: 36,
               borderRadius: 999,
               bgcolor: "rgba(255,255,255,0.2)",
               display: "flex",
@@ -374,18 +374,18 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
               justifyContent: "center"
             }}
           >
-            <LocalShippingRoundedIcon sx={{ fontSize: 22, color: "#FFFFFF" }} />
+            <LocalShippingRoundedIcon sx={{ fontSize: 20, color: "#FFFFFF" }} />
           </Box>
           <Box>
             <Typography
               variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
+              sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF", lineHeight: 1.2 }}
             >
               Deliveries
             </Typography>
             <Typography
               variant="caption"
-              sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}
+              sx={{ fontSize: 10, color: "rgba(255,255,255,0.85)", display: "block" }}
             >
               We deliver happiness!
             </Typography>
