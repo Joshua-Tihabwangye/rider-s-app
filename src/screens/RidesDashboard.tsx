@@ -1020,7 +1020,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           mb: 0
         }}
       >
-        <Box sx={{ mb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+        <Box sx={{ mb: 2, display: "flex", alignItems: "center", justifyContent: "flex-end", position: "relative", minHeight: 48 }}>
           <IconButton
             size="small"
             aria-label="Open menu"
@@ -1039,12 +1039,19 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           >
             <MenuRoundedIcon sx={{ fontSize: 22 }} />
           </IconButton>
-          <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
-          >
-            Where to today?
-          </Typography>
+          <Box sx={{ textAlign: "right" }}>
+            <Typography
+              variant="subtitle1"
+              sx={{ 
+                fontWeight: 700, 
+                fontSize: 18,
+                letterSpacing: "-0.01em", 
+                color: "#FFFFFF"
+              }}
+            >
+              Where to today?
+            </Typography>
+          </Box>
         </Box>
 
         {/* Search with Autocomplete */}

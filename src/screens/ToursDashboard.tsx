@@ -312,7 +312,17 @@ function ToursBrowseScreen() {
   return (
     <Box>
       {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+      <Box sx={{ 
+        bgcolor: "#03CD8C", 
+        px: 2.5, 
+        pt: 2.5, 
+        pb: 2.5, 
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "flex-end", 
+        position: "relative",
+        minHeight: 80
+      }}>
           <IconButton
             size="small"
             aria-label="Back"
@@ -328,11 +338,11 @@ function ToursBrowseScreen() {
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-        <Box sx={{ textAlign: "center" }}>
-          <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", color: "#FFFFFF" }}>
+        <Box sx={{ textAlign: "right" }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 20, lineHeight: 1.2, color: "#FFFFFF" }}>
             Tours & Experiences
           </Typography>
-          <Typography variant="body2" sx={{ fontSize: 13, color: "rgba(255,255,255,0.85)", mt: -0.25 }}>
+          <Typography variant="body2" sx={{ fontSize: 13, color: "rgba(255,255,255,0.9)", mt: 0.5 }}>
             Discover EV-powered tours across Uganda
           </Typography>
         </Box>
