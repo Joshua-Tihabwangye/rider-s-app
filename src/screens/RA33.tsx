@@ -1000,7 +1000,7 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
           </IconButton>
             <Typography
           variant="h6"
-          sx={{
+          sx={{ mx: 7,
             fontWeight: 600,
             letterSpacing: "-0.01em",
             flex: 1,
@@ -1049,7 +1049,7 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
         {loading ? (
           <Typography
             variant="body2"
-            sx={{
+            sx={{ mx: 7,
               textAlign: "center",
               color: (theme) => theme.palette.text.secondary,
               py: 4
@@ -1061,7 +1061,7 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
           pastRides.length === 0 ? (
             <Typography
               variant="body2"
-              sx={{
+              sx={{ mx: 7,
                 textAlign: "center",
                 color: (theme) => theme.palette.text.secondary,
                 py: 4
@@ -1086,7 +1086,7 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
           upcomingRides.length === 0 ? (
         <Typography
               variant="body2"
-              sx={{
+              sx={{ mx: 7,
                 textAlign: "center",
                 color: (theme) => theme.palette.text.secondary,
                 py: 4

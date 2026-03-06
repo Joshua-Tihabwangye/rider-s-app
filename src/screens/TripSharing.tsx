@@ -22,7 +22,7 @@ function TripSharingScreen(): React.JSX.Element {
         </Typography>
       </Box>
 
-      <Box sx={{ textAlign: "center", mb: 4 }}>
+      <Box sx={{ mx: 7, textAlign: "center", mb: 4 }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Let friends and family know where you are. Share your live location during any ride.
         </Typography>

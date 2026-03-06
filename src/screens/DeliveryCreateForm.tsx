@@ -143,7 +143,7 @@ function DeliveryCreateFormScreen(): React.JSX.Element {
 
   if (submitted) {
     return (
-      <Box sx={{ px: 2.5, pt: 6, pb: 3, textAlign: "center" }}>
+      <Box sx={{ mx: 7, px: 2.5, pt: 6, pb: 3, textAlign: "center" }}>
         <Box
           sx={{
             width: 80,
@@ -636,7 +636,7 @@ function DeliveryCreateFormScreen(): React.JSX.Element {
       {!canSubmit && (
         <Typography
           variant="caption"
-          sx={{
+          sx={{ mx: 7,
             display: "block",
             textAlign: "center",
             mt: 1,

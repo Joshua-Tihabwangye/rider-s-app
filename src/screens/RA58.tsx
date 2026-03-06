@@ -223,7 +223,7 @@ function InvitationsPendingV2Screen(): React.JSX.Element {
       {PENDING_INVITATIONS_V2.length === 0 ? (
         <Typography
           variant="caption"
-          sx={{
+          sx={{ mx: 7,
             mt: 4,
             display: "block",
             textAlign: "center",

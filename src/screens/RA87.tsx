@@ -63,7 +63,7 @@ function AmbulanceLiveTrackingScreen(): React.JSX.Element {
 
   if (!request) {
     return (
-      <Box sx={{ px: 2.5, pt: 2.5, pb: 3, textAlign: "center" }}>
+      <Box sx={{ mx: 7, px: 2.5, pt: 2.5, pb: 3, textAlign: "center" }}>
         <ErrorRoundedIcon sx={{ fontSize: 64, color: "#EF4444", mb: 2, mt: 4 }} />
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
           Request not found
@@ -184,7 +184,7 @@ function AmbulanceLiveTrackingScreen(): React.JSX.Element {
 
         {/* Pickup marker */}
         <Box
-          sx={{
+          sx={{ mx: 7,
             position: "absolute",
             left: "15%",
             bottom: "22%",
@@ -249,7 +249,7 @@ function AmbulanceLiveTrackingScreen(): React.JSX.Element {
 
         {/* Hospital marker */}
         <Box
-          sx={{
+          sx={{ mx: 7,
             position: "absolute",
             right: "12%",
             top: "20%",

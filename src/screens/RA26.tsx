@@ -779,7 +779,7 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
 
             {/* Trip Metrics - In a row */}
             <Stack direction="row" spacing={2} sx={{ justifyContent: "space-between" }}>
-              <Box sx={{ textAlign: "center", flex: 1 }}>
+              <Box sx={{ mx: 7, textAlign: "center", flex: 1 }}>
                 <Typography
                   variant="body2"
                   sx={{
@@ -801,7 +801,7 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
                   Distance
                 </Typography>
               </Box>
-              <Box sx={{ textAlign: "center", flex: 1 }}>
+              <Box sx={{ mx: 7, textAlign: "center", flex: 1 }}>
                 <Typography
                   variant="body2"
                   sx={{
@@ -823,7 +823,7 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
                   Distance Covered
                 </Typography>
               </Box>
-              <Box sx={{ textAlign: "center", flex: 1 }}>
+              <Box sx={{ mx: 7, textAlign: "center", flex: 1 }}>
                 <Typography
                   variant="body2"
                   sx={{
@@ -939,7 +939,7 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
             </Box>
 
             {/* Driver Name and Rating */}
-            <Box sx={{ textAlign: "center", mb: 2 }}>
+            <Box sx={{ mx: 7, textAlign: "center", mb: 2 }}>
               <Typography
                 variant="h6"
                 sx={{
@@ -976,7 +976,7 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
 
               {/* Quick Stats */}
               <Stack direction="row" spacing={2} sx={{ justifyContent: "center", mb: 2 }}>
-                <Box sx={{ textAlign: "center" }}>
+                <Box sx={{ mx: 7, textAlign: "center" }}>
                   <Typography
                     variant="body2"
                     sx={{
@@ -998,7 +998,7 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
                     Rides completed
                   </Typography>
                 </Box>
-                <Box sx={{ textAlign: "center" }}>
+                <Box sx={{ mx: 7, textAlign: "center" }}>
                   <Typography
                     variant="body2"
                     sx={{

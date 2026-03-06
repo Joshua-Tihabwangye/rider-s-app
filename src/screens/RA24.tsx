@@ -171,7 +171,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
       {/* Content below map */}
       <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
         {/* Driver Profile Section */}
-        <Box sx={{ textAlign: "center", mb: 2.5 }}>
+        <Box sx={{ mx: 7, textAlign: "center", mb: 2.5 }}>
           <Avatar
             sx={{
               width: 100,
@@ -216,7 +216,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
           >
             <CardContent sx={{ px: 2, py: 1.5 }}>
               <Stack direction="row" spacing={3} justifyContent="center" sx={{ mb: 1.5 }}>
-                <Box sx={{ textAlign: "center" }}>
+                <Box sx={{ mx: 7, textAlign: "center" }}>
                   <Typography
                     variant="h6"
                     sx={{ fontWeight: 700, color: "#FFFFFF", mb: 0.3 }}
@@ -231,7 +231,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                   </Typography>
                 </Box>
                 <Divider orientation="vertical" flexItem sx={{ borderColor: "rgba(255,255,255,0.2)" }} />
-                <Box sx={{ textAlign: "center" }}>
+                <Box sx={{ mx: 7, textAlign: "center" }}>
                   <Typography
                     variant="h6"
                     sx={{ fontWeight: 700, color: "#FFFFFF", mb: 0.3 }}
@@ -484,7 +484,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                       }}
                     >
                       <Typography
-                        sx={{
+                        sx={{ mx: 7,
                           fontSize: 11,
                           fontWeight: 700,
                           color: "#03CD8C",

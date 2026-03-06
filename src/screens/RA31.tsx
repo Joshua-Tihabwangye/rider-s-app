@@ -524,7 +524,7 @@ function SharingPassengersScreen(): React.JSX.Element {
 
         {!isActivated && (
           <Box
-            sx={{
+            sx={{ mx: 7,
               p: 2,
               borderRadius: 2,
               bgcolor: (theme) =>

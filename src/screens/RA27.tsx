@@ -397,7 +397,7 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
 
             {/* Progress metrics */}
             <Stack direction="row" spacing={2} sx={{ justifyContent: "space-between", mb: 2 }}>
-              <Box sx={{ textAlign: "center", flex: 1 }}>
+              <Box sx={{ mx: 7, textAlign: "center", flex: 1 }}>
                 <Typography
                   variant="body2"
                   sx={{
@@ -419,7 +419,7 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
                   Distance
                 </Typography>
               </Box>
-              <Box sx={{ textAlign: "center", flex: 1 }}>
+              <Box sx={{ mx: 7, textAlign: "center", flex: 1 }}>
                 <Typography
                   variant="body2"
                   sx={{
@@ -441,7 +441,7 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
                   Distance Covered
                 </Typography>
               </Box>
-              <Box sx={{ textAlign: "center", flex: 1 }}>
+              <Box sx={{ mx: 7, textAlign: "center", flex: 1 }}>
                 <Typography
                   variant="body2"
                   sx={{

@@ -338,7 +338,7 @@ function ToursBrowseScreen() {
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-        <Box sx={{ textAlign: "center" }}>
+        <Box sx={{ mx: 7, textAlign: "center" }}>
           <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 20, lineHeight: 1.2, color: "#FFFFFF" }}>
             Tours & Experiences
           </Typography>
@@ -490,7 +490,7 @@ function ToursBrowseScreen() {
           {[0, 1, 2].map(i => <TourCardSkeleton key={i} />)}
         </Stack>
       ) : error ? (
-        <Box sx={{ textAlign: "center", py: 6 }}>
+        <Box sx={{ mx: 7, textAlign: "center", py: 6 }}>
           <ErrorOutlineRoundedIcon sx={{ fontSize: 48, color: "#EF4444", mb: 1 }} />
           <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>Something went wrong</Typography>
           <Typography variant="body2" sx={{ color: t => t.palette.text.secondary, mb: 2, fontSize: 13 }}>
@@ -502,7 +502,7 @@ function ToursBrowseScreen() {
           </Button>
         </Box>
       ) : filteredTours.length === 0 ? (
-        <Box sx={{ textAlign: "center", py: 6 }}>
+        <Box sx={{ mx: 7, textAlign: "center", py: 6 }}>
           <SentimentDissatisfiedRoundedIcon sx={{ fontSize: 48, color: t => t.palette.text.secondary, mb: 1 }} />
           <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>No tours found</Typography>
           <Typography variant="body2" sx={{ color: t => t.palette.text.secondary, mb: 2, fontSize: 13 }}>

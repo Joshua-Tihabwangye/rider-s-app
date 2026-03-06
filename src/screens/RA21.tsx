@@ -602,7 +602,7 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
           )}
           
           {/* Manage Payment Methods Link */}
-          <Box sx={{ mb: 2, textAlign: "center" }}>
+          <Box sx={{ mx: 7, mb: 2, textAlign: "center" }}>
             <Button
               variant="text"
               onClick={() => navigate("/wallet")}

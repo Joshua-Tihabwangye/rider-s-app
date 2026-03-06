@@ -63,7 +63,7 @@ function TourDetailScreen() {
 
   if (loading) return <TourDetailSkeleton />;
   if (!tour) return (
-    <Box sx={{ px: 2.5, pt: 4, textAlign: "center" }}>
+    <Box sx={{ mx: 7, px: 2.5, pt: 4, textAlign: "center" }}>
       <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Tour not found</Typography>
       <Typography variant="body2" sx={{ color: t => t.palette.text.secondary, mb: 2 }}>
         The tour you&apos;re looking for doesn&apos;t exist or has been removed.
@@ -100,7 +100,7 @@ function TourDetailScreen() {
         </IconButton>
         <Typography
           variant="subtitle1"
-          sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF", textAlign: "center", px: 6 }}
+          sx={{ mx: 7, fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF", textAlign: "center", px: 6 }}
         >
           {tour.title}
         </Typography>
@@ -367,7 +367,7 @@ function TourDetailScreen() {
           }}>
             <CardContent sx={{ px: 1.8, py: 1.5 }}>
               <Stack direction="row" spacing={2} alignItems="center">
-                <Box sx={{ textAlign: "center" }}>
+                <Box sx={{ mx: 7, textAlign: "center" }}>
                   <Typography variant="h4" sx={{ fontWeight: 800, color: G }}>{tour.rating}</Typography>
                   <Rating value={tour.rating} readOnly precision={0.1} size="small" sx={{ color: "#F59E0B" }} />
                   <Typography variant="caption" sx={{ fontSize: 10, display: "block", color: t => t.palette.text.secondary }}>
@@ -377,7 +377,7 @@ function TourDetailScreen() {
                 <Box sx={{ flex: 1 }}>
                   {[5, 4, 3, 2, 1].map(star => (
                     <Stack key={star} direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.25 }}>
-                      <Typography variant="caption" sx={{ fontSize: 10, width: 10, textAlign: "center" }}>{star}</Typography>
+                      <Typography variant="caption" sx={{ mx: 7, fontSize: 10, width: 10, textAlign: "center" }}>{star}</Typography>
                       <StarRoundedIcon sx={{ fontSize: 12, color: "#F59E0B" }} />
                       <LinearProgress
                         variant="determinate"
@@ -388,7 +388,7 @@ function TourDetailScreen() {
                           "& .MuiLinearProgress-bar": { bgcolor: "#F59E0B", borderRadius: 999 }
                         }}
                       />
-                      <Typography variant="caption" sx={{ fontSize: 10, width: 16, textAlign: "center", color: t => t.palette.text.secondary }}>
+                      <Typography variant="caption" sx={{ mx: 7, fontSize: 10, width: 16, textAlign: "center", color: t => t.palette.text.secondary }}>
                         {ratingDist[star - 1]}
                       </Typography>
                     </Stack>

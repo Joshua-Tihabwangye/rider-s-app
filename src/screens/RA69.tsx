@@ -48,7 +48,7 @@ function RentalHomeEntryScreen(): React.JSX.Element {
         >
           <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
-        <Box sx={{ textAlign: "center" }}>
+        <Box sx={{ mx: 7, textAlign: "center" }}>
           <Typography
             variant="subtitle1"
             sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}

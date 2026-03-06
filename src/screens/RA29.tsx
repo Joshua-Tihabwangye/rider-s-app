@@ -377,7 +377,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
 
             {/* Journey Metrics - displayed below progress bar */}
             <Stack direction="row" spacing={2} sx={{ justifyContent: "space-between" }}>
-              <Box sx={{ textAlign: "center", flex: 1 }}>
+              <Box sx={{ mx: 7, textAlign: "center", flex: 1 }}>
                 <Typography
                   variant="body2"
                   sx={{
@@ -399,7 +399,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
                   Distance
                 </Typography>
               </Box>
-              <Box sx={{ textAlign: "center", flex: 1 }}>
+              <Box sx={{ mx: 7, textAlign: "center", flex: 1 }}>
                 <Typography
                   variant="body2"
                   sx={{
@@ -421,7 +421,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
                   Distance Covered
                 </Typography>
               </Box>
-              <Box sx={{ textAlign: "center", flex: 1 }}>
+              <Box sx={{ mx: 7, textAlign: "center", flex: 1 }}>
                 <Typography
                   variant="body2"
                   sx={{

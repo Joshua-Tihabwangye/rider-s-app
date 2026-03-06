@@ -67,7 +67,7 @@ export default function About(): React.JSX.Element {
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-          <Box sx={{ textAlign: "center" }}>
+          <Box sx={{ mx: 7, textAlign: "center" }}>
             <Typography
               variant="subtitle1"
               sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
@@ -90,7 +90,7 @@ export default function About(): React.JSX.Element {
         <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
           {/* App Info */}
           <Box
-            sx={{
+            sx={{ mx: 7,
               mb: 3,
               textAlign: "center",
               py: 3,
@@ -197,7 +197,7 @@ export default function About(): React.JSX.Element {
           </List>
 
           {/* Copyright */}
-          <Box sx={{ mt: 4, textAlign: "center" }}>
+          <Box sx={{ mx: 7, mt: 4, textAlign: "center" }}>
             <Typography
               variant="caption"
               sx={{

@@ -502,7 +502,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
           {/* Cash payment notice */}
           {isCashPayment && (
             <Box
-              sx={{
+              sx={{ mx: 7,
                 mb: 2,
                 p: 2,
                 borderRadius: 2,

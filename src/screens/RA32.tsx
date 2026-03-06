@@ -241,7 +241,7 @@ function RideRatingTipScreen(): React.JSX.Element {
               </Avatar>
             <Typography
                 variant="h6"
-                sx={{
+                sx={{ mx: 7,
                   fontWeight: 600,
                   letterSpacing: "-0.01em",
                   textAlign: "center",

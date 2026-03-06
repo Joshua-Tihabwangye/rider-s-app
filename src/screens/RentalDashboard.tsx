@@ -1971,7 +1971,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
     <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
 
         {/* Cars / Bikes toggle */}
-        <Stack direction="row" spacing={0.75}>
+        <Stack direction="row" spacing={2} sx={{ mb: 2.5 }}>
           <Button
             size="small"
             variant={rentalMode === "cars" ? "contained" : "outlined"}
@@ -2191,7 +2191,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
       {rentalMode === "cars" && (
         <>
           {filteredCars.length === 0 ? (
-            <Box sx={{ textAlign: "center", py: 4 }}>
+            <Box sx={{ mx: 7, textAlign: "center", py: 4 }}>
               <DirectionsCarRoundedIcon sx={{ fontSize: 48, color: "text.disabled", mb: 1 }} />
               <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 600 }}>
                 No vehicles match your filters
@@ -2220,7 +2220,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
       {rentalMode === "bikes" && (
         <>
           {filteredBikes.length === 0 ? (
-            <Box sx={{ textAlign: "center", py: 4 }}>
+            <Box sx={{ mx: 7, textAlign: "center", py: 4 }}>
               <TwoWheelerRoundedIcon sx={{ fontSize: 48, color: "text.disabled", mb: 1 }} />
               <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 600 }}>
                 No bikes match your filters
@@ -2360,7 +2360,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
                     ? VEHICLES.find((vv) => vv.id === id)
                     : MOTORBIKES.find((bb) => bb.id === id);
                   return item ? (
-                    <Box key={id} sx={{ textAlign: "center" }}>
+                    <Box key={id} sx={{ mx: 7, textAlign: "center" }}>
                       <Typography variant="caption" sx={{ fontSize: 10.5, fontWeight: 700 }}>{item.name}</Typography>
                     </Box>
                   ) : null;
@@ -2402,7 +2402,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
                         ? VEHICLES.find((vv) => vv.id === id)
                         : MOTORBIKES.find((bb) => bb.id === id);
                       return item ? (
-                        <Typography key={id} variant="caption" sx={{ fontSize: 10, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>{getter(item)}</Typography>
+                        <Typography key={id} variant="caption" sx={{ mx: 7, fontSize: 10, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>{getter(item)}</Typography>
                       ) : null;
                     })}
                   </React.Fragment>

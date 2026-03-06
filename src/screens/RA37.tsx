@@ -696,7 +696,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
               <Typography
                 key={index}
                 variant="caption"
-                sx={{
+                sx={{ mx: 7,
                   fontSize: 9,
                   color: (t) => t.palette.text.secondary,
                   flex: 1,

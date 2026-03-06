@@ -378,7 +378,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
         >
           <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
-        <Box sx={{ textAlign: "center" }}>
+        <Box sx={{ mx: 7, textAlign: "center" }}>
           <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 20, lineHeight: 1.2, color: "#FFFFFF" }}>
             Deliveries
           </Typography>
@@ -688,7 +688,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
                       : "1px solid rgba(51,65,85,0.9)"
                 }}
               >
-                <CardContent sx={{ py: 4, textAlign: "center" }}>
+                <CardContent sx={{ mx: 7, py: 4, textAlign: "center" }}>
                   <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
                     No incoming deliveries
                   </Typography>
@@ -730,7 +730,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
                       : "1px solid rgba(51,65,85,0.9)"
                 }}
               >
-                <CardContent sx={{ py: 4, textAlign: "center" }}>
+                <CardContent sx={{ mx: 7, py: 4, textAlign: "center" }}>
                   <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
                     No accepted deliveries
                   </Typography>

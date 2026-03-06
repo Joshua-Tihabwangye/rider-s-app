@@ -166,7 +166,7 @@ function BookingDetailScreen() {
   );
 
   if (!booking) return (
-    <Box sx={{ px: 2.5, pt: 4, textAlign: "center" }}>
+    <Box sx={{ mx: 7, px: 2.5, pt: 4, textAlign: "center" }}>
       <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Booking not found</Typography>
       <Typography variant="body2" sx={{ color: t => t.palette.text.secondary, mb: 2 }}>
         This booking doesn&apos;t exist or has been removed.
@@ -208,7 +208,7 @@ function BookingDetailScreen() {
           background: `linear-gradient(135deg, rgba(3,205,140,0.12) 0%, rgba(3,205,140,0.04) 100%)`,
           border: `1px solid rgba(3,205,140,0.3)`
         }}>
-          <CardContent sx={{ px: 2, py: 2, textAlign: "center" }}>
+          <CardContent sx={{ mx: 7, px: 2, py: 2, textAlign: "center" }}>
             <CelebrationRoundedIcon sx={{ fontSize: 40, color: G, mb: 0.5 }} />
             <Typography variant="subtitle1" sx={{ fontWeight: 800, fontSize: 18, mb: 0.25 }}>Booking confirmed!</Typography>
             <Typography variant="body2" sx={{ fontSize: 12, color: t => t.palette.text.secondary, mb: 1 }}>
