@@ -206,7 +206,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
         >
           <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
-        <Box sx={{ textAlign: "center" }}>
+        <Box sx={{ mx: 7, textAlign: "center" }}>
           <Typography
             variant="subtitle1"
             sx={{ fontWeight: 700, fontSize: 18, lineHeight: 1.2, color: "#FFFFFF" }}

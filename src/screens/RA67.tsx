@@ -150,7 +150,7 @@ function OrderCompletionRatingPromptScreen(): React.JSX.Element {
         }}
       >
         <CardContent sx={{ px: 1.75, py: 1.8 }}>
-          <Box sx={{ textAlign: "center", mb: 1.6 }}>
+          <Box sx={{ mx: 7, textAlign: "center", mb: 1.6 }}>
             <Typography
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}

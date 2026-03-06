@@ -144,7 +144,7 @@ function RideTypeCard({ type, selected, onSelect }: RideTypeCardProps): React.JS
               </Typography>
             </Box>
           </Box>
-          <Box sx={{ textAlign: "center" }}>
+          <Box sx={{ mx: 7, textAlign: "center" }}>
             <Typography
               variant="caption"
               sx={{ fontSize: 11, color: (theme) => theme.palette.text.secondary }}

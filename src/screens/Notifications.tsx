@@ -165,7 +165,7 @@ function NotificationsScreen(): React.JSX.Element {
       {/* List */}
       <List sx={{ p: 0, pb: 4 }}>
         {displayedNotifications.length === 0 ? (
-          <Box sx={{ py: 10, textAlign: "center", opacity: 0.6 }}>
+          <Box sx={{ mx: 7, py: 10, textAlign: "center", opacity: 0.6 }}>
             <NotificationsActiveRoundedIcon sx={{ fontSize: 48, mb: 1, color: "text.disabled" }} />
             <Typography variant="body2">No {tabValue === 0 ? "new" : ""} notifications yet.</Typography>
           </Box>

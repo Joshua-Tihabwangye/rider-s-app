@@ -300,7 +300,7 @@ function RentalVehicleListScreen(): React.JSX.Element {
       {filteredVehicles.length === 0 ? (
         <Typography
           variant="caption"
-          sx={{ mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
+          sx={{ mx: 7, mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
         >
           No EV rentals match your filters. Try adjusting your dates or location.
         </Typography>

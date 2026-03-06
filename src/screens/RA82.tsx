@@ -228,7 +228,7 @@ function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
       {bookings.length === 0 ? (
         <Typography
           variant="caption"
-          sx={{ mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
+          sx={{ mx: 7, mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
         >
           No tours in this view yet.
         </Typography>

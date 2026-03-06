@@ -240,7 +240,7 @@ function IncomingTrackingRequestsScreen(): React.JSX.Element {
           </Box>
           <Typography
             variant="h6"
-            sx={{
+            sx={{ mx: 7,
               color: "#FFFFFF",
               fontWeight: 700,
               fontSize: 18,
@@ -267,7 +267,7 @@ function IncomingTrackingRequestsScreen(): React.JSX.Element {
         {filteredRequests.length === 0 ? (
           <Typography
             variant="body2"
-            sx={{
+            sx={{ mx: 7,
               mt: 4,
               display: "block",
               textAlign: "center",

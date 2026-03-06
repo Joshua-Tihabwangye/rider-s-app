@@ -88,7 +88,7 @@ function DeliveringOrderRow({ order }: DeliveringOrderRowProps): React.JSX.Eleme
           {order.toAddress}
         </Typography>
       </Box>
-      <Box sx={{ textAlign: "center" }}>
+      <Box sx={{ mx: 7, textAlign: "center" }}>
         <Typography
           variant="caption"
           sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}

@@ -369,7 +369,7 @@ function DailyCommutesScreen(): React.JSX.Element {
         {tab === "common" && (
           <Typography
             variant="caption"
-            sx={{
+            sx={{ mx: 7,
               mt: 4,
               display: "block",
               textAlign: "center",
@@ -383,7 +383,7 @@ function DailyCommutesScreen(): React.JSX.Element {
         {tab === "upcoming" && (
           <Typography
             variant="caption"
-            sx={{
+            sx={{ mx: 7,
               mt: 4,
               display: "block",
               textAlign: "center",

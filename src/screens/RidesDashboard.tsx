@@ -555,7 +555,7 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }: C
           >
             {icon}
           </Box>
-          <Box sx={{ textAlign: "center", width: "100%" }}>
+          <Box sx={{ mx: 7, textAlign: "center", width: "100%" }}>
             <Typography
               variant="subtitle2"
               sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.5 }}
@@ -1039,7 +1039,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           >
             <MenuRoundedIcon sx={{ fontSize: 22 }} />
           </IconButton>
-          <Box sx={{ textAlign: "center" }}>
+          <Box sx={{ mx: 7, textAlign: "center" }}>
             <Typography
               variant="subtitle1"
               sx={{ 
@@ -1346,7 +1346,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                       : "1px solid rgba(51,65,85,0.9)"
                 }}
               >
-                <CardContent sx={{ py: 3, textAlign: "center" }}>
+                <CardContent sx={{ mx: 7, py: 3, textAlign: "center" }}>
                   <Typography variant="caption" sx={{ color: "text.secondary" }}>
                     No saved locations. Add locations in settings.
                   </Typography>
@@ -1421,7 +1421,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                       : "1px solid rgba(51,65,85,0.9)"
                 }}
               >
-                <CardContent sx={{ py: 4, textAlign: "center" }}>
+                <CardContent sx={{ mx: 7, py: 4, textAlign: "center" }}>
                   <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
                     No commutes saved
                   </Typography>
@@ -1470,7 +1470,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                       : "1px solid rgba(51,65,85,0.9)"
                 }}
               >
-                <CardContent sx={{ py: 4, textAlign: "center" }}>
+                <CardContent sx={{ mx: 7, py: 4, textAlign: "center" }}>
                   <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
                     No upcoming rides scheduled
                   </Typography>

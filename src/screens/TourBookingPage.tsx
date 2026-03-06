@@ -270,7 +270,7 @@ function TourBookingScreen() {
   );
 
   if (!tour) return (
-    <Box sx={{ px: 2.5, pt: 4, textAlign: "center" }}>
+    <Box sx={{ mx: 7, px: 2.5, pt: 4, textAlign: "center" }}>
       <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Tour not found</Typography>
       <Button variant="contained" onClick={() => navigate("/tours")}
         sx={{ borderRadius: 999, bgcolor: G, color: "#020617", textTransform: "none" }}>Browse tours</Button>
@@ -296,7 +296,7 @@ function TourBookingScreen() {
         >
           <ArrowBackIosNewRoundedIcon sx={{ fontSize: 16 }} />
         </IconButton>
-        <Box sx={{ textAlign: "center", maxWidth: '70%' }}>
+        <Box sx={{ mx: 7, textAlign: "center", maxWidth: '70%' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.01em", color: "#FFFFFF" }}>Book your tour</Typography>
           <Typography variant="caption" sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)", display: "block" }}>{tour.title}</Typography>
         </Box>
@@ -423,7 +423,7 @@ function TourBookingScreen() {
                     sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                     <RemoveRoundedIcon sx={{ fontSize: 16 }} />
                   </IconButton>
-                  <Typography sx={{ fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{tourDays}</Typography>
+                  <Typography sx={{ mx: 7, fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{tourDays}</Typography>
                   <IconButton size="small" onClick={() => setTourDays(Math.min(30, tourDays + 1))}
                     sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                     <AddRoundedIcon sx={{ fontSize: 16 }} />
@@ -452,7 +452,7 @@ function TourBookingScreen() {
                     sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                     <RemoveRoundedIcon sx={{ fontSize: 16 }} />
                   </IconButton>
-                  <Typography sx={{ fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{adults}</Typography>
+                  <Typography sx={{ mx: 7, fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{adults}</Typography>
                   <IconButton size="small" onClick={() => setAdults(Math.min(tour.maxGroupSize - children, adults + 1))}
                     sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                     <AddRoundedIcon sx={{ fontSize: 16 }} />
@@ -471,7 +471,7 @@ function TourBookingScreen() {
                     sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                     <RemoveRoundedIcon sx={{ fontSize: 16 }} />
                   </IconButton>
-                  <Typography sx={{ fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{children}</Typography>
+                  <Typography sx={{ mx: 7, fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{children}</Typography>
                   <IconButton size="small" onClick={() => setChildren(Math.min(tour.maxGroupSize - adults, children + 1))}
                     sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                     <AddRoundedIcon sx={{ fontSize: 16 }} />

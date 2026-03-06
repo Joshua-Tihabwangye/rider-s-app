@@ -87,7 +87,7 @@ function ReceivedOrderRow({ order }: ReceivedOrderRowProps): React.JSX.Element {
           To: {order.toAddress}
         </Typography>
       </Box>
-      <Box sx={{ textAlign: "center" }}>
+      <Box sx={{ mx: 7, textAlign: "center" }}>
         <Chip
           label={order.status}
           size="small"
@@ -251,7 +251,7 @@ function DeliveriesDashboardReceivedV2Screen(): React.JSX.Element {
           {filteredOrders.length === 0 ? (
             <Typography
               variant="caption"
-              sx={{
+              sx={{ mx: 7,
                 mt: 1,
                 display: "block",
                 textAlign: "center",

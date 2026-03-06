@@ -13,7 +13,7 @@ function EmergencyScreen(): React.JSX.Element {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ p: 2.5, textAlign: "center", display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
+    <Box sx={{ mx: 7, p: 2.5, textAlign: "center", display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
       <Box sx={{ position: "absolute", top: 16, left: 16 }}>
         <IconButton size="small" onClick={() => navigate(-1)}>
           <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />

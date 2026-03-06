@@ -224,7 +224,7 @@ function AmbulanceRequestsHistoryScreen(): React.JSX.Element {
         >
           <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
-        <Box sx={{ textAlign: "center" }}>
+        <Box sx={{ mx: 7, textAlign: "center" }}>
           <Typography
             variant="subtitle1"
             sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
@@ -292,7 +292,7 @@ function AmbulanceRequestsHistoryScreen(): React.JSX.Element {
       {filtered.length === 0 ? (
         <Typography
           variant="caption"
-          sx={{ mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
+          sx={{ mx: 7, mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
         >
           No ambulance requests in this view yet.
         </Typography>

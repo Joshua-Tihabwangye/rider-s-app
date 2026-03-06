@@ -244,7 +244,7 @@ function RideHistoryUpcomingScreen(): React.JSX.Element {
           {UPCOMING_RIDES.length === 0 ? (
             <Typography
               variant="caption"
-              sx={{ mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
+              sx={{ mx: 7, mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
             >
               You have no upcoming rides. Scheduled EV rides will appear here.
             </Typography>
@@ -259,7 +259,7 @@ function RideHistoryUpcomingScreen(): React.JSX.Element {
       {tab === "past" && (
         <Typography
           variant="caption"
-          sx={{ mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
+          sx={{ mx: 7, mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
         >
           Switch to Past trips to view your completed EV rides.
         </Typography>

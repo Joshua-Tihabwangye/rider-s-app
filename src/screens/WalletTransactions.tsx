@@ -117,7 +117,7 @@ function WalletTransactionsScreen(): React.JSX.Element {
         ))}
       </List>
 
-      <Box sx={{ p: 4, textAlign: "center" }}>
+      <Box sx={{ mx: 7, p: 4, textAlign: "center" }}>
         <ReceiptRoundedIcon sx={{ fontSize: 48, color: "rgba(0,0,0,0.1)", mb: 1 }} />
         <Typography variant="caption" color="text.secondary">
           Showing transactions for the last 30 days

@@ -522,7 +522,7 @@ function RideDetailsScreen(): React.JSX.Element {
               position: "relative"
             }}
           >
-            <Box sx={{ textAlign: "center", color: theme.palette.text.secondary }}>
+            <Box sx={{ mx: 7, textAlign: "center", color: theme.palette.text.secondary }}>
               {isMotorbike ? (
                 <TwoWheelerRoundedIcon sx={{ fontSize: 56, mb: 1, opacity: 0.7, color: accentGreen }} />
               ) : (

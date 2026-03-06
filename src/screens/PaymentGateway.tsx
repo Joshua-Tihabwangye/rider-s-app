@@ -268,7 +268,7 @@ function PaymentGatewayScreen(): React.JSX.Element {
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
                   <Typography variant="body2" sx={{ fontSize: 13, color: theme.palette.text.secondary }}>Description</Typography>
-                  <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 500, maxWidth: "60%", textAlign: "center" }}>{description}</Typography>
+                  <Typography variant="body2" sx={{ mx: 7, fontSize: 13, fontWeight: 500, maxWidth: "60%", textAlign: "center" }}>{description}</Typography>
                 </Stack>
               </Stack>
 
@@ -419,7 +419,7 @@ function PaymentGatewayScreen(): React.JSX.Element {
             }}
           >
             <CardContent sx={{ px: 2, py: 2 }}>
-              <Box sx={{ textAlign: "center", mb: 2 }}>
+              <Box sx={{ mx: 7, textAlign: "center", mb: 2 }}>
                 <AccountBalanceWalletRoundedIcon sx={{ fontSize: 48, color: "#047857", mb: 1 }} />
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>EVzone Wallet</Typography>
                 {isTopUp ? (
@@ -712,7 +712,7 @@ function PaymentGatewayScreen(): React.JSX.Element {
             }}
           >
             <CardContent sx={{ px: 2, py: 3 }}>
-              <Box sx={{ textAlign: "center", mb: 2.5 }}>
+              <Box sx={{ mx: 7, textAlign: "center", mb: 2.5 }}>
                 <SecurityRoundedIcon sx={{ fontSize: 48, color: "#1D4ED8", mb: 1 }} />
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>3D Secure Verification</Typography>
                 <Typography variant="caption" sx={{ fontSize: 12, color: theme.palette.text.secondary, display: "block" }}>
@@ -738,7 +738,7 @@ function PaymentGatewayScreen(): React.JSX.Element {
                 inputProps={{ maxLength: 6, style: { textAlign: "center" } }}
               />
 
-              <Typography variant="caption" sx={{ fontSize: 11, color: theme.palette.text.secondary, display: "block", textAlign: "center" }}>
+              <Typography variant="caption" sx={{ mx: 7, fontSize: 11, color: theme.palette.text.secondary, display: "block", textAlign: "center" }}>
                 For simulation, enter any 4+ digit code (e.g. 123456)
               </Typography>
             </CardContent>
@@ -791,7 +791,7 @@ function PaymentGatewayScreen(): React.JSX.Element {
             }}
           >
             <CardContent sx={{ px: 2, py: 3 }}>
-              <Box sx={{ textAlign: "center", mb: 2.5 }}>
+              <Box sx={{ mx: 7, textAlign: "center", mb: 2.5 }}>
                 <PhoneIphoneRoundedIcon sx={{ fontSize: 48, color: providerColor, mb: 1 }} />
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>Confirm on Your Phone</Typography>
                 <Typography variant="caption" sx={{ fontSize: 12, color: theme.palette.text.secondary, display: "block" }}>
@@ -831,7 +831,7 @@ function PaymentGatewayScreen(): React.JSX.Element {
                 </CardContent>
               </Card>
 
-              <Typography variant="caption" sx={{ fontSize: 11, color: theme.palette.text.secondary, display: "block", textAlign: "center" }}>
+              <Typography variant="caption" sx={{ mx: 7, fontSize: 11, color: theme.palette.text.secondary, display: "block", textAlign: "center" }}>
                 For simulation, enter any 4+ digit PIN (e.g. 1234)
               </Typography>
             </CardContent>
@@ -980,7 +980,7 @@ function PaymentGatewayScreen(): React.JSX.Element {
   function renderProcessing() {
     return (
       <Fade in>
-        <Box sx={{ textAlign: "center", py: 6 }}>
+        <Box sx={{ mx: 7, textAlign: "center", py: 6 }}>
           <Box
             sx={{
               width: 80,
@@ -1045,7 +1045,7 @@ function PaymentGatewayScreen(): React.JSX.Element {
       <Fade in>
         <Box>
           {/* Result Banner */}
-          <Box sx={{ textAlign: "center", mb: 3, pt: 2 }}>
+          <Box sx={{ mx: 7, textAlign: "center", mb: 3, pt: 2 }}>
             <Box
               sx={{
                 width: 80,

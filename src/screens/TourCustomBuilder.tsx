@@ -386,7 +386,7 @@ function TourCustomBuilderScreen(): React.JSX.Element {
           }}>
           <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
-        <Box sx={{ textAlign: "center", maxWidth: '60%' }}>
+        <Box sx={{ mx: 7, textAlign: "center", maxWidth: '60%' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: "-0.01em", color: "#FFFFFF" }}>
             Add custom destination
           </Typography>
@@ -518,7 +518,7 @@ function TourCustomBuilderScreen(): React.JSX.Element {
 
             {/* Route stats */}
             <Stack direction="row" spacing={0.75} sx={{ mt: 1 }}>
-              <Card elevation={0} sx={{
+              <Card elevation={0} sx={{ mx: 7,
                 flex: 1, borderRadius: 1.5, textAlign: "center",
                 bgcolor: "rgba(3,205,140,0.06)", border: "1px solid rgba(3,205,140,0.15)"
               }}>
@@ -527,7 +527,7 @@ function TourCustomBuilderScreen(): React.JSX.Element {
                   <Typography sx={{ fontSize: 13, fontWeight: 800, color: G }}>{selectedDest.distanceKm} km</Typography>
                 </CardContent>
               </Card>
-              <Card elevation={0} sx={{
+              <Card elevation={0} sx={{ mx: 7,
                 flex: 1, borderRadius: 1.5, textAlign: "center",
                 bgcolor: "rgba(3,205,140,0.06)", border: "1px solid rgba(3,205,140,0.15)"
               }}>
@@ -536,7 +536,7 @@ function TourCustomBuilderScreen(): React.JSX.Element {
                   <Typography sx={{ fontSize: 13, fontWeight: 800, color: G }}>~{selectedDest.driveTimeHours}h</Typography>
                 </CardContent>
               </Card>
-              <Card elevation={0} sx={{
+              <Card elevation={0} sx={{ mx: 7,
                 flex: 1, borderRadius: 1.5, textAlign: "center",
                 bgcolor: "rgba(3,205,140,0.06)", border: "1px solid rgba(3,205,140,0.15)"
               }}>
@@ -804,7 +804,7 @@ function TourCustomBuilderScreen(): React.JSX.Element {
                         sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                         <RemoveRoundedIcon sx={{ fontSize: 16 }} />
                       </IconButton>
-                      <Typography sx={{ fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{adults}</Typography>
+                      <Typography sx={{ mx: 7, fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{adults}</Typography>
                       <IconButton size="small" onClick={() => setAdults(Math.min(10, adults + 1))}
                         sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                         <AddRoundedIcon sx={{ fontSize: 16 }} />
@@ -824,7 +824,7 @@ function TourCustomBuilderScreen(): React.JSX.Element {
                         sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                         <RemoveRoundedIcon sx={{ fontSize: 16 }} />
                       </IconButton>
-                      <Typography sx={{ fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{children}</Typography>
+                      <Typography sx={{ mx: 7, fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{children}</Typography>
                       <IconButton size="small" onClick={() => setChildren(Math.min(10, children + 1))}
                         sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                         <AddRoundedIcon sx={{ fontSize: 16 }} />
