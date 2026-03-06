@@ -268,7 +268,7 @@ function PaymentGatewayScreen(): React.JSX.Element {
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
                   <Typography variant="body2" sx={{ fontSize: 13, color: theme.palette.text.secondary }}>Description</Typography>
-                  <Typography variant="body2" sx={{ mx: 7, fontSize: 13, fontWeight: 500, maxWidth: "60%", textAlign: "center" }}>{description}</Typography>
+                  <Typography variant="body2" sx={{fontSize: 13, fontWeight: 500, maxWidth: "60%", textAlign: "center" }}>{description}</Typography>
                 </Stack>
               </Stack>
 
@@ -738,7 +738,7 @@ function PaymentGatewayScreen(): React.JSX.Element {
                 inputProps={{ maxLength: 6, style: { textAlign: "center" } }}
               />
 
-              <Typography variant="caption" sx={{ mx: 7, fontSize: 11, color: theme.palette.text.secondary, display: "block", textAlign: "center" }}>
+              <Typography variant="caption" sx={{fontSize: 11, color: theme.palette.text.secondary, display: "block", textAlign: "center" }}>
                 For simulation, enter any 4+ digit code (e.g. 123456)
               </Typography>
             </CardContent>
@@ -831,7 +831,7 @@ function PaymentGatewayScreen(): React.JSX.Element {
                 </CardContent>
               </Card>
 
-              <Typography variant="caption" sx={{ mx: 7, fontSize: 11, color: theme.palette.text.secondary, display: "block", textAlign: "center" }}>
+              <Typography variant="caption" sx={{fontSize: 11, color: theme.palette.text.secondary, display: "block", textAlign: "center" }}>
                 For simulation, enter any 4+ digit PIN (e.g. 1234)
               </Typography>
             </CardContent>
@@ -980,7 +980,7 @@ function PaymentGatewayScreen(): React.JSX.Element {
   function renderProcessing() {
     return (
       <Fade in>
-        <Box sx={{ mx: 7, textAlign: "center", py: 6 }}>
+        <Box sx={{ textAlign: "center", py: 6 }}>
           <Box
             sx={{
               width: 80,

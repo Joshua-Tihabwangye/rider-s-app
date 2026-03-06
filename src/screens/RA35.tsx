@@ -207,8 +207,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
               </Avatar>
             <Typography
                 variant="h6"
-                sx={{ mx: 7,
-                  fontWeight: 600,
+                sx={{fontWeight: 600,
                   letterSpacing: "-0.01em",
                   textAlign: "center",
                   mb: 0.5,

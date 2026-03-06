@@ -636,8 +636,7 @@ function DeliveryCreateFormScreen(): React.JSX.Element {
       {!canSubmit && (
         <Typography
           variant="caption"
-          sx={{ mx: 7,
-            display: "block",
+          sx={{display: "block",
             textAlign: "center",
             mt: 1,
             fontSize: 11,

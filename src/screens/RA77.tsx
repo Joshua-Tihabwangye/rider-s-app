@@ -327,7 +327,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
       {filteredTours.length === 0 ? (
         <Typography
           variant="caption"
-          sx={{ mx: 7, mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
+          sx={{mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
         >
           No tours match your search. Try a different date, city or category.
         </Typography>

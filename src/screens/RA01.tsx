@@ -373,7 +373,7 @@ function HomeMultiServiceScreen(): React.JSX.Element {
           }
         }}
       >
-        <CardContent sx={{ mx: 7, px: 1.8, py: 1.5, textAlign: "center" }}>
+        <CardContent sx={{px: 1.8, py: 1.5, textAlign: "center" }}>
           <Typography
             variant="caption"
             sx={{ fontSize: 10, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block", textTransform: "uppercase", letterSpacing: "0.5px" }}
@@ -419,7 +419,7 @@ function HomeMultiServiceScreen(): React.JSX.Element {
       <Box sx={{ mb: 2.5 }}>
         <Typography
           variant="caption"
-          sx={{ mx: 7, fontSize: 10, color: (t) => t.palette.text.secondary, mb: 1.5, display: "block", opacity: 0.7, textAlign: "center", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 600 }}
+          sx={{fontSize: 10, color: (t) => t.palette.text.secondary, mb: 1.5, display: "block", opacity: 0.7, textAlign: "center", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 600 }}
         >
           EVzone services
         </Typography>

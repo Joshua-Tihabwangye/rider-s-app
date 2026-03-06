@@ -37,7 +37,7 @@ function SchoolShuttlesHandoffScreen(): React.JSX.Element {
           </IconButton>
           <Typography
             variant="subtitle1"
-            sx={{ mx: 7, fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF", textAlign: "center" }}
+            sx={{fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF", textAlign: "center" }}
           >
             School shuttles are in EVzone School
           </Typography>
@@ -116,8 +116,7 @@ function SchoolShuttlesHandoffScreen(): React.JSX.Element {
 
                 <Typography
                   variant="caption"
-                  sx={{ mx: 7,
-                    display: "block",
+                  sx={{display: "block",
                     textAlign: "center",
                     color: (t) => t.palette.text.secondary,
                     fontSize: 11,

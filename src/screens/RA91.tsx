@@ -274,7 +274,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
         </Stack>
 
         {filtered.length === 0 ? (
-          <Box sx={{ mx: 7, py: 10, textAlign: "center", opacity: 0.5 }}>
+          <Box sx={{ py: 10, textAlign: "center", opacity: 0.5 }}>
             <AccessTimeRoundedIcon sx={{ fontSize: 48, mb: 1 }} />
             <Typography variant="body2">No orders found.</Typography>
           </Box>

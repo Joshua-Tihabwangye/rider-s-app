@@ -194,8 +194,7 @@ function InvitationsPendingScreen(): React.JSX.Element {
           </Box>
           <Typography
             variant="h6"
-            sx={{ mx: 7,
-              color: "#FFFFFF",
+            sx={{color: "#FFFFFF",
               fontWeight: 700,
               fontSize: 18,
               letterSpacing: "-0.01em",
@@ -221,8 +220,7 @@ function InvitationsPendingScreen(): React.JSX.Element {
         {filteredInvitations.length === 0 ? (
           <Typography
             variant="body2"
-            sx={{ mx: 7,
-              mt: 4,
+            sx={{mt: 4,
               display: "block",
               textAlign: "center",
               color: "#9CA3AF"

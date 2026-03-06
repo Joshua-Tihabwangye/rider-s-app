@@ -768,7 +768,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
           </Stack>
 
           {transactionError ? (
-            <Box sx={{ mx: 7, py: 4, textAlign: "center" }}>
+            <Box sx={{ py: 4, textAlign: "center" }}>
               <Typography
                 variant="body2"
                 sx={{ fontSize: { xs: 12, sm: 13 }, color: (t) => t.palette.text.secondary, mb: 2 }}
@@ -790,7 +790,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               </Button>
             </Box>
           ) : loadingTransactions ? (
-            <Box sx={{ mx: 7, py: 4, textAlign: "center" }}>
+            <Box sx={{ py: 4, textAlign: "center" }}>
               <Typography
                 variant="body2"
                 sx={{ fontSize: { xs: 12, sm: 13 }, color: (t) => t.palette.text.secondary }}
@@ -875,7 +875,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
             ))}
           </List>
           ) : (
-            <Box sx={{ mx: 7, py: 4, textAlign: "center" }}>
+            <Box sx={{ py: 4, textAlign: "center" }}>
               <Typography
                 variant="body2"
                 sx={{ fontSize: { xs: 12, sm: 13 }, color: (t) => t.palette.text.secondary, mb: 2 }}

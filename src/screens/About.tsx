@@ -90,8 +90,7 @@ export default function About(): React.JSX.Element {
         <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
           {/* App Info */}
           <Box
-            sx={{ mx: 7,
-              mb: 3,
+            sx={{ mb: 3,
               textAlign: "center",
               py: 3,
               borderRadius: 2,

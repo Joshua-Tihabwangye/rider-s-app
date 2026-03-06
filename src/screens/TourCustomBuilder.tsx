@@ -804,7 +804,7 @@ function TourCustomBuilderScreen(): React.JSX.Element {
                         sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                         <RemoveRoundedIcon sx={{ fontSize: 16 }} />
                       </IconButton>
-                      <Typography sx={{ mx: 7, fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{adults}</Typography>
+                      <Typography sx={{fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{adults}</Typography>
                       <IconButton size="small" onClick={() => setAdults(Math.min(10, adults + 1))}
                         sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                         <AddRoundedIcon sx={{ fontSize: 16 }} />
@@ -824,7 +824,7 @@ function TourCustomBuilderScreen(): React.JSX.Element {
                         sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                         <RemoveRoundedIcon sx={{ fontSize: 16 }} />
                       </IconButton>
-                      <Typography sx={{ mx: 7, fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{children}</Typography>
+                      <Typography sx={{fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{children}</Typography>
                       <IconButton size="small" onClick={() => setChildren(Math.min(10, children + 1))}
                         sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                         <AddRoundedIcon sx={{ fontSize: 16 }} />
