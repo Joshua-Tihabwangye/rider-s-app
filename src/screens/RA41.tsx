@@ -97,7 +97,7 @@ function AddStopSearchOverlayScreen(): React.JSX.Element {
         </Box>
 
         {/* Green Header */}
-        <Box sx={{ bgcolor: "#03CD8C", mx: -2.5, px: 2.5, mt: -2.5, pt: 2, pb: 2, mb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+        <Box sx={{ bgcolor: "#03CD8C", mx: -2.5, px: 7, mt: -2.5, pt: 2, pb: 2, mb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
           <IconButton
             size="small"
             aria-label="Back"

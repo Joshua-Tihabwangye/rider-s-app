@@ -1014,13 +1014,13 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       <Box
         sx={{
           bgcolor: "#03CD8C",
-          px: 2.5,
+          px: 7,
           pt: 2.5,
           pb: 2.5,
           mb: 0
         }}
       >
-        <Box sx={{ mb: 2, display: "flex", alignItems: "center", justifyContent: "flex-end", position: "relative", minHeight: 48 }}>
+        <Box sx={{ mb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", minHeight: 48 }}>
           <IconButton
             size="small"
             aria-label="Open menu"
@@ -1039,7 +1039,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           >
             <MenuRoundedIcon sx={{ fontSize: 22 }} />
           </IconButton>
-          <Box sx={{ textAlign: "right" }}>
+          <Box sx={{ textAlign: "center" }}>
             <Typography
               variant="subtitle1"
               sx={{ 

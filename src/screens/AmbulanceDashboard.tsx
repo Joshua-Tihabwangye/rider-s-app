@@ -190,7 +190,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
   return (
     <Box>
       {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2.5, pb: 2.5, display: "flex", alignItems: "center", justifyContent: "flex-end", position: "relative", minHeight: 80 }}>
+      <Box sx={{ bgcolor: "#03CD8C", px: 7, pt: 2.5, pb: 2.5, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", minHeight: 80 }}>
         <IconButton
           size="small"
           aria-label="Back"
@@ -206,7 +206,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
         >
           <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
-        <Box sx={{ textAlign: "right" }}>
+        <Box sx={{ textAlign: "center" }}>
           <Typography
             variant="subtitle1"
             sx={{ fontWeight: 700, fontSize: 18, lineHeight: 1.2, color: "#FFFFFF" }}

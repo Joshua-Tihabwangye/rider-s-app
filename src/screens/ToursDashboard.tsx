@@ -314,12 +314,12 @@ function ToursBrowseScreen() {
       {/* Green Header */}
       <Box sx={{ 
         bgcolor: "#03CD8C", 
-        px: 2.5, 
+        px: 7, 
         pt: 2.5, 
         pb: 2.5, 
         display: "flex", 
         alignItems: "center", 
-        justifyContent: "flex-end", 
+        justifyContent: "center", 
         position: "relative",
         minHeight: 80
       }}>
@@ -338,7 +338,7 @@ function ToursBrowseScreen() {
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-        <Box sx={{ textAlign: "right" }}>
+        <Box sx={{ textAlign: "center" }}>
           <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 20, lineHeight: 1.2, color: "#FFFFFF" }}>
             Tours & Experiences
           </Typography>
