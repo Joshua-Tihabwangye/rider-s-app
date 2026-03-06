@@ -251,8 +251,7 @@ function DeliveriesDashboardReceivedV2Screen(): React.JSX.Element {
           {filteredOrders.length === 0 ? (
             <Typography
               variant="caption"
-              sx={{ mx: 7,
-                mt: 1,
+              sx={{mt: 1,
                 display: "block",
                 textAlign: "center",
                 fontSize: 11,

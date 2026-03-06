@@ -484,8 +484,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                       }}
                     >
                       <Typography
-                        sx={{ mx: 7,
-                          fontSize: 11,
+                        sx={{fontSize: 11,
                           fontWeight: 700,
                           color: "#03CD8C",
                           letterSpacing: "1px",

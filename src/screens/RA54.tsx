@@ -202,8 +202,7 @@ function DeliveriesDashboardReceivedV3Screen(): React.JSX.Element {
           {RECEIVED_ORDERS_V3.length === 0 ? (
             <Typography
               variant="caption"
-              sx={{ mx: 7,
-                mt: 1,
+              sx={{mt: 1,
                 display: "block",
                 textAlign: "center",
                 fontSize: 11,

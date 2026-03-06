@@ -306,59 +306,106 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onSelect }: UpcomingRi
         onClick={onSelect}
         sx={{
           mb: 2,
-          borderRadius: 2,
+          borderRadius: 2.5,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
             t.palette.mode === "light"
               ? "1px solid rgba(209,213,219,0.9)"
               : "1px solid rgba(51,65,85,0.9)",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
           cursor: "pointer",
-          transition: "all 0.2s ease",
+          transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          overflow: "hidden",
           "&:hover": {
-            boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
-            transform: "translateY(-2px)"
+            boxShadow: "0 6px 16px rgba(0,0,0,0.1)",
+            transform: "translateY(-1.5px)",
+            borderColor: "#03CD8C"
           }
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.6 }}>
-          {/* Time and Route */}
-          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
-            <Box sx={{ flex: 1 }}>
+        <Box sx={{ bgcolor: ride.status === "Scheduled" ? "rgba(16,185,129,0.1)" : "rgba(245,158,11,0.1)", px: 2, py: 0.75, display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+          <Stack direction="row" spacing={0.75} alignItems="center">
+            <AccessTimeRoundedIcon sx={{ fontSize: 13, color: ride.status === "Scheduled" ? "#059669" : "#D97706" }} />
+            <Typography variant="caption" sx={{ fontWeight: 700, fontSize: 10.5, color: ride.status === "Scheduled" ? "#059669" : "#D97706", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              {ride.status}
+            </Typography>
+          </Stack>
+          <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: "text.secondary" }}>
+            {ride.vehicle}
+          </Typography>
+        </Box>
+
+        <CardContent sx={{ px: 2, py: 2 }}>
+          <Stack spacing={1.75}>
+            <Box>
               <Typography
-                variant="subtitle2"
+                variant="subtitle1"
                 sx={{ 
-                  fontSize: 13, 
-                  fontWeight: 600, 
+                  fontSize: 14.5, 
+                  fontWeight: 700, 
                   letterSpacing: "-0.01em", 
-                  mb: 0.25
+                  mb: 0.5,
+                  color: "text.primary"
                 }}
               >
-                {ride.time} – {ride.route}
+                {ride.time}
               </Typography>
-              <Typography
-                variant="caption"
-                sx={{ 
-                  fontSize: 10.5, 
-                  color: (t) => t.palette.text.secondary
-                }}
-              >
-                {ride.status} · {ride.vehicle}
-              </Typography>
+              <Stack spacing={0.5}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#03CD8C", flexShrink: 0 }} />
+                  <Typography variant="body2" sx={{ fontSize: 12.5, fontWeight: 500, color: "text.secondary" }}>
+                    {ride.origin.address}
+                  </Typography>
+                </Stack>
+                <Box sx={{ width: 2, height: 12, bgcolor: "rgba(0,0,0,0.1)", ml: 0.75 }} />
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#F97316", flexShrink: 0 }} />
+                  <Typography variant="body2" sx={{ fontSize: 12.5, fontWeight: 600, color: "text.primary" }}>
+                    {ride.destination.address}
+                  </Typography>
+                </Stack>
+              </Stack>
             </Box>
-            <Chip
-              label={ride.status}
-              size="small"
-              sx={{
-                height: 20,
-                fontSize: 9,
-                fontWeight: 600,
-                bgcolor: ride.status === "Scheduled" ? "#D1FAE5" : "#FEF3C7",
-                color: ride.status === "Scheduled" ? "#064E3B" : "#78350F",
-                flexShrink: 0
-              }}
-            />
+
+            <Stack direction="row" spacing={1.5}>
+              <Button
+                fullWidth
+                size="small"
+                variant="outlined"
+                onClick={handleChangeDateClick}
+                sx={{ 
+                  borderRadius: 2, 
+                  fontSize: 11, 
+                  fontWeight: 600, 
+                  textTransform: "none",
+                  py: 0.75,
+                  borderColor: "rgba(0,0,0,0.12)",
+                  color: "text.secondary",
+                  "&:hover": { bgcolor: "rgba(0,0,0,0.03)", borderColor: "rgba(0,0,0,0.2)" }
+                }}
+              >
+                Change Date
+              </Button>
+              <Button
+                fullWidth
+                size="small"
+                variant="outlined"
+                onClick={handleCancelClick}
+                sx={{ 
+                  borderRadius: 2, 
+                  fontSize: 11, 
+                  fontWeight: 600, 
+                  textTransform: "none",
+                  py: 0.75,
+                  borderColor: "rgba(239,68,68,0.2)",
+                  color: "#EF4444",
+                  "&:hover": { bgcolor: "rgba(239,68,68,0.05)", borderColor: "#EF4444" }
+                }}
+              >
+                Cancel Ride
+              </Button>
+            </Stack>
           </Stack>
         </CardContent>
       </Card>
@@ -369,34 +416,45 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onSelect }: UpcomingRi
         onClose={() => setCancelDialogOpen(false)}
         PaperProps={{
           sx: {
-            borderRadius: 2,
-            minWidth: 280
+            borderRadius: 3,
+            minWidth: 300,
+            p: 1
           }
         }}
       >
-        <DialogTitle sx={{ fontSize: 16, fontWeight: 600 }}>
-          Cancel Ride?
+        <DialogTitle sx={{ fontSize: 18, fontWeight: 700, pb: 1 }}>
+          Cancel scheduled ride?
         </DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ fontSize: 13, color: "text.secondary" }}>
-            Are you sure you want to cancel this scheduled ride? This action cannot be undone.
+          <Typography variant="body2" sx={{ fontSize: 13, color: "text.secondary", lineHeight: 1.6 }}>
+            Are you sure you want to cancel your ride for <strong>{ride.time}</strong>? This action cannot be undone.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 2, pb: 2 }}>
+        <DialogActions sx={{ px: 2, pb: 2, gap: 1 }}>
           <Button
             onClick={() => setCancelDialogOpen(false)}
-            sx={{ textTransform: "none", color: "text.secondary" }}
+            fullWidth
+            sx={{ 
+              textTransform: "none", 
+              color: "text.secondary",
+              fontWeight: 600,
+              borderRadius: 2
+            }}
           >
             Keep Ride
           </Button>
           <Button
             onClick={handleCancelConfirm}
+            fullWidth
+            variant="contained"
             sx={{
               textTransform: "none",
-              bgcolor: "#FF4C4C",
+              bgcolor: "#EF4444",
               color: "white",
+              fontWeight: 600,
+              borderRadius: 2,
               "&:hover": {
-                bgcolor: "#E63946"
+                bgcolor: "#DC2626"
               }
             }}
           >
@@ -422,82 +480,99 @@ function CommuteCard({ commute, onRequest, onSelect }: CommuteCardProps): React.
       onClick={onSelect}
       sx={{
         mb: 2,
-        borderRadius: 2,
+        borderRadius: 2.5,
         bgcolor: (t) =>
           t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
         border: (t) =>
           t.palette.mode === "light"
             ? "1px solid rgba(209,213,219,0.9)"
             : "1px solid rgba(51,65,85,0.9)",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
         cursor: "pointer",
-        transition: "all 0.2s ease",
+        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+        overflow: "hidden",
         "&:hover": {
-          boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
-          transform: "translateY(-2px)"
+          boxShadow: "0 6px 16px rgba(0,0,0,0.1)",
+          transform: "translateY(-1.5px)",
+          borderColor: "#03CD8C"
         }
       }}
     >
-      <CardContent sx={{ px: 1.75, py: 1.6 }}>
-        {/* Route Line */}
-        <Typography
-          variant="subtitle2"
-          sx={{ 
-            fontSize: 14, 
-            fontWeight: 600, 
-            letterSpacing: "-0.01em", 
-            mb: 0.5,
-            color: (t) => t.palette.text.primary
-          }}
-        >
-          {commute.route}
+      <Box sx={{ bgcolor: "rgba(3,205,140,0.08)", px: 2, py: 0.75, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Typography variant="caption" sx={{ fontWeight: 700, fontSize: 10.5, color: "#03CD8C", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          Daily Route
         </Typography>
-
-        {/* Schedule Line */}
-        <Typography
-          variant="caption"
-          sx={{ 
-            fontSize: 11, 
-            color: (t) => t.palette.text.secondary,
-            mb: 1.5,
-            display: "block"
-          }}
-        >
-          {commute.schedule}
+        <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, color: "#03CD8C" }}>
+          {commute.fare}
         </Typography>
+      </Box>
 
-        {/* Action Button on Right */}
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
+      <CardContent sx={{ px: 2, py: 2 }}>
+        <Stack spacing={2}>
           <Box>
             <Typography
-              variant="caption"
-              sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
+              variant="subtitle2"
+              sx={{ 
+                fontSize: 14, 
+                fontWeight: 700, 
+                letterSpacing: "-0.01em", 
+                mb: 0.5,
+                color: "text.primary"
+              }}
             >
-              {commute.distance} • {commute.fare}
+              {commute.route}
             </Typography>
+            <Typography
+              variant="caption"
+              sx={{ 
+                fontSize: 11.5, 
+                color: "text.secondary",
+                display: "block",
+                mb: 1.5
+              }}
+            >
+              Scheduled: {commute.schedule}
+            </Typography>
+
+            <Stack spacing={0.5} sx={{ mb: 2 }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "#03CD8C" }} />
+                <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
+                  {commute.origin.address}
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "#F97316" }} />
+                <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
+                  {commute.destination.address}
+                </Typography>
+              </Stack>
+            </Stack>
           </Box>
+
           <Button
             variant="contained"
-            size="small"
+            fullWidth
             onClick={(e) => {
               e.stopPropagation();
               onRequest();
             }}
             sx={{
-              borderRadius: 999,
-              px: 2,
-              py: 0.5,
+              borderRadius: 2,
+              py: 1,
               bgcolor: "#03CD8C",
               color: "#FFFFFF",
-              fontWeight: 600,
+              fontWeight: 700,
               textTransform: "none",
-              fontSize: 11,
+              fontSize: 13,
+              boxShadow: "0 4px 12px rgba(3,205,140,0.2)",
               "&:hover": {
-                bgcolor: "#22C55E"
+                bgcolor: "#02b57b",
+                boxShadow: "0 6px 16px rgba(3,205,140,0.3)"
               }
             }}
           >
-            Book now
+            Book this route
           </Button>
         </Stack>
       </CardContent>
@@ -519,71 +594,77 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }: C
       elevation={selected ? 2 : 1}
       onClick={onSelect}
       sx={{
-        borderRadius: 2,
+        borderRadius: 2.5,
         cursor: onSelect ? "pointer" : "default",
         bgcolor: (theme) =>
           theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
         border: (theme) =>
           theme.palette.mode === "light"
-            ? "1px solid rgba(209,213,219,0.9)"
-            : "1px solid rgba(51,65,85,0.8)",
+            ? `1px solid ${selected ? "rgba(3,205,140,0.5)" : "rgba(209,213,219,0.9)"}`
+            : `1px solid ${selected ? "rgba(3,205,140,0.6)" : "rgba(51,65,85,0.8)"}`,
         boxShadow: selected
-          ? "0 2px 8px rgba(0,0,0,0.1)"
-          : "0 1px 3px rgba(0,0,0,0.08)",
-        transition: "all 0.2s ease",
+          ? "0 4px 12px rgba(3,205,140,0.15)"
+          : "0 1px 3px rgba(0,0,0,0.06)",
+        transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
         "&:hover": {
-          boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-          transform: "translateY(-1px)"
+          boxShadow: "0 6px 16px rgba(0,0,0,0.1)",
+          transform: "translateY(-1.5px)",
+          borderColor: "#03CD8C"
         },
         "&:active": {
           transform: "translateY(0px)"
         }
       }}
     >
-      <CardContent sx={{ py: 1.5, px: 1.75, position: "relative" }}>
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+      <CardContent sx={{ py: 1.75, px: 2, position: "relative" }}>
+        <Stack direction="row" spacing={2.25} alignItems="center">
           <Box
             sx={{
-              width: 40,
-              height: 40,
-              borderRadius: "50%",
-              bgcolor: "rgba(249,115,22,0.1)",
+              width: 44,
+              height: 44,
+              borderRadius: 2.5,
+              bgcolor: (t) =>
+                t.palette.mode === "light"
+                  ? "rgba(249,115,22,0.1)"
+                  : "rgba(249,115,22,0.15)",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center"
+              justifyContent: "center",
+              flexShrink: 0,
+              border: "1px solid rgba(249,115,22,0.15)"
             }}
           >
             {icon}
           </Box>
-          <Box sx={{ mx: 7, textAlign: "center", width: "100%" }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.5 }}
+              variant="subtitle1"
+              sx={{ fontWeight: 700, letterSpacing: "-0.01em", mb: 0.25, fontSize: 13.5 }}
             >
               {label}
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5 }}>
-              <PlaceRoundedIcon sx={{ fontSize: 14, color: "#F97316" }} />
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+              <PlaceRoundedIcon sx={{ fontSize: 13, color: "#F97316", opacity: 0.8 }} />
               <Typography
                 variant="caption"
-                sx={{ fontSize: 11, color: (theme) => theme.palette.text.secondary }}
+                sx={{ 
+                  fontSize: 11.5, 
+                  color: (theme) => theme.palette.text.secondary,
+                  lineHeight: 1.4,
+                  fontWeight: 500,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
+                }}
               >
                 {address}
               </Typography>
             </Box>
           </Box>
-        </Box>
-        <ArrowForwardIosRoundedIcon
-          sx={{
-            fontSize: 14,
-            color: (theme) => theme.palette.text.secondary,
-            opacity: 0.5,
-            position: "absolute",
-            right: 12,
-            top: "50%",
-            transform: "translateY(-50%)"
-          }}
-        />
+          <IconButton size="small" sx={{ color: (t) => t.palette.text.secondary, opacity: 0.4 }}>
+            <ArrowForwardIosRoundedIcon sx={{ fontSize: 12 }} />
+          </IconButton>
+        </Stack>
       </CardContent>
     </Card>
   );
@@ -1320,9 +1401,9 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                 <CircularProgress size={24} />
               </Box>
             ) : savedLocations.length > 0 ? (
-              <Stack direction="row" spacing={1.5}>
+              <Stack direction="column" spacing={1.5}>
                 {savedLocations.map((location) => (
-                  <Box key={location.id} sx={{ flex: 1 }}>
+                  <Box key={location.id} sx={{ width: "100%" }}>
                     <CommonPlaceCard
                       icon={location.icon}
                       label={location.label}
@@ -1346,7 +1427,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                       : "1px solid rgba(51,65,85,0.9)"
                 }}
               >
-                <CardContent sx={{ mx: 7, py: 3, textAlign: "center" }}>
+                <CardContent sx={{py: 3, textAlign: "center" }}>
                   <Typography variant="caption" sx={{ color: "text.secondary" }}>
                     No saved locations. Add locations in settings.
                   </Typography>
@@ -1421,7 +1502,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                       : "1px solid rgba(51,65,85,0.9)"
                 }}
               >
-                <CardContent sx={{ mx: 7, py: 4, textAlign: "center" }}>
+                <CardContent sx={{py: 4, textAlign: "center" }}>
                   <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
                     No commutes saved
                   </Typography>
@@ -1470,7 +1551,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                       : "1px solid rgba(51,65,85,0.9)"
                 }}
               >
-                <CardContent sx={{ mx: 7, py: 4, textAlign: "center" }}>
+                <CardContent sx={{py: 4, textAlign: "center" }}>
                   <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
                     No upcoming rides scheduled
                   </Typography>

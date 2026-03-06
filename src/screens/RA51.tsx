@@ -237,7 +237,7 @@ function DeliveriesDashboardReceivedScreen(): React.JSX.Element {
       {filteredOrders.length === 0 ? (
         <Typography
           variant="caption"
-          sx={{ mx: 7, mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
+          sx={{mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
         >
           You have no parcels in this view.
         </Typography>

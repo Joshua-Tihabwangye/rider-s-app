@@ -423,7 +423,7 @@ function TourBookingScreen() {
                     sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                     <RemoveRoundedIcon sx={{ fontSize: 16 }} />
                   </IconButton>
-                  <Typography sx={{ mx: 7, fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{tourDays}</Typography>
+                  <Typography sx={{fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{tourDays}</Typography>
                   <IconButton size="small" onClick={() => setTourDays(Math.min(30, tourDays + 1))}
                     sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                     <AddRoundedIcon sx={{ fontSize: 16 }} />
@@ -452,7 +452,7 @@ function TourBookingScreen() {
                     sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                     <RemoveRoundedIcon sx={{ fontSize: 16 }} />
                   </IconButton>
-                  <Typography sx={{ mx: 7, fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{adults}</Typography>
+                  <Typography sx={{fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{adults}</Typography>
                   <IconButton size="small" onClick={() => setAdults(Math.min(tour.maxGroupSize - children, adults + 1))}
                     sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                     <AddRoundedIcon sx={{ fontSize: 16 }} />
@@ -471,7 +471,7 @@ function TourBookingScreen() {
                     sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                     <RemoveRoundedIcon sx={{ fontSize: 16 }} />
                   </IconButton>
-                  <Typography sx={{ mx: 7, fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{children}</Typography>
+                  <Typography sx={{fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: "center" }}>{children}</Typography>
                   <IconButton size="small" onClick={() => setChildren(Math.min(tour.maxGroupSize - adults, children + 1))}
                     sx={{ border: t => `1px solid ${t.palette.divider}`, width: 30, height: 30 }}>
                     <AddRoundedIcon sx={{ fontSize: 16 }} />

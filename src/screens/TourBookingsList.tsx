@@ -202,7 +202,7 @@ function BookingsListScreen() {
           ))}
         </Stack>
       ) : filtered.length === 0 ? (
-        <Box sx={{ mx: 7, textAlign: "center", py: 6 }}>
+        <Box sx={{ textAlign: "center", py: 6 }}>
           <SentimentDissatisfiedRoundedIcon sx={{ fontSize: 48, color: t => t.palette.text.secondary, mb: 1 }} />
           <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>No bookings here</Typography>
           <Typography variant="body2" sx={{ fontSize: 13, color: t => t.palette.text.secondary, mb: 2 }}>
