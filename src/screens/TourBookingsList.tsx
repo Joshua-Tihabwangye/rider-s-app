@@ -84,7 +84,7 @@ function BookingsListScreen() {
   return (
     <Box>
       {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 7, pt: 2, pb: 2 }}>
+      <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2 }}>
         <Stack direction="row" spacing={1} alignItems="center">
           <IconButton onClick={() => navigate("/tours")} size="small"
             sx={{

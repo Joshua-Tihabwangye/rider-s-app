@@ -64,7 +64,7 @@ export default function Help(): React.JSX.Element {
     >
       <DarkModeToggle />
       <MobileShell>
-        <Box sx={{ bgcolor: "#03CD8C", px: 7, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+        <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
           <IconButton
             size="small"
             aria-label="Back"

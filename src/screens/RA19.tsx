@@ -440,7 +440,7 @@ function DriverPreferencesScreen(): React.JSX.Element {
               <Box
                 sx={{
                   bgcolor: "#03CD8C",
-                  px: 7,
+                  px: 2,
                   pt: 2,
                   pb: 2,
                   display: "flex",
@@ -536,7 +536,7 @@ function DriverPreferencesScreen(): React.JSX.Element {
         <Box
           sx={{
             bgcolor: "#03CD8C",
-            px: 7,
+            px: 2,
             pt: 2,
             pb: 2,
             display: "flex",

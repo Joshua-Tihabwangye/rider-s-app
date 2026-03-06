@@ -78,12 +78,12 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
   const vehicleSeats = vehicle?.seats || 5;
   const vehicleRange = vehicle?.range || "220 km";
 
-  const bt = bookerTypeLabels[bookerType] || bookerTypeLabels.individual;
+  const bt = bookerTypeLabels[bookerType] ?? bookerTypeLabels["individual"]!;
 
   return (
     <>
     {/* Green Header */}
-        <Box sx={{ bgcolor: "#03CD8C", px: 7, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+        <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
           <IconButton
             size="small"
             aria-label="Back"

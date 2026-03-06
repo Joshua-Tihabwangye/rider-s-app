@@ -638,7 +638,7 @@ export default function RiderScreen20SelectYourRideCanvas_v2() {
       <DarkModeToggle />
       <MobileShell>
         {/* Green Header */}
-        <Box sx={{ bgcolor: "#03CD8C", px: 7, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 2 }}>
+        <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 2 }}>
           <IconButton
             size="small"
             aria-label="Back"

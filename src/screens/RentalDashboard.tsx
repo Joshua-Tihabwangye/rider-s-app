@@ -1835,6 +1835,7 @@ function MotorbikeCard({ bike, onBook, isFavorite, onToggleFavorite, isCompare, 
 /* ─────────────────── Main Dashboard ─────────────────── */
 
 function RentalDashboardHomeScreen(): React.JSX.Element {
+  const navigate = useNavigate();
   const [rentalMode, setRentalMode] = useState<"cars" | "bikes">("cars");
   const [searchQuery, setSearchQuery] = useState("");
   const [fuelFilter, setFuelFilter] = useState<"all" | "EV" | "Petrol" | "Diesel" | "Hybrid">("all");
@@ -1923,7 +1924,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
   return (
     <Box>
       {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 7, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+      <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
         <IconButton
           size="small"
           aria-label="Back"

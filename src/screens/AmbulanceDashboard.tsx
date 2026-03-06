@@ -190,7 +190,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
   return (
     <Box>
       {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 7, pt: 2.5, pb: 2.5, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", minHeight: 80 }}>
+      <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2.5, pb: 2.5, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", minHeight: 80 }}>
         <IconButton
           size="small"
           aria-label="Back"
