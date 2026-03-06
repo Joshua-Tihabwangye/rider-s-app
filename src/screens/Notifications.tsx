@@ -194,6 +194,7 @@ function NotificationsScreen(): React.JSX.Element {
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText
+                  disableTypography
                   primary={
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>

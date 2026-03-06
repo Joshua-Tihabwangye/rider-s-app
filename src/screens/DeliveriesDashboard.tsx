@@ -21,6 +21,7 @@ import TrackChangesRoundedIcon from "@mui/icons-material/TrackChangesRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import PersonAddRoundedIcon from "@mui/icons-material/PersonAddRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
@@ -361,165 +362,157 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
   return (
     <Box>
       {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <Box
-            sx={{
-              width: 36,
-              height: 36,
-              borderRadius: 999,
-              bgcolor: "rgba(255,255,255,0.2)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}
-          >
-            <LocalShippingRoundedIcon sx={{ fontSize: 20, color: "#FFFFFF" }} />
-          </Box>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF", lineHeight: 1.2 }}
-            >
-              Deliveries
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 10, color: "rgba(255,255,255,0.85)", display: "block" }}
-            >
-              We deliver happiness!
-            </Typography>
-          </Box>
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2.5, pb: 2.5, display: "flex", alignItems: "center", justifyContent: "flex-end", position: "relative", minHeight: 80 }}>
+        <IconButton
+          size="small"
+          aria-label="Back"
+          onClick={() => navigate(-1)}
+          sx={{
+            position: "absolute",
+            left: 20,
+            borderRadius: 999,
+            bgcolor: "rgba(255,255,255,0.2)",
+            color: "#FFFFFF",
+            "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
+          }}
+        >
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+        <Box sx={{ textAlign: "right" }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 20, lineHeight: 1.2, color: "#FFFFFF" }}>
+            Deliveries
+          </Typography>
+          <Typography variant="body2" sx={{ fontSize: 13, color: "rgba(255,255,255,0.9)", mt: 0.5 }}>
+            Send or receive packages with EV power
+          </Typography>
         </Box>
       </Box>
 
-    <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
-
-      {/* Create New Card */}
-      <Card
-        elevation={0}
-        onClick={handleCreateNew}
-        sx={{
-          mb: 2.5,
-          borderRadius: 2.5,
-          cursor: "pointer",
-          bgcolor: (t) =>
-            t.palette.mode === "light"
-              ? "linear-gradient(135deg, rgba(3,205,140,0.1) 0%, rgba(255,255,255,1) 100%)"
-              : "linear-gradient(135deg, rgba(3,205,140,0.15) 0%, rgba(15,23,42,0.98) 100%)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(3,205,140,0.2)"
-              : "1px solid rgba(3,205,140,0.3)",
-          transition: "transform 0.12s ease, box-shadow 0.12s ease",
-          "&:hover": {
-            transform: "translateY(-2px)",
-            boxShadow: 4
-          }
-        }}
-      >
-        <CardContent sx={{ px: 2, py: 2 }}>
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Box
-              sx={{
-                width: 48,
-                height: 48,
-                borderRadius: 2,
-                bgcolor: greenPrimary,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                position: "relative"
-              }}
-            >
-              <Inventory2RoundedIcon sx={{ fontSize: 24, color: "#FFFFFF" }} />
-              <AddRoundedIcon
+      <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
+        {/* Create New Card */}
+        <Card
+          elevation={0}
+          onClick={handleCreateNew}
+          sx={{
+            mb: 2.5,
+            borderRadius: 2.5,
+            cursor: "pointer",
+            bgcolor: (t) =>
+              t.palette.mode === "light"
+                ? "linear-gradient(135deg, rgba(3,205,140,0.1) 0%, rgba(255,255,255,1) 100%)"
+                : "linear-gradient(135deg, rgba(3,205,140,0.15) 0%, rgba(15,23,42,0.98) 100%)",
+            border: (t) =>
+              t.palette.mode === "light"
+                ? "1px solid rgba(3,205,140,0.2)"
+                : "1px solid rgba(3,205,140,0.3)",
+            transition: "transform 0.12s ease, box-shadow 0.12s ease",
+            "&:hover": {
+              transform: "translateY(-2px)",
+              boxShadow: 4
+            }
+          }}
+        >
+          <CardContent sx={{ px: 2, py: 2 }}>
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <Box
                 sx={{
-                  fontSize: 16,
-                  color: "#FFFFFF",
-                  position: "absolute",
-                  bottom: 4,
-                  right: 4
+                  width: 48,
+                  height: 48,
+                  borderRadius: 2,
+                  bgcolor: greenPrimary,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "relative"
                 }}
-              />
-            </Box>
-            <Typography
-              variant="subtitle1"
-              sx={{
-                fontSize: 15,
-                fontWeight: 600,
-                letterSpacing: "-0.01em",
-                color: (t) => t.palette.text.primary
-              }}
-            >
-              Create new delivery
-            </Typography>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      {/* Active summary - Dynamic counts */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 3,
-          bgcolor: (t) =>
-            t.palette.mode === "light"
-              ? "radial-gradient(circle at top, #FFEDD5, #FFF7ED)"
-              : "radial-gradient(circle at top, #7C2D12, #020617)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(248,171,85,0.7)"
-              : "1px solid rgba(248,171,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.9, py: 1.9 }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{ mb: 1.4 }}
-          >
-            <Box>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Today's deliveries · {new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
-              </Typography>
+                <Inventory2RoundedIcon sx={{ fontSize: 24, color: "#FFFFFF" }} />
+                <AddRoundedIcon
+                  sx={{
+                    fontSize: 16,
+                    color: "#FFFFFF",
+                    position: "absolute",
+                    bottom: 4,
+                    right: 4
+                  }}
+                />
+              </Box>
               <Typography
-                variant="h6"
+                variant="subtitle1"
                 sx={{
-                  fontWeight: 700,
-                  letterSpacing: "-0.03em",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  letterSpacing: "-0.01em",
                   color: (t) => t.palette.text.primary
                 }}
               >
-                {activeDeliveriesCount} incoming • {activeReceivedCount} accepted • {deliveredOrders.length} completed
+                Create new delivery
               </Typography>
-            </Box>
-            <Chip
-              size="small"
-              icon={<TrackChangesRoundedIcon sx={{ fontSize: 16 }} />}
-              label="All EV couriers"
-              sx={{
-                borderRadius: 999,
-                fontSize: 10,
-                height: 22,
-                bgcolor: (t) =>
-                  t.palette.mode === "light"
-                    ? "rgba(255,255,255,0.9)"
-                    : "rgba(15,23,42,0.96)",
-                color: (t) => t.palette.text.primary
-              }}
-            />
-          </Stack>
+            </Stack>
+          </CardContent>
+        </Card>
 
-        </CardContent>
-      </Card>
+        {/* Active summary - Dynamic counts */}
+        <Card
+          elevation={0}
+          sx={{
+            mb: 2,
+            borderRadius: 3,
+            bgcolor: (t) =>
+              t.palette.mode === "light"
+                ? "radial-gradient(circle at top, #FFEDD5, #FFF7ED)"
+                : "radial-gradient(circle at top, #7C2D12, #020617)",
+            border: (t) =>
+              t.palette.mode === "light"
+                ? "1px solid rgba(248,171,85,0.7)"
+                : "1px solid rgba(248,171,85,0.9)"
+          }}
+        >
+          <CardContent sx={{ px: 1.9, py: 1.9 }}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{ mb: 1.4 }}
+            >
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+                >
+                  Today's deliveries · {new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
+                </Typography>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    letterSpacing: "-0.03em",
+                    color: (t) => t.palette.text.primary
+                  }}
+                >
+                  {activeDeliveriesCount} incoming • {activeReceivedCount} accepted
+                </Typography>
+              </Box>
+              <Chip
+                size="small"
+                icon={<TrackChangesRoundedIcon sx={{ fontSize: 16 }} />}
+                label="Track"
+                sx={{
+                  borderRadius: 999,
+                  fontSize: 10,
+                  height: 22,
+                  bgcolor: (t) =>
+                    t.palette.mode === "light"
+                      ? "rgba(255,255,255,0.9)"
+                      : "rgba(15,23,42,0.96)",
+                  color: (t) => t.palette.text.primary
+                }}
+              />
+            </Stack>
+          </CardContent>
+        </Card>
 
-      {/* Track Deliveries and Shipments Section */}
+        {/* Track Deliveries and Shipments Section */}
         <Box sx={{ mb: 2.5 }}>
           <Typography
             variant="subtitle1"
@@ -531,7 +524,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
               color: (t) => t.palette.text.primary
             }}
           >
-          Track deliveries and shipments
+            Track deliveries and shipments
           </Typography>
           <Typography
             variant="caption"
@@ -540,7 +533,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
             Type your tracking number and find your order.
           </Typography>
           <TextField
-          id="tracking-input"
+            id="tracking-input"
             fullWidth
             size="small"
             placeholder="Order Id"
@@ -599,219 +592,220 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
           />
         </Box>
 
-      {/* Tabs: Incoming Deliveries / Accepted Deliveries */}
-      <Tabs
-        value={activeTab}
-        onChange={handleTabChange}
-        variant="fullWidth"
-        sx={{
-          mb: 2,
-          "& .MuiTab-root": {
-            textTransform: "none",
-            fontSize: 12,
-            fontWeight: 600,
-            minHeight: 44,
-            color: (t) => t.palette.text.secondary,
-            position: "relative"
-          },
-          "& .Mui-selected": {
-            color: greenPrimary
-          },
-          "& .MuiTabs-indicator": {
-            bgcolor: greenPrimary,
-            height: 3,
-            borderRadius: "3px 3px 0 0"
-          }
-        }}
-      >
-        <Tab
-          value="delivering"
-          label={
-            <Badge
-              badgeContent={pendingDeliveriesCount}
-              color="error"
-              sx={{
-                "& .MuiBadge-badge": {
-                  right: -8,
-                  top: 4,
-                  fontSize: 10,
-                  height: 18,
-                  minWidth: 18,
-                  padding: "0 4px"
-                }
-              }}
-            >
-              Incoming Deliveries
-            </Badge>
-          }
-        />
-        <Tab
-          value="received"
-          label={
-            <Badge
-              badgeContent={activeReceivedCount}
-              color="error"
-              sx={{
-                "& .MuiBadge-badge": {
-                  right: -8,
-                  top: 4,
-                  fontSize: 10,
-                  height: 18,
-                  minWidth: 18,
-                  padding: "0 4px"
-                }
-              }}
-            >
-              Accepted Deliveries
-            </Badge>
-          }
-        />
-      </Tabs>
-
-      {/* Delivery Cards - Incoming Deliveries Tab */}
-      {activeTab === "delivering" && (
-        <Box sx={{ mb: 2 }}>
-          {deliveringOrders.length > 0 ? (
-            deliveringOrders.map((order) => (
-              <DeliveryCard
-                key={order.id}
-                order={order}
-                variant="delivering"
-                onMenuClick={handleMenuOpen}
-                onAccept={handleAcceptDelivery}
-                onReject={handleRejectDelivery}
-              />
-            ))
-          ) : (
-            <Card
-              elevation={0}
-              sx={{
-                borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
-              }}
-            >
-              <CardContent sx={{ py: 4, textAlign: "center" }}>
-                <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
-                  No incoming deliveries
-                </Typography>
-                <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
-                  New delivery requests will appear here
-                </Typography>
-              </CardContent>
-            </Card>
-          )}
-        </Box>
-      )}
-
-      {/* Delivery Cards - Accepted Deliveries Tab */}
-      {activeTab === "received" && (
-        <Box sx={{ mb: 2 }}>
-          {/* Active (non-delivered) accepted orders */}
-          {activeReceivedOrders.length > 0 ? (
-            activeReceivedOrders.map((order) => (
-              <DeliveryCard
-                key={order.id}
-                order={order}
-                variant="received"
-                onMenuClick={handleMenuOpen}
-                onMakePayment={order.paymentMethod === "gateway" ? undefined : handleMakePaymentClick}
-                onMarkDelivered={!order.needsPayment || order.paymentMethod === "gateway" ? handleMarkDelivered : undefined}
-                showTruckIcon={true}
-              />
-            ))
-          ) : (
-            <Card
-              elevation={0}
-              sx={{
-                borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
-              }}
-            >
-              <CardContent sx={{ py: 4, textAlign: "center" }}>
-                <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
-                  No accepted deliveries
-                </Typography>
-                <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
-                  Accept incoming deliveries to see them here
-                </Typography>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Show/Hide Delivered Button */}
-          {deliveredOrders.length > 0 && (
-            <Button
-              fullWidth
-              variant="outlined"
-              startIcon={showDelivered ? <VisibilityOffRoundedIcon sx={{ fontSize: 18 }} /> : <VisibilityRoundedIcon sx={{ fontSize: 18 }} />}
-              onClick={handleToggleDelivered}
-              sx={{
-                mt: 1,
-                mb: 1.5,
-                borderRadius: 2,
-                py: 1,
-                fontSize: 13,
-                fontWeight: 600,
-                textTransform: "none",
-                borderColor: (t) =>
-                  t.palette.mode === "light"
-                    ? "rgba(209,213,219,0.9)"
-                    : "rgba(51,65,85,0.9)",
-                color: (t) => t.palette.text.secondary,
-                "&:hover": {
-                  borderColor: greenPrimary,
-                  color: greenPrimary,
-                  bgcolor: "rgba(3,205,140,0.08)"
-                }
-              }}
-            >
-              {showDelivered
-                ? `Hide delivered (${deliveredOrders.length})`
-                : `Show delivered (${deliveredOrders.length})`}
-            </Button>
-          )}
-
-          {/* Delivered orders - only shown when toggled */}
-          {showDelivered && deliveredOrders.length > 0 && (
-            <Box>
-              <Typography
-                variant="caption"
+        {/* Tabs: Incoming Deliveries / Accepted Deliveries */}
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          variant="fullWidth"
+          sx={{
+            mb: 2,
+            "& .MuiTab-root": {
+              textTransform: "none",
+              fontSize: 12,
+              fontWeight: 600,
+              minHeight: 44,
+              color: (t) => t.palette.text.secondary,
+              position: "relative"
+            },
+            "& .Mui-selected": {
+              color: greenPrimary
+            },
+            "& .MuiTabs-indicator": {
+              bgcolor: greenPrimary,
+              height: 3,
+              borderRadius: "3px 3px 0 0"
+            }
+          }}
+        >
+          <Tab
+            value="delivering"
+            label={
+              <Badge
+                badgeContent={pendingDeliveriesCount}
+                color="error"
                 sx={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.06em",
-                  color: (t) => t.palette.text.secondary,
-                  mb: 1.5,
-                  display: "block"
+                  "& .MuiBadge-badge": {
+                    right: -8,
+                    top: 4,
+                    fontSize: 10,
+                    height: 18,
+                    minWidth: 18,
+                    padding: "0 4px"
+                  }
                 }}
               >
-                Delivered & Completed
-              </Typography>
-              {deliveredOrders.map((order) => (
-                <Box key={order.id} sx={{ opacity: 0.7 }}>
-                  <DeliveryCard
-                    order={order}
-                    variant="received"
-                    onMenuClick={handleMenuOpen}
-                    showTruckIcon={false}
-                  />
-                </Box>
-              ))}
-            </Box>
-          )}
-        </Box>
-      )}
+                Incoming Deliveries
+              </Badge>
+            }
+          />
+          <Tab
+            value="received"
+            label={
+              <Badge
+                badgeContent={activeReceivedCount}
+                color="error"
+                sx={{
+                  "& .MuiBadge-badge": {
+                    right: -8,
+                    top: 4,
+                    fontSize: 10,
+                    height: 18,
+                    minWidth: 18,
+                    padding: "0 4px"
+                  }
+                }}
+              >
+                Accepted Deliveries
+              </Badge>
+            }
+          />
+        </Tabs>
+
+        {/* Delivery Cards - Incoming Deliveries Tab */}
+        {activeTab === "delivering" && (
+          <Box sx={{ mb: 2 }}>
+            {deliveringOrders.length > 0 ? (
+              deliveringOrders.map((order) => (
+                <DeliveryCard
+                  key={order.id}
+                  order={order}
+                  variant="delivering"
+                  onMenuClick={handleMenuOpen}
+                  onAccept={handleAcceptDelivery}
+                  onReject={handleRejectDelivery}
+                />
+              ))
+            ) : (
+              <Card
+                elevation={0}
+                sx={{
+                  borderRadius: 2,
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+                  border: (t) =>
+                    t.palette.mode === "light"
+                      ? "1px solid rgba(209,213,219,0.9)"
+                      : "1px solid rgba(51,65,85,0.9)"
+                }}
+              >
+                <CardContent sx={{ py: 4, textAlign: "center" }}>
+                  <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
+                    No incoming deliveries
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
+                    New delivery requests will appear here
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
+          </Box>
+        )}
+
+        {/* Delivery Cards - Accepted Deliveries Tab */}
+        {activeTab === "received" && (
+          <Box sx={{ mb: 2 }}>
+            {/* Active (non-delivered) accepted orders */}
+            {activeReceivedOrders.length > 0 ? (
+              activeReceivedOrders.map((order) => (
+                <DeliveryCard
+                  key={order.id}
+                  order={order}
+                  variant="received"
+                  onMenuClick={handleMenuOpen}
+                  onMakePayment={order.paymentMethod === "gateway" ? undefined : handleMakePaymentClick}
+                  onMarkDelivered={!order.needsPayment || order.paymentMethod === "gateway" ? handleMarkDelivered : undefined}
+                  showTruckIcon={true}
+                />
+              ))
+            ) : (
+              <Card
+                elevation={0}
+                sx={{
+                  borderRadius: 2,
+                  bgcolor: (t) =>
+                    t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+                  border: (t) =>
+                    t.palette.mode === "light"
+                      ? "1px solid rgba(209,213,219,0.9)"
+                      : "1px solid rgba(51,65,85,0.9)"
+                }}
+              >
+                <CardContent sx={{ py: 4, textAlign: "center" }}>
+                  <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
+                    No accepted deliveries
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
+                    Accept incoming deliveries to see them here
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Show/Hide Delivered Button */}
+            {deliveredOrders.length > 0 && (
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={showDelivered ? <VisibilityOffRoundedIcon sx={{ fontSize: 18 }} /> : <VisibilityRoundedIcon sx={{ fontSize: 18 }} />}
+                onClick={handleToggleDelivered}
+                sx={{
+                  mt: 1,
+                  mb: 1.5,
+                  borderRadius: 2,
+                  py: 1,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textTransform: "none",
+                  borderColor: (t) =>
+                    t.palette.mode === "light"
+                      ? "rgba(209,213,219,0.9)"
+                      : "rgba(51,65,85,0.9)",
+                  color: (t) => t.palette.text.secondary,
+                  "&:hover": {
+                    borderColor: greenPrimary,
+                    color: greenPrimary,
+                    bgcolor: "rgba(3,205,140,0.08)"
+                  }
+                }}
+              >
+                {showDelivered
+                  ? `Hide delivered (${deliveredOrders.length})`
+                  : `Show delivered (${deliveredOrders.length})`}
+              </Button>
+            )}
+
+            {/* Delivered orders - only shown when toggled */}
+            {showDelivered && deliveredOrders.length > 0 && (
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    color: (t) => t.palette.text.secondary,
+                    mb: 1.5,
+                    display: "block"
+                  }}
+                >
+                  Delivered & Completed
+                </Typography>
+                {deliveredOrders.map((order) => (
+                  <Box key={order.id} sx={{ opacity: 0.7 }}>
+                    <DeliveryCard
+                      order={order}
+                      variant="received"
+                      onMenuClick={handleMenuOpen}
+                      showTruckIcon={false}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            )}
+          </Box>
+        )}
+      </Box>
 
       {/* Menu for delivery actions */}
       <Menu
@@ -840,13 +834,14 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
         </MenuItem>
       </Menu>
 
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-                >
-        The deliveries dashboard helps you make deliveries in a few taps, track EV
-        couriers in real time and stay on top of what's coming to you.
-      </Typography>
+      <Box sx={{ px: 2.5, pb: 3, pt: 1 }}>
+        <Typography
+          variant="caption"
+          sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
+        >
+          The deliveries dashboard helps you make deliveries in a few taps, track EV
+          couriers in real time and stay on top of what's coming to you.
+        </Typography>
       </Box>
     </Box>
   );

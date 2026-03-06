@@ -190,36 +190,36 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
   return (
     <Box>
       {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2 }}>
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", mb: 0.5 }}>
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
-            sx={{
-              position: "absolute",
-              left: 20,
-              borderRadius: 999,
-              bgcolor: "rgba(255,255,255,0.2)",
-              color: "#FFFFFF",
-              "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
+      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2.5, pb: 2.5, display: "flex", alignItems: "center", justifyContent: "flex-end", position: "relative", minHeight: 80 }}>
+        <IconButton
+          size="small"
+          aria-label="Back"
+          onClick={() => navigate(-1)}
+          sx={{
+            position: "absolute",
+            left: 20,
+            borderRadius: 999,
+            bgcolor: "rgba(255,255,255,0.2)",
+            color: "#FFFFFF",
+            "&:hover": { bgcolor: "rgba(255,255,255,0.3)" }
+          }}
+        >
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+        <Box sx={{ textAlign: "right" }}>
           <Typography
             variant="subtitle1"
-            sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
+            sx={{ fontWeight: 700, fontSize: 18, lineHeight: 1.2, color: "#FFFFFF" }}
           >
             Ambulance & medical transport
           </Typography>
+          <Typography
+            variant="caption"
+            sx={{ fontSize: 12, color: "rgba(255,255,255,0.9)", mt: 0.5, display: "block" }}
+          >
+            Request emergency or planned medical transfer
+          </Typography>
         </Box>
-        <Typography
-          variant="caption"
-          sx={{ fontSize: 11, color: "rgba(255,255,255,0.85)", display: "block", textAlign: "center" }}
-        >
-          Request urgent help or plan a hospital transfer
-        </Typography>
       </Box>
 
     <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>

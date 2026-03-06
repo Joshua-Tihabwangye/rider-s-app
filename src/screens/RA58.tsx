@@ -194,7 +194,7 @@ function InvitationsPendingV2Screen(): React.JSX.Element {
   const navigate = useNavigate();
   return (
     <>
-        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "flex-end", position: "relative" }}>
           <IconButton
             size="small"
             aria-label="Back"

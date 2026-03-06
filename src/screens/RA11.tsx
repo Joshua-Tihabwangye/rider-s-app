@@ -131,7 +131,7 @@ function ContactCard({ contact, selected, onSelect }: ContactCardProps): React.J
             </Box>
           </Box>
           <Box sx={{ textAlign: "right" }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 0.3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.3 }}>
               <StarRoundedIcon sx={{ fontSize: 15, color: "#fbbf24" }} />
               <Typography
                 variant="caption"
@@ -172,12 +172,13 @@ function SwitchRiderContactSelectedScreen(): React.JSX.Element {
         sx={{
           bgcolor: "#03CD8C",
           px: 2.5,
-          pt: 2,
-          pb: 2,
+          pt: 2.5,
+          pb: 2.5,
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
-          position: "relative"
+          justifyContent: "flex-end",
+          position: "relative",
+          minHeight: 64
         }}
       >
         <IconButton
@@ -195,12 +196,14 @@ function SwitchRiderContactSelectedScreen(): React.JSX.Element {
         >
           <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
-        <Typography
-          variant="subtitle1"
-          sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
-        >
-          Switch Rider
-        </Typography>
+        <Box sx={{ textAlign: "right" }}>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 700, fontSize: 18, color: "#FFFFFF" }}
+          >
+            Any preferences for this ride?
+          </Typography>
+        </Box>
       </Box>
         <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
 
