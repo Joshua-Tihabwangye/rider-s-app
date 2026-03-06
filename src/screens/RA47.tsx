@@ -175,13 +175,12 @@ function RideDetailsScreen(): React.JSX.Element {
           top: 0,
           zIndex: 100,
           bgcolor: "#03CD8C",
-          px: 7,
+          px: 2,
           pt: 2,
           pb: 2,
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
-          position: "relative"
+          justifyContent: "center"
         }}
       >
         <IconButton

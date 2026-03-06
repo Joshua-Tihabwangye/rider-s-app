@@ -100,7 +100,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
       <Box
         sx={{
           bgcolor: "#03CD8C",
-          px: 7,
+          px: 2,
           pt: 2,
           pb: 2,
           display: "flex",

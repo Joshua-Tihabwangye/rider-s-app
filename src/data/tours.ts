@@ -141,7 +141,7 @@ const generateDates = (startOffset: number, count: number): TourDate[] => {
     d.setDate(d.getDate() + i);
     const iso = d.toISOString().split("T")[0];
     dates.push({
-      date: iso,
+      date: iso!,
       timeSlots: [
         { id: `${iso}-am`, startTime: "08:00", endTime: "12:00", spotsLeft: Math.floor(Math.random() * 8) + 1 },
         { id: `${iso}-pm`, startTime: "14:00", endTime: "18:00", spotsLeft: Math.floor(Math.random() * 6) + 1 }
@@ -855,7 +855,9 @@ export function getRatingDistribution(reviews: Review[]): number[] {
   const dist = [0, 0, 0, 0, 0]; // index 0 = 1 star, index 4 = 5 stars
   reviews.forEach(r => {
     const idx = Math.min(Math.max(Math.round(r.rating) - 1, 0), 4);
-    dist[idx]++;
+    if (dist[idx] !== undefined) {
+      dist[idx]++;
+    }
   });
   return dist;
 }
@@ -875,7 +877,7 @@ export const TOUR_GRADIENTS: Record<string, string> = {
 
 export function getGradientForTour(slug: string): string {
   const key = Object.keys(TOUR_GRADIENTS).find(k => slug.includes(k));
-  return TOUR_GRADIENTS[key || "default"];
+  return (TOUR_GRADIENTS[key || "default"] || TOUR_GRADIENTS["default"])!;
 }
 
 // ──── Known destinations for custom tours ──────────────────
@@ -1017,17 +1019,17 @@ export function buildCustomTour(
     description: description || `Discover ${destination.name} with a custom EV-powered tour. Enjoy a comfortable ${dur.durationStr.toLowerCase()} experience with pickup from Kampala, an expert guide, and zero-emission transport. ${destination.description}.`,
     itinerary: destination.distanceKm <= 120
       ? [
-          { time: "08:00", title: "Kampala pickup", description: "EV pickup from your hotel or meeting point." },
-          { time: `${Math.floor(8 + destination.driveTimeHours)}:00`, title: `Arrive ${destination.name}`, description: `Explore ${destination.name} with your guide.` },
-          { time: "13:00", title: "Lunch break", description: "Enjoy a meal at a local restaurant (at own cost or add-on)." },
-          { time: "16:00", title: "Return to Kampala", description: "Comfortable EV drive back." },
-        ]
+        { time: "08:00", title: "Kampala pickup", description: "EV pickup from your hotel or meeting point." },
+        { time: `${Math.floor(8 + destination.driveTimeHours)}:00`, title: `Arrive ${destination.name}`, description: `Explore ${destination.name} with your guide.` },
+        { time: "13:00", title: "Lunch break", description: "Enjoy a meal at a local restaurant (at own cost or add-on)." },
+        { time: "16:00", title: "Return to Kampala", description: "Comfortable EV drive back." },
+      ]
       : [
-          { time: "Day 1 - 07:00", title: "Depart Kampala", description: `Early departure for the ${destination.driveTimeHours}h drive to ${destination.name}.` },
-          { time: "Day 1 - PM", title: `Explore ${destination.name}`, description: `Afternoon activities and exploration.` },
-          { time: "Day 2 - AM", title: "Morning activities", description: "Final exploration before departure." },
-          { time: "Day 2 - PM", title: "Return to Kampala", description: "Scenic drive back, arriving in the evening." },
-        ],
+        { time: "Day 1 - 07:00", title: "Depart Kampala", description: `Early departure for the ${destination.driveTimeHours}h drive to ${destination.name}.` },
+        { time: "Day 1 - PM", title: `Explore ${destination.name}`, description: `Afternoon activities and exploration.` },
+        { time: "Day 2 - AM", title: "Morning activities", description: "Final exploration before departure." },
+        { time: "Day 2 - PM", title: "Return to Kampala", description: "Scenic drive back, arriving in the evening." },
+      ],
     included: ["EV transport with A/C", "English-speaking guide", "Bottled water", "Hotel pickup & drop-off"],
     notIncluded: ["Meals (unless added)", "Personal expenses", "Gratuities", "Travel insurance"],
     meetingPoint: travelDetails?.pickupLocation || "Kampala — hotel pickup or central meeting point",

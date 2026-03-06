@@ -33,7 +33,7 @@ function RideDetailsVariant2Screen(): React.JSX.Element {
   return (
     <Box sx={{ px: 2.5, pt: 2.25, pb: 3 }}>
       {/* Green Header */}
-        <Box sx={{ bgcolor: "#03CD8C", mx: -2.5, px: 7, mt: -2.5, pt: 2, pb: 2, mb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+        <Box sx={{ bgcolor: "#03CD8C", mx: -2.5, px: 2, mt: -2.5, pt: 2, pb: 2, mb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
           <IconButton
             size="small"
             aria-label="Back"

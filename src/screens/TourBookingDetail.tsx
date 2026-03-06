@@ -64,13 +64,14 @@ function BookingDetailScreen() {
         } else if (justBooked) {
           // Create a temporary booking for just-booked scenario
           const newBooking: Booking = {
-            id,
-            tourSlug: "kampala-city-ev-highlights",
+            id: id || "",
+            tourSlug: id || "kampala-city-ev-highlights",
             tourTitle: "Your Booked Tour",
             tourImage: "kampala-1",
             destination: "Uganda",
-            date: new Date().toISOString().split("T")[0],
+            date: new Date().toISOString().split("T")[0] || "",
             timeSlot: "08:00 – 18:00",
+            tourDays: 1,
             adults: 2,
             children: 0,
             addons: [],
@@ -184,7 +185,7 @@ function BookingDetailScreen() {
   return (
     <Box>
       {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 7, pt: 2, pb: 2 }}>
+      <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2 }}>
         <Stack direction="row" spacing={1} alignItems="center">
           <IconButton onClick={() => navigate("/bookings")} size="small"
             sx={{ borderRadius: 999, bgcolor: "rgba(255,255,255,0.2)", color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.3)" } }}>

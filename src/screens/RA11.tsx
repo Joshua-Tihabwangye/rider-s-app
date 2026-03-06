@@ -171,7 +171,7 @@ function SwitchRiderContactSelectedScreen(): React.JSX.Element {
         <Box
         sx={{
           bgcolor: "#03CD8C",
-          px: 7,
+          px: 2,
           pt: 2.5,
           pb: 2.5,
           display: "flex",

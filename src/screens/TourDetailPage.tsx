@@ -82,7 +82,7 @@ function TourDetailScreen() {
 
   return (
     <Box sx={{ pb: 10 }}>
-      <Box sx={{ bgcolor: "#03CD8C", px: 7, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+      <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
         <IconButton
           size="small"
           aria-label="Back"
@@ -102,7 +102,7 @@ function TourDetailScreen() {
           variant="subtitle1"
           sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF", textAlign: "center", px: 6 }}
         >
-          {tour.name}
+          {tour.title}
         </Typography>
         <Stack direction="row" spacing={0.5} sx={{ position: "absolute", right: 20 }}>
           <IconButton onClick={() => setWishlisted(!wishlisted)} size="small"
@@ -381,7 +381,7 @@ function TourDetailScreen() {
                       <StarRoundedIcon sx={{ fontSize: 12, color: "#F59E0B" }} />
                       <LinearProgress
                         variant="determinate"
-                        value={(ratingDist[star - 1] / maxDistCount) * 100}
+                        value={((ratingDist[star - 1] || 0) / maxDistCount) * 100}
                         sx={{
                           flex: 1, height: 6, borderRadius: 999,
                           bgcolor: t => t.palette.mode === "light" ? "#F3F4F6" : "rgba(51,65,85,0.5)",
