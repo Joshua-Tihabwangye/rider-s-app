@@ -130,7 +130,7 @@ function ContactCard({ contact, selected, onSelect }: ContactCardProps): React.J
               </Box>
             </Box>
           </Box>
-          <Box sx={{ textAlign: "right" }}>
+          <Box sx={{ textAlign: "center" }}>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.3 }}>
               <StarRoundedIcon sx={{ fontSize: 15, color: "#fbbf24" }} />
               <Typography
@@ -171,12 +171,12 @@ function SwitchRiderContactSelectedScreen(): React.JSX.Element {
         <Box
         sx={{
           bgcolor: "#03CD8C",
-          px: 2.5,
+          px: 7,
           pt: 2.5,
           pb: 2.5,
           display: "flex",
           alignItems: "center",
-          justifyContent: "flex-end",
+          justifyContent: "center",
           position: "relative",
           minHeight: 64
         }}
@@ -196,7 +196,7 @@ function SwitchRiderContactSelectedScreen(): React.JSX.Element {
         >
           <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
-        <Box sx={{ textAlign: "right" }}>
+        <Box sx={{ textAlign: "center" }}>
           <Typography
             variant="subtitle1"
             sx={{ fontWeight: 700, fontSize: 18, color: "#FFFFFF" }}

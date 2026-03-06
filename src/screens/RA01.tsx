@@ -92,7 +92,7 @@ function HomeMultiServiceScreen(): React.JSX.Element {
   return (
     <Box>
       {/* Green Header */}
-      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2 }}>
+      <Box sx={{ bgcolor: "#03CD8C", px: 7, pt: 2, pb: 2 }}>
         <Box
           sx={{
             display: "flex",

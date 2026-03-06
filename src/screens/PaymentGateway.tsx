@@ -268,7 +268,7 @@ function PaymentGatewayScreen(): React.JSX.Element {
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
                   <Typography variant="body2" sx={{ fontSize: 13, color: theme.palette.text.secondary }}>Description</Typography>
-                  <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 500, maxWidth: "60%", textAlign: "right" }}>{description}</Typography>
+                  <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 500, maxWidth: "60%", textAlign: "center" }}>{description}</Typography>
                 </Stack>
               </Stack>
 
@@ -1197,7 +1197,7 @@ function PaymentGatewayScreen(): React.JSX.Element {
 
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: theme.palette.background.default }}>
-        <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "flex-end", position: "relative" }}>
+        <Box sx={{ bgcolor: "#03CD8C", px: 7, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
           <IconButton
             size="small"
             aria-label="Back"

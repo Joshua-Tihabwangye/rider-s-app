@@ -82,7 +82,7 @@ function TourDetailScreen() {
 
   return (
     <Box sx={{ pb: 10 }}>
-      <Box sx={{ bgcolor: "#03CD8C", px: 2.5, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "flex-end", position: "relative" }}>
+      <Box sx={{ bgcolor: "#03CD8C", px: 7, pt: 2, pb: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
         <IconButton
           size="small"
           aria-label="Back"
@@ -377,7 +377,7 @@ function TourDetailScreen() {
                 <Box sx={{ flex: 1 }}>
                   {[5, 4, 3, 2, 1].map(star => (
                     <Stack key={star} direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.25 }}>
-                      <Typography variant="caption" sx={{ fontSize: 10, width: 10, textAlign: "right" }}>{star}</Typography>
+                      <Typography variant="caption" sx={{ fontSize: 10, width: 10, textAlign: "center" }}>{star}</Typography>
                       <StarRoundedIcon sx={{ fontSize: 12, color: "#F59E0B" }} />
                       <LinearProgress
                         variant="determinate"
@@ -388,7 +388,7 @@ function TourDetailScreen() {
                           "& .MuiLinearProgress-bar": { bgcolor: "#F59E0B", borderRadius: 999 }
                         }}
                       />
-                      <Typography variant="caption" sx={{ fontSize: 10, width: 16, textAlign: "right", color: t => t.palette.text.secondary }}>
+                      <Typography variant="caption" sx={{ fontSize: 10, width: 16, textAlign: "center", color: t => t.palette.text.secondary }}>
                         {ratingDist[star - 1]}
                       </Typography>
                     </Stack>
