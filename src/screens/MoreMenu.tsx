@@ -92,7 +92,7 @@ export default function MoreMenu(): React.JSX.Element {
       <DarkModeToggle />
       <MobileShell>
         {/* Green Header */}
-        <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2 }}>
+        <Box sx={{ bgcolor: "#03CD8C", px: 2, pt: 2, pb: 2, textAlign: "center" }}>
           <Typography
             variant="h6"
             sx={{
@@ -108,7 +108,8 @@ export default function MoreMenu(): React.JSX.Element {
             variant="caption"
             sx={{
               fontSize: 12,
-              color: "rgba(255,255,255,0.85)"
+              color: "rgba(255,255,255,0.85)",
+              display: "block"
             }}
           >
             Settings, history, help and more

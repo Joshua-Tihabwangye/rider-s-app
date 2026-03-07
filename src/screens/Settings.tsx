@@ -13,8 +13,7 @@ import {
   Switch,
   Divider,
   Menu,
-  MenuItem,
-  Typography as MuiTypography
+  MenuItem
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
