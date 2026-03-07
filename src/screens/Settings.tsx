@@ -11,7 +11,10 @@ import {
   ListItemIcon,
   ListItemText,
   Switch,
-  Divider
+  Divider,
+  Menu,
+  MenuItem,
+  Typography as MuiTypography
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
@@ -31,6 +34,30 @@ export default function Settings(): React.JSX.Element {
   const navigate = useNavigate();
   const { mode, toggleMode } = useThemeMode();
   const [notifications, setNotifications] = React.useState(true);
+  const [language, setLanguage] = React.useState("English (US)");
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = (lang?: string) => {
+    if (lang) setLanguage(lang);
+    setAnchorEl(null);
+  };
+
+  const languages = [
+    "English (US)",
+    "Kiswahili",
+    "Mandarin Chinese",
+    "Hindi",
+    "Spanish",
+    "French",
+    "Arabic",
+    "Bengali",
+    "Portuguese",
+    "Russian"
+  ];
 
   return (
     <Box
@@ -158,6 +185,7 @@ export default function Settings(): React.JSX.Element {
             {/* Language */}
             <ListItem disablePadding>
               <ListItemButton
+                onClick={handleClick}
                 sx={{
                   borderRadius: 2,
                   mb: 1,
@@ -183,14 +211,55 @@ export default function Settings(): React.JSX.Element {
                 </ListItemIcon>
                 <ListItemText
                   primary="Language"
-                  secondary="English (US)"
+                  secondary={language}
+                />
+                <ArrowForwardIosRoundedIcon
+                  sx={{
+                    fontSize: 16,
+                    color: (t) => t.palette.text.secondary,
+                    ml: 1
+                  }}
                 />
               </ListItemButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={open}
+                onClose={() => handleClose()}
+                PaperProps={{
+                  sx: {
+                    borderRadius: 2,
+                    mt: 1,
+                    minWidth: 180,
+                    boxShadow: "0px 4px 20px rgba(0,0,0,0.1)",
+                    bgcolor: (t) => t.palette.background.paper
+                  }
+                }}
+              >
+                {languages.map((lang) => (
+                  <MenuItem
+                    key={lang}
+                    selected={lang === language}
+                    onClick={() => handleClose(lang)}
+                    sx={{
+                      fontSize: "0.875rem",
+                      py: 1,
+                      "&.Mui-selected": {
+                        bgcolor: "rgba(3, 205, 140, 0.1)",
+                        color: "#03CD8C",
+                        "&:hover": { bgcolor: "rgba(3, 205, 140, 0.2)" }
+                      }
+                    }}
+                  >
+                    {lang}
+                  </MenuItem>
+                ))}
+              </Menu>
             </ListItem>
 
             {/* Payment Methods */}
             <ListItem disablePadding>
               <ListItemButton
+                onClick={() => navigate("/wallet")}
                 sx={{
                   borderRadius: 2,
                   mb: 1,
@@ -218,6 +287,13 @@ export default function Settings(): React.JSX.Element {
                   primary="Payment Methods"
                   secondary="Manage cards and payment options"
                 />
+                <ArrowForwardIosRoundedIcon
+                  sx={{
+                    fontSize: 16,
+                    color: (t) => t.palette.text.secondary,
+                    ml: 1
+                  }}
+                />
               </ListItemButton>
             </ListItem>
 
@@ -226,6 +302,7 @@ export default function Settings(): React.JSX.Element {
             {/* Security */}
             <ListItem disablePadding>
               <ListItemButton
+                onClick={() => navigate("/more")} // Using more menu as a placeholder for now
                 sx={{
                   borderRadius: 2,
                   mb: 1,
@@ -253,12 +330,20 @@ export default function Settings(): React.JSX.Element {
                   primary="Security"
                   secondary="Password, 2FA, and security settings"
                 />
+                <ArrowForwardIosRoundedIcon
+                  sx={{
+                    fontSize: 16,
+                    color: (t) => t.palette.text.secondary,
+                    ml: 1
+                  }}
+                />
               </ListItemButton>
             </ListItem>
 
             {/* Privacy */}
             <ListItem disablePadding>
               <ListItemButton
+                onClick={() => navigate("/about")} // Using about as a placeholder for privacy
                 sx={{
                   borderRadius: 2,
                   mb: 1,
@@ -285,6 +370,13 @@ export default function Settings(): React.JSX.Element {
                 <ListItemText
                   primary="Privacy"
                   secondary="Data privacy and sharing preferences"
+                />
+                <ArrowForwardIosRoundedIcon
+                  sx={{
+                    fontSize: 16,
+                    color: (t) => t.palette.text.secondary,
+                    ml: 1
+                  }}
                 />
               </ListItemButton>
             </ListItem>
