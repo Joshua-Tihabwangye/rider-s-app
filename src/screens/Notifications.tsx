@@ -121,23 +121,23 @@ function NotificationsScreen(): React.JSX.Element {
   return (
     <Box sx={{ p: 0 }}>
       {/* Header */}
-      <Box sx={{ px: 2.5, py: 2, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton
-            size="small"
-            onClick={() => navigate(-1)}
-            sx={{
-              bgcolor: (theme) => theme.palette.mode === "light" ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)",
-              "&:hover": { bgcolor: "rgba(0,0,0,0.1)" }
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Notifications
-          </Typography>
-        </Box>
-        <Badge badgeContent={unreadCount} color="error" sx={{ mr: 1 }}>
+      <Box sx={{ px: 2.5, py: 2, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", minHeight: 48 }}>
+        <IconButton
+          size="small"
+          onClick={() => navigate(-1)}
+          sx={{
+            position: "absolute",
+            left: 20,
+            bgcolor: (theme) => theme.palette.mode === "light" ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)",
+            "&:hover": { bgcolor: "rgba(0,0,0,0.1)" }
+          }}
+        >
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+        <Typography variant="h6" sx={{ fontWeight: 700, mx: 7, textAlign: "center" }}>
+          Notifications
+        </Typography>
+        <Badge badgeContent={unreadCount} color="error" sx={{ position: "absolute", right: 20 }}>
           <NotificationsActiveRoundedIcon color="action" />
         </Badge>
       </Box>

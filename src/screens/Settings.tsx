@@ -13,8 +13,7 @@ import {
   Switch,
   Divider,
   Menu,
-  MenuItem,
-  Typography as MuiTypography
+  MenuItem
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
@@ -302,7 +301,6 @@ export default function Settings(): React.JSX.Element {
             {/* Security */}
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => navigate("/more")} // Using more menu as a placeholder for now
                 sx={{
                   borderRadius: 2,
                   mb: 1,
@@ -329,13 +327,6 @@ export default function Settings(): React.JSX.Element {
                 <ListItemText
                   primary="Security"
                   secondary="Password, 2FA, and security settings"
-                />
-                <ArrowForwardIosRoundedIcon
-                  sx={{
-                    fontSize: 16,
-                    color: (t) => t.palette.text.secondary,
-                    ml: 1
-                  }}
                 />
               </ListItemButton>
             </ListItem>
