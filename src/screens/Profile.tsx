@@ -1,5 +1,20 @@
-import React from "react";
-import { Box, Typography, IconButton, Avatar, Card, CardContent, Stack, Divider, Button } from "@mui/material";
+import React, { useState, useRef } from "react";
+import {
+  Box,
+  Typography,
+  IconButton,
+  Avatar,
+  Card,
+  CardContent,
+  Stack,
+  Divider,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField
+} from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import { useNavigate } from "react-router-dom";
 import DarkModeToggle from "../components/DarkModeToggle";
@@ -12,9 +27,64 @@ import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 
 function ProfileScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [profile, setProfile] = useState({
+    name: "Rider User",
+    email: "rider@evzone.com",
+    phone: "+256 700 000000",
+    city: "Kampala, Uganda",
+    avatarUrl: ""
+  });
+
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [tempProfile, setTempProfile] = useState({ ...profile });
+
+  const handleEditClick = () => {
+    setTempProfile({ ...profile });
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveProfile = () => {
+    setProfile({ ...tempProfile });
+    setEditDialogOpen(false);
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfile((prev) => ({ ...prev, avatarUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
   return (
     <Box sx={{ p: 2.5 }}>
+      {/* Hidden File Input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        style={{ display: "none" }}
+      />
+
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", minHeight: 48, mb: 3 }}>
         <IconButton
           size="small"
@@ -36,6 +106,7 @@ function ProfileScreen(): React.JSX.Element {
       <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4 }}>
         <Box sx={{ position: "relative" }}>
           <Avatar
+            src={profile.avatarUrl}
             sx={{
               width: 100,
               height: 100,
@@ -46,10 +117,11 @@ function ProfileScreen(): React.JSX.Element {
               boxShadow: "0 8px 16px rgba(0,0,0,0.1)"
             }}
           >
-            RZ
+            {!profile.avatarUrl && getInitials(profile.name)}
           </Avatar>
           <IconButton
             size="small"
+            onClick={handleAvatarClick}
             sx={{
               position: "absolute",
               bottom: 0,
@@ -59,11 +131,11 @@ function ProfileScreen(): React.JSX.Element {
               "&:hover": { bgcolor: "#F3F4F6" }
             }}
           >
-            <EditRoundedIcon sx={{ fontSize: 16 }} />
+            <EditRoundedIcon sx={{ fontSize: 16, color: "#111827" }} />
           </IconButton>
         </Box>
         <Typography variant="h6" sx={{ mt: 2, fontWeight: 700 }}>
-          Rider User
+          {profile.name}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Premium Member
@@ -74,7 +146,7 @@ function ProfileScreen(): React.JSX.Element {
         elevation={0}
         sx={{
           borderRadius: 3,
-          border: "1px solid rgba(0,0,0,0.1)",
+          border: (t) => t.palette.mode === 'light' ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)",
           mb: 3
         }}
       >
@@ -87,7 +159,7 @@ function ProfileScreen(): React.JSX.Element {
                   Full Name
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  Rider User
+                  {profile.name}
                 </Typography>
               </Box>
             </Box>
@@ -99,7 +171,7 @@ function ProfileScreen(): React.JSX.Element {
                   Email Address
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  rider@evzone.com
+                  {profile.email}
                 </Typography>
               </Box>
             </Box>
@@ -111,7 +183,7 @@ function ProfileScreen(): React.JSX.Element {
                   Phone Number
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  +256 700 000000
+                  {profile.phone}
                 </Typography>
               </Box>
             </Box>
@@ -123,7 +195,7 @@ function ProfileScreen(): React.JSX.Element {
                   Common City
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  Kampala, Uganda
+                  {profile.city}
                 </Typography>
               </Box>
             </Box>
@@ -134,18 +206,91 @@ function ProfileScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
+        onClick={handleEditClick}
         sx={{
           borderRadius: 999,
           py: 1.5,
           textTransform: "none",
           fontWeight: 700,
-          bgcolor: "#000000",
-          color: "#FFFFFF",
-          "&:hover": { bgcolor: "#333333" }
+          bgcolor: (t) => t.palette.mode === 'light' ? "#000000" : "primary.main",
+          color: (t) => t.palette.mode === 'light' ? "#FFFFFF" : "#020617",
+          "&:hover": { bgcolor: (t) => t.palette.mode === 'light' ? "#333333" : "primary.dark" }
         }}
       >
-        Save Changes
+        Edit Profile
       </Button>
+
+      {/* Edit Dialog */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        fullWidth
+        maxWidth="xs"
+        PaperProps={{
+          sx: { borderRadius: 3, p: 1 }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>Edit Profile</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2.5} sx={{ mt: 1 }}>
+            <TextField
+              fullWidth
+              label="Full Name"
+              variant="outlined"
+              size="small"
+              value={tempProfile.name}
+              onChange={(e) => setTempProfile({ ...tempProfile, name: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Email Address"
+              variant="outlined"
+              size="small"
+              value={tempProfile.email}
+              onChange={(e) => setTempProfile({ ...tempProfile, email: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Phone Number"
+              variant="outlined"
+              size="small"
+              value={tempProfile.phone}
+              onChange={(e) => setTempProfile({ ...tempProfile, phone: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Common City"
+              variant="outlined"
+              size="small"
+              value={tempProfile.city}
+              onChange={(e) => setTempProfile({ ...tempProfile, city: e.target.value })}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setEditDialogOpen(false)}
+            sx={{ textTransform: "none", fontWeight: 600, color: "text.secondary" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveProfile}
+            variant="contained"
+            sx={{
+              borderRadius: 999,
+              px: 3,
+              bgcolor: "primary.main",
+              color: "#020617",
+              fontWeight: 700,
+              textTransform: "none",
+              "&:hover": { bgcolor: "primary.dark" }
+            }}
+          >
+            Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
