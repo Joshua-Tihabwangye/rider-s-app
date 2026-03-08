@@ -15,18 +15,20 @@ function ProfileScreen(): React.JSX.Element {
 
   return (
     <Box sx={{ p: 2.5 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", minHeight: 48, mb: 3 }}>
         <IconButton
           size="small"
           onClick={() => navigate(-1)}
           sx={{
+            position: "absolute",
+            left: 0,
             bgcolor: "rgba(0,0,0,0.05)",
             "&:hover": { bgcolor: "rgba(0,0,0,0.1)" }
           }}
         >
           <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, mx: 7, textAlign: "center" }}>
           Profile
         </Typography>
       </Box>

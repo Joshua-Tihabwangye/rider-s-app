@@ -96,7 +96,9 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           mb: 2.5,
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between"
+          justifyContent: "center",
+          position: "relative",
+          minHeight: 48
         }}
       >
         <IconButton
@@ -104,6 +106,8 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           aria-label="Open menu"
           onClick={() => navigate("/home")}
           sx={{
+            position: "absolute",
+            left: 0,
             borderRadius: 999,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
@@ -117,11 +121,10 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         </IconButton>
         <Typography
           variant="subtitle1"
-          sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
+          sx={{ fontWeight: 600, letterSpacing: "-0.01em", mx: 7, textAlign: "center" }}
         >
           Where to today?
         </Typography>
-        <Box sx={{ width: 32 }} />
       </Box>
 
       {/* Search */}
