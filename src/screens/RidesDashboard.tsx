@@ -49,6 +49,10 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import ScreenScaffold from "../components/ScreenScaffold";
+import ActionGrid from "../components/primitives/ActionGrid";
+import InfoCard from "../components/primitives/InfoCard";
+import { uiTokens } from "../design/tokens";
 
 
 // Pulse animation for location marker
@@ -304,7 +308,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onSelect }: UpcomingRi
         onClick={onSelect}
         sx={{
           mb: 2,
-          borderRadius: 2,
+          borderRadius: 0,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -367,7 +371,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onSelect }: UpcomingRi
         onClose={() => setCancelDialogOpen(false)}
         PaperProps={{
           sx: {
-            borderRadius: 2,
+            borderRadius: 0,
             minWidth: 280
           }
         }}
@@ -420,7 +424,7 @@ function CommuteCard({ commute, onRequest, onSelect }: CommuteCardProps): React.
       onClick={onSelect}
       sx={{
         mb: 2,
-        borderRadius: 2,
+        borderRadius: 0,
         bgcolor: (t) =>
           t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
         border: (t) =>
@@ -482,7 +486,7 @@ function CommuteCard({ commute, onRequest, onSelect }: CommuteCardProps): React.
               onRequest();
             }}
             sx={{
-              borderRadius: 999,
+              borderRadius: 0,
               px: 2,
               py: 0.5,
               bgcolor: "#03CD8C",
@@ -517,7 +521,7 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }: C
       elevation={selected ? 2 : 1}
       onClick={onSelect}
       sx={{
-        borderRadius: 2,
+        borderRadius: 0,
         cursor: onSelect ? "pointer" : "default",
         bgcolor: (theme) =>
           theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
@@ -544,7 +548,7 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }: C
             sx={{
               width: 40,
               height: 40,
-              borderRadius: "50%",
+              borderRadius: 0,
               bgcolor: "rgba(249,115,22,0.1)",
               display: "flex",
               alignItems: "center",
@@ -814,6 +818,15 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     }
   };
 
+  const quickActions = [
+    { key: "book-now", label: "Book ride now", icon: <DirectionsCarFilledRoundedIcon sx={{ fontSize: 16 }} /> },
+    { key: "schedule", label: "Schedule ride", icon: <AccessTimeRoundedIcon sx={{ fontSize: 16 }} /> },
+    { key: "book-contact", label: "Book for a contact" },
+    { key: "book-someone", label: "Book for someone" },
+    { key: "multi-stop", label: "Multi-stop trip", icon: <ArrowForwardIosRoundedIcon sx={{ fontSize: 14 }} /> },
+    { key: "history", label: "View ride history", icon: <ReceiptLongRoundedIcon sx={{ fontSize: 14 }} /> }
+  ];
+
   const handleSelectPlace = async (place: string): Promise<void> => {
     const location = savedLocations.find(loc => loc.id === place);
     if (location) {
@@ -978,7 +991,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               <ListItemButton
                 onClick={() => handleMenuNavigation(item.route)}
                 sx={{
-                  borderRadius: 2,
+                  borderRadius: 0,
                   mb: 0.5,
                   py: 1.5,
                   "&:hover": {
@@ -1031,7 +1044,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           aria-label="Open menu"
           onClick={() => setMenuOpen(true)}
           sx={{
-            borderRadius: 999,
+            borderRadius: 0,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
             border: (theme) =>
@@ -1095,7 +1108,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               sx={{
                 mb: 2,
                 "& .MuiOutlinedInput-root": {
-                  borderRadius: 999,
+                  borderRadius: 0,
                   bgcolor: (theme) =>
                     theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
                   "& fieldset": {
@@ -1126,7 +1139,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               {...props}
               sx={{
                 mt: 1,
-                borderRadius: 2,
+                borderRadius: 0,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
                 border: (t) =>
@@ -1141,12 +1154,12 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       </Box>
 
       {/* White body section */}
-      <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+      <ScreenScaffold>
       {/* Map preview */}
       <Box
         sx={{
           mb: 2,
-          borderRadius: 3,
+          borderRadius: 0,
           height: 170,
           position: "relative",
           overflow: "hidden",
@@ -1209,7 +1222,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               sx={{
                 width: 14,
                 height: 14,
-                borderRadius: "999px",
+                borderRadius: 0,
                 bgcolor: "#03CD8C",
                 border: "2px solid white",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
@@ -1219,7 +1232,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               sx={{
                 position: "absolute",
                 inset: -8,
-                borderRadius: "999px",
+                borderRadius: 0,
                 border: "1px solid rgba(59,130,246,0.5)",
                 animation: `${pulse} 2s infinite`
               }}
@@ -1261,7 +1274,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               left: 8,
               right: 8,
               bgcolor: "rgba(255,255,255,0.95)",
-              borderRadius: 1.5,
+              borderRadius: 0,
               px: 1.5,
               py: 1,
               display: "flex",
@@ -1277,190 +1290,43 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         )}
       </Box>
 
-      {/* Quick actions */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.55 }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{ mb: 1 }}
-          >
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              Quick actions
-            </Typography>
-          </Stack>
-          <Box
-            sx={{
-              display: "flex",
-              overflowX: "auto",
-              overflowY: "hidden",
-              gap: 1,
-              pb: 0.5,
-              "&::-webkit-scrollbar": {
-                height: 4
-              },
-              "&::-webkit-scrollbar-thumb": {
-                bgcolor: (t) => t.palette.mode === "light" ? "#D1D5DB" : "#4B5563",
-                borderRadius: 2
-              },
-              WebkitOverflowScrolling: "touch"
-            }}
-          >
+      <InfoCard title="Quick actions">
+        <Box
+          sx={{
+            display: "flex",
+            overflowX: "auto",
+            overflowY: "hidden",
+            gap: 1,
+            pb: 0.5,
+            "&::-webkit-scrollbar": { height: 4 },
+            "&::-webkit-scrollbar-thumb": {
+              bgcolor: (t) => (t.palette.mode === "light" ? "#D1D5DB" : "#4B5563")
+            },
+            WebkitOverflowScrolling: "touch"
+          }}
+        >
+          {quickActions.map((action) => (
             <Chip
-              label="Book ride now"
+              key={action.key}
+              label={action.label}
               size="small"
-              onClick={() => handleQuickAction("book-now")}
-              icon={<DirectionsCarFilledRoundedIcon sx={{ fontSize: 16 }} />}
+              onClick={() => handleQuickAction(action.key)}
+              icon={action.icon}
               sx={{
-                borderRadius: 999,
                 fontSize: 11,
                 height: 28,
                 flexShrink: 0,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
+                bgcolor: uiTokens.surfaces.cardMuted,
+                border: uiTokens.borders.subtle,
                 cursor: "pointer",
                 "&:hover": {
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
+                  bgcolor: (t) => (t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)")
                 }
               }}
             />
-            <Chip
-              label="Schedule ride"
-              size="small"
-              onClick={() => handleQuickAction("schedule")}
-              icon={<AccessTimeRoundedIcon sx={{ fontSize: 16 }} />}
-              sx={{
-                borderRadius: 999,
-                fontSize: 11,
-                height: 28,
-                flexShrink: 0,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
-                cursor: "pointer",
-                "&:hover": {
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
-                }
-              }}
-            />
-            <Chip
-              label="Book for a contact"
-              size="small"
-              onClick={() => handleQuickAction("book-contact")}
-              sx={{
-                borderRadius: 999,
-                fontSize: 11,
-                height: 28,
-                flexShrink: 0,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
-                cursor: "pointer",
-                "&:hover": {
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
-                }
-              }}
-            />
-            <Chip
-              label="Book for someone"
-              size="small"
-              onClick={() => handleQuickAction("book-someone")}
-              sx={{
-                borderRadius: 999,
-                fontSize: 11,
-                height: 28,
-                flexShrink: 0,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
-                cursor: "pointer",
-                "&:hover": {
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
-                }
-              }}
-            />
-            <Chip
-              label="Multi-stop trip"
-              size="small"
-              onClick={() => handleQuickAction("multi-stop")}
-              icon={<ArrowForwardIosRoundedIcon sx={{ fontSize: 14 }} />}
-              sx={{
-                borderRadius: 999,
-                fontSize: 11,
-                height: 28,
-                flexShrink: 0,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
-                cursor: "pointer",
-                "&:hover": {
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
-                }
-              }}
-            />
-            <Chip
-              label="View ride history"
-              size="small"
-              onClick={() => handleQuickAction("history")}
-              icon={<ReceiptLongRoundedIcon sx={{ fontSize: 14 }} />}
-              sx={{
-                borderRadius: 999,
-                fontSize: 11,
-                height: 28,
-                flexShrink: 0,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
-                cursor: "pointer",
-                "&:hover": {
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)"
-                }
-              }}
-            />
-          </Box>
-        </CardContent>
-      </Card>
+          ))}
+        </Box>
+      </InfoCard>
 
       {/* Tabs */}
       <Tabs
@@ -1484,7 +1350,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           },
           "& .MuiTabs-indicator": {
             height: 2,
-            borderRadius: 999,
+            borderRadius: 0,
             bgcolor: "#03CD8C"
           }
         }}
@@ -1502,24 +1368,24 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                 <CircularProgress size={24} />
               </Box>
             ) : savedLocations.length > 0 ? (
-              <Stack direction="row" spacing={1.5}>
-                {savedLocations.map((location) => (
-                  <Box key={location.id} sx={{ flex: 1 }}>
-                    <CommonPlaceCard
-                      icon={location.icon}
-                      label={location.label}
+	              <ActionGrid minWidth={220}>
+	                {savedLocations.map((location) => (
+	                  <Box key={location.id}>
+	                    <CommonPlaceCard
+	                      icon={location.icon}
+	                      label={location.label}
                       address={location.address}
                       selected={selectedPlace === location.id}
                       onSelect={() => handleSelectPlace(location.id)}
                     />
-                  </Box>
-                ))}
-              </Stack>
+	                  </Box>
+	                ))}
+	              </ActionGrid>
             ) : (
               <Card
                 elevation={0}
                 sx={{
-                  borderRadius: 2,
+                  borderRadius: 0,
                   bgcolor: (t) =>
                     t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                   border: (t) =>
@@ -1573,7 +1439,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                 <CircularProgress size={24} />
               </Box>
             ) : dailyCommutes.length > 0 ? (
-              <Box sx={{ maxHeight: "60vh", overflowY: "auto" }}>
+              <Box>
                 {dailyCommutes.map((commute) => (
                   <CommuteCard
                     key={commute.id}
@@ -1594,7 +1460,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               <Card
                 elevation={0}
                 sx={{
-                  borderRadius: 2,
+                  borderRadius: 0,
                   bgcolor: (t) =>
                     t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                   border: (t) =>
@@ -1623,7 +1489,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                 <CircularProgress size={24} />
               </Box>
             ) : upcomingRides.length > 0 ? (
-              <Box sx={{ maxHeight: "60vh", overflowY: "auto" }}>
+              <Box>
                 {upcomingRides.map((ride) => (
                   <UpcomingRideCard
                     key={ride.id}
@@ -1643,7 +1509,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               <Card
                 elevation={0}
                 sx={{
-                  borderRadius: 2,
+                  borderRadius: 0,
                   bgcolor: (t) =>
                     t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                   border: (t) =>
@@ -1662,7 +1528,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                     onClick={() => navigate("/rides/enter")}
                     sx={{
                       mt: 1.5,
-                      borderRadius: 2,
+                      borderRadius: 0,
                       textTransform: "none",
                       borderColor: "#F77F00",
                       color: "#F77F00"
@@ -1683,7 +1549,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           elevation={0}
           sx={{
             mb: 1.2,
-            borderRadius: 2,
+            borderRadius: 0,
             bgcolor: (t) =>
               t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
             border: (t) =>
@@ -1726,30 +1592,17 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         </Card>
       )}
 
-      {/* Sticky Bottom Card - From/To/ETA/Fare/Continue */}
+      {/* Route summary card - inline with shell scroll flow */}
       {(selectedPlace || destinationCoords) && routeData && (
         <Box
           sx={{
-            position: "sticky",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-            bgcolor: (t) => t.palette.background.default,
-            borderTop: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            boxShadow: "0 -4px 20px rgba(0,0,0,0.1)",
-            pt: 1.5,
-            pb: 2,
-            px: 2.5
+            pt: 1.5
           }}
         >
           <Card
             elevation={0}
             sx={{
-              borderRadius: 2.5,
+              borderRadius: 0,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
               border: (t) =>
@@ -1767,7 +1620,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                       sx={{
                         width: 8,
                         height: 8,
-                        borderRadius: "50%",
+                        borderRadius: 0,
                         bgcolor: "#03CD8C",
                         border: "2px solid white",
                         boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
@@ -1876,7 +1729,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                       fontWeight: 600,
                       px: 2.5,
                       py: 0.75,
-                      borderRadius: 1.5,
+                      borderRadius: 0,
                       textTransform: "none",
                       "&:hover": {
                         bgcolor: "#22C55E"
@@ -1891,7 +1744,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           </Card>
         </Box>
       )}
-      </Box>
+      </ScreenScaffold>
     </Box>
   );
 }

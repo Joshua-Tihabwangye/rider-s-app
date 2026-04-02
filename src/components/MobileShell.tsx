@@ -20,6 +20,11 @@ interface MobileShellProps {
 }
 
 const TAB_BAR_HEIGHT = 72;
+const CONTENT_MAX_WIDTH = {
+  xs: "100%",
+  md: "768px",
+  lg: "1024px"
+} as const;
 
 const NAV_TABS: NavTab[] = [
   {
@@ -172,7 +177,15 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
               pr: "max(0px, env(safe-area-inset-right))"
             }}
           >
-            {children}
+            <Box
+              sx={{
+                width: "100%",
+                maxWidth: CONTENT_MAX_WIDTH,
+                mx: "auto"
+              }}
+            >
+              {children}
+            </Box>
           </Box>
 
           <Box

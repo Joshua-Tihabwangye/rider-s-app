@@ -41,7 +41,7 @@ export const getDesignTokens = (mode: PaletteMode = "light"): DesignTokens => ({
           divider: "rgba(148,163,184,0.24)"
         })
   },
-  shape: { borderRadius: 12 },
+  shape: { borderRadius: 0 },
   typography: {
     fontFamily:
       '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
@@ -51,5 +51,59 @@ export const getDesignTokens = (mode: PaletteMode = "light"): DesignTokens => ({
 });
 
 export const createEvzoneTheme = (mode: PaletteMode = "light"): Theme =>
-  createTheme(getDesignTokens(mode));
-
+  createTheme({
+    ...getDesignTokens(mode),
+    components: {
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            borderRadius: "0 !important"
+          }
+        }
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            borderRadius: "0 !important"
+          }
+        }
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: "0 !important"
+          }
+        }
+      },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            borderRadius: "0 !important"
+          }
+        }
+      },
+      MuiTextField: {
+        styleOverrides: {
+          root: {
+            "& .MuiInputBase-root": {
+              borderRadius: "0 !important"
+            }
+          }
+        }
+      },
+      MuiBottomNavigation: {
+        styleOverrides: {
+          root: {
+            borderRadius: "0 !important"
+          }
+        }
+      },
+      MuiBottomNavigationAction: {
+        styleOverrides: {
+          root: {
+            borderRadius: "0 !important"
+          }
+        }
+      }
+    }
+  });
