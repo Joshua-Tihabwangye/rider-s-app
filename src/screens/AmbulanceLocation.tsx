@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -21,7 +20,6 @@ import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 
-import MobileShell from "../components/MobileShell";
 
 function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -384,15 +382,9 @@ export default function RiderScreen84AmbulanceLocationPatientDetailsCanvas_v2() 
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <AmbulanceLocationPatientDetailsScreen />
-        </MobileShell>
+        
       </Box>
     
   );

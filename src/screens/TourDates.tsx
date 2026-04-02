@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -19,7 +18,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 
-import MobileShell from "../components/MobileShell";
 
 function TourDateGuestsScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -340,15 +338,9 @@ export default function RiderScreen79TourDateGuestsCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <TourDateGuestsScreen />
-        </MobileShell>
+        
       </Box>
     
   );

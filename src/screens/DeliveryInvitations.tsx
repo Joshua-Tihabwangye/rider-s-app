@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -15,7 +14,6 @@ import {
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import MailRoundedIcon from "@mui/icons-material/MailRounded";
-import MobileShell from "../components/MobileShell";
 import { COLORS } from "../constants/colors";
 
 const INVITATIONS = [
@@ -382,10 +380,9 @@ function InvitationsPendingScreen(): React.JSX.Element {
 export default function RiderScreen57InvitationsPendingTabCanvas_v2() {
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-      <DarkModeToggle />
-      <MobileShell>
+
         <InvitationsPendingScreen />
-      </MobileShell>
+      
     </Box>
   );
 }

@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Box,
@@ -21,7 +20,6 @@ import FlagRoundedIcon from "@mui/icons-material/FlagRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import StraightenRoundedIcon from "@mui/icons-material/StraightenRounded";
-import MobileShell from "../components/MobileShell";
 
 function CompletedTripSummaryScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -762,10 +760,9 @@ export default function RiderScreen37CompletedTripSummaryCanvas_v2() {
       <Box
         sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}
       >
-        <DarkModeToggle />
-        <MobileShell>
+
           <CompletedTripSummaryScreen />
-        </MobileShell>
+        
       </Box>
   );
 }

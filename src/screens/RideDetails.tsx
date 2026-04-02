@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -19,7 +18,6 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import MobileShell from "../components/MobileShell";
 
 function RideDetailsPreConfirmScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -274,15 +272,9 @@ export default function RiderScreen42RideDetailsPreConfirmCanvas_v2() {
     
       
       <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <RideDetailsPreConfirmScreen />
-        </MobileShell>
+        
       </Box>
     
   );

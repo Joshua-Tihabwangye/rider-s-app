@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -23,7 +22,6 @@ import LocalFireDepartmentRoundedIcon from "@mui/icons-material/LocalFireDepartm
 import HotelRoundedIcon from "@mui/icons-material/HotelRounded";
 import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
 import BeachAccessRoundedIcon from "@mui/icons-material/BeachAccessRounded";
-import MobileShell from "../components/MobileShell";
 
 function TripInProgressBasicScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -639,10 +637,9 @@ export default function RiderScreen25TripInProgressBasicCanvas_v2() {
         bgcolor: (theme) => theme.palette.background.default
       }}
     >
-      <DarkModeToggle />
-      <MobileShell>
+
         <TripInProgressBasicScreen />
-      </MobileShell>
+      
     </Box>
   );
 }

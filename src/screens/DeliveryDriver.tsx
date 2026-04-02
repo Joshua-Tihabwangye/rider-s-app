@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -23,7 +22,6 @@ import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
-import MobileShell from "../components/MobileShell";
 
 function ActiveDeliveryDriverInfoLiveTrackingScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -331,15 +329,9 @@ export default function RiderScreen63ActiveDeliveryDriverInfoLiveTrackingCanvas_
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <ActiveDeliveryDriverInfoLiveTrackingScreen />
-        </MobileShell>
+        
       </Box>
     
   );

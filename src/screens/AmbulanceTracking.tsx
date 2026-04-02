@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -22,7 +21,6 @@ import PhoneEnabledRoundedIcon from "@mui/icons-material/PhoneEnabledRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 
-import MobileShell from "../components/MobileShell";
 
 function AmbulanceLiveTrackingScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -250,15 +248,9 @@ export default function RiderScreen87AmbulanceLiveTrackingCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <AmbulanceLiveTrackingScreen />
-        </MobileShell>
+        
       </Box>
     
   );

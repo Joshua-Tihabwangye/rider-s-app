@@ -18,8 +18,6 @@ import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import GavelRoundedIcon from "@mui/icons-material/GavelRounded";
 import UpdateRoundedIcon from "@mui/icons-material/UpdateRounded";
-import MobileShell from "../components/MobileShell";
-import DarkModeToggle from "../components/DarkModeToggle";
 
 export default function About(): React.JSX.Element {
   const navigate = useNavigate();
@@ -55,8 +53,7 @@ export default function About(): React.JSX.Element {
         bgcolor: (t) => t.palette.background.default
       }}
     >
-      <DarkModeToggle />
-      <MobileShell>
+
         <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
           {/* Header */}
           <Box
@@ -223,7 +220,7 @@ export default function About(): React.JSX.Element {
             </Typography>
           </Box>
         </Box>
-      </MobileShell>
+      
     </Box>
   );
 }

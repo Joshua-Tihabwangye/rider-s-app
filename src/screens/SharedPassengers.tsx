@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -17,7 +16,6 @@ import {
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import PercentRoundedIcon from "@mui/icons-material/PercentRounded";
-import MobileShell from "../components/MobileShell";
 
 const SHARED_PASSENGERS = [
   { id: 1, name: "You", initials: "YOU", share: 0.4, isOwner: true },
@@ -258,15 +256,9 @@ export default function RiderScreen36SharedPassengersCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <SharedPassengersScreen />
-        </MobileShell>
+        
       </Box>
     
   );

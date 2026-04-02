@@ -16,8 +16,6 @@ import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import NotificationsActiveRoundedIcon from "@mui/icons-material/NotificationsActiveRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 
-import MobileShell from "../components/MobileShell";
-import DarkModeToggle from "../components/DarkModeToggle";
 
 function AmbulanceDashboardHomeScreen(): React.JSX.Element {
   const [ctaState, setCtaState] = useState("idle");
@@ -442,10 +440,9 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
 export default function AmbulanceDashboard(): React.JSX.Element {
   return (
     <>
-      <DarkModeToggle />
-      <MobileShell>
+
         <AmbulanceDashboardHomeScreen />
-      </MobileShell>
+      
     </>
   );
 }

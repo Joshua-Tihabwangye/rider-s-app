@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -23,7 +22,6 @@ import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import MobileShell from "../components/MobileShell";
 
 // Route preference categories
 const ROUTE_PREFERENCES = [
@@ -566,10 +564,9 @@ export default function RiderScreen59PreferenceSelectionCanvas_v2() {
         bgcolor: (theme) => theme.palette.background.default
       }}
     >
-      <DarkModeToggle />
-      <MobileShell>
+
         <PreferenceSelectionScreen />
-      </MobileShell>
+      
     </Box>
   );
 }

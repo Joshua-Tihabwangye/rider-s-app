@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -26,7 +25,6 @@ import StraightenRoundedIcon from "@mui/icons-material/StraightenRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import Button from "@mui/material/Button";
-import MobileShell from "../components/MobileShell";
 import SharedPassengersModal from "../components/SharedPassengersModal";
 
 // Mock data - would come from API: GET /user/rides?status=past
@@ -1130,10 +1128,9 @@ export default function RiderScreen33RideHistoryPastTripsCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        <DarkModeToggle />
-        <MobileShell>
+
           <RideHistoryPastTripsScreen />
-        </MobileShell>
+        
       </Box>
   );
 }

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -20,7 +19,6 @@ import AcUnitRoundedIcon from "@mui/icons-material/AcUnitRounded";
 import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import MobileShell from "../components/MobileShell";
 
 const INLINE_PREFS = [
   {
@@ -259,15 +257,9 @@ export default function RiderScreen17PreferenceSelectionInlineCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <PreferenceSelectionInlineScreen />
-        </MobileShell>
+        
       </Box>
     
   );

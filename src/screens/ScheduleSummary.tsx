@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -19,7 +18,6 @@ import EventRoundedIcon from "@mui/icons-material/EventRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import AutorenewRoundedIcon from "@mui/icons-material/AutorenewRounded";
-import MobileShell from "../components/MobileShell";
 
 function RideLaterSummaryScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -307,15 +305,9 @@ export default function RiderScreen9RideLaterSummaryCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <RideLaterSummaryScreen />
-        </MobileShell>
+        
       </Box>
     
   );

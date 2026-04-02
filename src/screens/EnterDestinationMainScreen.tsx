@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -19,7 +18,6 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
-import MobileShell from "../components/MobileShell";
 
 interface CommonPlaceCardProps {
   icon: React.ReactElement;
@@ -317,15 +315,9 @@ export default function RiderScreen2EnterDestinationCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <EnterDestinationMainScreen />
-        </MobileShell>
+        
       </Box>
     
   );

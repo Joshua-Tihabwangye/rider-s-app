@@ -1,5 +1,4 @@
 import React, { useState, useRef } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -16,7 +15,6 @@ import {
 
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
-import MobileShell from "../components/MobileShell";
 
 // Generate date options
 const generateDateOptions = () => {
@@ -558,10 +556,9 @@ export default function RiderScreen8ScheduleRideCanvas_v2() {
         bgcolor: (theme) => theme.palette.background.default
       }}
     >
-      <DarkModeToggle />
-      <MobileShell>
+
         <ScheduleRideScreen />
-      </MobileShell>
+      
     </Box>
   );
 }

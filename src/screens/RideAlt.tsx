@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import DarkModeToggle from "../components/DarkModeToggle";
 import {
   
   Box,
@@ -20,7 +19,6 @@ import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
-import MobileShell from "../components/MobileShell";
 
 function WhereToTodayAlternateScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -196,15 +194,9 @@ function WhereToTodayAlternateScreen(): React.JSX.Element {
 export default function RiderScreen44WhereToTodayAlternateCanvas_v2() {
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <WhereToTodayAlternateScreen />
-        </MobileShell>
+        
       </Box>
   );
 }

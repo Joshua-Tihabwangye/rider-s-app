@@ -24,8 +24,6 @@ import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import MailRoundedIcon from "@mui/icons-material/MailRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
-import MobileShell from "../components/MobileShell";
-import DarkModeToggle from "../components/DarkModeToggle";
 
 export default function MoreMenu(): React.JSX.Element {
   const navigate = useNavigate();
@@ -76,16 +74,7 @@ export default function MoreMenu(): React.JSX.Element {
   ];
 
   return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (t) => t.palette.background.default
-      }}
-    >
-      <DarkModeToggle />
-      <MobileShell>
-        <Box sx={{ px: 2.5, pt: 3, pb: 3 }}>
+    <Box sx={{ px: 2.5, pt: 3, pb: 3 }}>
           {/* Header */}
           <Box sx={{ mb: 3 }}>
             <Typography
@@ -512,9 +501,6 @@ export default function MoreMenu(): React.JSX.Element {
               </React.Fragment>
             ))}
           </List>
-        </Box>
-      </MobileShell>
     </Box>
   );
 }
-

@@ -30,8 +30,6 @@ import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import Button from "@mui/material/Button";
-import MobileShell from "../components/MobileShell";
-import DarkModeToggle from "../components/DarkModeToggle";
 
 function HomeMultiServiceScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -934,18 +932,5 @@ function HomeMultiServiceScreen(): React.JSX.Element {
 }
 
 export default function RiderScreen01HomeMultiServiceCanvas_v2() {
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (t) => t.palette.background.default
-      }}
-    >
-      <DarkModeToggle />
-      <MobileShell>
-        <HomeMultiServiceScreen />
-      </MobileShell>
-    </Box>
-  );
+  return <HomeMultiServiceScreen />;
 }

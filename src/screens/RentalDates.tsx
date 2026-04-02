@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -19,7 +18,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 
-import MobileShell from "../components/MobileShell";
 
 function RentalDatesDurationScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -291,15 +289,9 @@ export default function RiderScreen72RentalDatesDurationCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <RentalDatesDurationScreen />
-        </MobileShell>
+        
       </Box>
     
   );

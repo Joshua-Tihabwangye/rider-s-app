@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -18,7 +17,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-import MobileShell from "../components/MobileShell";
 
 const TOURS = [
   {
@@ -361,15 +359,9 @@ export default function RiderScreen77ToursHomeBrowseCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <ToursHomeBrowseScreen />
-        </MobileShell>
+        
       </Box>
     
   );

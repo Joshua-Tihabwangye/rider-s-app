@@ -1,7 +1,6 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useNavigate } from "react-router-dom";
-import DarkModeToggle from "../components/DarkModeToggle";
 import {
   Box,
   IconButton,
@@ -18,7 +17,6 @@ import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
-import MobileShell from "../components/MobileShell";
 
 function RentalBookingConfirmationScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -214,15 +212,9 @@ export default function RiderScreen75RentalBookingConfirmationCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <RentalBookingConfirmationScreen />
-        </MobileShell>
+        
       </Box>
   );
 }

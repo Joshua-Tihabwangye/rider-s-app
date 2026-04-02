@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -19,7 +18,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import PersonAddAltRoundedIcon from "@mui/icons-material/PersonAddAltRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
-import MobileShell from "../components/MobileShell";
 
 const PENDING_INVITATIONS_V2 = [
   {
@@ -282,15 +280,9 @@ export default function RiderScreen58InvitationsPendingTabV2Canvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <InvitationsPendingV2Screen />
-        </MobileShell>
+        
       </Box>
     
   );

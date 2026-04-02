@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -24,7 +23,6 @@ import PersonAddAltRoundedIcon from "@mui/icons-material/PersonAddAltRounded";
 import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import PercentRoundedIcon from "@mui/icons-material/PercentRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
-import MobileShell from "../components/MobileShell";
 
 const PASSENGERS = [
   { id: 1, name: "You", initials: "YOU", isOwner: true, joined: true },
@@ -362,15 +360,9 @@ export default function RiderScreen30ShareRidePassengersCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <ShareRidePassengersScreen />
-        </MobileShell>
+        
       </Box>
     
   );

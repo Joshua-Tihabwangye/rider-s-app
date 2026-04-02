@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -23,7 +22,6 @@ import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded";
 import BusinessRoundedIcon from "@mui/icons-material/BusinessRounded";
 import SpeedRoundedIcon from "@mui/icons-material/SpeedRounded";
 import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
-import MobileShell from "../components/MobileShell";
 
 // Mock driver preferences data (would come from API)
 const DRIVER_PREFERENCES = [
@@ -351,8 +349,7 @@ function DriverPreferencesScreen(): React.JSX.Element {
   if (isOpen) {
     return (
       <>
-        <DarkModeToggle />
-        <Modal
+<Modal
           open={isOpen}
           onClose={(event: object, reason: string) => {
             // Don't close if clicking on navigation
@@ -622,10 +619,9 @@ export default function RiderScreen19DriverPreferencesCanvas_v2() {
         bgcolor: (theme) => theme.palette.background.default
       }}
     >
-      <DarkModeToggle />
-      <MobileShell>
+
         <DriverPreferencesScreen />
-      </MobileShell>
+      
     </Box>
   );
 }

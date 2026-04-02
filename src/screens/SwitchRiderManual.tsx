@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -19,7 +18,6 @@ import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
-import MobileShell from "../components/MobileShell";
 
 function SwitchRiderManualEntryScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -253,15 +251,9 @@ export default function RiderScreen12SwitchRiderManualEntryCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <SwitchRiderManualEntryScreen />
-        </MobileShell>
+        
       </Box>
     
   );

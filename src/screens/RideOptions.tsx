@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -21,7 +20,6 @@ import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceW
 import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
 import SmartphoneRoundedIcon from "@mui/icons-material/SmartphoneRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
-import MobileShell from "../components/MobileShell";
 
 interface MapBackgroundProps {
   onBackClick: () => void;
@@ -571,10 +569,9 @@ export default function RiderScreen20SelectYourRideCanvas_v2() {
         bgcolor: (theme) => theme.palette.background.default
       }}
     >
-      <DarkModeToggle />
-      <MobileShell>
+
         <SelectYourRideScreen />
-      </MobileShell>
+      
     </Box>
   );
 }

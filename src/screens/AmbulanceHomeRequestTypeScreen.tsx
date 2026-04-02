@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -17,7 +16,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import PhoneEnabledRoundedIcon from "@mui/icons-material/PhoneEnabledRounded";
 
-import MobileShell from "../components/MobileShell";
 
 function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -234,15 +232,9 @@ export default function RiderScreen83AmbulanceHomeRequestTypeCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <AmbulanceHomeRequestTypeScreen />
-        </MobileShell>
+        
       </Box>
     
   );

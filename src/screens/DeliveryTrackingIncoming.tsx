@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -17,7 +16,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import MailRoundedIcon from "@mui/icons-material/MailRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import MobileShell from "../components/MobileShell";
 import { COLORS } from "../constants/colors";
 
 const INCOMING_TRACKING_REQUESTS = [
@@ -413,10 +411,9 @@ function IncomingTrackingRequestsScreen(): React.JSX.Element {
 export default function RiderScreen56IncomingTrackingRequestsCanvas_v2() {
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-      <DarkModeToggle />
-      <MobileShell>
+
         <IncomingTrackingRequestsScreen />
-      </MobileShell>
+      
     </Box>
   );
 }

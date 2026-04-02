@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -21,7 +20,6 @@ import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
 
-import MobileShell from "../components/MobileShell";
 
 function RentalBookingDetailViewScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -315,15 +313,9 @@ export default function RiderScreen90RentalBookingDetailViewCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <RentalBookingDetailViewScreen />
-        </MobileShell>
+        
       </Box>
     
   );

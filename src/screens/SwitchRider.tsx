@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -32,7 +31,6 @@ import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
-import MobileShell from "../components/MobileShell";
 
 function SwitchRiderChooserScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -554,10 +552,9 @@ export default function RiderScreen10SwitchRiderChooserCanvas_v2() {
         bgcolor: (theme) => theme.palette.background.default
       }}
     >
-      <DarkModeToggle />
-      <MobileShell>
+
         <SwitchRiderChooserScreen />
-      </MobileShell>
+      
     </Box>
   );
 }

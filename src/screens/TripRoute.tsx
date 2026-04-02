@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -19,7 +18,6 @@ import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
-import MobileShell from "../components/MobileShell";
 
 function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -737,10 +735,9 @@ export default function RiderScreen27TripInProgressExpandedDetailsCanvas_v2() {
         bgcolor: (theme) => theme.palette.background.default
       }}
     >
-      <DarkModeToggle />
-      <MobileShell>
+
         <TripInProgressExpandedDetailsScreen />
-      </MobileShell>
+      
     </Box>
   );
 }

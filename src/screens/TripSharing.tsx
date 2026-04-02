@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -19,7 +18,6 @@ import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
-import MobileShell from "../components/MobileShell";
 
 // Passenger data - would come from backend/API
 // Retrieve all passengers from the ongoing trip session API
@@ -557,10 +555,9 @@ export default function RiderScreen31SharingPassengersCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        <DarkModeToggle />
-        <MobileShell>
+
         <SharingPassengersScreen />
-        </MobileShell>
+        
       </Box>
   );
 }

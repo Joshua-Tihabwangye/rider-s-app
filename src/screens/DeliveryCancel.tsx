@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -20,7 +19,6 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import CancelRoundedIcon from "@mui/icons-material/CancelRounded";
-import MobileShell from "../components/MobileShell";
 
 function ActiveDeliveryWithCancelScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -262,15 +260,9 @@ export default function RiderScreen61ActiveDeliveryWithCancelCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <ActiveDeliveryWithCancelScreen />
-        </MobileShell>
+        
       </Box>
     
   );

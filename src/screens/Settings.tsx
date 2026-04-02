@@ -23,8 +23,6 @@ import PrivacyTipRoundedIcon from "@mui/icons-material/PrivacyTipRounded";
 import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
-import MobileShell from "../components/MobileShell";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useThemeMode } from "../contexts/ThemeContext";
 
 export default function Settings(): React.JSX.Element {
@@ -40,8 +38,7 @@ export default function Settings(): React.JSX.Element {
         bgcolor: (t) => t.palette.background.default
       }}
     >
-      <DarkModeToggle />
-      <MobileShell>
+
         <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
           {/* Header */}
           <Box
@@ -341,7 +338,7 @@ export default function Settings(): React.JSX.Element {
             </ListItem>
           </List>
         </Box>
-      </MobileShell>
+      
     </Box>
   );
 }

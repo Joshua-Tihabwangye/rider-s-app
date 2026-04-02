@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -18,7 +17,6 @@ import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import FamilyRestroomRoundedIcon from "@mui/icons-material/FamilyRestroomRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
-import MobileShell from "../components/MobileShell";
 
 interface Contact {
   id: number;
@@ -340,15 +338,9 @@ export default function RiderScreen11SwitchRiderContactSelectedCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <SwitchRiderContactSelectedScreen />
-        </MobileShell>
+        
       </Box>
     
   );

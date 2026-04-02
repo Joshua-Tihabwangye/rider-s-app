@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -22,7 +21,6 @@ import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import MobileShell from "../components/MobileShell";
 
 function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -740,10 +738,9 @@ export default function RiderScreen29TripCompletedArrivalSummaryCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        <DarkModeToggle />
-        <MobileShell>
+
           <TripCompletedArrivalSummaryScreen />
-        </MobileShell>
+        
       </Box>
   );
 }

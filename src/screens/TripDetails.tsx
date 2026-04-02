@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -28,7 +27,6 @@ import HotelRoundedIcon from "@mui/icons-material/HotelRounded";
 import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
-import MobileShell from "../components/MobileShell";
 
 function TripInProgressWithDriverScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -1205,10 +1203,9 @@ export default function RiderScreen26TripInProgressWithDriverCanvas_v2() {
         bgcolor: (theme) => theme.palette.background.default
       }}
     >
-      <DarkModeToggle />
-      <MobileShell>
+
         <TripInProgressWithDriverScreen />
-      </MobileShell>
+      
     </Box>
   );
 }

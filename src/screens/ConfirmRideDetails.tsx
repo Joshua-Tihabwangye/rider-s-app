@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -25,7 +24,6 @@ import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import MobileShell from "../components/MobileShell";
 
 function RideDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -724,10 +722,9 @@ function RideDetailsScreen(): React.JSX.Element {
 export default function RiderScreen47RideDetailsCanvas_v2() {
       return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (theme) => theme.palette.background.default }}>
-        <DarkModeToggle />
-        <MobileShell>
+
         <RideDetailsScreen />
-        </MobileShell>
+        
       </Box>
   );
 }

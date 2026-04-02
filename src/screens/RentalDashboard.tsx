@@ -14,8 +14,6 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 
-import MobileShell from "../components/MobileShell";
-import DarkModeToggle from "../components/DarkModeToggle";
 
 function RentalDashboardHomeScreen(): React.JSX.Element {
   const [ctaState, setCtaState] = useState("idle");
@@ -502,10 +500,9 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
 export default function RentalDashboard(): React.JSX.Element {
   return (
     <>
-      <DarkModeToggle />
-      <MobileShell>
+
         <RentalDashboardHomeScreen />
-      </MobileShell>
+      
     </>
   );
 }
