@@ -1,11 +1,16 @@
 import { GlobalThemeProvider } from "./contexts/ThemeContext";
+import { BrowserRouter } from "react-router-dom";
+import ResponsiveShell from "./components/ResponsiveShell";
 import AppRouter from "./routes";
 
 export default function App(): React.JSX.Element {
-  return (
-    <GlobalThemeProvider>
-      <AppRouter />
-    </GlobalThemeProvider>
-  );
+	return (
+		<GlobalThemeProvider>
+			<BrowserRouter>
+				<ResponsiveShell>
+					<AppRouter />
+				</ResponsiveShell>
+			</BrowserRouter>
+		</GlobalThemeProvider>
+	);
 }
-
