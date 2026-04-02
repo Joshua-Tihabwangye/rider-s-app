@@ -1,22 +1,21 @@
+import React from "react";
 import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  Stack,
-  Chip,
-  Button,
   Avatar,
+  Box,
+  Button,
+  Chip,
+  IconButton,
   LinearProgress,
-  IconButton
+  Stack,
+  Typography
 } from "@mui/material";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
-import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
-import { COLORS } from "../../constants/colors";
+import AppCard from "../primitives/AppCard";
+import { uiTokens } from "../../design/tokens";
 import { formatDeliveryDateParts } from "../../utils/dateUtils";
 
 interface SenderInfo {
@@ -26,13 +25,11 @@ interface SenderInfo {
   address?: string;
   profileImage?: string | null;
   avatar?: string;
-  icon?: string;
 }
 
 interface ReceiverInfo {
   city?: string;
   code?: string;
-  icon?: string;
 }
 
 interface DeliveryOrder {
@@ -57,10 +54,18 @@ interface DeliveryCardProps {
   showTruckIcon?: boolean;
 }
 
-/**
- * Reusable Delivery Card Component
- * Displays delivery information in a consistent card format
- */
+function statusStyles(status: string): { bg: string | ((theme: any) => string); fg: string | ((theme: any) => string) } {
+  if (status === "Request accepted" || status === "Delivered") {
+    return { bg: uiTokens.colors.successBg, fg: uiTokens.colors.successText };
+  }
+  return {
+    bg: (theme: any) =>
+      theme.palette.mode === "light" ? uiTokens.colors.neutral100 : uiTokens.colors.slate700,
+    fg: (theme: any) =>
+      theme.palette.mode === "light" ? uiTokens.colors.neutral600 : uiTokens.colors.slate300
+  };
+}
+
 export default function DeliveryCard({
   order,
   variant = "delivering",
@@ -70,316 +75,163 @@ export default function DeliveryCard({
   onMakePayment,
   showTruckIcon = false
 }: DeliveryCardProps): React.JSX.Element {
-  const greenPrimary = COLORS.green.primary;
-  const greenSecondary = COLORS.green.secondary;
   const isReceived = variant === "received";
   const showAcceptReject = variant === "delivering" && order.status === "Waiting to accept";
+  const statusTone = statusStyles(order.status);
 
   return (
-    <Card
-      elevation={0}
-      sx={{
-        mb: 2,
-        borderRadius: 2.5,
-        bgcolor: (t) =>
-          t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-        border: (t) =>
-          t.palette.mode === "light"
-            ? "1px solid rgba(209,213,219,0.9)"
-            : "1px solid rgba(51,65,85,0.9)"
-      }}
-    >
-      <CardContent sx={{ px: 1.75, py: 1.75 }}>
-        {/* Package Icon and Name */}
-        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5 }}>
+    <AppCard sx={{ mb: uiTokens.spacing.lg }}>
+      <Stack spacing={1.35}>
+        <Stack direction="row" spacing={1.25} alignItems="center">
           <Box
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 1.5,
               bgcolor: (t) =>
-                t.palette.mode === "light" ? "rgba(3,205,140,0.1)" : "rgba(3,205,140,0.2)",
+                uiTokens.surfaces.brandTintSoft(t),
               display: "flex",
               alignItems: "center",
-              justifyContent: "center"
+              justifyContent: "center",
+              color: uiTokens.colors.brand
             }}
           >
-            <Inventory2RoundedIcon sx={{ fontSize: 20, color: greenPrimary }} />
+            <Inventory2RoundedIcon sx={{ fontSize: 20 }} />
           </Box>
-          <Box sx={{ flex: 1 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{
-                fontSize: 14,
-                fontWeight: 600,
-                letterSpacing: "-0.01em",
-                mb: 0.25
-              }}
-            >
+
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="subtitle2" sx={{ ...uiTokens.text.itemTitle, mb: 0.2 }}>
               {order.packageName}
             </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-            >
+            <Typography variant="caption" sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary }}>
               Tracking ID: {order.id}
             </Typography>
           </Box>
+
           {onMenuClick && (
-            <IconButton
-              size="small"
-              onClick={(e) => onMenuClick(e, order.id)}
-              sx={{
-                width: 32,
-                height: 32,
-                color: (t) => t.palette.text.secondary
-              }}
-            >
+            <IconButton size="small" onClick={(e) => onMenuClick(e, order.id)} sx={{ color: (t) => t.palette.text.secondary }}>
               <MoreVertRoundedIcon sx={{ fontSize: 18 }} />
             </IconButton>
           )}
         </Stack>
 
-        {/* Sender Section */}
         {isReceived ? (
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+          <Stack direction="row" spacing={1} alignItems="center">
             <Avatar
               src={order.sender?.profileImage || undefined}
               sx={{
                 width: 32,
                 height: 32,
-                bgcolor: greenPrimary,
+                bgcolor: uiTokens.colors.brand,
+                color: uiTokens.colors.white,
                 fontSize: 13,
-                fontWeight: 600,
-                color: "#FFFFFF"
+                fontWeight: 700
               }}
             >
               {order.sender?.avatar || order.sender?.name?.charAt(0) || "U"}
             </Avatar>
             <Box sx={{ flex: 1 }}>
               <Stack direction="row" spacing={0.5} alignItems="center">
-                <ArrowUpwardRoundedIcon
-                  sx={{
-                    fontSize: 14,
-                    color: greenPrimary
-                  }}
-                />
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-                >
+                <ArrowUpwardRoundedIcon sx={{ fontSize: 14, color: uiTokens.colors.brand }} />
+                <Typography variant="caption" sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary }}>
                   Sender
                 </Typography>
               </Stack>
-              <Typography
-                variant="body2"
-                sx={{ fontSize: 12, fontWeight: 500, letterSpacing: "-0.01em" }}
-              >
+              <Typography variant="body2" sx={{ fontSize: 12.5, fontWeight: 600 }}>
                 {order.sender?.city}, {order.sender?.code}
               </Typography>
             </Box>
           </Stack>
         ) : (
-          <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mb: 1 }}>
+          <Stack direction="row" spacing={1} alignItems="flex-start">
             <Avatar
               sx={{
                 width: 32,
                 height: 32,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "rgba(3,205,140,0.15)" : "rgba(3,205,140,0.25)",
-                fontSize: 13,
-                fontWeight: 600,
-                color: greenPrimary,
-                mt: 0.25
+              bgcolor: (t) =>
+                  uiTokens.surfaces.brandTintMedium(t),
+                color: uiTokens.colors.brand
               }}
             >
-              <PersonRoundedIcon sx={{ fontSize: 18 }} />
+              <PersonRoundedIcon sx={{ fontSize: 17 }} />
             </Avatar>
             <Box sx={{ flex: 1 }}>
               <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.25 }}>
-                <PersonRoundedIcon
-                  sx={{
-                    fontSize: 14,
-                    color: (t) => t.palette.text.secondary
-                  }}
-                />
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-                >
+                <PersonRoundedIcon sx={{ fontSize: 14, color: (t) => t.palette.text.secondary }} />
+                <Typography variant="caption" sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary }}>
                   Sender
                 </Typography>
               </Stack>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: "-0.01em",
-                  mb: 0.25,
-                  color: (t) => t.palette.text.primary
-                }}
-              >
+              <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 700, mb: 0.25 }}>
                 {order.sender?.name || "Unknown Sender"}
               </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontSize: 10.5,
-                  color: (t) => t.palette.text.secondary,
-                  lineHeight: 1.4,
-                  display: "block"
-                }}
-              >
+              <Typography variant="caption" sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary }}>
                 {order.sender?.address || `${order.sender?.city}, ${order.sender?.code}`}
               </Typography>
             </Box>
           </Stack>
         )}
 
-        {/* Date and Day - Only for delivering variant */}
         {!isReceived && order.date && (
-          <Box sx={{ mb: 1 }}>
-            <Typography
-              variant="caption"
-              sx={{
-                fontSize: 10.5,
-                color: (t) => t.palette.text.secondary,
-                "& .date-part": {
-                  color: (t) => t.palette.text.secondary
-                },
-                "& .day-part": {
-                  color: greenPrimary,
-                  fontWeight: 600
-                }
-              }}
-            >
-              <span className="date-part">
-                {formatDeliveryDateParts(order.date).datePart}
-              </span>
-              {" – "}
-              <span className="day-part">
-                {formatDeliveryDateParts(order.date).dayPart}
-              </span>
-            </Typography>
-          </Box>
+          <Typography
+            variant="caption"
+            sx={{
+              ...uiTokens.text.itemBody,
+              color: (t) => t.palette.text.secondary,
+              "& .day-part": { color: uiTokens.colors.brand, fontWeight: 700 }
+            }}
+          >
+            {formatDeliveryDateParts(order.date).datePart} –{" "}
+            <span className="day-part">{formatDeliveryDateParts(order.date).dayPart}</span>
+          </Typography>
         )}
 
-        {/* Receiver Section */}
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
           <Avatar
             sx={{
               width: 32,
               height: 32,
               bgcolor: (t) =>
-                t.palette.mode === "light" ? "rgba(247,127,0,0.15)" : "rgba(247,127,0,0.25)",
-              fontSize: 12,
-              fontWeight: 600,
-              color: COLORS.orange.primary,
-              position: "relative"
+                uiTokens.surfaces.accentTintSoft(t),
+              color: uiTokens.colors.accent
             }}
           >
-            <Inventory2RoundedIcon sx={{ fontSize: 16 }} />
-            <ArrowDownwardRoundedIcon
-              sx={{
-                fontSize: isReceived ? 12 : 10,
-                position: "absolute",
-                bottom: isReceived ? -4 : -2,
-                right: isReceived ? -4 : -2,
-                bgcolor: (t) => t.palette.background.paper,
-                borderRadius: "50%",
-                p: isReceived ? 0.25 : 0
-              }}
-            />
+            <Inventory2RoundedIcon sx={{ fontSize: 15 }} />
           </Avatar>
           <Box sx={{ flex: 1 }}>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
+            <Typography variant="caption" sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary }}>
               Receiver
             </Typography>
-            <Typography
-              variant="body2"
-              sx={{ fontSize: 12, fontWeight: 500, letterSpacing: "-0.01em" }}
-            >
+            <Typography variant="body2" sx={{ fontSize: 12.5, fontWeight: 600 }}>
               {order.receiver?.city}, {order.receiver?.code}
             </Typography>
           </Box>
-          {isReceived && (
-            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ justifyContent: "flex-end" }}>
-              <Box
-                component="span"
-                sx={{
-                  width: 12,
-                  height: 12,
-                  minWidth: 12,
-                  minHeight: 12,
-                  borderRadius: "50%",
-                  bgcolor: greenPrimary,
-                  display: "inline-block",
-                  flexShrink: 0,
-                  boxShadow: `0 0 0 2px ${greenPrimary}30`
-                }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, whiteSpace: "nowrap" }}
-              >
-                {order.time}
-              </Typography>
-            </Stack>
-          )}
-          {!isReceived && (
-            <Box sx={{ flex: 1, textAlign: "right" }}>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-              >
-                {order.time}
-              </Typography>
-            </Box>
-          )}
+          <Typography variant="caption" sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary }}>
+            {order.time}
+          </Typography>
         </Stack>
 
-        {/* Status and Progress */}
-        <Stack spacing={1} sx={{ mb: showAcceptReject || order.needsPayment ? 1.5 : 0 }}>
+        <Stack spacing={1}>
           <Chip
             label={order.status}
             size="small"
             sx={{
+              width: "fit-content",
               height: 22,
               fontSize: 10,
-              fontWeight: 600,
-              width: "fit-content",
-              bgcolor:
-                order.status === "Waiting to accept" || order.status === "Waiting to collect"
-                  ? (t) => (t.palette.mode === "light" ? "#F3F4F6" : "#374151")
-                  : order.status === "Request accepted" || order.status === "Delivered"
-                  ? "#D1FAE5"
-                  : "#F3F4F6",
-              color:
-                order.status === "Waiting to accept" || order.status === "Waiting to collect"
-                  ? (t) => (t.palette.mode === "light" ? "#4B5563" : "#9CA3AF")
-                  : order.status === "Request accepted" || order.status === "Delivered"
-                  ? "#064E3B"
-                  : "#4B5563"
+              fontWeight: 700,
+              bgcolor: statusTone.bg,
+              color: statusTone.fg
             }}
           />
-          {/* Progress Line with optional Delivery Truck Icon */}
-          <Box sx={{ position: "relative", width: "100%" }}>
+          <Box sx={{ position: "relative" }}>
             <LinearProgress
               variant="determinate"
               value={order.progress || 0}
               sx={{
                 height: 4,
-                borderRadius: 999,
                 bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#E5E7EB" : "#374151",
-                "& .MuiLinearProgress-bar": {
-                  borderRadius: 999,
-                  bgcolor: greenPrimary
-                }
+                  t.palette.mode === "light" ? uiTokens.colors.neutral200 : uiTokens.colors.slate700,
+                "& .MuiLinearProgress-bar": { bgcolor: uiTokens.colors.brand }
               }}
             />
             {showTruckIcon && (
@@ -391,43 +243,32 @@ export default function DeliveryCard({
                   transform: "translateY(-50%)",
                   width: 20,
                   height: 20,
+                  bgcolor: uiTokens.colors.brand,
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  bgcolor: greenPrimary,
-                  borderRadius: "50%",
-                  boxShadow: `0 0 0 2px ${greenPrimary}20`
+                  justifyContent: "center"
                 }}
               >
-                <LocalShippingRoundedIcon
-                  sx={{
-                    fontSize: 12,
-                    color: "#FFFFFF"
-                  }}
-                />
+                <LocalShippingRoundedIcon sx={{ fontSize: 12, color: uiTokens.colors.white }} />
               </Box>
             )}
           </Box>
         </Stack>
 
-        {/* Accept/Reject Buttons - Only for delivering variant with "Waiting to accept" status */}
         {showAcceptReject && (
-          <Stack direction="row" spacing={1.5} sx={{ mt: 1 }}>
+          <Stack direction="row" spacing={1.25}>
             <Button
               fullWidth
               variant="contained"
               onClick={() => onAccept?.(order.id)}
               sx={{
-                bgcolor: greenPrimary,
-                color: "#FFFFFF",
-                borderRadius: 2,
-                py: 1,
+                bgcolor: uiTokens.colors.brand,
+                color: uiTokens.colors.white,
+                py: uiTokens.spacing.sm,
                 fontSize: 13,
-                fontWeight: 600,
+                fontWeight: 700,
                 textTransform: "none",
-                "&:hover": {
-                  bgcolor: greenSecondary
-                }
+                "&:hover": { bgcolor: uiTokens.colors.brandHover }
               }}
             >
               Accept
@@ -437,16 +278,15 @@ export default function DeliveryCard({
               variant="outlined"
               onClick={() => onReject?.(order.id)}
               sx={{
-                borderColor: "#EF4444",
-                color: "#EF4444",
-                borderRadius: 2,
-                py: 1,
+                borderColor: uiTokens.colors.danger,
+                color: uiTokens.colors.danger,
+                py: uiTokens.spacing.sm,
                 fontSize: 13,
-                fontWeight: 600,
+                fontWeight: 700,
                 textTransform: "none",
                 "&:hover": {
-                  borderColor: "#DC2626",
-                  bgcolor: "rgba(239,68,68,0.08)"
+                  borderColor: uiTokens.colors.dangerHover,
+                  bgcolor: uiTokens.surfaces.dangerTintSoft
                 }
               }}
             >
@@ -455,30 +295,25 @@ export default function DeliveryCard({
           </Stack>
         )}
 
-        {/* Make Payment Button - Only for received variant when payment is needed */}
         {order.needsPayment && isReceived && (
           <Button
             fullWidth
             variant="contained"
             onClick={() => onMakePayment?.(order.id)}
             sx={{
-              bgcolor: greenPrimary,
-              color: "#FFFFFF",
-              borderRadius: 2,
-              py: 1.2,
+              bgcolor: uiTokens.colors.brand,
+              color: uiTokens.colors.white,
+              py: uiTokens.spacing.smPlus,
               fontSize: 13,
-              fontWeight: 600,
+              fontWeight: 700,
               textTransform: "none",
-              "&:hover": {
-                bgcolor: greenSecondary
-              }
+              "&:hover": { bgcolor: uiTokens.colors.brandHover }
             }}
           >
             Make Payment
           </Button>
         )}
-      </CardContent>
-    </Card>
+      </Stack>
+    </AppCard>
   );
 }
-
