@@ -1,7 +1,6 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useNavigate } from "react-router-dom";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { Box,
   Typography,
   Card,
@@ -14,7 +13,6 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
-import MobileShell from "../components/MobileShell";
 
 function ThankYouRideConfirmedScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -180,15 +178,9 @@ export default function RiderScreen48ThankYouRideConfirmedCanvas_v2() {
     
       
       <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <ThankYouRideConfirmedScreen />
-        </MobileShell>
+        
       </Box>
     
   );

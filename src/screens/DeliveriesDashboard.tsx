@@ -31,8 +31,6 @@ import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import Badge from "@mui/material/Badge";
 
-import MobileShell from "../components/MobileShell";
-import DarkModeToggle from "../components/DarkModeToggle";
 import DeliveryCard from "../components/deliveries/DeliveryCard";
 import { COLORS } from "../constants/colors";
 
@@ -1079,12 +1077,5 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
 }
 
 export default function DeliveriesDashboard(): React.JSX.Element {
-  return (
-    <>
-      <DarkModeToggle />
-      <MobileShell>
-        <DeliveryDashboardHomeScreen />
-      </MobileShell>
-    </>
-  );
+  return <DeliveryDashboardHomeScreen />;
 }

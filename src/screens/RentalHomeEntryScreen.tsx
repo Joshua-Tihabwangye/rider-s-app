@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -21,7 +20,6 @@ import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
-import MobileShell from "../components/MobileShell";
 
 function RentalHomeEntryScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -310,15 +308,9 @@ export default function RiderScreen69RentalHomeEntryCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <RentalHomeEntryScreen />
-        </MobileShell>
+        
       </Box>
     
   );

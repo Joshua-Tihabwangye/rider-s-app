@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -20,7 +19,6 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
-import MobileShell from "../components/MobileShell";
 
 function SimpleEnterDestinationScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -289,15 +287,9 @@ export default function RiderScreen7SimpleEnterDestinationCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <SimpleEnterDestinationScreen />
-        </MobileShell>
+        
       </Box>
     
   );

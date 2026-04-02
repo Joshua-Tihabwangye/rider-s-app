@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -20,7 +19,6 @@ import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import RouteRoundedIcon from "@mui/icons-material/RouteRounded";
-import MobileShell from "../components/MobileShell";
 
 function EnterDestinationVariantScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -236,15 +234,9 @@ export default function RiderScreen38EnterDestinationVariantCanvas_v2() {
     
       
       <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <EnterDestinationVariantScreen />
-        </MobileShell>
+        
       </Box>
     
   );

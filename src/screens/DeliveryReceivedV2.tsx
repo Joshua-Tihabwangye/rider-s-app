@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -16,7 +15,6 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import MarkunreadMailboxRoundedIcon from "@mui/icons-material/MarkunreadMailboxRounded";
-import MobileShell from "../components/MobileShell";
 
 const RECEIVED_ORDERS = [
   {
@@ -287,15 +285,9 @@ export default function RiderScreen53DeliveriesDashboardReceivedV2Canvas_v2() {
     
       
       <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <DeliveriesDashboardReceivedV2Screen />
-        </MobileShell>
+        
       </Box>
     
   );

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -17,7 +16,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
-import MobileShell from "../components/MobileShell";
 
 const AMBULANCE_REQUESTS = [
   {
@@ -295,15 +293,9 @@ export default function RiderScreen88AmbulanceRequestsHistoryCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <AmbulanceRequestsHistoryScreen />
-        </MobileShell>
+        
       </Box>
     
   );

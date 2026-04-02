@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -18,7 +17,6 @@ import TwoWheelerRoundedIcon from "@mui/icons-material/TwoWheelerRounded";
 import LocalTaxiRoundedIcon from "@mui/icons-material/LocalTaxiRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
-import MobileShell from "../components/MobileShell";
 
 const RIDE_TYPES = [
   {
@@ -298,15 +296,9 @@ export default function RiderScreen14SelectRideTypeCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <SelectRideTypeScreen />
-        </MobileShell>
+        
       </Box>
     
   );

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -18,7 +17,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import FamilyRestroomRoundedIcon from "@mui/icons-material/FamilyRestroomRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
-import MobileShell from "../components/MobileShell";
 
 function RideForContactSummaryScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -253,15 +251,9 @@ export default function RiderScreen13RideForContactSummaryCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <RideForContactSummaryScreen />
-        </MobileShell>
+        
       </Box>
     
   );

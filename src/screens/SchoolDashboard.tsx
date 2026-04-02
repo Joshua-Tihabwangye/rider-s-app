@@ -17,8 +17,6 @@ import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import NotificationsActiveRoundedIcon from "@mui/icons-material/NotificationsActiveRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 
-import MobileShell from "../components/MobileShell";
-import DarkModeToggle from "../components/DarkModeToggle";
 
 function SchoolDashboardHomeScreen(): React.JSX.Element {
   return (
@@ -310,10 +308,9 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
 export default function SchoolDashboard(): React.JSX.Element {
   return (
     <>
-      <DarkModeToggle />
-      <MobileShell>
+
         <SchoolDashboardHomeScreen />
-      </MobileShell>
+      
     </>
   );
 }

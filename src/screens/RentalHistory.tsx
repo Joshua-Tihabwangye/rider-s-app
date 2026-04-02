@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -18,7 +17,6 @@ import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
-import MobileShell from "../components/MobileShell";
 
 const UPCOMING_RENTALS = [
   {
@@ -303,15 +301,9 @@ export default function RiderScreen76RentalBookingsUpcomingHistoryCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <RentalBookingsUpcomingHistoryScreen />
-        </MobileShell>
+        
       </Box>
     
   );

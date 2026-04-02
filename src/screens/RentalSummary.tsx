@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -21,7 +20,6 @@ import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 
-import MobileShell from "../components/MobileShell";
 
 function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -406,15 +404,9 @@ export default function RiderScreen74RentalBookingSummaryPaymentCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <RentalBookingSummaryPaymentScreen />
-        </MobileShell>
+        
       </Box>
     
   );

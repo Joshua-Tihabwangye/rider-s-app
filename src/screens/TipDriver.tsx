@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -18,7 +17,6 @@ import {
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
-import MobileShell from "../components/MobileShell";
 
 // Tip options as per specification
 const TIP_OPTIONS = [
@@ -526,10 +524,9 @@ export default function RiderScreen32RideRatingTipCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        <DarkModeToggle />
-        <MobileShell>
+
           <RideRatingTipScreen />
-        </MobileShell>
+        
       </Box>
   );
 }

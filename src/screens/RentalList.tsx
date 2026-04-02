@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -18,7 +17,6 @@ import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import BatteryChargingFullRoundedIcon from "@mui/icons-material/BatteryChargingFullRounded";
 
-import MobileShell from "../components/MobileShell";
 
 const RENTAL_VEHICLES = [
   {
@@ -340,15 +338,9 @@ export default function RiderScreen70RentalVehicleListCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <RentalVehicleListScreen />
-        </MobileShell>
+        
       </Box>
     
   );

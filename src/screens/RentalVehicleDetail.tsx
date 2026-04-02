@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -21,7 +20,6 @@ import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
 import BatteryChargingFullRoundedIcon from "@mui/icons-material/BatteryChargingFullRounded";
 import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
 
-import MobileShell from "../components/MobileShell";
 
 function RentalVehicleDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -308,15 +306,9 @@ export default function RiderScreen71RentalVehicleDetailsCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <RentalVehicleDetailsScreen />
-        </MobileShell>
+        
       </Box>
     
   );

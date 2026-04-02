@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -21,7 +20,6 @@ import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import DirectionsBusRoundedIcon from "@mui/icons-material/DirectionsBusRounded";
 import HotelRoundedIcon from "@mui/icons-material/HotelRounded";
-import MobileShell from "../components/MobileShell";
 
 function SearchingForDriverScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -515,10 +513,9 @@ export default function RiderScreen22SearchingForDriverCanvas_v2() {
         bgcolor: (theme) => theme.palette.background.default
       }}
     >
-      <DarkModeToggle />
-      <MobileShell>
+
         <SearchingForDriverScreen />
-      </MobileShell>
+      
     </Box>
   );
 }

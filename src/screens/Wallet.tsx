@@ -43,8 +43,6 @@ import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 
-import MobileShell from "../components/MobileShell";
-import DarkModeToggle from "../components/DarkModeToggle";
 
 const TRANSACTIONS = [
   {
@@ -1151,18 +1149,5 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
 export default function Wallet(): React.JSX.Element {
   const navigate = useNavigate();
 
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (t) => t.palette.background.default
-      }}
-    >
-      <DarkModeToggle />
-      <MobileShell>
-        <WalletContent onBack={() => navigate(-1)} />
-      </MobileShell>
-    </Box>
-  );
+  return <WalletContent onBack={() => navigate(-1)} />;
 }

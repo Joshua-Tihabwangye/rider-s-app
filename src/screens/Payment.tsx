@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -15,7 +14,6 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
-import MobileShell from "../components/MobileShell";
 
 interface MapBackgroundProps {
   onBackClick?: () => void;
@@ -410,10 +408,9 @@ export default function RiderScreen21PaymentMethodSelectionCanvas_v2() {
         bgcolor: (theme) => theme.palette.background.default
       }}
     >
-      <DarkModeToggle />
-      <MobileShell>
+
         <PaymentMethodSelectionScreen />
-      </MobileShell>
+      
     </Box>
   );
 }

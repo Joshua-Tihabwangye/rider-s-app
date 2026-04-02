@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -28,7 +27,6 @@ import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import MobileShell from "../components/MobileShell";
 
 function DriverProfileDuringTripScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -360,15 +358,9 @@ export default function RiderScreen28DriverProfileDuringTripCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <DriverProfileDuringTripScreen />
-        </MobileShell>
+        
       </Box>
     
   );

@@ -50,8 +50,6 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 
-import MobileShell from "../components/MobileShell";
-import DarkModeToggle from "../components/DarkModeToggle";
 
 // Pulse animation for location marker
 const pulse = keyframes`
@@ -1899,12 +1897,5 @@ function EnterDestinationMainScreen(): React.JSX.Element {
 }
 
 export default function RidesDashboard(): React.JSX.Element {
-  return (
-    <>
-      <DarkModeToggle />
-      <MobileShell>
-        <EnterDestinationMainScreen />
-      </MobileShell>
-    </>
-  );
+  return <EnterDestinationMainScreen />;
 }

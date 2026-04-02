@@ -20,8 +20,6 @@ import ContactSupportRoundedIcon from "@mui/icons-material/ContactSupportRounded
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
-import MobileShell from "../components/MobileShell";
-import DarkModeToggle from "../components/DarkModeToggle";
 
 export default function Help(): React.JSX.Element {
   const navigate = useNavigate();
@@ -62,8 +60,7 @@ export default function Help(): React.JSX.Element {
         bgcolor: (t) => t.palette.background.default
       }}
     >
-      <DarkModeToggle />
-      <MobileShell>
+
         <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
           {/* Header */}
           <Box
@@ -178,7 +175,7 @@ export default function Help(): React.JSX.Element {
             </Button>
           </Box>
         </Box>
-      </MobileShell>
+      
     </Box>
   );
 }

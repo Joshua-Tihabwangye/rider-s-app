@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import {
   
   Box,
@@ -21,7 +20,6 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
-import MobileShell from "../components/MobileShell";
 
 function CommuteCard(): React.JSX.Element {
   return (
@@ -409,15 +407,9 @@ export default function RiderScreen3DailyCommutesCanvas(): React.JSX.Element {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <DailyCommutesScreen />
-        </MobileShell>
+        
       </Box>
     
   );

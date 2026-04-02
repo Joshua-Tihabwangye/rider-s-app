@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -17,7 +16,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
-import MobileShell from "../components/MobileShell";
 
 const DELIVERING_ORDERS = [
   {
@@ -277,15 +275,9 @@ export default function RiderScreen50DeliveriesDashboardDeliveringCanvas_v2() {
     
       
       <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <DeliveriesDashboardDeliveringScreen />
-        </MobileShell>
+        
       </Box>
     
   );

@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -19,7 +18,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import MobileShell from "../components/MobileShell";
 
 const TIMELINE_STEPS = [
   { id: 1, label: "Order placed", time: "Mon, 06 Oct • 09:12", status: "done" },
@@ -397,15 +395,9 @@ export default function RiderScreen68OrderDeliveryDetailedViewCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <OrderDeliveryDetailedViewScreen />
-        </MobileShell>
+        
       </Box>
     
   );

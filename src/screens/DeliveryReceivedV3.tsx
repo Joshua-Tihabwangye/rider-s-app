@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -16,7 +15,6 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import MarkunreadMailboxRoundedIcon from "@mui/icons-material/MarkunreadMailboxRounded";
-import MobileShell from "../components/MobileShell";
 
 // v3 variant – focusing on delivered history only, with a more timeline-style layout
 
@@ -244,15 +242,9 @@ export default function RiderScreen54DeliveriesDashboardReceivedV3Canvas_v2() {
     
       
       <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <DeliveriesDashboardReceivedV3Screen />
-        </MobileShell>
+        
       </Box>
     
   );

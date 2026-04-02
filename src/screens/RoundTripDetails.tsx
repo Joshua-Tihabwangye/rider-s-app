@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -23,7 +22,6 @@ import AccessibleRoundedIcon from "@mui/icons-material/AccessibleRounded";
 import MusicNoteRoundedIcon from "@mui/icons-material/MusicNoteRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import MobileShell from "../components/MobileShell";
 
 const PREF_OPTIONS = [
   {
@@ -306,15 +304,9 @@ export default function RiderScreen16RidePreferencesCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <RidePreferencesScreen />
-        </MobileShell>
+        
       </Box>
     
   );

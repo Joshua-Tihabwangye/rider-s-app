@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -20,7 +19,6 @@ import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
-import MobileShell from "../components/MobileShell";
 
 const TAGS = [
   "On-time delivery",
@@ -323,15 +321,9 @@ export default function RiderScreen67OrderCompletionRatingPromptCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <OrderCompletionRatingPromptScreen />
-        </MobileShell>
+        
       </Box>
     
   );

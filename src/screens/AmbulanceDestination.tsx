@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -19,7 +18,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
-import MobileShell from "../components/MobileShell";
 
 const HOSPITALS = [
   "Mulago National Referral Hospital",
@@ -280,15 +278,9 @@ export default function RiderScreen85AmbulanceDestinationHospitalSelectionCanvas
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <AmbulanceDestinationHospitalSelectionScreen />
-        </MobileShell>
+        
       </Box>
     
   );

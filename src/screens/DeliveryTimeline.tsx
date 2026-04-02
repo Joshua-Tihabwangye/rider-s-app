@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -17,7 +16,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import MobileShell from "../components/MobileShell";
 
 const STEPS = [
   {
@@ -280,15 +278,9 @@ export default function RiderScreen64DeliveryStatusProgressTimelineCanvas_v2() {
       <Box
         sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <DeliveryStatusTimelineScreen />
-        </MobileShell>
+        
       </Box>
     
   );

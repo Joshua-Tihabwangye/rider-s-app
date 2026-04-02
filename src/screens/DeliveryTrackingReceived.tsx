@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -18,7 +17,6 @@ import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-import MobileShell from "../components/MobileShell";
 
 const TRACKING_STEPS = [
   {
@@ -320,15 +318,9 @@ export default function RiderScreen55ShipmentTrackingReceivedParcelCanvas_v2() {
     
       
       <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (t) => t.palette.background.default }}>
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <ShipmentTrackingReceivedParcelScreen />
-        </MobileShell>
+        
       </Box>
     
   );

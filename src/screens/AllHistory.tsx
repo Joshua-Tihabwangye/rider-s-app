@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -22,7 +21,6 @@ import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
-import MobileShell from "../components/MobileShell";
 
 const ALL_ORDERS = [
   {
@@ -420,15 +418,9 @@ export default function RiderScreen91AllOrdersCombinedHistoryCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <AllOrdersCombinedHistoryScreen />
-        </MobileShell>
+        
       </Box>
     
   );

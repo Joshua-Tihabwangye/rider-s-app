@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -21,7 +20,6 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import KeyboardDoubleArrowRightRoundedIcon from "@mui/icons-material/KeyboardDoubleArrowRightRounded";
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
-import MobileShell from "../components/MobileShell";
 
 function DriverHasArrivedScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -655,10 +653,9 @@ export default function RiderScreen24DriverHasArrivedCanvas_v2() {
         bgcolor: (theme) => theme.palette.background.default
       }}
     >
-      <DarkModeToggle />
-      <MobileShell>
+
         <DriverHasArrivedScreen />
-      </MobileShell>
+      
     </Box>
   );
 }

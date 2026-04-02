@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -16,7 +15,6 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
-import MobileShell from "../components/MobileShell";
 
 const UPCOMING_TOURS = [
   {
@@ -266,15 +264,9 @@ export default function RiderScreen82TourBookingsUpcomingHistoryCanvas_v2() {
           bgcolor: (t) => t.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <TourBookingsUpcomingHistoryScreen />
-        </MobileShell>
+        
       </Box>
     
   );

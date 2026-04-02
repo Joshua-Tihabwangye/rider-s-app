@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -22,7 +21,6 @@ import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutline";
-import MobileShell from "../components/MobileShell";
 
 function RideBookingConfirmationScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -86,9 +84,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
 
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: theme.palette.background.default }}>
-      <DarkModeToggle />
-      
-      {/* Header Bar */}
+{/* Header Bar */}
       <Box
       sx={{
           bgcolor: headerBg,
@@ -154,7 +150,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
         </Box>
       </Box>
 
-      <MobileShell>
+      
         <Box sx={{ px: 2.5, pt: 3, pb: 3 }}>
           {/* Confirmation Illustration */}
           <Box 
@@ -528,7 +524,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
             </Button>
           </Stack>
         </Box>
-      </MobileShell>
+      
     </Box>
   );
 }

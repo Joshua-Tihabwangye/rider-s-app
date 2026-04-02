@@ -16,8 +16,6 @@ import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 
-import MobileShell from "../components/MobileShell";
-import DarkModeToggle from "../components/DarkModeToggle";
 
 function ToursDashboardHomeScreen(): React.JSX.Element {
   const [highlightState, setHighlightState] = useState("idle");
@@ -443,10 +441,9 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
 export default function ToursDashboard(): React.JSX.Element {
   return (
     <>
-      <DarkModeToggle />
-      <MobileShell>
+
         <ToursDashboardHomeScreen />
-      </MobileShell>
+      
     </>
   );
 }

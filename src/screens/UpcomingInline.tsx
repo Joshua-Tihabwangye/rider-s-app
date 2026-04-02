@@ -1,6 +1,5 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DarkModeToggle from "../components/DarkModeToggle";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -18,7 +17,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-import MobileShell from "../components/MobileShell";
 
 interface UpcomingRideCardProps {
   dateLabel: string;
@@ -341,15 +339,9 @@ export default function RiderScreen4UpcomingRidesCanvas_v2() {
           bgcolor: (theme) => theme.palette.background.default
         }}
       >
-        
 
-        <DarkModeToggle />
-
-        
-
-        <MobileShell>
           <UpcomingRidesScreen />
-        </MobileShell>
+        
       </Box>
     
   );
