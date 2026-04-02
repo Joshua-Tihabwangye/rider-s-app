@@ -21,7 +21,14 @@ import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import PersonAddRoundedIcon from "@mui/icons-material/PersonAddRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+<<<<<<< HEAD
 import ScreenScaffold from "../components/ScreenScaffold";
+=======
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
+import Badge from "@mui/material/Badge";
+
+>>>>>>> aba9fe3 (Improving the general layout)
 import DeliveryCard from "../components/deliveries/DeliveryCard";
 import ActionGrid from "../components/primitives/ActionGrid";
 import AppCard from "../components/primitives/AppCard";
