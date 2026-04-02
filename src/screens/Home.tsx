@@ -24,7 +24,6 @@ import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import Button from "@mui/material/Button";
-<<<<<<< HEAD
 import ScreenScaffold from "../components/ScreenScaffold";
 import ActionGrid from "../components/primitives/ActionGrid";
 import AppCard from "../components/primitives/AppCard";
@@ -116,8 +115,6 @@ const QUICK_ACTIONS = [
   { label: "Rebook last ride", icon: <ElectricCarRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter" },
   { label: "Track a parcel", icon: <LocalShippingRoundedIcon sx={{ fontSize: 16 }} />, route: "/deliveries" }
 ];
-=======
->>>>>>> aba9fe3 (Improving the general layout)
 
 function HomeMultiServiceScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -337,10 +334,6 @@ function HomeMultiServiceScreen(): React.JSX.Element {
   );
 }
 
-<<<<<<< HEAD
 export default function RiderScreen01HomeMultiServiceCanvas_v2(): React.JSX.Element {
-=======
-export default function RiderScreen01HomeMultiServiceCanvas_v2() {
->>>>>>> aba9fe3 (Improving the general layout)
   return <HomeMultiServiceScreen />;
 }
