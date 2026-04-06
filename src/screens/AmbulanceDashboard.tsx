@@ -54,7 +54,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FEE2E2" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -127,7 +127,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               icon={<NotificationsActiveRoundedIcon sx={{ fontSize: 16 }} />}
               label="Priority line"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 10,
                 height: 22,
                 bgcolor: (t) =>
@@ -145,7 +145,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               variant="contained"
               onClick={handleRequestNow}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.9,
                 fontSize: 13,
                 fontWeight: 700,
@@ -162,7 +162,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               variant="outlined"
               onClick={handlePlanTransfer}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.9,
                 fontSize: 13,
                 textTransform: "none",
@@ -269,7 +269,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               size="small"
               onClick={() => handleSetForWhom("me")}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 26,
                 bgcolor:
@@ -294,7 +294,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               size="small"
               onClick={() => handleSetForWhom("family")}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 26,
                 bgcolor:
@@ -319,7 +319,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               size="small"
               onClick={() => handleSetForWhom("facility")}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 26,
                 bgcolor:

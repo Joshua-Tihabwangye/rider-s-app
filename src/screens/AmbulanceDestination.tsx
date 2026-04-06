@@ -51,7 +51,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -106,7 +106,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
               size="small"
               onClick={() => setDestinationMode("nearest")}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 26,
                 bgcolor:
@@ -123,7 +123,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
               size="small"
               onClick={() => setDestinationMode("manual")}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 26,
                 bgcolor:
@@ -190,7 +190,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
             sx={{
               mb: 1.5,
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -217,7 +217,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
                 disabled={destinationMode === "nearest"}
                 onClick={() => setSelectedHospital(h)}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 10,
                   height: 24,
                   bgcolor:
@@ -241,7 +241,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
         variant="contained"
         disabled={!canContinue}
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

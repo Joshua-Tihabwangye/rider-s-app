@@ -102,7 +102,7 @@ function RideTypeCard({ type, selected, onSelect }: RideTypeCardProps): React.JS
               sx={{
                 width: 42,
                 height: 42,
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)",
                 display: "flex",
@@ -125,7 +125,7 @@ function RideTypeCard({ type, selected, onSelect }: RideTypeCardProps): React.JS
                     label={type.tag}
                     size="small"
                     sx={{
-                      borderRadius: 999,
+                      borderRadius: 5,
                       fontSize: 10,
                       height: 22,
                       bgcolor: "rgba(59,130,246,0.08)",
@@ -189,7 +189,7 @@ function SelectRideTypeScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -223,7 +223,7 @@ function SelectRideTypeScreen(): React.JSX.Element {
         label="Nsambya Road → Bugolobi • Today"
         sx={{
           mb: 2.5,
-          borderRadius: 999,
+          borderRadius: 5,
           fontSize: 11,
           height: 28,
           bgcolor: (theme) =>
@@ -269,7 +269,7 @@ function SelectRideTypeScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

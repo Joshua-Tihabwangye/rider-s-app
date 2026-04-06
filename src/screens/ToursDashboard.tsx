@@ -49,7 +49,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -134,7 +134,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               variant="contained"
               onClick={handleBookFeatured}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.9,
                 fontSize: 13,
                 fontWeight: 600,
@@ -151,7 +151,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               variant="outlined"
               onClick={handleViewDetails}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.9,
                 fontSize: 13,
                 textTransform: "none"
@@ -227,7 +227,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
                 size="small"
                 onClick={() => setActiveCategory(cat.id)}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 11,
                   height: 26,
                   bgcolor:
@@ -371,7 +371,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
                 size="small"
                 label="Started"
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 10,
                   height: 22,
                   bgcolor: (t) =>
@@ -401,7 +401,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               variant="outlined"
               onClick={handleCreateCustom}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.85,
                 fontSize: 13,
                 textTransform: "none"
@@ -413,7 +413,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               fullWidth
               variant="outlined"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.85,
                 fontSize: 13,
                 textTransform: "none",

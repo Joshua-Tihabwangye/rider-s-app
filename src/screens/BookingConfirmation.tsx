@@ -488,7 +488,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
               variant="contained"
               onClick={handlePayNow}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 1.4,
                 fontSize: 15,
                 fontWeight: 600,
@@ -508,7 +508,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
               variant="contained"
               onClick={handleDone}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 1.4,
                 fontSize: 15,
                 fontWeight: 600,

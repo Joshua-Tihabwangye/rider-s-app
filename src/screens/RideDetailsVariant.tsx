@@ -38,7 +38,7 @@ function RideDetailsVariant2Screen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -95,7 +95,7 @@ function RideDetailsVariant2Screen(): React.JSX.Element {
                 icon={<DirectionsCarFilledRoundedIcon sx={{ fontSize: 14 }} />}
                 label="Eco EV"
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 11,
                   height: 24,
                   bgcolor: (t) =>
@@ -108,7 +108,7 @@ function RideDetailsVariant2Screen(): React.JSX.Element {
                 icon={<ElectricCarRoundedIcon sx={{ fontSize: 14 }} />}
                 label="100% electric"
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 11,
                   height: 24,
                   bgcolor: "rgba(34,197,94,0.1)",
@@ -157,7 +157,7 @@ function RideDetailsVariant2Screen(): React.JSX.Element {
             sx={{
               width: 14,
               height: 14,
-              borderRadius: "999px",
+              borderRadius: "5px",
               bgcolor: "#22c55e",
               border: "2px solid white",
               boxShadow: "0 6px 14px rgba(15,23,42,0.6)"
@@ -228,7 +228,7 @@ function RideDetailsVariant2Screen(): React.JSX.Element {
               size="small"
               label={`${distance} • ${eta}`}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: (t) =>
@@ -259,7 +259,7 @@ function RideDetailsVariant2Screen(): React.JSX.Element {
         variant="contained"
         disabled={!canContinue}
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

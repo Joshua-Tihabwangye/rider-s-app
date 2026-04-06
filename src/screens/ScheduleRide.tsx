@@ -184,8 +184,8 @@ function ScheduleRideScreen(): React.JSX.Element {
             bottom: 0,
             left: 0,
             right: 0,
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
+            borderTopLeftRadius: 5,
+            borderTopRightRadius: 5,
             bgcolor: contentBg,
             maxHeight: '90vh',
             overflow: 'auto',
@@ -219,7 +219,7 @@ function ScheduleRideScreen(): React.JSX.Element {
                 size="small"
                 onClick={handleClose}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   bgcolor: theme.palette.mode === "light"
                     ? "rgba(0,0,0,0.05)"
                     : "rgba(255,255,255,0.1)",

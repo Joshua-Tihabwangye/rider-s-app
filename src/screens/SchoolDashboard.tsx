@@ -35,7 +35,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -97,7 +97,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
               variant="contained"
               startIcon={<DirectionsBusFilledRoundedIcon sx={{ fontSize: 18 }} />}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.9,
                 fontSize: 13,
                 fontWeight: 600,
@@ -113,7 +113,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
               fullWidth
               variant="outlined"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.9,
                 fontSize: 13,
                 textTransform: "none"
@@ -197,7 +197,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
                 size="small"
                 label={i === 0 ? "Onboard" : "Arriving soon"}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 10,
                   height: 22,
                   bgcolor: (t) =>

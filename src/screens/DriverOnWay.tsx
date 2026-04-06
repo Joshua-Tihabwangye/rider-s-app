@@ -12,12 +12,13 @@ import {
   Divider
 } from "@mui/material";
 
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
+import MapShell from "../components/maps/MapShell";
+import { uiTokens } from "../design/tokens";
 
 function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -62,30 +63,13 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
 
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (theme) => theme.palette.background.default }}>
-      {/* Map Section - Full width at top */}
-      <Box
-        sx={{
-          position: "relative",
-          width: "100%",
-          height: "45vh",
-          background: (theme) =>
-            theme.palette.mode === "light"
-              ? "linear-gradient(135deg, #E0F2FE 0%, rgba(3,205,140,0.15) 50%, #93C5FD 100%)"
-              : "linear-gradient(135deg, rgba(15,118,205,0.3), #020617 60%, #020617 100%)",
-          overflow: "hidden"
-        }}
+      <MapShell
+        preset="compact"
+        height="45vh"
+        onBack={() => navigate(-1)}
+        showBackButton
+        canvasSx={{ background: uiTokens.map.canvasEmphasis }}
       >
-        {/* Grid overlay */}
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            opacity: 0.15,
-            backgroundImage:
-              "linear-gradient(to right, rgba(148,163,184,0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.3) 1px, transparent 1px)",
-            backgroundSize: "30px 30px"
-          }}
-        />
 
         {/* Map Labels */}
         <Typography
@@ -126,27 +110,6 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
         >
           aero beach
         </Typography>
-
-        {/* Back button on map */}
-        <IconButton
-          size="small"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-          sx={{
-            position: "absolute",
-            top: 16,
-            left: 16,
-            bgcolor: "#03CD8C",
-            color: "#FFFFFF",
-            width: 40,
-            height: 40,
-            "&:hover": {
-              bgcolor: "#1976D2"
-            }
-          }}
-        >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
 
         {/* Landmark Icons */}
         {/* Faz 41 - Green circular marker */}
@@ -235,7 +198,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
             }}
           />
         </Box>
-      </Box>
+      </MapShell>
 
       {/* Content below map */}
       <Box sx={{ px: 2.5, pt: 0, pb: 3 }}>
@@ -445,7 +408,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
             variant="contained"
             onClick={handleAccept}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               py: 1.3,
               fontSize: 15,
               fontWeight: 600,
@@ -464,7 +427,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
             variant="outlined"
             onClick={handleChange}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               py: 1.3,
               fontSize: 15,
               fontWeight: 600,

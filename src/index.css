@@ -2,6 +2,169 @@
 @tailwind components;
 @tailwind utilities;
 
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --evz-brand-green: #03cd8c;
+  --evz-brand-green-hover: #22c55e;
+  --evz-brand-orange: #f77f00;
+  --evz-brand-orange-hover: #ea580c;
+  --evz-warning: #f59e0b;
+  --evz-warning-deep: #7c2d12;
+  --evz-warning-deep-hover: #9a3412;
+  --evz-warning-ink: #fffbeb;
+  --evz-warning-text-light: rgba(67, 20, 7, 0.9);
+  --evz-warning-text-dark: rgba(251, 191, 36, 0.9);
+  --evz-danger: #dc2626;
+  --evz-danger-hover: #b91c1c;
+  --evz-success-bg: #d1fae5;
+  --evz-success-text: #064e3b;
+  --evz-neutral-100: #f3f4f6;
+  --evz-neutral-200: #e5e7eb;
+  --evz-neutral-600: #4b5563;
+  --evz-slate-700: #334155;
+  --evz-slate-300: #cbd5e1;
+  --evz-amber-900: rgba(120, 53, 15, 0.9);
+  --evz-white: #ffffff;
+  --evz-ink: #020617;
+
+  --evz-stage-bg: #f3f4f6;
+  --evz-surface-card: #ffffff;
+  --evz-surface-card-muted: #f9fafb;
+  --evz-surface-brand-soft: linear-gradient(135deg, rgba(3, 205, 140, 0.08) 0%, #ffffff 100%);
+  --evz-surface-warning-soft: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%);
+  --evz-surface-brand-tint-soft: rgba(3, 205, 140, 0.1);
+  --evz-surface-brand-tint-medium: rgba(3, 205, 140, 0.15);
+  --evz-surface-accent-tint-soft: rgba(247, 127, 0, 0.15);
+  --evz-surface-danger-tint-soft: rgba(220, 38, 38, 0.08);
+
+  --evz-text-primary: #0f172a;
+  --evz-text-secondary: #6b7280;
+  --evz-border-subtle: rgba(209, 213, 219, 0.9);
+  --evz-border-brand: rgba(3, 205, 140, 0.25);
+  --evz-border-warning: rgba(245, 158, 11, 0.5);
+  --evz-shadow-card: 0 4px 18px rgba(15, 23, 42, 0.08);
+  --evz-shadow-raised: 0 10px 28px rgba(15, 23, 42, 0.14);
+  --evz-shell-nav-bg: rgba(255, 255, 255, 0.97);
+  --evz-shell-nav-border: rgba(229, 231, 235, 1);
+  --evz-shell-nav-shadow: 0 -14px 40px rgba(15, 23, 42, 0.24), 0 -1px 0 rgba(148, 163, 184, 0.35);
+  --evz-shell-nav-icon: rgba(51, 65, 85, 0.72);
+  --evz-shell-nav-icon-active: #22c55e;
+  --evz-header-back-bg: #ffffff;
+  --evz-header-back-border: rgba(209, 213, 219, 0.9);
+  --evz-map-canvas: radial-gradient(
+    circle at 30% 8%,
+    rgba(3, 205, 140, 0.14) 0%,
+    rgba(245, 247, 250, 0.92) 58%,
+    rgba(235, 244, 255, 0.9) 100%
+  );
+  --evz-map-canvas-emphasis: radial-gradient(
+    circle at 30% 8%,
+    rgba(3, 205, 140, 0.2) 0%,
+    rgba(240, 247, 255, 0.96) 55%,
+    rgba(229, 243, 255, 0.95) 100%
+  );
+  --evz-map-grid-line: rgba(148, 163, 184, 0.32);
+  --evz-map-control-bg: rgba(255, 255, 255, 0.94);
+  --evz-map-control-border: rgba(203, 213, 225, 0.9);
+  --evz-map-control-icon: #0f172a;
+  --evz-map-control-icon-muted: #475569;
+  --evz-map-overlay-bg: rgba(255, 255, 255, 0.95);
+  --evz-map-overlay-border: rgba(203, 213, 225, 0.95);
+  --evz-map-route: #1e3a5f;
+  --evz-map-marker-start: #03cd8c;
+  --evz-map-marker-end: #f77f00;
+
+  --evz-radius-sm: 2px;
+  --evz-radius-md: 3px;
+  --evz-radius-lg: 4px;
+  --evz-radius-xl: 5px;
+  --evz-radius-xxl: 5px;
+  --evz-radius-pill: 5px;
+}
+
+[data-theme="dark"],
+.dark {
+  color-scheme: dark;
+  --evz-brand-green: #10b981;
+  --evz-brand-green-hover: #34d399;
+  --evz-brand-orange: #f97316;
+  --evz-brand-orange-hover: #fb923c;
+  --evz-warning: #f59e0b;
+  --evz-warning-deep: #92400e;
+  --evz-warning-deep-hover: #b45309;
+  --evz-warning-ink: rgba(255, 251, 235, 0.1);
+  --evz-warning-text-light: rgba(253, 230, 138, 0.95);
+  --evz-warning-text-dark: rgba(251, 191, 36, 0.95);
+  --evz-danger: #ef4444;
+  --evz-danger-hover: #f87171;
+  --evz-success-bg: rgba(6, 78, 59, 0.4);
+  --evz-success-text: #6ee7b7;
+  --evz-neutral-100: rgba(15, 23, 42, 0.95);
+  --evz-neutral-200: rgba(30, 41, 59, 0.95);
+  --evz-neutral-600: #94a3b8;
+  --evz-slate-700: #cbd5e1;
+  --evz-slate-300: #475569;
+  --evz-amber-900: rgba(251, 191, 36, 0.9);
+  --evz-white: #ffffff;
+  --evz-ink: #f8fafc;
+
+  --evz-stage-bg: #020617;
+  --evz-surface-card: rgba(15, 23, 42, 0.98);
+  --evz-surface-card-muted: rgba(15, 23, 42, 0.96);
+  --evz-surface-brand-soft: linear-gradient(
+    135deg,
+    rgba(3, 205, 140, 0.16) 0%,
+    rgba(15, 23, 42, 0.98) 100%
+  );
+  --evz-surface-warning-soft: linear-gradient(
+    180deg,
+    rgba(124, 45, 18, 0.45) 0%,
+    rgba(15, 23, 42, 0.98) 100%
+  );
+  --evz-surface-brand-tint-soft: rgba(3, 205, 140, 0.2);
+  --evz-surface-brand-tint-medium: rgba(3, 205, 140, 0.25);
+  --evz-surface-accent-tint-soft: rgba(247, 127, 0, 0.25);
+  --evz-surface-danger-tint-soft: rgba(220, 38, 38, 0.2);
+
+  --evz-text-primary: #f9fafb;
+  --evz-text-secondary: #a6a6a6;
+  --evz-border-subtle: rgba(51, 65, 85, 0.9);
+  --evz-border-brand: rgba(3, 205, 140, 0.35);
+  --evz-border-warning: rgba(251, 191, 36, 0.6);
+  --evz-shadow-card: 0 4px 18px rgba(0, 0, 0, 0.35);
+  --evz-shadow-raised: 0 10px 28px rgba(0, 0, 0, 0.45);
+  --evz-shell-nav-bg: rgba(15, 23, 42, 0.96);
+  --evz-shell-nav-border: rgba(30, 64, 175, 0.6);
+  --evz-shell-nav-shadow: 0 -14px 40px rgba(2, 6, 23, 0.55), 0 -1px 0 rgba(51, 65, 85, 0.45);
+  --evz-shell-nav-icon: rgba(148, 163, 184, 0.9);
+  --evz-shell-nav-icon-active: #34d399;
+  --evz-header-back-bg: rgba(15, 23, 42, 0.9);
+  --evz-header-back-border: rgba(51, 65, 85, 0.9);
+  --evz-map-canvas: radial-gradient(
+    circle at 22% 8%,
+    rgba(3, 205, 140, 0.26) 0%,
+    rgba(15, 23, 42, 0.95) 52%,
+    rgba(2, 6, 23, 1) 100%
+  );
+  --evz-map-canvas-emphasis: radial-gradient(
+    circle at 22% 8%,
+    rgba(3, 205, 140, 0.32) 0%,
+    rgba(15, 23, 42, 0.95) 50%,
+    rgba(2, 6, 23, 1) 100%
+  );
+  --evz-map-grid-line: rgba(71, 85, 105, 0.55);
+  --evz-map-control-bg: rgba(15, 23, 42, 0.92);
+  --evz-map-control-border: rgba(71, 85, 105, 0.92);
+  --evz-map-control-icon: #f8fafc;
+  --evz-map-control-icon-muted: #94a3b8;
+  --evz-map-overlay-bg: rgba(15, 23, 42, 0.88);
+  --evz-map-overlay-border: rgba(71, 85, 105, 0.9);
+  --evz-map-route: #7dd3fc;
+  --evz-map-marker-start: #34d399;
+  --evz-map-marker-end: #fb923c;
+}
+
 html {
   width: 100%;
   overflow: hidden;
@@ -27,7 +190,9 @@ body {
   /* Use dynamic viewport height on mobile */
   min-height: 100dvh;
   min-height: 100vh; /* Fallback */
-  background: #0b1220;
+  background: var(--evz-stage-bg);
+  color: var(--evz-text-primary);
+  transition: background-color 0.18s ease, color 0.18s ease;
 }
 
 #root {
@@ -38,6 +203,7 @@ body {
   min-height: 100vh; /* Fallback */
   /* Ensure root takes full viewport */
   position: relative;
+  transition: background-color 0.18s ease;
 }
 
 html::-webkit-scrollbar,

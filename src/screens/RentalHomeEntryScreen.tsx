@@ -44,7 +44,7 @@ function RentalHomeEntryScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -93,7 +93,7 @@ function RentalHomeEntryScreen(): React.JSX.Element {
               onClick={() => setModeSelection("self")}
               icon={<ElectricCarRoundedIcon sx={{ fontSize: 16 }} />}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 28,
                 bgcolor:
@@ -112,7 +112,7 @@ function RentalHomeEntryScreen(): React.JSX.Element {
               onClick={() => setModeSelection("chauffeur")}
               icon={<DirectionsCarFilledRoundedIcon sx={{ fontSize: 16 }} />}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 28,
                 bgcolor:
@@ -180,7 +180,7 @@ function RentalHomeEntryScreen(): React.JSX.Element {
             sx={{
               mb: 1.6,
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -219,7 +219,7 @@ function RentalHomeEntryScreen(): React.JSX.Element {
             }}
             sx={{
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -262,7 +262,7 @@ function RentalHomeEntryScreen(): React.JSX.Element {
               label={label}
               size="small"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 26,
                 bgcolor: (t) =>
@@ -281,7 +281,7 @@ function RentalHomeEntryScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

@@ -443,7 +443,7 @@ function RidePreferenceSetupScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: contentBg,
               border: theme.palette.mode === "light"
                 ? "1px solid rgba(0,0,0,0.1)"

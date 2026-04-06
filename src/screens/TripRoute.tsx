@@ -12,12 +12,13 @@ import {
   Avatar
 } from "@mui/material";
 
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import MapShell from "../components/maps/MapShell";
+import { uiTokens } from "../design/tokens";
 
 function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -87,52 +88,12 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
 
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (theme) => theme.palette.background.default }}>
-      {/* Map Section - Full width at top */}
-      <Box
-        sx={{
-          position: "relative",
-          width: "100%",
-          height: "50vh",
-          background: (theme) =>
-            theme.palette.mode === "light"
-              ? "#F5F5F5" // Light grey/white map background
-              : "linear-gradient(135deg, rgba(15,23,42,0.3), #020617 60%, #020617 100%)",
-          overflow: "hidden"
-        }}
+      <MapShell
+        preset="full"
+        onBack={() => navigate(-1)}
+        showBackButton
+        canvasSx={{ background: uiTokens.map.canvasEmphasis }}
       >
-        {/* Grid overlay */}
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            opacity: 0.15,
-            backgroundImage:
-              "linear-gradient(to right, rgba(148,163,184,0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.3) 1px, transparent 1px)",
-            backgroundSize: "30px 30px"
-          }}
-        />
-
-        {/* Back arrow (top left) */}
-        <IconButton
-          size="small"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-          sx={{
-            position: "absolute",
-            top: 16,
-            left: 16,
-            bgcolor: "#03CD8C",
-            color: "#FFFFFF",
-            width: 40,
-            height: 40,
-            "&:hover": {
-              bgcolor: "#1976D2"
-            }
-          }}
-        >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-
         {/* Route line */}
         <Box
           sx={{
@@ -141,8 +102,8 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
             left: "20%",
             width: "60%",
             height: 4,
-            bgcolor: "#1E3A5F",
-            borderRadius: 2,
+            bgcolor: uiTokens.map.route,
+            borderRadius: "var(--evz-radius-pill)",
             transform: "rotate(-20deg)",
             transformOrigin: "left center"
           }}
@@ -157,9 +118,9 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
             width: 16,
             height: 16,
             borderRadius: "50%",
-            bgcolor: "#22c55e",
-            border: "3px solid white",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
+            bgcolor: uiTokens.map.markerStart,
+            border: "3px solid var(--evz-white)",
+            boxShadow: uiTokens.elevation.card
           }}
         />
 
@@ -180,13 +141,13 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
           <DirectionsCarFilledRoundedIcon
             sx={{
               fontSize: 32,
-              color: "#03CD8C",
+              color: uiTokens.colors.brand,
               filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
             }}
           />
         </Box>
 
-        {/* Destination marker (red) */}
+        {/* Destination marker */}
         <Box
           sx={{
             position: "absolute",
@@ -195,9 +156,9 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
             width: 16,
             height: 16,
             borderRadius: "50%",
-            bgcolor: "#FF5722",
-            border: "3px solid white",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
+            bgcolor: uiTokens.map.markerEnd,
+            border: "3px solid var(--evz-white)",
+            boxShadow: uiTokens.elevation.card
           }}
         />
 
@@ -208,11 +169,12 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
             right: "20%",
             top: "28%",
             transform: "translateX(50%)",
-            bgcolor: "rgba(255,255,255,0.95)",
+            bgcolor: "var(--evz-map-overlay-bg)",
+            border: "1px solid var(--evz-map-overlay-border)",
             px: 1.5,
             py: 0.75,
-            borderRadius: 2,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
+            borderRadius: "var(--evz-radius-md)",
+            boxShadow: uiTokens.elevation.card
           }}
         >
           <Typography
@@ -233,22 +195,22 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
           sx={{
             position: "absolute",
             bottom: 16,
-            right: 16,
-            bgcolor: "#03CD8C",
-            color: "#FFFFFF",
-            width: 48,
-            height: 48,
-            borderRadius: 2,
-            boxShadow: "0 4px 12px rgba(33,150,243,0.3)",
+            right: 78,
+            bgcolor: uiTokens.colors.brand,
+            color: uiTokens.colors.white,
+            width: 46,
+            height: 46,
+            borderRadius: "var(--evz-radius-md)",
+            boxShadow: uiTokens.elevation.card,
             "&:hover": {
-              bgcolor: "#1976D2",
-              boxShadow: "0 6px 16px rgba(33,150,243,0.4)"
+              bgcolor: uiTokens.colors.brandHover,
+              boxShadow: uiTokens.elevation.raised
             }
           }}
         >
-          <LuggageRoundedIcon sx={{ fontSize: 24 }} />
+          <LuggageRoundedIcon sx={{ fontSize: 22 }} />
         </IconButton>
-      </Box>
+      </MapShell>
 
       {/* Trip Info Card - Overlapping map slightly */}
       <Box sx={{ px: 2.5, pt: 0, pb: 2, mt: -3 }}>
@@ -353,10 +315,10 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
                   value={progress}
                   sx={{
                     height: 8,
-                    borderRadius: 999,
+                    borderRadius: 5,
                     bgcolor: "rgba(255,255,255,0.2)",
                     "& .MuiLinearProgress-bar": {
-                      borderRadius: 999,
+                      borderRadius: 5,
                       bgcolor: "#03CD8C"
                     }
                   }}
@@ -515,7 +477,7 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
                 variant="outlined"
                 onClick={handleRateDriver}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   px: 2,
                   py: 0.75,
                   fontSize: 13,
@@ -703,7 +665,7 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
                 variant="contained"
                 onClick={handlePayNow}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   px: 3,
                   py: 1,
                   fontSize: 14,

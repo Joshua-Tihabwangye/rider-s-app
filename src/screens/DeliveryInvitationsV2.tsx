@@ -105,7 +105,7 @@ function InvitationCardV2({ invitation }: InvitationCardV2Props): React.JSX.Elem
                   size="small"
                   label={invitation.type}
                   sx={{
-                    borderRadius: 999,
+                    borderRadius: 5,
                     fontSize: 10,
                     height: 20,
                     bgcolor: isDelivery
@@ -127,7 +127,7 @@ function InvitationCardV2({ invitation }: InvitationCardV2Props): React.JSX.Elem
             size="small"
             label="Pending"
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 10,
               height: 22,
               bgcolor: "rgba(250,204,21,0.15)",
@@ -156,7 +156,7 @@ function InvitationCardV2({ invitation }: InvitationCardV2Props): React.JSX.Elem
             variant="contained"
             startIcon={<PersonAddAltRoundedIcon sx={{ fontSize: 18 }} />}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 14,
               fontWeight: 600,
               textTransform: "none",
@@ -173,7 +173,7 @@ function InvitationCardV2({ invitation }: InvitationCardV2Props): React.JSX.Elem
             variant="text"
             sx={{
               minWidth: 90,
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 13,
               fontWeight: 500,
               textTransform: "none",
@@ -207,7 +207,7 @@ function InvitationsPendingV2Screen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -238,7 +238,7 @@ function InvitationsPendingV2Screen(): React.JSX.Element {
           icon={<GroupRoundedIcon sx={{ fontSize: 16 }} />}
           label={`${PENDING_INVITATIONS_V2.length} pending`}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 10,
             height: 22,
             bgcolor: "rgba(34,197,94,0.12)",

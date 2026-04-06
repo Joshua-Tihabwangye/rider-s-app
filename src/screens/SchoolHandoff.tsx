@@ -31,7 +31,7 @@ function SchoolShuttlesHandoffScreen(): React.JSX.Element {
           aria-label="Back"
           onClick={() => navigate(-1)}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (t) =>
               t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
             border: (t) =>
@@ -56,7 +56,7 @@ function SchoolShuttlesHandoffScreen(): React.JSX.Element {
           sx={{
             width: 44,
             height: 44,
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: "rgba(59,130,246,0.12)",
             display: "flex",
             alignItems: "center",
@@ -128,7 +128,7 @@ function SchoolShuttlesHandoffScreen(): React.JSX.Element {
           fullWidth
           variant="contained"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 1,
             fontSize: 14,
             fontWeight: 600,
@@ -144,7 +144,7 @@ function SchoolShuttlesHandoffScreen(): React.JSX.Element {
           fullWidth
           variant="outlined"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 1,
             fontSize: 13,
             textTransform: "none"

@@ -422,8 +422,8 @@ function DriverPreferencesScreen(): React.JSX.Element {
                   bottom: { xs: "calc(64px + env(safe-area-inset-bottom))", sm: "64px" },
                   left: 0,
                   right: 0,
-                  borderTopLeftRadius: 24,
-                  borderTopRightRadius: 24,
+                  borderTopLeftRadius: 5,
+                  borderTopRightRadius: 5,
                   bgcolor: contentBg,
                   maxHeight: { xs: 'calc(100vh - 40vh - 64px - env(safe-area-inset-bottom))', sm: 'calc(100vh - 40vh - 64px)' },
                   overflow: 'auto',
@@ -456,7 +456,7 @@ function DriverPreferencesScreen(): React.JSX.Element {
                   aria-label="Back"
                   onClick={handleClose}
                   sx={{
-                    borderRadius: 999,
+                    borderRadius: 5,
                     bgcolor: theme.palette.mode === "light"
                       ? "rgba(0,0,0,0.05)"
                       : "rgba(255,255,255,0.05)",
@@ -529,8 +529,8 @@ function DriverPreferencesScreen(): React.JSX.Element {
           bottom: { xs: "calc(64px + env(safe-area-inset-bottom))", sm: "64px" },
           left: 0,
           right: 0,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
+          borderTopLeftRadius: 5,
+          borderTopRightRadius: 5,
           bgcolor: contentBg,
           maxHeight: { xs: 'calc(100vh - 40vh - 64px - env(safe-area-inset-bottom))', sm: 'calc(100vh - 40vh - 64px)' },
           overflow: 'auto',
@@ -560,7 +560,7 @@ function DriverPreferencesScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: theme.palette.mode === "light"
                 ? "rgba(0,0,0,0.05)"
                 : "rgba(255,255,255,0.05)",

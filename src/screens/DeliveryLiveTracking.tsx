@@ -41,7 +41,7 @@ function ActiveDeliveryLivePackageTrackingScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -71,7 +71,7 @@ function ActiveDeliveryLivePackageTrackingScreen(): React.JSX.Element {
           size="small"
           label="In transit"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 10,
             height: 22,
             bgcolor: "rgba(34,197,94,0.12)",
@@ -164,7 +164,7 @@ function ActiveDeliveryLivePackageTrackingScreen(): React.JSX.Element {
             icon={<AccessTimeRoundedIcon sx={{ fontSize: 14 }} />}
             label={`ETA ${eta}`}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 11,
               height: 24,
               bgcolor: "rgba(15,23,42,0.72)",
@@ -226,7 +226,7 @@ function ActiveDeliveryLivePackageTrackingScreen(): React.JSX.Element {
               icon={<RouteRoundedIcon sx={{ fontSize: 14 }} />}
               label={distance}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: (t) =>
@@ -239,7 +239,7 @@ function ActiveDeliveryLivePackageTrackingScreen(): React.JSX.Element {
               icon={<LocalShippingRoundedIcon sx={{ fontSize: 14 }} />}
               label="EV courier"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: "rgba(34,197,94,0.12)",

@@ -92,7 +92,7 @@ function AddStopSearchOverlayScreen(): React.JSX.Element {
 						sx={{
 							width: 40,
 							height: 4,
-							borderRadius: 999,
+							borderRadius: 5,
 							bgcolor: (t) =>
 								t.palette.mode === "light"
 									? "#E5E7EB"
@@ -155,7 +155,7 @@ function AddStopSearchOverlayScreen(): React.JSX.Element {
 						}}
 						sx={{
 							"& .MuiOutlinedInput-root": {
-								borderRadius: 999,
+								borderRadius: 5,
 								bgcolor: (t) =>
 									t.palette.mode === "light"
 										? "#F9FAFB"

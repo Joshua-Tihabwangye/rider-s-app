@@ -165,8 +165,8 @@ function AddStopModal({ open, onClose, onSelectStop, currentStopCount }: AddStop
       onClose={handleClose}
       PaperProps={{
         sx: {
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
+          borderTopLeftRadius: 5,
+          borderTopRightRadius: 5,
           maxHeight: "85vh",
           bgcolor: (theme) =>
             theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
@@ -262,7 +262,7 @@ function AddStopModal({ open, onClose, onSelectStop, currentStopCount }: AddStop
           sx={{
             mb: 2,
             "& .MuiOutlinedInput-root": {
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
               "& fieldset": {

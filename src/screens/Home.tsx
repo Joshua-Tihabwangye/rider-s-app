@@ -146,19 +146,6 @@ function HomeMultiServiceScreen(): React.JSX.Element {
     <ScreenScaffold>
       <Box component="form" onSubmit={handleSearchSubmit}>
         <Stack direction="row" spacing={1.5} alignItems="center">
-          <Avatar
-            sx={{
-              width: 40,
-              height: 40,
-              bgcolor: uiTokens.colors.brand,
-              fontSize: 17,
-              fontWeight: 700,
-              color: uiTokens.colors.white
-            }}
-          >
-            RZ
-          </Avatar>
-
           <TextField
             fullWidth
             size="small"
@@ -184,30 +171,18 @@ function HomeMultiServiceScreen(): React.JSX.Element {
               }
             }}
           />
-
-          <IconButton
-            onClick={() => navigate("/wallet")}
-            sx={{
-              width: 40,
-              height: 40,
-              bgcolor: uiTokens.colors.brand,
-              color: uiTokens.colors.white,
-              "&:hover": { bgcolor: uiTokens.colors.brandHover }
-            }}
-          >
-            <ArrowDownwardRoundedIcon sx={{ fontSize: 20 }} />
-          </IconButton>
         </Stack>
       </Box>
 
       <PrimarySection>
         <SectionHeader
+          centered
           eyebrow="Reminder"
           title={activeReminder.title}
           subtitle={activeReminder.description}
           action={
             REMINDERS.length > 1 ? (
-              <Stack direction="row" spacing={0.4}>
+              <Stack direction="row" spacing={0.4} sx={{ mt: 1 }}>
                 <IconButton
                   size="small"
                   onClick={() =>
@@ -229,7 +204,7 @@ function HomeMultiServiceScreen(): React.JSX.Element {
           }
         />
 
-        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1.5}>
+        <Stack direction="column" alignItems="center" spacing={1.5}>
           <Stack direction="row" spacing={0.75} alignItems="center">
             <NotificationsRoundedIcon sx={{ fontSize: 17, color: uiTokens.colors.brand }} />
             <Typography variant="caption" sx={{ ...uiTokens.text.eyebrow, color: uiTokens.colors.brand }}>

@@ -80,7 +80,7 @@ function CommuteCard(): React.JSX.Element {
                       theme.palette.mode === "light"
                         ? "#F3F4F6"
                         : "rgba(15,23,42,0.9)",
-                    borderRadius: 999,
+                    borderRadius: 5,
                     color: (theme) =>
                       theme.palette.mode === "light"
                         ? "#4B5563"
@@ -185,7 +185,7 @@ function CommuteCard(): React.JSX.Element {
             variant="contained"
             size="small"
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               px: 2.4,
               py: 0.4,
               fontSize: 11,
@@ -223,7 +223,7 @@ function DailyCommutesScreen(): React.JSX.Element {
           size="small"
           aria-label="Open menu"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
             border: (theme) =>
@@ -258,7 +258,7 @@ function DailyCommutesScreen(): React.JSX.Element {
         sx={{
           mb: 2,
           "& .MuiOutlinedInput-root": {
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
             "& fieldset": {
@@ -309,7 +309,7 @@ function DailyCommutesScreen(): React.JSX.Element {
             sx={{
               width: 14,
               height: 14,
-              borderRadius: "999px",
+              borderRadius: "5px",
               bgcolor: "#03CD8C",
               border: "2px solid white"
             }}
@@ -351,7 +351,7 @@ function DailyCommutesScreen(): React.JSX.Element {
           },
           "& .MuiTabs-indicator": {
             height: 2,
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: "primary.main"
           }
         }}

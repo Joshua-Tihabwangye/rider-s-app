@@ -22,6 +22,8 @@ import LocalFireDepartmentRoundedIcon from "@mui/icons-material/LocalFireDepartm
 import HotelRoundedIcon from "@mui/icons-material/HotelRounded";
 import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
 import BeachAccessRoundedIcon from "@mui/icons-material/BeachAccessRounded";
+import MapShell from "../components/maps/MapShell";
+import { uiTokens } from "../design/tokens";
 
 function TripInProgressBasicScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -102,30 +104,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (theme) => theme.palette.background.default }}>
-      {/* Live Map View - Full width at top */}
-      <Box
-        sx={{
-          position: "relative",
-          width: "100%",
-          height: "50vh",
-          background: (theme) =>
-            theme.palette.mode === "light"
-              ? "#F5F5F5" // Light grey/white map background
-              : "linear-gradient(135deg, rgba(15,118,205,0.3), #020617 60%, #020617 100%)",
-          overflow: "hidden"
-        }}
-      >
-        {/* Grid overlay */}
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            opacity: 0.15,
-            backgroundImage:
-              "linear-gradient(to right, rgba(148,163,184,0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.3) 1px, transparent 1px)",
-            backgroundSize: "30px 30px"
-          }}
-        />
+      <MapShell preset="full" canvasSx={{ background: uiTokens.map.canvasEmphasis }}>
 
         {/* Map Labels - Landmarks */}
         <Typography
@@ -319,7 +298,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             bottom: 16,
             left: "50%",
             transform: "translateX(-50%)",
-            borderRadius: 999,
+            borderRadius: 5,
             px: 3,
             py: 1,
             fontSize: 14,
@@ -413,7 +392,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             <SettingsRoundedIcon />
           </IconButton>
         </Stack>
-      </Box>
+      </MapShell>
 
       {/* Trip Info Section (Bottom Card) */}
       <Box sx={{ px: 2.5, pt: 2, pb: 2 }}>
@@ -507,11 +486,11 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                   value={progress}
                   sx={{
                     height: 8,
-                    borderRadius: 999,
+                    borderRadius: 5,
                     bgcolor: (theme) =>
                       theme.palette.mode === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)",
                     "& .MuiLinearProgress-bar": {
-                      borderRadius: 999,
+                      borderRadius: 5,
                       bgcolor: "#22c55e"
                     }
                   }}
@@ -605,7 +584,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                 variant="contained"
                 onClick={handlePayNow}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   px: 3,
                   py: 1,
                   fontSize: 14,

@@ -18,27 +18,44 @@ export default function RowActionItem({
   onClick
 }: RowActionItemProps): React.JSX.Element {
   return (
-    <AppCard onClick={onClick} contentSx={{ px: 1.5, py: 1.4 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-        <Box sx={{ minWidth: 36, display: "inline-flex", justifyContent: "center", color: uiTokens.colors.brand }}>
+    <AppCard
+      onClick={onClick}
+      contentSx={{
+        px: 1.75,
+        py: 1.45,
+        gap: 0
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.4 }}>
+        <Box
+          sx={{
+            width: 40,
+            height: 40,
+            borderRadius: "var(--evz-radius-md)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: uiTokens.colors.brand,
+            bgcolor: uiTokens.surfaces.brandTintSoft
+          }}
+        >
           {icon}
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="body2" sx={uiTokens.text.itemTitle}>
+          <Typography variant="body2" sx={{ ...uiTokens.text.itemTitle, lineHeight: 1.28 }}>
             {title}
           </Typography>
           {description && (
             <Typography
               variant="caption"
-              sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary, mt: 0.25, display: "block" }}
+              sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary, mt: 0.35, display: "block" }}
             >
               {description}
             </Typography>
           )}
         </Box>
-        <ArrowForwardIosRoundedIcon sx={{ fontSize: 14, color: (t) => t.palette.text.secondary, opacity: 0.55 }} />
+        <ArrowForwardIosRoundedIcon sx={{ fontSize: 14, color: (t) => t.palette.text.secondary, opacity: 0.7 }} />
       </Box>
     </AppCard>
   );
 }
-

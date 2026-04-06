@@ -75,7 +75,7 @@ function StepRow({ step, isLast }: StepRowProps): React.JSX.Element {
           sx={{
             width: 20,
             height: 20,
-            borderRadius: "999px",
+            borderRadius: "5px",
             bgcolor: isCurrent ? "rgba(59,130,246,0.12)" : "transparent",
             border: isDone ? "none" : `2px solid ${dotColor}`,
             display: "flex",
@@ -90,7 +90,7 @@ function StepRow({ step, isLast }: StepRowProps): React.JSX.Element {
               sx={{
                 width: 10,
                 height: 10,
-                borderRadius: "999px",
+                borderRadius: "5px",
                 bgcolor: dotColor
               }}
             />
@@ -155,7 +155,7 @@ function DeliveryStatusTimelineScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -215,7 +215,7 @@ function DeliveryStatusTimelineScreen(): React.JSX.Element {
               icon={<LocalShippingRoundedIcon sx={{ fontSize: 14 }} />}
               label="EV courier"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: "rgba(34,197,94,0.12)",
@@ -227,7 +227,7 @@ function DeliveryStatusTimelineScreen(): React.JSX.Element {
               icon={<PlaceRoundedIcon sx={{ fontSize: 14 }} />}
               label="Nsambya → Bugolobi"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: (t) =>

@@ -122,8 +122,8 @@ function SwitchRiderChooserScreen(): React.JSX.Element {
             bottom: 0,
             left: 0,
             right: 0,
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
+            borderTopLeftRadius: 5,
+            borderTopRightRadius: 5,
             bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "#1E2A47",
             maxHeight: '95vh',
             overflow: 'auto',
@@ -147,7 +147,7 @@ function SwitchRiderChooserScreen(): React.JSX.Element {
                   aria-label="Back"
                   onClick={handleClose}
                   sx={{
-                    borderRadius: 999,
+                    borderRadius: 5,
                     bgcolor: "rgba(255,255,255,0.1)",
                     color: headerText,
                     "&:hover": {
@@ -237,7 +237,7 @@ function SwitchRiderChooserScreen(): React.JSX.Element {
                           </Box>
                         )}
                         sx={{
-                          borderRadius: 999,
+                          borderRadius: 5,
                           bgcolor: theme.palette.mode === "light"
                             ? "rgba(0,0,0,0.05)"
                             : "rgba(255,255,255,0.05)",
@@ -271,7 +271,7 @@ function SwitchRiderChooserScreen(): React.JSX.Element {
                           </Box>
                         )}
                         sx={{
-                          borderRadius: 999,
+                          borderRadius: 5,
                           bgcolor: theme.palette.mode === "light"
                             ? "rgba(0,0,0,0.05)"
                             : "rgba(255,255,255,0.05)",

@@ -44,7 +44,7 @@ function RideForContactSummaryScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -114,7 +114,7 @@ function RideForContactSummaryScreen(): React.JSX.Element {
                   }
                   label={contact.relation}
                   sx={{
-                    borderRadius: 999,
+                    borderRadius: 5,
                     fontSize: 10,
                     height: 22,
                     bgcolor: (theme) =>
@@ -146,7 +146,7 @@ function RideForContactSummaryScreen(): React.JSX.Element {
               size="small"
               variant="outlined"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 textTransform: "none",
                 px: 1.8,
@@ -161,7 +161,7 @@ function RideForContactSummaryScreen(): React.JSX.Element {
               size="small"
               variant="text"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 textTransform: "none",
                 color: (theme) => theme.palette.text.secondary
@@ -211,7 +211,7 @@ function RideForContactSummaryScreen(): React.JSX.Element {
         label="I am paying for this ride from my EVzone account"
         sx={{
           mb: 1.5,
-          borderRadius: 999,
+          borderRadius: 5,
           fontSize: 11,
           height: 28,
           bgcolor: (theme) =>
@@ -224,7 +224,7 @@ function RideForContactSummaryScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

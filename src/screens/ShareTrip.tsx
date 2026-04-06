@@ -68,7 +68,7 @@ function PassengerChip({ passenger }: PassengerChipProps): React.JSX.Element {
       }
       size="small"
       sx={{
-        borderRadius: 999,
+        borderRadius: 5,
         fontSize: 11,
         height: 28,
         bgcolor: bg,
@@ -100,7 +100,7 @@ function ShareRidePassengersScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -179,7 +179,7 @@ function ShareRidePassengersScreen(): React.JSX.Element {
             sx={{
               mt: 0.75,
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -244,7 +244,7 @@ function ShareRidePassengersScreen(): React.JSX.Element {
               label="Split fare with joined passengers"
               onClick={() => setSplitFare((prev) => !prev)}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 28,
                 bgcolor: splitFare
@@ -302,7 +302,7 @@ function ShareRidePassengersScreen(): React.JSX.Element {
             sx={{
               mt: 0.75,
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -324,7 +324,7 @@ function ShareRidePassengersScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

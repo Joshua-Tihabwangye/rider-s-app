@@ -44,7 +44,7 @@ function TripTypeRoundTripScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -119,7 +119,7 @@ function TripTypeRoundTripScreen(): React.JSX.Element {
                   variant={isActive ? "contained" : "outlined"}
                   onClick={() => setTripType(opt.id)}
                   sx={{
-                    borderRadius: 999,
+                    borderRadius: 5,
                     fontSize: 12,
                     py: 0.7,
                     textTransform: "none",
@@ -190,7 +190,7 @@ function TripTypeRoundTripScreen(): React.JSX.Element {
                 size="small"
                 onClick={() => setReturnSameDay(true)}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 11,
                   height: 26,
                   bgcolor: returnSameDay
@@ -209,7 +209,7 @@ function TripTypeRoundTripScreen(): React.JSX.Element {
                 size="small"
                 onClick={() => setReturnSameDay(false)}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 11,
                   height: 26,
                   bgcolor: !returnSameDay
@@ -236,7 +236,7 @@ function TripTypeRoundTripScreen(): React.JSX.Element {
                 InputLabelProps={{ shrink: true }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: 999,
+                    borderRadius: 5,
                     bgcolor: (theme) =>
                       theme.palette.mode === "light"
                         ? "#F9FAFB"
@@ -264,7 +264,7 @@ function TripTypeRoundTripScreen(): React.JSX.Element {
                 InputLabelProps={{ shrink: true }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: 999,
+                    borderRadius: 5,
                     bgcolor: (theme) =>
                       theme.palette.mode === "light"
                         ? "#FFFFFF"
@@ -351,7 +351,7 @@ function TripTypeRoundTripScreen(): React.JSX.Element {
         variant="contained"
         disabled={!canContinue}
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

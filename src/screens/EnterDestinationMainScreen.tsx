@@ -102,7 +102,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           aria-label="Open menu"
           onClick={() => navigate("/home")}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
             border: (theme) =>
@@ -138,7 +138,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         sx={{
           mb: 2,
           "& .MuiOutlinedInput-root": {
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
             "& fieldset": {
@@ -191,7 +191,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               sx={{
                 width: 14,
                 height: 14,
-                borderRadius: "999px",
+                borderRadius: "5px",
                 bgcolor: "#03CD8C",
                 border: "2px solid white"
               }}
@@ -200,7 +200,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               sx={{
                 position: "absolute",
                 inset: -8,
-                borderRadius: "999px",
+                borderRadius: "5px",
                 border: "1px solid rgba(59,130,246,0.5)"
               }}
             />
@@ -243,7 +243,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           },
           "& .MuiTabs-indicator": {
             height: 2,
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: "primary.main"
           }
         }}

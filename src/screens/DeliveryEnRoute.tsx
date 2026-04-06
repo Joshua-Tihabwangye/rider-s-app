@@ -42,7 +42,7 @@ function PackageTrackingEnRouteScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -184,7 +184,7 @@ function PackageTrackingEnRouteScreen(): React.JSX.Element {
                 icon={<AccessTimeRoundedIcon sx={{ fontSize: 14 }} />}
                 label={`ETA ${eta}`}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 11,
                   height: 24,
                   bgcolor: "rgba(34,197,94,0.12)",
@@ -196,7 +196,7 @@ function PackageTrackingEnRouteScreen(): React.JSX.Element {
                 icon={<RouteRoundedIcon sx={{ fontSize: 14 }} />}
                 label={distance}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 10,
                   height: 22,
                   bgcolor: (t) =>
@@ -259,7 +259,7 @@ function PackageTrackingEnRouteScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

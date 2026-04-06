@@ -51,8 +51,8 @@ function SharedPassengersModal({ open, onClose, rideData }: SharedPassengersModa
       onClose={onClose}
       PaperProps={{
         sx: {
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
+          borderTopLeftRadius: 5,
+          borderTopRightRadius: 5,
           maxHeight: "85vh",
           bgcolor: (theme) =>
             theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"

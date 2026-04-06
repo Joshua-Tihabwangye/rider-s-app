@@ -39,7 +39,7 @@ function TourDetailsScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -112,7 +112,7 @@ function TourDetailsScreen(): React.JSX.Element {
               label="City tour"
               size="small"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: "rgba(59,130,246,0.12)",
@@ -123,7 +123,7 @@ function TourDetailsScreen(): React.JSX.Element {
               label="Small groups"
               size="small"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: (t) =>
@@ -136,7 +136,7 @@ function TourDetailsScreen(): React.JSX.Element {
               size="small"
               icon={<ElectricCarRoundedIcon sx={{ fontSize: 14 }} />}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: "rgba(3,205,140,0.12)",
@@ -262,7 +262,7 @@ function TourDetailsScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

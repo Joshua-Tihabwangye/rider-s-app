@@ -33,7 +33,7 @@ function ThankYouRideConfirmedScreen(): React.JSX.Element {
           aria-label="Back"
           onClick={() => navigate(-1)}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (t) =>
               t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
             border: (t) =>
@@ -55,7 +55,7 @@ function ThankYouRideConfirmedScreen(): React.JSX.Element {
             justifyContent: "center",
             width: 72,
             height: 72,
-            borderRadius: "999px",
+            borderRadius: "5px",
             bgcolor: "rgba(3,205,140,0.12)",
             mb: 1.5
           }}
@@ -107,7 +107,7 @@ function ThankYouRideConfirmedScreen(): React.JSX.Element {
               icon={<DirectionsCarFilledRoundedIcon sx={{ fontSize: 14 }} />}
               label="Eco EV • 1–4 riders"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: (t) =>
@@ -120,7 +120,7 @@ function ThankYouRideConfirmedScreen(): React.JSX.Element {
               icon={<AccessTimeRoundedIcon sx={{ fontSize: 14 }} />}
               label="Arrives around 07:25 PM"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: "rgba(59,130,246,0.12)",
@@ -144,7 +144,7 @@ function ThankYouRideConfirmedScreen(): React.JSX.Element {
           fullWidth
           variant="outlined"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 1,
             fontSize: 14,
             textTransform: "none"
@@ -156,7 +156,7 @@ function ThankYouRideConfirmedScreen(): React.JSX.Element {
           fullWidth
           variant="contained"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 1.1,
             fontSize: 15,
             fontWeight: 600,

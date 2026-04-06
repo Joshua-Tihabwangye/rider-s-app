@@ -143,7 +143,7 @@ function RideDetailsScreen(): React.JSX.Element {
             size="small"
             onClick={handleBack}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.9)",
               "&:hover": {
                 bgcolor: theme.palette.mode === "light" ? "#E5E7EB" : "rgba(15,23,42,1)"
@@ -167,7 +167,7 @@ function RideDetailsScreen(): React.JSX.Element {
               size="small"
           onClick={handleNotificationClick}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
             bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.9)",
             "&:hover": {
               bgcolor: theme.palette.mode === "light" ? "#E5E7EB" : "rgba(15,23,42,1)"
@@ -521,7 +521,7 @@ function RideDetailsScreen(): React.JSX.Element {
                 onClick={handleCallDriver}
                 sx={{
                   flex: 1,
-                  borderRadius: 999,
+                  borderRadius: 5,
                   textTransform: "none",
                   borderColor: theme.palette.mode === "light"
                     ? "rgba(0,0,0,0.15)"
@@ -541,7 +541,7 @@ function RideDetailsScreen(): React.JSX.Element {
                 onClick={handleMessageDriver}
                 sx={{
                   flex: 1,
-                  borderRadius: 999,
+                  borderRadius: 5,
                   textTransform: "none",
                   borderColor: theme.palette.mode === "light"
                     ? "rgba(0,0,0,0.15)"
@@ -558,7 +558,7 @@ function RideDetailsScreen(): React.JSX.Element {
               <IconButton
                 onClick={handleViewDriverProfile}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   border: theme.palette.mode === "light"
                     ? "1px solid rgba(0,0,0,0.15)"
                     : "1px solid rgba(255,255,255,0.2)",
@@ -631,7 +631,7 @@ function RideDetailsScreen(): React.JSX.Element {
         variant="contained"
           onClick={handleBookTrip}
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
             py: 1.5,
             fontSize: 16,
           fontWeight: 600,

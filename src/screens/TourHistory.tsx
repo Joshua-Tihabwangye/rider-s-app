@@ -75,7 +75,7 @@ function TourBookingCard({ booking }: TourBookingCardProps): React.JSX.Element {
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -114,7 +114,7 @@ function TourBookingCard({ booking }: TourBookingCardProps): React.JSX.Element {
             size="small"
             label={booking.status}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 10,
               height: 22,
               bgcolor:
@@ -138,7 +138,7 @@ function TourBookingCard({ booking }: TourBookingCardProps): React.JSX.Element {
             size="small"
             variant="outlined"
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               px: 2,
               py: 0.4,
               fontSize: 12,
@@ -175,7 +175,7 @@ function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -210,7 +210,7 @@ function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
           onClick={() => setTab("upcoming")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: tab === "upcoming" ? "primary.main" : (t) =>
@@ -225,7 +225,7 @@ function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
           onClick={() => setTab("history")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: tab === "history" ? "primary.main" : (t) =>

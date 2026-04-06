@@ -48,7 +48,7 @@ function RideLaterSummaryScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -181,7 +181,7 @@ function RideLaterSummaryScreen(): React.JSX.Element {
                 label={summary.date}
                 size="small"
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 11,
                   bgcolor: (theme) =>
                     theme.palette.mode === "light" ? "#EFF6FF" : "rgba(15,23,42,1)",
@@ -193,7 +193,7 @@ function RideLaterSummaryScreen(): React.JSX.Element {
                 label={summary.time}
                 size="small"
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 11,
                   bgcolor: (theme) =>
                     theme.palette.mode === "light" ? "#ECFEFF" : "rgba(15,23,42,1)",
@@ -278,7 +278,7 @@ function RideLaterSummaryScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

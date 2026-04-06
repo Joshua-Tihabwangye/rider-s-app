@@ -38,7 +38,7 @@ function EnterDestinationVariantScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -81,7 +81,7 @@ function EnterDestinationVariantScreen(): React.JSX.Element {
               onClick={() => setMode("single")}
               icon={<RouteRoundedIcon sx={{ fontSize: 16 }} />}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 28,
                 bgcolor:
@@ -97,7 +97,7 @@ function EnterDestinationVariantScreen(): React.JSX.Element {
               onClick={() => setMode("multi")}
               icon={<AddRoundedIcon sx={{ fontSize: 16 }} />}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 28,
                 bgcolor:
@@ -141,7 +141,7 @@ function EnterDestinationVariantScreen(): React.JSX.Element {
             sx={{
               mb: 1.5,
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -169,7 +169,7 @@ function EnterDestinationVariantScreen(): React.JSX.Element {
             }}
             sx={{
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -194,7 +194,7 @@ function EnterDestinationVariantScreen(): React.JSX.Element {
                 startIcon={<AddRoundedIcon sx={{ fontSize: 18 }} />}
                 sx={{
                   mt: 0.5,
-                  borderRadius: 999,
+                  borderRadius: 5,
                   textTransform: "none",
                   fontSize: 12
                 }}
@@ -211,7 +211,7 @@ function EnterDestinationVariantScreen(): React.JSX.Element {
         variant="contained"
         disabled={!canContinue}
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

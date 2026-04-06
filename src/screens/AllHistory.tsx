@@ -151,7 +151,7 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#E5E7EB" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -190,7 +190,7 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
             size="small"
             label={order.status}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 10,
               height: 22,
               bgcolor:
@@ -218,7 +218,7 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
               handleViewDetails();
             }}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               px: 2,
               py: 0.4,
               fontSize: 12,
@@ -259,7 +259,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -294,7 +294,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           onClick={() => setFilter("all")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "all" ? "primary.main" : (t) =>
@@ -311,7 +311,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           onClick={() => setFilter("Ride")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "Ride" ? "primary.main" : (t) =>
@@ -328,7 +328,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           onClick={() => setFilter("Delivery")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "Delivery" ? "primary.main" : (t) =>
@@ -345,7 +345,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           onClick={() => setFilter("Rental")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "Rental" ? "primary.main" : (t) =>
@@ -362,7 +362,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           onClick={() => setFilter("Tour")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "Tour" ? "primary.main" : (t) =>
@@ -379,7 +379,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           onClick={() => setFilter("Ambulance")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "Ambulance" ? "primary.main" : (t) =>

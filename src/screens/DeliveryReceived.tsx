@@ -92,7 +92,7 @@ function ReceivedOrderCard({ order }: ReceivedOrderCardProps): React.JSX.Element
             label={order.status}
             size="small"
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 11,
               height: 24,
               bgcolor: statusBg,
@@ -129,7 +129,7 @@ function ReceivedOrderCard({ order }: ReceivedOrderCardProps): React.JSX.Element
             size="small"
             variant="text"
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 11,
               textTransform: "none",
               color: (t) => t.palette.text.secondary
@@ -164,7 +164,7 @@ function DeliveriesDashboardReceivedScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -196,7 +196,7 @@ function DeliveriesDashboardReceivedScreen(): React.JSX.Element {
           size="small"
           sx={{
             height: 26,
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             bgcolor: filter === "all" ? "primary.main" : (t) =>
               t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
@@ -211,7 +211,7 @@ function DeliveriesDashboardReceivedScreen(): React.JSX.Element {
           size="small"
           sx={{
             height: 26,
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             bgcolor: filter === "incoming" ? "primary.main" : (t) =>
               t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
@@ -226,7 +226,7 @@ function DeliveriesDashboardReceivedScreen(): React.JSX.Element {
           size="small"
           sx={{
             height: 26,
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             bgcolor: filter === "delivered" ? "primary.main" : (t) =>
               t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",

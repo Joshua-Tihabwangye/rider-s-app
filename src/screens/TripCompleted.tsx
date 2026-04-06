@@ -332,10 +332,10 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
                   value={progress}
                   sx={{
                     height: 10,
-                    borderRadius: 999,
+                    borderRadius: 5,
                     bgcolor: "rgba(255,255,255,0.3)",
                     "& .MuiLinearProgress-bar": {
-                      borderRadius: 999,
+                      borderRadius: 5,
                       bgcolor: "#FFFFFF",
                       boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
                     }
@@ -495,7 +495,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
                 variant="outlined"
                 onClick={handleRateDriver}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   px: 2,
                   py: 0.75,
                   fontSize: 13,
@@ -548,7 +548,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
                 size="small"
                 startIcon={<AddRoundedIcon sx={{ fontSize: 16 }} />}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
                   px: 1.5,
                   py: 0.5,
                   fontSize: 11,
@@ -706,7 +706,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
         variant="contained"
                 onClick={handlePayNow}
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
                   px: 3,
                   py: 1,
                   fontSize: 14,

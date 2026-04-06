@@ -74,7 +74,7 @@ function AmbulanceRequestCard({ req }: AmbulanceRequestCardProps): React.JSX.Ele
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FEE2E2" : "rgba(127,29,29,0.9)",
               display: "flex",
@@ -126,7 +126,7 @@ function AmbulanceRequestCard({ req }: AmbulanceRequestCardProps): React.JSX.Ele
             size="small"
             label={req.status}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 10,
               height: 22,
               bgcolor:
@@ -150,7 +150,7 @@ function AmbulanceRequestCard({ req }: AmbulanceRequestCardProps): React.JSX.Ele
             size="small"
             variant="outlined"
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               px: 2,
               py: 0.4,
               fontSize: 12,
@@ -191,7 +191,7 @@ function AmbulanceRequestsHistoryScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -226,7 +226,7 @@ function AmbulanceRequestsHistoryScreen(): React.JSX.Element {
           onClick={() => setTab("all")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: tab === "all" ? "primary.main" : (t) =>
@@ -241,7 +241,7 @@ function AmbulanceRequestsHistoryScreen(): React.JSX.Element {
           onClick={() => setTab("completed")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: tab === "completed" ? "primary.main" : (t) =>
@@ -256,7 +256,7 @@ function AmbulanceRequestsHistoryScreen(): React.JSX.Element {
           onClick={() => setTab("cancelled")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: tab === "cancelled" ? "primary.main" : (t) =>
