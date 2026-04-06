@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -18,24 +19,23 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 
 
 function AmbulanceDashboardHomeScreen(): React.JSX.Element {
-  const [ctaState, setCtaState] = useState("idle");
+  const navigate = useNavigate();
   const [forWhom, setForWhom] = useState("me");
 
   const handleRequestNow = () => {
-    setCtaState("urgent");
+    navigate("/ambulance/location");
   };
 
   const handlePlanTransfer = () => {
-    setCtaState("planned");
+    navigate("/ambulance/destination");
   };
 
   const handleSetForWhom = (value: string): void => {
     setForWhom(value);
-    setCtaState(`for-${value}`);
   };
 
   const handleViewHistory = () => {
-    setCtaState("history");
+    navigate("/ambulance/history");
   };
 
   return (
@@ -190,42 +190,6 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
             </Button>
           </Stack>
 
-          {ctaState !== "idle" && (
-            <Box
-              sx={{
-                mt: 1,
-                px: 1.1,
-                py: 0.7,
-                borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light"
-                    ? "rgba(255,255,255,0.9)"
-                    : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(220,38,38,0.35)"
-                    : "1px solid rgba(220,38,38,0.7)"
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-              >
-                {ctaState === "urgent" &&
-                  "Next step: open the urgent ambulance request flow with current location, patient details and priority hospital (RA84–RA86)."}
-                {ctaState === "planned" &&
-                  "Next step: choose date, time and destination hospital for a planned transfer (e.g. RA85 + schedule)."}
-                {ctaState === "for-me" &&
-                  "Preparing a request for you. Ask a nearby adult to assist if possible and stay reachable on this phone."}
-                {ctaState === "for-family" &&
-                  "You’re booking for a family member or friend. In the next step you’ll confirm their contact and location."}
-                {ctaState === "for-facility" &&
-                  "You’re booking from a clinic or hospital. In the next step, confirm ward/bed, referring doctor and destination facility."}
-                {ctaState === "history" &&
-                  "Open your ambulance request history to see previous calls, outcomes and reference IDs (RA88)."}
-              </Typography>
-            </Box>
-          )}
         </CardContent>
       </Card>
 
@@ -381,18 +345,19 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
           <Divider sx={{ mb: 1, borderColor: (t) => t.palette.divider }} />
 
           {[0, 1].map((i) => (
-            <Box
-              key={i}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                py: 0.6,
-                "&:not(:last-of-type)": {
-                  borderBottom: (t) => `1px dashed ${t.palette.divider}`
-                }
-              }}
-            >
+              <Box
+                onClick={() => navigate("/ambulance/history")}
+                sx={{
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  py: 0.6,
+                  "&:not(:last-of-type)": {
+                    borderBottom: (t) => `1px dashed ${t.palette.divider}`
+                  }
+                }}
+              >
               <Box>
                 <Typography
                   variant="body2"

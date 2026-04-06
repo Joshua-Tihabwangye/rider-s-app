@@ -156,7 +156,6 @@ const RECENT_DELIVERIES = [
 
 function DeliveryDashboardHomeScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [ctaState, setCtaState] = useState<string>("idle");
   const [viewMode, setViewMode] = useState<string>("sending");
   const [activeTab, setActiveTab] = useState<string>("delivering");
   const [trackingNumber, setTrackingNumber] = useState<string>("");
@@ -259,7 +258,10 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
           <Button
             variant="outlined"
             startIcon={<TrackChangesRoundedIcon sx={{ fontSize: 18 }} />}
-            onClick={() => setCtaState("track")}
+            onClick={() => {
+              const el = document.getElementById("tracking-field");
+              if (el) el.focus();
+            }}
             sx={{
               py: uiTokens.spacing.sm,
               fontSize: 13,
@@ -283,6 +285,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
         />
         <TextField
           fullWidth
+          id="tracking-field"
           size="small"
           placeholder="Order ID"
           value={trackingNumber}
@@ -384,6 +387,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
                 onMenuClick={(event, orderId) =>
                   setMenuAnchor({ open: true, anchorEl: event.currentTarget, orderId })
                 }
+                onClick={(id) => navigate(`/deliveries/tracking/${id}/details`)}
                 onAccept={handleAcceptDelivery}
                 onReject={handleRejectDelivery}
                 onMakePayment={handleMakePayment}
@@ -440,7 +444,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
               action={
                 <Button
                   size="small"
-                  onClick={() => setCtaState("history")}
+                  onClick={() => navigate("/history/all")}
                   sx={{ fontSize: 11, textTransform: "none", color: (t) => t.palette.text.secondary }}
                 >
                   View history
@@ -497,16 +501,6 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
         </Stack>
       </Box>
 
-      {ctaState !== "idle" && (
-        <AppCard variant="muted">
-          <Typography variant="caption" sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}>
-            {ctaState === "track" &&
-              "Next step: open the live tracking view for an active parcel with map, ETA and courier info (RA60–RA63)."}
-            {ctaState === "history" &&
-              "Open the full deliveries history, including sent and received parcels (RA50–RA54/RA68)."}
-          </Typography>
-        </AppCard>
-      )}
 
       <Menu
         anchorEl={menuAnchor.anchorEl}

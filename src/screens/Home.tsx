@@ -107,7 +107,7 @@ const SERVICE_ACTIONS: ServiceAction[] = [
 const QUICK_ACTIONS = [
   { label: "Book usual route", icon: <RouteRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter" },
   { label: "Go to work", icon: <WorkRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter" },
-  { label: "Rebook last ride", icon: <ElectricCarRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter" },
+  { label: "Rebook last ride", icon: <ElectricCarRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter", state: { rebook: true } },
   { label: "Track a parcel", icon: <LocalShippingRoundedIcon sx={{ fontSize: 16 }} />, route: "/deliveries" }
 ];
 
@@ -204,7 +204,7 @@ function HomeMultiServiceScreen(): React.JSX.Element {
         </Stack>
       </PrimarySection>
 
-      <AppCard>
+      <AppCard onClick={() => navigate("/rides/enter")}>
         <SectionHeader
           eyebrow="Your last ride"
           title="Home → Office"
@@ -212,7 +212,7 @@ function HomeMultiServiceScreen(): React.JSX.Element {
             <Button
               size="small"
               variant="contained"
-              onClick={() => navigate("/rides/enter")}
+              onClick={() => navigate("/rides/enter", { state: { rebook: true } })}
               sx={{
                 bgcolor: uiTokens.colors.brand,
                 color: uiTokens.colors.white,
@@ -262,7 +262,7 @@ function HomeMultiServiceScreen(): React.JSX.Element {
               icon={action.icon}
               label={action.label}
               size="small"
-              onClick={() => navigate(action.route)}
+              onClick={() => navigate(action.route, { state: (action as any).state })}
               sx={{
                 height: 40,
                 fontSize: 11.5,

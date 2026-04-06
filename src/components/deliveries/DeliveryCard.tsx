@@ -52,6 +52,7 @@ interface DeliveryCardProps {
   onReject?: (orderId: string) => void;
   onMakePayment?: (orderId: string) => void;
   showTruckIcon?: boolean;
+  onClick?: (orderId: string) => void;
 }
 
 function statusStyles(status: string): { bg: string | ((theme: any) => string); fg: string | ((theme: any) => string) } {
@@ -73,14 +74,15 @@ export default function DeliveryCard({
   onAccept,
   onReject,
   onMakePayment,
-  showTruckIcon = false
+  showTruckIcon = false,
+  onClick
 }: DeliveryCardProps): React.JSX.Element {
   const isReceived = variant === "received";
   const showAcceptReject = variant === "delivering" && order.status === "Waiting to accept";
   const statusTone = statusStyles(order.status);
 
   return (
-    <AppCard sx={{ mb: uiTokens.spacing.lg }}>
+    <AppCard onClick={() => onClick?.(order.id)} sx={{ mb: uiTokens.spacing.lg }}>
       <Stack spacing={1.35}>
         <Stack direction="row" spacing={1.25} alignItems="center">
           <Box

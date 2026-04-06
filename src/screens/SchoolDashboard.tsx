@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   Box,
@@ -19,6 +20,7 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 
 
 function SchoolDashboardHomeScreen(): React.JSX.Element {
+  const navigate = useNavigate();
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
       {/* Header */}
@@ -96,6 +98,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
               fullWidth
               variant="contained"
               startIcon={<DirectionsBusFilledRoundedIcon sx={{ fontSize: 18 }} />}
+              onClick={() => navigate("/school-handoff")}
               sx={{
                 borderRadius: 5,
                 py: 0.9,
@@ -159,6 +162,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
             </Stack>
             <Typography
               variant="caption"
+              onClick={() => navigate("/school-handoff")}
               sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, cursor: "pointer" }}
             >
               Manage in EVzone School
@@ -169,7 +173,9 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
           {[0, 1].map((i) => (
             <Box
               key={i}
+              onClick={() => navigate("/school-handoff")}
               sx={{
+                cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",

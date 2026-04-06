@@ -105,13 +105,13 @@ export default function Settings(): React.JSX.Element {
             icon={<LanguageRoundedIcon />}
             title="Language"
             description="English (US)"
-            onClick={() => {}}
+            onClick={() => navigate("/settings/language")}
           />
           <RowActionItem
             icon={<PaymentRoundedIcon />}
             title="Payment Methods"
             description="Manage cards and payment options"
-            onClick={() => {}}
+            onClick={() => navigate("/wallet")}
           />
         </ListSection>
       </Stack>
@@ -123,13 +123,13 @@ export default function Settings(): React.JSX.Element {
             icon={<SecurityRoundedIcon />}
             title="Security"
             description="Password, 2FA, and security settings"
-            onClick={() => {}}
+            onClick={() => navigate("/settings/security")}
           />
           <RowActionItem
             icon={<PrivacyTipRoundedIcon />}
             title="Privacy"
             description="Data privacy and sharing preferences"
-            onClick={() => {}}
+            onClick={() => navigate("/settings/privacy")}
           />
           <AppCard
             onClick={() => navigate("/rides/preferences/setup")}

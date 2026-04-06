@@ -88,6 +88,9 @@ import AllHistory from "../screens/AllHistory";
 import Wallet from "../screens/Wallet";
 import MoreMenu from "../screens/MoreMenu";
 import Settings from "../screens/Settings";
+import LanguageSettings from "../screens/LanguageSettings";
+import SecuritySettings from "../screens/SecuritySettings";
+import PrivacySettings from "../screens/PrivacySettings";
 import Help from "../screens/Help";
 import About from "../screens/About";
 import RidesDashboard from "../screens/RidesDashboard";
@@ -96,6 +99,10 @@ import RentalDashboard from "../screens/RentalDashboard";
 import ToursDashboard from "../screens/ToursDashboard";
 import AmbulanceDashboard from "../screens/AmbulanceDashboard";
 import SchoolDashboard from "../screens/SchoolDashboard";
+import SchoolFees from "../screens/SchoolFees";
+import RidePromotions from "../screens/RidePromotions";
+import ToursNew from "../screens/ToursNew";
+import Profile from "../screens/Profile";
 
 export default function AppRouter(): React.JSX.Element {
 	return (
@@ -103,7 +110,9 @@ export default function AppRouter(): React.JSX.Element {
 			{/* Home & Global */}
 			<Route index element={<Navigate to="/home" replace />} />
 			<Route path="home" element={<Home />} />
-			<Route path="school-handoff" element={<SchoolHandoff />} />
+			<Route path="school-handoff" element={<SchoolDashboard />} />
+			<Route path="school-handoff/fees" element={<SchoolFees />} />
+			<Route path="school-handoff/details" element={<SchoolHandoff />} />
 			<Route path="history/all" element={<AllHistory />} />
 			{/* Rides */}
 			<Route path="rides">
@@ -186,6 +195,8 @@ export default function AppRouter(): React.JSX.Element {
 				/>
 				<Route path="history/past" element={<PastRides />} />
 				<Route path="history/upcoming" element={<UpcomingRides />} />
+				<Route path="history/promotions" element={<RidePromotions />} />
+				<Route path="promotions" element={<RidePromotions />} />
 				<Route path="history/:rideId" element={<RideHistoryDetail />} />
 				<Route path="details" element={<RideDetails />} />
 				<Route
@@ -281,6 +292,7 @@ export default function AppRouter(): React.JSX.Element {
 			{/* Tours */}
 			<Route path="tours">
 				<Route index element={<ToursDashboard />} />
+				<Route path="new" element={<ToursNew />} />
 				<Route path=":tourId" element={<TourDetail />} />
 				<Route path=":tourId/dates" element={<TourDates />} />
 				<Route path=":tourId/summary" element={<TourSummary />} />
@@ -307,10 +319,16 @@ export default function AppRouter(): React.JSX.Element {
 			</Route>
 			{/* Placeholder routes - Wallet is marked as "future work" in routing guide */}
 			<Route path="wallet" element={<Wallet />} />
+			<Route path="profile" element={<Profile />} />
 			<Route path="manager" element={<MoreMenu />} />{" "}
 			{/* Manager placeholder - using MoreMenu for now */}
 			<Route path="more" element={<MoreMenu />} />
-			<Route path="settings" element={<Settings />} />
+			<Route path="settings">
+				<Route index element={<Settings />} />
+				<Route path="language" element={<LanguageSettings />} />
+				<Route path="security" element={<SecuritySettings />} />
+				<Route path="privacy" element={<PrivacySettings />} />
+			</Route>
 			<Route path="help" element={<Help />} />
 			<Route path="about" element={<About />} />
 			<Route path="school" element={<SchoolDashboard />} />
