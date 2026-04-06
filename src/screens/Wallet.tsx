@@ -238,7 +238,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
         elevation={0}
         sx={{
           mb: { xs: 1.5, sm: 2 },
-          borderRadius: 0,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light"
               ? "radial-gradient(circle at top, #BBF7D0, #ECFDF5)"
@@ -319,7 +319,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                     sx={{
                       bgcolor: (t) => t.palette.mode === "light" ? "#022C22" : "#03CD8C",
                       color: (t) => t.palette.mode === "light" ? "#ECFDF5" : "#020617",
-                      borderRadius: 0,
+                      borderRadius: uiTokens.radius.xl,
                       px: 3,
                       py: 1,
                       fontSize: { xs: 12, sm: 13 },
@@ -347,7 +347,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                     alert(`EV-first payments: part of your balance may be reserved for ongoing trips and deliveries.\n\nFree: UGX ${balance.toLocaleString()}\nReserved: UGX ${reserved.toLocaleString()}`);
                   }}
                 sx={{
-                  borderRadius: 0,
+                  borderRadius: uiTokens.radius.xl,
                     fontSize: { xs: 9, sm: 10 },
                     height: { xs: 20, sm: 22 },
                   bgcolor: "rgba(255,255,255,0.85)",
@@ -371,10 +371,10 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                   mt: 0.3,
                       width: "100%",
                   height: 5,
-                  borderRadius: 0,
+                  borderRadius: uiTokens.radius.xl,
                   bgcolor: "rgba(15,23,42,0.15)",
                   "& .MuiLinearProgress-bar": {
-                    borderRadius: 0,
+                    borderRadius: uiTokens.radius.xl,
                     bgcolor: "#059669"
                   }
                 }}
@@ -408,7 +408,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 startIcon={<AddCircleRoundedIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />}
               onClick={handleAddMoney}
               sx={{
-                borderRadius: 0,
+                borderRadius: uiTokens.radius.xl,
                   py: { xs: 0.75, sm: 0.9 },
                   fontSize: { xs: 12, sm: 13 },
                 fontWeight: 600,
@@ -426,7 +426,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 startIcon={<ArrowUpwardRoundedIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />}
               onClick={handleWithdraw}
               sx={{
-                borderRadius: 0,
+                borderRadius: uiTokens.radius.xl,
                   py: { xs: 0.75, sm: 0.9 },
                   fontSize: { xs: 12, sm: 13 },
                 textTransform: "none",
@@ -450,7 +450,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
         elevation={0}
         sx={{
           mb: { xs: 1.5, sm: 2 },
-          borderRadius: 0,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -503,7 +503,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               onClick={(e) => handlePaymentMethodClick(e, "wallet")}
               sx={{
                 flex: 1,
-                borderRadius: 0,
+                borderRadius: uiTokens.radius.xl,
                 cursor: "pointer",
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#ECFDF5" : "rgba(15,23,42,0.9)",
@@ -536,7 +536,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               onClick={(e) => handlePaymentMethodClick(e, "cards")}
               sx={{
                 flex: 1,
-                borderRadius: 0,
+                borderRadius: uiTokens.radius.xl,
                 cursor: "pointer",
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
@@ -572,7 +572,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               onClick={(e) => handlePaymentMethodClick(e, "mobile")}
               sx={{
                 flex: 1,
-                borderRadius: 0,
+                borderRadius: uiTokens.radius.xl,
                 cursor: "pointer",
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#FFFBEB" : "rgba(15,23,42,0.96)",
@@ -608,7 +608,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
         elevation={0}
         sx={{
           mb: { xs: 1.25, sm: 1.5 },
-          borderRadius: 0,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -664,7 +664,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 onClick={handleRetryTransactions}
                 sx={{
                   textTransform: "none",
-                  borderRadius: 0,
+                  borderRadius: uiTokens.radius.xl,
                   px: 3,
                   py: 0.75,
                   fontSize: { xs: 11, sm: 12 }
@@ -692,7 +692,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 sx={{
                     py: { xs: 0.5, sm: 0.4 },
                   cursor: "pointer",
-                  borderRadius: 0,
+                  borderRadius: uiTokens.radius.xl,
                   transition: "background-color 0.15s ease",
                   "&:hover": {
                     bgcolor: (t) => t.palette.mode === "light" ? "rgba(0,0,0,0.02)" : "rgba(255,255,255,0.02)"
@@ -773,7 +773,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                   onClick={handleAddMoney}
                   sx={{
                     textTransform: "none",
-                    borderRadius: 0,
+                    borderRadius: uiTokens.radius.xl,
                     px: 3,
                     py: 0.75,
                     fontSize: { xs: 11, sm: 12 },
@@ -789,7 +789,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                   onClick={() => navigate("/rides/enter")}
                   sx={{
                     textTransform: "none",
-                    borderRadius: 0,
+                    borderRadius: uiTokens.radius.xl,
                     px: 3,
                     py: 0.75,
                     fontSize: { xs: 11, sm: 12 }
@@ -817,7 +817,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
         onClose={() => setShowAddMoneyDialog(false)}
         PaperProps={{
           sx: {
-            borderRadius: 0,
+            borderRadius: uiTokens.radius.xl,
             bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
           }
         }}
@@ -864,7 +864,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
         onClose={() => setShowWithdrawDialog(false)}
         PaperProps={{
           sx: {
-            borderRadius: 0,
+            borderRadius: uiTokens.radius.xl,
             bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
           }
         }}
@@ -911,7 +911,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
         onClose={() => setShowPaymentMethodsDialog(false)}
         PaperProps={{
           sx: {
-            borderRadius: 0,
+            borderRadius: uiTokens.radius.xl,
             bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
             maxWidth: 400
           }
@@ -924,7 +924,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
             <Card
               elevation={0}
               sx={{
-                borderRadius: 0,
+                borderRadius: uiTokens.radius.xl,
                 bgcolor: (t) => t.palette.mode === "light" ? "#ECFDF5" : "rgba(15,23,42,0.9)",
                 border: "1px solid rgba(52,211,153,0.5)"
               }}
@@ -951,7 +951,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
             <Card
               elevation={0}
               sx={{
-                borderRadius: 0,
+                borderRadius: uiTokens.radius.xl,
                 bgcolor: (t) => t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 border: (t) => t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
@@ -982,7 +982,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
             <Card
               elevation={0}
               sx={{
-                borderRadius: 0,
+                borderRadius: uiTokens.radius.xl,
                 bgcolor: (t) => t.palette.mode === "light" ? "#FFFBEB" : "rgba(15,23,42,0.96)",
                 border: "1px solid rgba(245,158,11,0.6)"
               }}
@@ -1021,7 +1021,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               }}
               sx={{
                 textTransform: "none",
-                borderRadius: 0,
+                borderRadius: uiTokens.radius.xl,
                 py: 1.2,
                 borderStyle: "dashed"
               }}
@@ -1047,7 +1047,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
         onClose={handlePaymentMethodMenuClose}
         PaperProps={{
           sx: {
-            borderRadius: 0,
+            borderRadius: uiTokens.radius.xl,
             minWidth: 200,
             bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
           }
@@ -1086,7 +1086,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
           severity={snackbar.severity}
           sx={{
             width: "100%",
-            borderRadius: 0,
+            borderRadius: uiTokens.radius.xl,
             bgcolor: (t) =>
               snackbar.severity === "success"
                 ? t.palette.mode === "light"

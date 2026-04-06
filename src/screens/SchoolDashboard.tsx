@@ -12,6 +12,10 @@ import {
   Divider
 } from "@mui/material";
 
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
+import { uiTokens } from "../design/tokens";
+
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import DirectionsBusFilledRoundedIcon from "@mui/icons-material/DirectionsBusFilled";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
@@ -22,22 +26,16 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 function SchoolDashboardHomeScreen(): React.JSX.Element {
   const navigate = useNavigate();
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+    <ScreenScaffold>
+      <SectionHeader
+        title="EVzone School"
+        subtitle="Manage school shuttles and student transport"
+        leadingAction={
           <Box
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -47,29 +45,14 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
           >
             <SchoolRoundedIcon sx={{ fontSize: 22, color: "#1D4ED8" }} />
           </Box>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              EVzone School
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              Manage school shuttles and student transport
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
+        }
+      />
 
       {/* App handoff card */}
       <Card
         elevation={0}
         sx={{
-          mb: 2,
-          borderRadius: 3,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light"
               ? "radial-gradient(circle at top, #DBEAFE, #EEF2FF)"
@@ -80,7 +63,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(129,140,248,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.8, py: 1.8 }}>
+        <CardContent sx={{ px: { xs: 1.5, sm: 1.8 }, py: { xs: 1.5, sm: 1.8 } }}>
           <Typography
             variant="caption"
             sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.6, display: "block" }}
@@ -93,14 +76,14 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
           >
             Open EVzone School to book or track a bus.
           </Typography>
-          <Stack direction="row" spacing={1.25}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
             <Button
               fullWidth
               variant="contained"
               startIcon={<DirectionsBusFilledRoundedIcon sx={{ fontSize: 18 }} />}
               onClick={() => navigate("/school-handoff")}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 py: 0.9,
                 fontSize: 13,
                 fontWeight: 600,
@@ -116,7 +99,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
               fullWidth
               variant="outlined"
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 py: 0.9,
                 fontSize: 13,
                 textTransform: "none"
@@ -132,8 +115,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2,
-          borderRadius: 2,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -142,7 +124,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.7 }}>
+        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.5, sm: 1.7 } }}>
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -233,8 +215,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 1.5,
-          borderRadius: 2,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -243,7 +224,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.6 }}>
+        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.4, sm: 1.6 } }}>
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -301,13 +282,13 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
 
       <Typography
         variant="caption"
-        sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
+        sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, mt: 1, display: "block" }}
       >
         EVzone School keeps all child profiles, shuttle routes and transport alerts
         inside the dedicated School / Parents experience. This dashboard just gives
         you a quick overview and a fast way to jump into the School app.
       </Typography>
-    </Box>
+    </ScreenScaffold>
   );
 }
 

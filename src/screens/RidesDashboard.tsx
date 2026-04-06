@@ -43,6 +43,7 @@ import DialogActions from "@mui/material/DialogActions";
 import ScreenScaffold from "../components/ScreenScaffold";
 import ActionGrid from "../components/primitives/ActionGrid";
 import InfoCard from "../components/primitives/InfoCard";
+import SectionHeader from "../components/primitives/SectionHeader";
 import MapShell from "../components/maps/MapShell";
 import { uiTokens } from "../design/tokens";
 
@@ -300,7 +301,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onSelect }: UpcomingRi
         onClick={onSelect}
         sx={{
           mb: 2,
-          borderRadius: 0,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -363,7 +364,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onSelect }: UpcomingRi
         onClose={() => setCancelDialogOpen(false)}
         PaperProps={{
           sx: {
-            borderRadius: 0,
+            borderRadius: uiTokens.radius.xl,
             minWidth: 280
           }
         }}
@@ -416,7 +417,7 @@ function CommuteCard({ commute, onRequest, onSelect }: CommuteCardProps): React.
       onClick={onSelect}
       sx={{
         mb: 2,
-        borderRadius: 0,
+        borderRadius: uiTokens.radius.xl,
         bgcolor: (t) =>
           t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
         border: (t) =>
@@ -478,7 +479,7 @@ function CommuteCard({ commute, onRequest, onSelect }: CommuteCardProps): React.
               onRequest();
             }}
             sx={{
-              borderRadius: 0,
+              borderRadius: uiTokens.radius.xl,
               px: 2,
               py: 0.5,
               bgcolor: "#03CD8C",
@@ -513,7 +514,7 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }: C
       elevation={selected ? 2 : 1}
       onClick={onSelect}
       sx={{
-        borderRadius: 0,
+        borderRadius: uiTokens.radius.xl,
         cursor: onSelect ? "pointer" : "default",
         bgcolor: (theme) =>
           theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
@@ -540,7 +541,7 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }: C
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 0,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: "rgba(249,115,22,0.1)",
               display: "flex",
               alignItems: "center",
@@ -888,36 +889,22 @@ function EnterDestinationMainScreen(): React.JSX.Element {
 
 
   return (
-    <Box>
-      {/* Simplified Header */}
+    <ScreenScaffold>
+      <SectionHeader
+        centered
+        title="Where to today?"
+        subtitle={isSharedRideMode ? "Shared ride active" : "Book an electric ride now or later"}
+      />
+
       <Box
         sx={{
           bgcolor: "transparent",
-          px: 2.5,
-          pt: 1,
+          px: 0,
+          pt: 0,
           pb: 2,
           mb: 0
         }}
       >
-        <Box
-          sx={{
-            mb: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-        >
-          <Typography
-            variant="subtitle1"
-            sx={{
-              fontWeight: 700,
-              letterSpacing: "-0.01em",
-              color: (t) => t.palette.text.primary
-            }}
-          >
-            Where to today?
-          </Typography>
-        </Box>
 
         {/* Search with Autocomplete */}
         <Autocomplete
@@ -963,7 +950,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               sx={{
                 mb: 2,
                 "& .MuiOutlinedInput-root": {
-                  borderRadius: 0,
+                  borderRadius: uiTokens.radius.xl,
                   bgcolor: (theme) =>
                     theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
                   "& fieldset": {
@@ -994,7 +981,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               {...props}
               sx={{
                 mt: 1,
-                borderRadius: 0,
+                borderRadius: uiTokens.radius.xl,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
                 border: (t) =>
@@ -1008,8 +995,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         />
       </Box>
 
-      {/* White body section */}
-      <ScreenScaffold>
+      {/* Map section */}
       <MapShell
         preset="home"
         rounded
@@ -1189,7 +1175,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           },
           "& .MuiTabs-indicator": {
             height: 2,
-            borderRadius: 0,
+            borderRadius: uiTokens.radius.xl,
             bgcolor: "#03CD8C"
           }
         }}
@@ -1224,7 +1210,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               <Card
                 elevation={0}
                 sx={{
-                  borderRadius: 0,
+                  borderRadius: uiTokens.radius.xl,
                   bgcolor: (t) =>
                     t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                   border: (t) =>
@@ -1299,7 +1285,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               <Card
                 elevation={0}
                 sx={{
-                  borderRadius: 0,
+                  borderRadius: uiTokens.radius.xl,
                   bgcolor: (t) =>
                     t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                   border: (t) =>
@@ -1348,7 +1334,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               <Card
                 elevation={0}
                 sx={{
-                  borderRadius: 0,
+                  borderRadius: uiTokens.radius.xl,
                   bgcolor: (t) =>
                     t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                   border: (t) =>
@@ -1367,7 +1353,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                     onClick={() => navigate("/rides/enter")}
                     sx={{
                       mt: 1.5,
-                      borderRadius: 0,
+                      borderRadius: uiTokens.radius.xl,
                       textTransform: "none",
                       borderColor: "#F77F00",
                       color: "#F77F00"
@@ -1388,7 +1374,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           elevation={0}
           sx={{
             mb: 1.2,
-            borderRadius: 0,
+            borderRadius: uiTokens.radius.xl,
             bgcolor: (t) =>
               t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
             border: (t) =>
@@ -1441,7 +1427,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           <Card
             elevation={0}
             sx={{
-              borderRadius: 0,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
               border: (t) =>
@@ -1459,7 +1445,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                       sx={{
                         width: 8,
                         height: 8,
-                        borderRadius: 0,
+                        borderRadius: uiTokens.radius.xl,
                         bgcolor: "#03CD8C",
                         border: "2px solid white",
                         boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
@@ -1568,7 +1554,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                       fontWeight: 600,
                       px: 2.5,
                       py: 0.75,
-                      borderRadius: 0,
+                      borderRadius: uiTokens.radius.xl,
                       textTransform: "none",
                       "&:hover": {
                         bgcolor: "#22C55E"
@@ -1584,7 +1570,6 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         </Box>
       )}
       </ScreenScaffold>
-    </Box>
   );
 }
 

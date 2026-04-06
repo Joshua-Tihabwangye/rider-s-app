@@ -10,6 +10,11 @@ import {
   Divider
 } from "@mui/material";
 
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
+import ActionGrid from "../components/primitives/ActionGrid";
+import { uiTokens } from "../design/tokens";
+
 import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
@@ -39,22 +44,16 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
   };
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+    <ScreenScaffold>
+      <SectionHeader
+        title="EV rentals"
+        subtitle="Self-drive and chauffeur EV rentals for your trips"
+        leadingAction={
           <Box
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#DCFCE7" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -64,29 +63,14 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
           >
             <ElectricCarRoundedIcon sx={{ fontSize: 22, color: "#059669" }} />
           </Box>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              EV rentals
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              Self-drive and chauffeur EV rentals for your trips
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
+        }
+      />
 
       {/* Upcoming rental summary */}
       <Card
         elevation={0}
         sx={{
-          mb: 2,
-          borderRadius: 3,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light"
               ? "radial-gradient(circle at top, #BBF7D0, #ECFDF5)"
@@ -97,7 +81,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(22,163,74,0.8)"
         }}
       >
-        <CardContent sx={{ px: 1.9, py: 1.9 }}>
+        <CardContent sx={{ px: { xs: 1.5, sm: 1.9 }, py: { xs: 1.5, sm: 1.9 } }}>
           <Typography
             variant="caption"
             sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.4, display: "block" }}
@@ -129,13 +113,13 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             </Typography>
           </Stack>
 
-          <Stack direction="row" spacing={1.25}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
             <Button
               fullWidth
               variant="contained"
               onClick={() => navigate("/rental/history/1")}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 py: 0.9,
                 fontSize: 13,
                 fontWeight: 600,
@@ -152,7 +136,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
               variant="outlined"
               onClick={() => navigate("/rental/dates")}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 py: 0.9,
                 fontSize: 13,
                 textTransform: "none",
@@ -186,8 +170,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2,
-          borderRadius: 2,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -196,7 +179,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.7 }}>
+        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.5, sm: 1.7 } }}>
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -217,12 +200,11 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             </Typography>
           </Stack>
 
-          <Stack direction="row" spacing={1.3} sx={{ mb: 1.5 }}>
+          <ActionGrid minWidth={160} sx={{ mb: 1.5 }}>
             <Card
               elevation={0}
               sx={{
-                flex: 1,
-                borderRadius: 2,
+                borderRadius: uiTokens.radius.xl,
                 cursor: "pointer",
                 bgcolor:
                   modeSelection === "self"
@@ -263,8 +245,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             <Card
               elevation={0}
               sx={{
-                flex: 1,
-                borderRadius: 2,
+                borderRadius: uiTokens.radius.xl,
                 cursor: "pointer",
                 bgcolor:
                   modeSelection === "chauffeur"
@@ -301,15 +282,15 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
                 </Typography>
               </CardContent>
             </Card>
-          </Stack>
+          </ActionGrid>
 
-          <Stack direction="row" spacing={1.25}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
             <Button
               fullWidth
               variant="contained"
               onClick={handleBrowseRentals}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 py: 0.85,
                 fontSize: 13,
                 fontWeight: 600,
@@ -326,7 +307,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
               variant="outlined"
               onClick={() => navigate("/rental/list")}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 py: 0.85,
                 fontSize: 13,
                 textTransform: "none"
@@ -342,8 +323,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 1.5,
-          borderRadius: 2,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -352,7 +332,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.7 }}>
+        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.5, sm: 1.7 } }}>
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -434,13 +414,13 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
 
       <Typography
         variant="caption"
-        sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
+        sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, mt: 1, display: "block" }}
       >
         The rental dashboard gives you a quick overview of active and upcoming EV
         rentals, and lets you jump into self-drive or chauffeur booking flows in
         a few taps.
       </Typography>
-    </Box>
+    </ScreenScaffold>
   );
 }
 

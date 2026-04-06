@@ -11,6 +11,10 @@ import {
   Divider
 } from "@mui/material";
 
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
+import { uiTokens } from "../design/tokens";
+
 import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
@@ -35,22 +39,16 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
   };
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+    <ScreenScaffold>
+      <SectionHeader
+        title="Tours & charters"
+        subtitle="Browse EV tours, day trips & weekend getaways"
+        leadingAction={
           <Box
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -60,29 +58,14 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
           >
             <TourRoundedIcon sx={{ fontSize: 22, color: "#1D4ED8" }} />
           </Box>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              Tours & charters
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              Browse EV tours, day trips & weekend getaways
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
+        }
+      />
 
       {/* Highlight card */}
       <Card
         elevation={0}
         sx={{
-          mb: 2,
-          borderRadius: 3,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light"
               ? "radial-gradient(circle at top, #DBEAFE 0, #ECFEFF 45%, #F9FAFB 100%)"
@@ -93,7 +76,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(56,189,248,0.6)"
         }}
       >
-        <CardContent sx={{ px: 1.8, py: 1.8 }}>
+        <CardContent sx={{ px: { xs: 1.5, sm: 1.8 }, py: { xs: 1.5, sm: 1.8 } }}>
           <Typography
             variant="caption"
             sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block" }}
@@ -129,13 +112,13 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             </Typography>
           </Stack>
 
-          <Stack direction="row" spacing={1.25}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
             <Button
               fullWidth
               variant="contained"
               onClick={handleBookFeatured}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 py: 0.9,
                 fontSize: 13,
                 fontWeight: 600,
@@ -152,7 +135,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               variant="outlined"
               onClick={handleViewDetails}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 py: 0.9,
                 fontSize: 13,
                 textTransform: "none"
@@ -168,8 +151,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2,
-          borderRadius: 2,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -178,7 +160,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.7 }}>
+        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.5, sm: 1.7 } }}>
           <Typography
             variant="caption"
             sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 1, display: "block" }}
@@ -223,8 +205,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 1.5,
-          borderRadius: 2,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -233,7 +214,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.7 }}>
+        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.5, sm: 1.7 } }}>
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -258,6 +239,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
 
           {[0, 1].map((i) => (
               <Box
+                key={i}
                 onClick={() => navigate("/tours/1")}
                 sx={{
                   cursor: "pointer",
@@ -316,8 +298,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 1.5,
-          borderRadius: 2,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -326,7 +307,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               : "1px dashed rgba(148,163,184,0.8)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.6 }}>
+        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.5, sm: 1.6 } }}>
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -349,13 +330,13 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             charter with custom dates, routes and group size.
           </Typography>
 
-          <Stack direction="row" spacing={1.25}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
             <Button
               fullWidth
               variant="outlined"
               onClick={handleCreateCustom}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 py: 0.85,
                 fontSize: 13,
                 textTransform: "none"
@@ -367,7 +348,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               fullWidth
               variant="outlined"
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 py: 0.85,
                 fontSize: 13,
                 textTransform: "none",
@@ -382,13 +363,13 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
 
       <Typography
         variant="caption"
-        sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
+        sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, mt: 1, display: "block" }}
       >
         Use the tours dashboard to quickly find and manage EV-powered experiences,
         from same-day outings to multi-day safaris, all linked to your EVzone
         account and payment methods.
       </Typography>
-    </Box>
+    </ScreenScaffold>
   );
 }
 
