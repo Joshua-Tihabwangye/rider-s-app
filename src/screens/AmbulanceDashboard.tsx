@@ -11,6 +11,10 @@ import {
   Divider
 } from "@mui/material";
 
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
+import { uiTokens } from "../design/tokens";
+
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
@@ -39,22 +43,16 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
   };
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+    <ScreenScaffold>
+      <SectionHeader
+        title="Ambulance & medical transport"
+        subtitle="Request urgent help or plan a hospital transfer"
+        leadingAction={
           <Box
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FEE2E2" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -64,29 +62,14 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
           >
             <LocalHospitalRoundedIcon sx={{ fontSize: 22, color: "#DC2626" }} />
           </Box>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              Ambulance & medical transport
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              Request urgent help or plan a hospital transfer
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
+        }
+      />
 
       {/* Urgent vs planned card */}
       <Card
         elevation={0}
         sx={{
-          mb: 2,
-          borderRadius: 3,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light"
               ? "radial-gradient(circle at top, #FECACA, #FEF2F2)"
@@ -97,12 +80,13 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(248,113,113,0.8)"
         }}
       >
-        <CardContent sx={{ px: 1.9, py: 1.9 }}>
+        <CardContent sx={{ px: { xs: 1.5, sm: 1.9 }, py: { xs: 1.5, sm: 1.9 } }}>
           <Stack
-            direction="row"
+            direction={{ xs: "column", sm: "row" }}
             justifyContent="space-between"
-            alignItems="center"
-            sx={{ mb: 1.3 }}
+            alignItems={{ xs: "flex-start", sm: "center" }}
+            spacing={1}
+            sx={{ mb: 1.5 }}
           >
             <Box>
               <Typography
@@ -116,7 +100,8 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
                 sx={{
                   fontWeight: 700,
                   letterSpacing: "-0.03em",
-                  color: (t) => t.palette.text.primary
+                  color: (t) => t.palette.text.primary,
+                  fontSize: { xs: 18, sm: 20 }
                 }}
               >
                 24/7 partner network
@@ -127,7 +112,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               icon={<NotificationsActiveRoundedIcon sx={{ fontSize: 16 }} />}
               label="Priority line"
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 fontSize: 10,
                 height: 22,
                 bgcolor: (t) =>
@@ -139,13 +124,13 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
             />
           </Stack>
 
-          <Stack direction="row" spacing={1.25}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
             <Button
               fullWidth
               variant="contained"
               onClick={handleRequestNow}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 py: 0.9,
                 fontSize: 13,
                 fontWeight: 700,
@@ -162,7 +147,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               variant="outlined"
               onClick={handlePlanTransfer}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 py: 0.9,
                 fontSize: 13,
                 textTransform: "none",
@@ -197,8 +182,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2,
-          borderRadius: 2,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -207,7 +191,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.7 }}>
+        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.5, sm: 1.7 } }}>
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -311,8 +295,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 1.5,
-          borderRadius: 2,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -321,7 +304,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.6 }}>
+        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.5, sm: 1.6 } }}>
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -346,6 +329,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
 
           {[0, 1].map((i) => (
               <Box
+                key={i}
                 onClick={() => navigate("/ambulance/history")}
                 sx={{
                   cursor: "pointer",
@@ -391,14 +375,14 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
 
       <Typography
         variant="caption"
-        sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
+        sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, mt: 1, display: "block" }}
       >
         The ambulance dashboard gives you a calm, focused way to request help in
         emergencies or plan medical transfers. From here you jump into the
         detailed flows for location, patient details, hospital selection and live
         tracking.
       </Typography>
-    </Box>
+    </ScreenScaffold>
   );
 }
 
