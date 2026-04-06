@@ -7,6 +7,8 @@ import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import HelpRoundedIcon from "@mui/icons-material/HelpRounded";
 import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
 import MailRoundedIcon from "@mui/icons-material/MailRounded";
+import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
+import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import PageHeader from "../components/PageHeader";
 import ActionGrid from "../components/primitives/ActionGrid";
@@ -24,6 +26,12 @@ interface MenuItem {
 }
 
 const ACCOUNT_ITEMS: MenuItem[] = [
+  {
+    icon: <DirectionsCarFilledRoundedIcon />,
+    label: "Ride History",
+    description: "View past and upcoming rides",
+    route: "/rides/history/past"
+  },
   {
     icon: <HistoryRoundedIcon />,
     label: "All Orders History",
@@ -45,6 +53,12 @@ const ACCOUNT_ITEMS: MenuItem[] = [
 ];
 
 const APP_ITEMS: MenuItem[] = [
+  {
+    icon: <AccountBalanceWalletRoundedIcon />,
+    label: "Wallet",
+    description: "Manage your payment methods",
+    route: "/wallet"
+  },
   {
     icon: <SettingsRoundedIcon />,
     label: "Settings",

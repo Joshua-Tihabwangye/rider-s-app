@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   
   Box,
@@ -22,10 +23,13 @@ import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 
 function CommuteCard(): React.JSX.Element {
+  const navigate = useNavigate();
   return (
     <Card
       elevation={0}
+      onClick={() => navigate("/rides/details")}
       sx={{
+        cursor: "pointer",
         borderRadius: 2,
         bgcolor: (theme) =>
           theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
@@ -184,6 +188,10 @@ function CommuteCard(): React.JSX.Element {
           <Button
             variant="contained"
             size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate("/rides/options");
+            }}
             sx={{
               borderRadius: 5,
               px: 2.4,
@@ -203,10 +211,21 @@ function CommuteCard(): React.JSX.Element {
 }
 
 function DailyCommutesScreen(): React.JSX.Element {
+  const navigate = useNavigate();
   const [tab, setTab] = useState("commutes");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleTabChange = (_event: React.SyntheticEvent, value: string): void => {
     setTab(value);
+  };
+
+  const handleSearchSubmit = (
+    e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLInputElement>
+  ): void => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate("/rides/enter", { state: { searchQuery: searchQuery.trim() } });
+    }
   };
 
   return (
@@ -222,6 +241,7 @@ function DailyCommutesScreen(): React.JSX.Element {
         <IconButton
           size="small"
           aria-label="Open menu"
+          onClick={() => navigate("/more")}
           sx={{
             borderRadius: 5,
             bgcolor: (theme) =>
@@ -248,6 +268,13 @@ function DailyCommutesScreen(): React.JSX.Element {
         size="small"
         placeholder="Where to?"
         variant="outlined"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        onKeyDown={(e: any) => {
+          if (e.key === "Enter") {
+            handleSearchSubmit(e);
+          }
+        }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">

@@ -3,8 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Box, BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
 
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
-import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 
@@ -34,18 +32,6 @@ const NAV_TABS: NavTab[] = [
     icon: <HomeOutlinedIcon />
   },
   {
-    value: "rides",
-    label: "Rides",
-    route: "/rides",
-    icon: <DirectionsCarFilledRoundedIcon />
-  },
-  {
-    value: "deliveries",
-    label: "Deliveries",
-    route: "/deliveries",
-    icon: <LocalShippingRoundedIcon />
-  },
-  {
     value: "wallet",
     label: "Wallet",
     route: "/wallet",
@@ -70,19 +56,13 @@ function getActiveTab(pathname: string): string {
     return "home";
   }
 
-  if (pathname.startsWith("/rides")) {
-    return "rides";
-  }
-
-  if (pathname.startsWith("/deliveries")) {
-    return "deliveries";
-  }
-
   if (pathname.startsWith("/wallet")) {
     return "wallet";
   }
 
   if (
+    pathname.startsWith("/rides") ||
+    pathname.startsWith("/deliveries") ||
     pathname.startsWith("/rental") ||
     pathname.startsWith("/tours") ||
     pathname.startsWith("/ambulance") ||

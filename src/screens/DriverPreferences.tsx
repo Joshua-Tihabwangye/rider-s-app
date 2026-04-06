@@ -1,27 +1,23 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useTheme } from "@mui/material/styles";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
-  IconButton,
   Typography,
   Card,
   CardContent,
-  Modal,
-  Backdrop,
-  Fade,
-  Paper,
-  Stack
+  Stack,
+  useTheme
 } from "@mui/material";
 
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import VolumeOffRoundedIcon from "@mui/icons-material/VolumeOffRounded";
 import LanguageRoundedIcon from "@mui/icons-material/LanguageRounded";
 import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded";
 import BusinessRoundedIcon from "@mui/icons-material/BusinessRounded";
 import SpeedRoundedIcon from "@mui/icons-material/SpeedRounded";
 import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
+
+import ScreenScaffold from "../components/ScreenScaffold";
+import PageHeader from "../components/PageHeader";
 
 // Mock driver preferences data (would come from API)
 const DRIVER_PREFERENCES = [
@@ -69,137 +65,6 @@ const DRIVER_PREFERENCES = [
   }
 ];
 
-interface MapBackgroundProps {
-  onMenuClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
-}
-
-// Map background component with route visualization
-function MapBackground({ onMenuClick }: MapBackgroundProps): React.JSX.Element {
-  const theme = useTheme();
-  
-  return (
-    <Box
-      sx={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        height: "40vh",
-        background: theme.palette.mode === "light"
-          ? "linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 50%, #1e3a5f 100%)"
-          : "linear-gradient(135deg, #0f1e2e 0%, #1a2d3e 50%, #0f1e2e 100%)",
-        zIndex: 0,
-        overflow: "hidden"
-      }}
-    >
-      {/* Route line - diagonal from bottom-left to top-right */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "60%",
-          left: "15%",
-          width: "70%",
-          height: 2.5,
-          bgcolor: "#000000",
-          borderRadius: 2,
-          transform: "rotate(-25deg)",
-          transformOrigin: "left center",
-          zIndex: 1
-        }}
-      />
-      
-      {/* Start marker (green) - positioned at start of route */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "58%",
-          left: "18%",
-          width: 18,
-          height: 18,
-          borderRadius: "50%",
-          bgcolor: "#4CAF50",
-          border: "3px solid #FFFFFF",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
-          zIndex: 2,
-          transform: "translate(-50%, -50%)"
-        }}
-      />
-      
-      {/* Time label - positioned above the start marker */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "22%",
-          bgcolor: "rgba(0,0,0,0.7)",
-          borderRadius: 1.5,
-          px: 1.2,
-          py: 0.6,
-          zIndex: 2,
-          transform: "translateX(-50%)"
-        }}
-      >
-        <Typography
-          variant="caption"
-          sx={{
-            fontSize: 10,
-            fontWeight: 600,
-            color: "#FFFFFF",
-            whiteSpace: "nowrap"
-          }}
-        >
-          1 hr 30 mins
-        </Typography>
-      </Box>
-      
-      {/* Destination label - positioned at end of route */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "42%",
-          left: "78%",
-          zIndex: 2,
-          transform: "translateX(-50%)"
-        }}
-      >
-        <Typography
-          variant="caption"
-          sx={{
-            fontSize: 11,
-            fontWeight: 500,
-            color: "#FFFFFF",
-            textShadow: "0 1px 2px rgba(0,0,0,0.5)",
-            whiteSpace: "nowrap"
-          }}
-        >
-          Acacia Mall
-        </Typography>
-      </Box>
-      
-      {/* Floating menu icon on map (right side) */}
-      <IconButton
-        size="small"
-        onClick={onMenuClick}
-        sx={{
-          position: "absolute",
-          top: 16,
-          right: 16,
-          bgcolor: "rgba(255,255,255,0.25)",
-          color: "#FFFFFF",
-          zIndex: 10,
-          width: 40,
-          height: 40,
-          "&:hover": {
-            bgcolor: "rgba(255,255,255,0.35)"
-          }
-        }}
-      >
-        <MenuRoundedIcon sx={{ fontSize: 22 }} />
-      </IconButton>
-    </Box>
-  );
-}
-
 interface Preference {
   id: string;
   category: string;
@@ -233,7 +98,6 @@ function PreferenceCard({ preference, onClick }: PreferenceCardProps): React.JSX
       elevation={0}
       onClick={() => onClick(preference)}
       sx={{
-        mb: 1.5,
         borderRadius: 2,
         bgcolor: theme.palette.mode === "light" ? lightBgColor : darkBgColor,
         border: theme.palette.mode === "light" 
@@ -307,321 +171,42 @@ function PreferenceCard({ preference, onClick }: PreferenceCardProps): React.JSX
   );
 }
 
-function DriverPreferencesScreen(): React.JSX.Element {
+export default function DriverPreferences(): React.JSX.Element {
   const navigate = useNavigate();
-  const location = useLocation();
-  const theme = useTheme();
   
-  // Check if opened as modal (from driver profile) or standalone
-  // Default to modal view (true) unless explicitly set to false
-  const [isOpen, setIsOpen] = useState(location.state?.isModal !== false);
-  
-  const handleClose = () => {
-    setIsOpen(false);
-    setTimeout(() => {
-      navigate(-1);
-    }, 300);
-  };
-  
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>): void => {
-    // Don't close if clicking on navigation or navigation-related elements
-    const target = e.target as HTMLElement;
-    const isNavigationClick = target.closest('[role="navigation"]') || 
-                             target.closest('.MuiBottomNavigation-root') ||
-                             target.closest('[data-nav="true"]') ||
-                             (target.classList && target.classList.contains('MuiBottomNavigationAction-root'));
-    
-    if (isNavigationClick) {
-      e.stopPropagation();
-      return;
-    }
-    
-    if (e.target === e.currentTarget) {
-      handleClose();
-    }
-  };
-  
-  const contentBg = theme.palette.mode === "light" 
-    ? "#FFFFFF" 
-    : theme.palette.background.paper || "rgba(15,23,42,0.98)";
-  
-  // If opened as modal, render modal version
-  if (isOpen) {
-    return (
-      <>
-<Modal
-          open={isOpen}
-          onClose={(event: object, reason: string) => {
-            // Don't close if clicking on navigation
-            if (reason === 'backdropClick') {
-              const target = (event as { target?: HTMLElement })?.target;
-              const isNavigationClick = target?.closest('[role="navigation"]') || 
-                                       target?.closest('.MuiBottomNavigation-root') ||
-                                       target?.closest('[data-nav="true"]') ||
-                                       (target?.classList && target.classList.contains('MuiBottomNavigationAction-root'));
-              if (isNavigationClick) {
-                return; // Don't close
-              }
-            }
-            handleClose();
-          }}
-          closeAfterTransition
-          BackdropComponent={Backdrop}
-          BackdropProps={{
-            timeout: 300,
-            sx: {
-              backgroundColor: (theme) => theme.palette.mode === "light" 
-                ? 'rgba(0, 0, 0, 0.3)' 
-                : 'rgba(0, 0, 0, 0.5)',
-              zIndex: 1200 // Below navigation (2000)
-            },
-            onClick: (e: React.MouseEvent<HTMLDivElement>) => {
-              // Check if click is in navigation area
-              const navHeight = window.innerWidth < 600 ? 80 : 64;
-              const clickY = e.clientY;
-              const target = e.target as HTMLElement;
-              const isNavigationClick = target?.closest('[role="navigation"]') || 
-                                       target?.closest('.MuiBottomNavigation-root') ||
-                                       target?.closest('[data-nav="true"]') ||
-                                       (target?.classList && target.classList.contains('MuiBottomNavigationAction-root')) ||
-                                       (clickY && clickY > window.innerHeight - navHeight);
-              
-              if (isNavigationClick) {
-                e.stopPropagation();
-                return;
-              }
-              handleBackdropClick(e);
-            }
-          }}
-          sx={{
-            zIndex: 1200 // Modal container
-          }}
-        >
-          <Fade in={isOpen}>
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: { xs: "calc(64px + env(safe-area-inset-bottom))", sm: "64px" },
-                display: 'flex',
-                flexDirection: 'column',
-                outline: 'none',
-                pointerEvents: 'auto'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Map Background - visible at top */}
-              <MapBackground onMenuClick={handleClose} />
-              
-              {/* Preferences Modal - slides up from bottom */}
-              <Paper
-                sx={{
-                  position: 'absolute',
-                  bottom: { xs: "calc(64px + env(safe-area-inset-bottom))", sm: "64px" },
-                  left: 0,
-                  right: 0,
-                  borderTopLeftRadius: 5,
-                  borderTopRightRadius: 5,
-                  bgcolor: contentBg,
-                  maxHeight: { xs: 'calc(100vh - 40vh - 64px - env(safe-area-inset-bottom))', sm: 'calc(100vh - 40vh - 64px)' },
-                  overflow: 'auto',
-                  outline: 'none',
-                  boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
-                  zIndex: 1201, // Above backdrop but navigation (1000) can still be clicked
-                  pointerEvents: 'auto'
-                }}
-              >
-              {/* Header */}
-              <Box
-                sx={{
-                  px: 2.5,
-                  pt: 2.5,
-                  pb: 1.5,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  position: "sticky",
-                  top: 0,
-                  bgcolor: contentBg,
-                  zIndex: 10,
-                  borderBottom: theme.palette.mode === "light"
-                    ? "1px solid rgba(0,0,0,0.05)"
-                    : "1px solid rgba(255,255,255,0.05)"
-                }}
-              >
-                <IconButton
-                  size="small"
-                  aria-label="Back"
-                  onClick={handleClose}
-                  sx={{
-                    borderRadius: 5,
-                    bgcolor: theme.palette.mode === "light"
-                      ? "rgba(0,0,0,0.05)"
-                      : "rgba(255,255,255,0.05)",
-                    border: theme.palette.mode === "light"
-                      ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)"
-                  }}
-                >
-                  <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-                </IconButton>
-                
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 600,
-                    letterSpacing: "-0.01em",
-                    color: theme.palette.text.primary,
-                    position: "absolute",
-                    left: "50%",
-                    transform: "translateX(-50%)"
-                  }}
-                >
-                  Preferences
-                </Typography>
-                
-                {/* Spacer for centering */}
-                <Box sx={{ width: 40 }} />
-              </Box>
-
-              {/* Preference Cards */}
-              <Box sx={{ px: 2.5, pb: 2 }}>
-                <Stack spacing={0}>
-                  {DRIVER_PREFERENCES.map((preference) => (
-                    <PreferenceCard
-                      key={preference.id}
-                      preference={preference}
-                      onClick={() => {
-                        // Handle card click - could show details, navigate, etc.
-                        console.log("Preference clicked:", preference.category);
-                      }}
-                    />
-                  ))}
-                </Stack>
-              </Box>
-            </Paper>
-          </Box>
-        </Fade>
-      </Modal>
-      </>
-    );
-  }
-  
-  // Standalone version (if accessed directly)
   return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: theme.palette.background.default,
-        overflow: "hidden"
-      }}
+    <ScreenScaffold
+      header={
+        <PageHeader
+          title="Driver Preferences"
+          subtitle="Shared preferences"
+          onBack={() => navigate(-1)}
+        />
+      }
+      contentSx={{ pt: { xs: 2.5, md: 3 } }}
     >
-      {/* Map Background */}
-      <MapBackground onMenuClick={() => navigate(-1)} />
+      <Typography variant="body2" sx={{ mb: 2, px: 0.5, color: (t) => t.palette.text.secondary }}>
+        These preferences are shared by your driver to ensure a comfortable and personalized trip experience.
+      </Typography>
       
-      {/* Preferences Panel */}
-      <Paper
-        sx={{
-          position: 'absolute',
-          bottom: { xs: "calc(64px + env(safe-area-inset-bottom))", sm: "64px" },
-          left: 0,
-          right: 0,
-          borderTopLeftRadius: 5,
-          borderTopRightRadius: 5,
-          bgcolor: contentBg,
-          maxHeight: { xs: 'calc(100vh - 40vh - 64px - env(safe-area-inset-bottom))', sm: 'calc(100vh - 40vh - 64px)' },
-          overflow: 'auto',
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.15)'
-        }}
-      >
-        {/* Header */}
-        <Box
-          sx={{
-            px: 2.5,
-            pt: 2.5,
-            pb: 1.5,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            position: "sticky",
-            top: 0,
-            bgcolor: contentBg,
-            zIndex: 10,
-            borderBottom: theme.palette.mode === "light"
-              ? "1px solid rgba(0,0,0,0.05)"
-              : "1px solid rgba(255,255,255,0.05)"
-          }}
-        >
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
-            sx={{
-              borderRadius: 5,
-              bgcolor: theme.palette.mode === "light"
-                ? "rgba(0,0,0,0.05)"
-                : "rgba(255,255,255,0.05)",
-              border: theme.palette.mode === "light"
-                ? "1px solid rgba(0,0,0,0.1)"
-                : "1px solid rgba(255,255,255,0.1)"
+      <Stack spacing={1.5}>
+        {DRIVER_PREFERENCES.map((preference) => (
+          <PreferenceCard
+            key={preference.id}
+            preference={preference}
+            onClick={() => {
+              // Handle card click - could show details etc.
+              console.log("Preference clicked:", preference.category);
             }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-          
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 600,
-              letterSpacing: "-0.01em",
-              color: theme.palette.text.primary,
-              position: "absolute",
-              left: "50%",
-              transform: "translateX(-50%)"
-            }}
-          >
-            Preferences
-          </Typography>
-          
-          {/* Spacer for centering */}
-          <Box sx={{ width: 40 }} />
-        </Box>
-
-        {/* Preference Cards */}
-        <Box sx={{ px: 2.5, pb: 2 }}>
-          <Stack spacing={0}>
-            {DRIVER_PREFERENCES.map((preference) => (
-              <PreferenceCard
-                key={preference.id}
-                preference={preference}
-                onClick={() => {
-                  // Handle card click - could show details, navigate, etc.
-                  console.log("Preference clicked:", preference.category);
-                }}
-              />
-            ))}
-          </Stack>
-        </Box>
-      </Paper>
-    </Box>
-  );
-}
-
-export default function RiderScreen19DriverPreferencesCanvas_v2() {
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (theme) => theme.palette.background.default
-      }}
-    >
-
-        <DriverPreferencesScreen />
+          />
+        ))}
+      </Stack>
       
-    </Box>
+      <Box sx={{ mt: 3, px: 0.5 }}>
+        <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+          Note: These settings are provided by the driver. You can also set your own trip preferences in the main app settings.
+        </Typography>
+      </Box>
+    </ScreenScaffold>
   );
 }

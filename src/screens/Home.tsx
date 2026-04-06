@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Avatar,
   Box,
   Chip,
-  IconButton,
   InputAdornment,
   Stack,
   TextField,
@@ -17,12 +15,9 @@ import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 import RouteRoundedIcon from "@mui/icons-material/RouteRounded";
 import WorkRoundedIcon from "@mui/icons-material/WorkRounded";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
-import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
-import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import Button from "@mui/material/Button";
 import ScreenScaffold from "../components/ScreenScaffold";
 import ActionGrid from "../components/primitives/ActionGrid";
@@ -112,7 +107,7 @@ const SERVICE_ACTIONS: ServiceAction[] = [
 const QUICK_ACTIONS = [
   { label: "Book usual route", icon: <RouteRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter" },
   { label: "Go to work", icon: <WorkRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter" },
-  { label: "Rebook last ride", icon: <ElectricCarRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter" },
+  { label: "Rebook last ride", icon: <ElectricCarRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter", state: { rebook: true } },
   { label: "Track a parcel", icon: <LocalShippingRoundedIcon sx={{ fontSize: 16 }} />, route: "/deliveries" }
 ];
 
@@ -180,28 +175,6 @@ function HomeMultiServiceScreen(): React.JSX.Element {
           eyebrow="Reminder"
           title={activeReminder.title}
           subtitle={activeReminder.description}
-          action={
-            REMINDERS.length > 1 ? (
-              <Stack direction="row" spacing={0.4} sx={{ mt: 1 }}>
-                <IconButton
-                  size="small"
-                  onClick={() =>
-                    setCurrentReminderIndex((prev) => (prev - 1 + REMINDERS.length) % REMINDERS.length)
-                  }
-                  sx={{ bgcolor: uiTokens.surfaces.card, border: uiTokens.borders.brand, width: 28, height: 28 }}
-                >
-                  <ChevronLeftRoundedIcon sx={{ fontSize: 16, color: uiTokens.colors.brand }} />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => setCurrentReminderIndex((prev) => (prev + 1) % REMINDERS.length)}
-                  sx={{ bgcolor: uiTokens.surfaces.card, border: uiTokens.borders.brand, width: 28, height: 28 }}
-                >
-                  <ChevronRightRoundedIcon sx={{ fontSize: 16, color: uiTokens.colors.brand }} />
-                </IconButton>
-              </Stack>
-            ) : null
-          }
         />
 
         <Stack direction="column" alignItems="center" spacing={1.5}>
@@ -231,7 +204,7 @@ function HomeMultiServiceScreen(): React.JSX.Element {
         </Stack>
       </PrimarySection>
 
-      <AppCard>
+      <AppCard onClick={() => navigate("/rides/enter")}>
         <SectionHeader
           eyebrow="Your last ride"
           title="Home → Office"
@@ -239,7 +212,7 @@ function HomeMultiServiceScreen(): React.JSX.Element {
             <Button
               size="small"
               variant="contained"
-              onClick={() => navigate("/rides/enter")}
+              onClick={() => navigate("/rides/enter", { state: { rebook: true } })}
               sx={{
                 bgcolor: uiTokens.colors.brand,
                 color: uiTokens.colors.white,
@@ -282,28 +255,33 @@ function HomeMultiServiceScreen(): React.JSX.Element {
 
       <AppCard variant="muted">
         <SectionHeader eyebrow="Shortcuts" title="Quick actions" compact />
-        <Stack direction="row" spacing={uiTokens.spacing.sm} sx={{ flexWrap: "wrap", mt: uiTokens.spacing.xxs }}>
+        <ActionGrid minWidth={160} sx={{ mt: uiTokens.spacing.smPlus }}>
           {QUICK_ACTIONS.map((action) => (
             <Chip
               key={action.label}
               icon={action.icon}
               label={action.label}
               size="small"
-              onClick={() => navigate(action.route)}
+              onClick={() => navigate(action.route, { state: (action as any).state })}
               sx={{
-                height: 34,
+                height: 40,
                 fontSize: 11.5,
                 fontWeight: 600,
                 bgcolor: uiTokens.surfaces.card,
                 border: uiTokens.borders.brand,
                 color: uiTokens.colors.brand,
+                width: "100%",
+                "& .MuiChip-label": {
+                  width: "100%",
+                  textAlign: "center"
+                },
                 "&:hover": {
                   bgcolor: uiTokens.surfaces.brandTintSoft
                 }
               }}
             />
           ))}
-        </Stack>
+        </ActionGrid>
       </AppCard>
     </ScreenScaffold>
   );

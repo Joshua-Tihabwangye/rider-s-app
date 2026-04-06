@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -18,19 +19,19 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 
 
 function ToursDashboardHomeScreen(): React.JSX.Element {
-  const [highlightState, setHighlightState] = useState("idle");
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("daytrips");
 
   const handleBookFeatured = () => {
-    setHighlightState("booking");
+    navigate("/tours/1/dates");
   };
 
   const handleViewDetails = () => {
-    setHighlightState("details");
+    navigate("/tours/1");
   };
 
   const handleCreateCustom = () => {
-    setHighlightState("custom");
+    navigate("/tours/new");
   };
 
   return (
@@ -128,7 +129,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             </Typography>
           </Stack>
 
-          <Stack direction="row" spacing={1.25} sx={{ mb: highlightState === "idle" ? 0 : 1 }}>
+          <Stack direction="row" spacing={1.25}>
             <Button
               fullWidth
               variant="contained"
@@ -139,9 +140,9 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
                 fontSize: 13,
                 fontWeight: 600,
                 textTransform: "none",
-                bgcolor: "primary.main",
-                color: "#020617",
-                "&:hover": { bgcolor: "#06e29a" }
+                bgcolor: "#020617",
+                color: "#FFFFFF",
+                "&:hover": { bgcolor: "#1E293B" }
               }}
             >
               Book this tour
@@ -160,36 +161,6 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               View details
             </Button>
           </Stack>
-
-          {highlightState !== "idle" && (
-            <Box
-              sx={{
-                mt: 0.75,
-                px: 1.1,
-                py: 0.75,
-                borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light"
-                    ? "rgba(255,255,255,0.9)"
-                    : "rgba(15,23,42,0.95)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(59,130,246,0.25)"
-                    : "1px solid rgba(59,130,246,0.6)"
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-              >
-                {highlightState === "booking"
-                  ? "Next step: open the EV Day Trip booking flow (dates & guests)."
-                  : highlightState === "details"
-                  ? "Next step: open the detailed tour page with full itinerary, inclusions and photos."
-                  : "Next step: open the custom tour/charter builder to choose your own dates, destinations and group size."}
-              </Typography>
-            </Box>
-          )}
         </CardContent>
       </Card>
 
@@ -277,6 +248,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             </Typography>
             <Typography
               variant="caption"
+              onClick={() => navigate("/tours/history")}
               sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, cursor: "pointer" }}
             >
               View all
@@ -285,18 +257,19 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
           <Divider sx={{ mb: 1, borderColor: (t) => t.palette.divider }} />
 
           {[0, 1].map((i) => (
-            <Box
-              key={i}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                py: 0.6,
-                "&:not(:last-of-type)": {
-                  borderBottom: (t) => `1px dashed ${t.palette.divider}`
-                }
-              }}
-            >
+              <Box
+                onClick={() => navigate("/tours/1")}
+                sx={{
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  py: 0.6,
+                  "&:not(:last-of-type)": {
+                    borderBottom: (t) => `1px dashed ${t.palette.divider}`
+                  }
+                }}
+              >
               <Box>
                 <Typography
                   variant="body2"
@@ -366,25 +339,6 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             >
               Custom tour or charter
             </Typography>
-            {highlightState === "custom" && (
-              <Chip
-                size="small"
-                label="Started"
-                sx={{
-                  borderRadius: 5,
-                  fontSize: 10,
-                  height: 22,
-                  bgcolor: (t) =>
-                    t.palette.mode === "light"
-                      ? "rgba(3,205,140,0.12)"
-                      : "rgba(16,185,129,0.2)",
-                  color: (t) =>
-                    t.palette.mode === "light"
-                      ? "#059669"
-                      : "#10B981"
-                }}
-              />
-            )}
           </Stack>
 
           <Typography

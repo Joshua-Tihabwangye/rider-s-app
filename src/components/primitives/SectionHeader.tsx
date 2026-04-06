@@ -6,6 +6,7 @@ interface SectionHeaderProps {
   eyebrow?: string;
   title: string;
   subtitle?: string;
+  leadingAction?: React.ReactNode;
   action?: React.ReactNode;
   compact?: boolean;
   centered?: boolean;
@@ -15,6 +16,7 @@ export default function SectionHeader({
   eyebrow,
   title,
   subtitle,
+  leadingAction,
   action,
   compact = false,
   centered = false
@@ -30,6 +32,7 @@ export default function SectionHeader({
         textAlign: centered ? "center" : "left"
       }}
     >
+      {leadingAction && !centered && <Box sx={{ flexShrink: 0, mr: 0.5, mt: compact ? 0 : 0.5 }}>{leadingAction}</Box>}
       <Box sx={{ minWidth: 0, flex: centered ? "none" : 1 }}>
         {eyebrow && (
           <Typography

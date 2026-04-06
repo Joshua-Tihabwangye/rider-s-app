@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -16,25 +17,25 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 
 
 function RentalDashboardHomeScreen(): React.JSX.Element {
-  const [ctaState, setCtaState] = useState("idle");
+  const navigate = useNavigate();
   const [modeSelection, setModeSelection] = useState("self");
 
   const handleBrowseRentals = () => {
-    setCtaState("browse");
+    navigate("/rental/list");
   };
 
   const handleBookSelfDrive = () => {
     setModeSelection("self");
-    setCtaState("selfdrive");
+    navigate("/rental/list");
   };
 
   const handleBookChauffeur = () => {
     setModeSelection("chauffeur");
-    setCtaState("chauffeur");
+    navigate("/rental/list");
   };
 
   const handleViewRentalHistory = () => {
-    setCtaState("history");
+    navigate("/rental/history");
   };
 
   return (
@@ -132,6 +133,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             <Button
               fullWidth
               variant="contained"
+              onClick={() => navigate("/rental/history/1")}
               sx={{
                 borderRadius: 5,
                 py: 0.9,
@@ -148,6 +150,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             <Button
               fullWidth
               variant="outlined"
+              onClick={() => navigate("/rental/dates")}
               sx={{
                 borderRadius: 5,
                 py: 0.9,
@@ -176,32 +179,6 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
               Extend rental
             </Button>
           </Stack>
-
-          {ctaState === "extend" && (
-            <Box
-              sx={{
-                mt: 0.9,
-                px: 1.1,
-                py: 0.7,
-                borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light"
-                    ? "rgba(255,255,255,0.95)"
-                    : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(22,163,74,0.5)"
-                    : "1px solid rgba(16,185,129,0.5)"
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-              >
-                Next step: open the rental extension flow with new end date and updated pricing.
-              </Typography>
-            </Box>
-          )}
         </CardContent>
       </Card>
 
@@ -347,6 +324,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             <Button
               fullWidth
               variant="outlined"
+              onClick={() => navigate("/rental/list")}
               sx={{
                 borderRadius: 5,
                 py: 0.85,
@@ -357,39 +335,6 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
               Custom rental request
             </Button>
           </Stack>
-
-          {ctaState !== "idle" && (
-            <Box
-              sx={{
-                mt: 1,
-                px: 1.1,
-                py: 0.7,
-                borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light"
-                    ? "#F9FAFB"
-                    : "rgba(15,23,42,0.96)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.8)"
-                    : "1px solid rgba(51,65,85,0.9)"
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-              >
-                {ctaState === "browse" &&
-                  "Next step: open the EV rental list for the selected mode with filters for dates, price and vehicle type."}
-                {ctaState === "selfdrive" &&
-                  "Self-drive selected. Show EVs suitable for self-drive, with deposits, mileage limits and requirements."}
-                {ctaState === "chauffeur" &&
-                  "Chauffeur selected. Show EVs with driver included, pricing per day and available time slots."}
-                {ctaState === "history" &&
-                  "Open the rental history view with past and upcoming bookings (RA76/RA90)."}
-              </Typography>
-            </Box>
-          )}
         </CardContent>
       </Card>
 
@@ -433,7 +378,9 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
           {[0, 1].map((i) => (
             <Box
               key={i}
+              onClick={() => navigate("/rental/history/1")}
               sx={{
+                cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",

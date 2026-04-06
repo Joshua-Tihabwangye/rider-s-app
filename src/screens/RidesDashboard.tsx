@@ -12,19 +12,12 @@ import {
   Tab,
   Stack,
   Chip,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   Avatar,
   Autocomplete,
   CircularProgress,
   keyframes
 } from "@mui/material";
 
-import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
@@ -35,11 +28,9 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
-import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import HelpRoundedIcon from "@mui/icons-material/HelpRounded";
 import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
 import StarHalfRoundedIcon from "@mui/icons-material/StarHalfRounded";
@@ -604,7 +595,6 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const [helperState, setHelperState] = useState("idle");
   const [selectedPlace, setSelectedPlace] = useState<string | PlaceSuggestion | null>(null);
   const [whereTo, setWhereTo] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
   const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
@@ -895,140 +885,17 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     }, 1000);
   };
 
-  const handleMenuClose = () => {
-    setMenuOpen(false);
-  };
 
-  const handleMenuNavigation = (route: string): void => {
-    navigate(route);
-    setMenuOpen(false);
-  };
-
-  const menuItems = [
-    {
-      icon: <PersonRoundedIcon />,
-      label: "Profile",
-      description: "View and edit your profile",
-      route: "/more"
-    },
-    {
-      icon: <HistoryRoundedIcon />,
-      label: "Ride History",
-      description: "View past and upcoming rides",
-      route: "/rides/history/past"
-    },
-    {
-      icon: <AccountBalanceWalletRoundedIcon />,
-      label: "Wallet",
-      description: "Manage your payment methods",
-      route: "/wallet"
-    },
-    {
-      icon: <HistoryRoundedIcon />,
-      label: "All Orders History",
-      description: "View all rides, deliveries, rentals",
-      route: "/history/all"
-    },
-    {
-      icon: <SettingsRoundedIcon />,
-      label: "Settings",
-      description: "App preferences and settings",
-      route: "/settings"
-    },
-    {
-      icon: <HelpRoundedIcon />,
-      label: "Help & Support",
-      description: "Get help and contact support",
-      route: "/help"
-    },
-    {
-      icon: <InfoRoundedIcon />,
-      label: "About",
-      description: "App version and information",
-      route: "/about"
-    }
-  ];
 
   return (
     <Box>
-      {/* Navigation Drawer */}
-      <Drawer
-        anchor="left"
-        open={menuOpen}
-        onClose={handleMenuClose}
-        PaperProps={{
-          sx: {
-            width: 280,
-            bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
-          }
-        }}
-      >
-        <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Menu
-            </Typography>
-            <IconButton size="small" onClick={handleMenuClose}>
-              <CloseRoundedIcon />
-            </IconButton>
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            <Avatar sx={{ bgcolor: "#03CD8C", color: "#020617", width: 48, height: 48 }}>
-              RZ
-            </Avatar>
-            <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                Rider User
-              </Typography>
-              <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                rider@evzone.com
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-        <List sx={{ px: 1, pt: 1 }}>
-          {menuItems.map((item) => (
-            <ListItem key={item.route} disablePadding>
-              <ListItemButton
-                onClick={() => handleMenuNavigation(item.route)}
-                sx={{
-                  borderRadius: 0,
-                  mb: 0.5,
-                  py: 1.5,
-                  "&:hover": {
-                    bgcolor: (t) =>
-                      t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,1)"
-                  }
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40, color: "#03CD8C" }}>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {item.label}
-                    </Typography>
-                  }
-                  secondary={
-                    <Typography variant="caption" sx={{ fontSize: 11 }}>
-                      {item.description}
-                    </Typography>
-                  }
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-      </Drawer>
-
-      {/* Header with green background */}
+      {/* Simplified Header */}
       <Box
         sx={{
-          bgcolor: "#03CD8C",
+          bgcolor: "transparent",
           px: 2.5,
-          pt: 2.5,
-          pb: 2.5,
+          pt: 1,
+          pb: 2,
           mb: 0
         }}
       >
@@ -1037,32 +904,19 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             mb: 2,
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between"
+            justifyContent: "center"
           }}
         >
-        <IconButton
-          size="small"
-          aria-label="Open menu"
-          onClick={() => setMenuOpen(true)}
-          sx={{
-            borderRadius: 0,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-            border: (theme) =>
-              theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
-          }}
-        >
-          <MenuRoundedIcon sx={{ fontSize: 22 }} />
-        </IconButton>
-        <Typography
-          variant="subtitle1"
-          sx={{ fontWeight: 600, letterSpacing: "-0.01em", color: "#FFFFFF" }}
-        >
-          Where to today?
-        </Typography>
-        <Box sx={{ width: 32 }} />
+          <Typography
+            variant="subtitle1"
+            sx={{
+              fontWeight: 700,
+              letterSpacing: "-0.01em",
+              color: (t) => t.palette.text.primary
+            }}
+          >
+            Where to today?
+          </Typography>
         </Box>
 
         {/* Search with Autocomplete */}
