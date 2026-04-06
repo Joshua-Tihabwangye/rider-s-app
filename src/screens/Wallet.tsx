@@ -212,7 +212,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
       <SectionHeader
         title="Wallet"
         subtitle="EVzone Pay • Rides, deliveries, rentals & tours"
-        action={
+        leadingAction={
           onBack ? (
             <IconButton
               size="small"
