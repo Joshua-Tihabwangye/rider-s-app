@@ -43,7 +43,7 @@ function SwitchRiderManualEntryScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -117,7 +117,7 @@ function SwitchRiderManualEntryScreen(): React.JSX.Element {
             sx={{
               mb: 1.75,
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -152,7 +152,7 @@ function SwitchRiderManualEntryScreen(): React.JSX.Element {
             FormHelperTextProps={{ sx: { fontSize: 11 } }}
             sx={{
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -208,7 +208,7 @@ function SwitchRiderManualEntryScreen(): React.JSX.Element {
         label="I am paying for this ride from my EVzone account"
         sx={{
           mb: 1.5,
-          borderRadius: 999,
+          borderRadius: 5,
           fontSize: 11,
           height: 28,
           bgcolor: (theme) =>
@@ -222,7 +222,7 @@ function SwitchRiderManualEntryScreen(): React.JSX.Element {
         variant="contained"
         disabled={!canContinue}
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

@@ -985,7 +985,7 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -1033,7 +1033,7 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
           },
           "& .MuiTabs-indicator": {
             height: 3,
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: "#03CD8C" // Green underline
           }
         }}

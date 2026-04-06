@@ -101,7 +101,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -458,7 +458,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
             sx={{
               bgcolor: "#F77F00",
               color: "#FFFFFF",
-              borderRadius: 999,
+              borderRadius: 5,
               py: 0.9,
               fontSize: 13,
               fontWeight: 600,
@@ -715,7 +715,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
           variant="outlined"
           startIcon={<ReceiptLongRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 0.9,
             fontSize: 13,
             textTransform: "none"
@@ -728,7 +728,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
           variant="outlined"
           startIcon={<FlagRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 0.9,
             fontSize: 13,
             textTransform: "none",

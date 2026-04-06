@@ -69,7 +69,7 @@ export default function About(): React.JSX.Element {
               aria-label="Back"
               onClick={() => navigate(-1)}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
                 border: (t) =>

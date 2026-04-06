@@ -87,7 +87,7 @@ function TrackingStepRow({ step, isLast }: TrackingStepRowProps): React.JSX.Elem
       sx={{
         width: 12,
         height: 12,
-        borderRadius: "999px",
+        borderRadius: "5px",
         border: `2px solid ${dotColor}`,
         bgcolor: isCurrent ? "rgba(3,205,140,0.12)" : "transparent"
       }}
@@ -167,7 +167,7 @@ function ShipmentTrackingReceivedParcelScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -236,7 +236,7 @@ function ShipmentTrackingReceivedParcelScreen(): React.JSX.Element {
               icon={<AccessTimeRoundedIcon sx={{ fontSize: 14 }} />}
               label="Out for delivery today"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 10,
                 height: 24,
                 bgcolor: "rgba(59,130,246,0.12)",

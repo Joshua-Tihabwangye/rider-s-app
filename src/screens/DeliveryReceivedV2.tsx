@@ -90,7 +90,7 @@ function ReceivedOrderRow({ order }: ReceivedOrderRowProps): React.JSX.Element {
           label={order.status}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 10,
             height: 22,
             bgcolor: statusBg,
@@ -128,7 +128,7 @@ function DeliveriesDashboardReceivedV2Screen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -185,7 +185,7 @@ function DeliveriesDashboardReceivedV2Screen(): React.JSX.Element {
                 icon={<MarkunreadMailboxRoundedIcon sx={{ fontSize: 16 }} />}
                 label="Incoming"
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 10,
                   height: 24,
                   bgcolor: "rgba(59,130,246,0.12)",
@@ -197,7 +197,7 @@ function DeliveriesDashboardReceivedV2Screen(): React.JSX.Element {
                 icon={<Inventory2RoundedIcon sx={{ fontSize: 16 }} />}
                 label="Delivered"
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 10,
                   height: 24,
                   bgcolor: "rgba(34,197,94,0.12)",
@@ -216,7 +216,7 @@ function DeliveriesDashboardReceivedV2Screen(): React.JSX.Element {
               onClick={() => setSegment("incoming")}
               sx={{
                 height: 26,
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 bgcolor: segment === "incoming" ? "primary.main" : (t) =>
                   t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
@@ -229,7 +229,7 @@ function DeliveriesDashboardReceivedV2Screen(): React.JSX.Element {
               onClick={() => setSegment("delivered")}
               sx={{
                 height: 26,
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 bgcolor: segment === "delivered" ? "primary.main" : (t) =>
                   t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",

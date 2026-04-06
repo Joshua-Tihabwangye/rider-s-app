@@ -42,7 +42,7 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -90,7 +90,7 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
               sx={{
                 width: 44,
                 height: 44,
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#FEE2E2" : "rgba(127,29,29,0.9)",
                 display: "flex",
@@ -176,7 +176,7 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
               variant="outlined"
               startIcon={<PhoneEnabledRoundedIcon sx={{ fontSize: 18 }} />}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.9,
                 fontSize: 13,
                 textTransform: "none"
@@ -189,7 +189,7 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
               variant="outlined"
               startIcon={<PhoneIphoneRoundedIcon sx={{ fontSize: 18 }} />}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.9,
                 fontSize: 13,
                 textTransform: "none"

@@ -15,11 +15,12 @@ import {
   Avatar
 } from "@mui/material";
 
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import DirectionsBusRoundedIcon from "@mui/icons-material/DirectionsBusRounded";
 import HotelRoundedIcon from "@mui/icons-material/HotelRounded";
+import MapShell from "../components/maps/MapShell";
+import { uiTokens } from "../design/tokens";
 
 function SearchingForDriverScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -71,30 +72,12 @@ function SearchingForDriverScreen(): React.JSX.Element {
 
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (theme) => theme.palette.background.default }}>
-      {/* Map Section - Full width at top */}
-      <Box
-        sx={{
-          position: "relative",
-          width: "100%",
-          height: "40vh",
-          background: (theme) =>
-            theme.palette.mode === "light"
-              ? "linear-gradient(135deg, #E0F2FE 0%, rgba(3,205,140,0.15) 50%, #93C5FD 100%)"
-              : "linear-gradient(135deg, rgba(15,118,205,0.3), #020617 60%, #020617 100%)",
-          overflow: "hidden"
-        }}
+      <MapShell
+        preset="compact"
+        onBack={() => navigate(-1)}
+        showBackButton
+        canvasSx={{ background: uiTokens.map.canvasEmphasis }}
       >
-        {/* Grid overlay */}
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            opacity: 0.15,
-            backgroundImage:
-              "linear-gradient(to right, rgba(148,163,184,0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.3) 1px, transparent 1px)",
-            backgroundSize: "30px 30px"
-          }}
-        />
 
         {/* Lake Victoria label */}
         <Typography
@@ -141,27 +124,6 @@ function SearchingForDriverScreen(): React.JSX.Element {
         >
           Ugan Hotel Con
         </Typography>
-
-        {/* Back button on map */}
-        <IconButton
-          size="small"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-          sx={{
-            position: "absolute",
-            top: 16,
-            left: 16,
-            bgcolor: "#03CD8C",
-            color: "#FFFFFF",
-            width: 40,
-            height: 40,
-            "&:hover": {
-              bgcolor: "#1976D2"
-            }
-          }}
-        >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
 
         {/* Bus stop icon (blue circle with bus) */}
         <Box
@@ -215,7 +177,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
             boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
           }}
         />
-      </Box>
+      </MapShell>
 
       {/* Content below map */}
       <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
@@ -419,7 +381,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
               sx={{
                 height: 24,
                 width: "40%",
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)"
               }}
@@ -433,7 +395,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
           variant="outlined"
           onClick={handleCancelClick}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 1.2,
             fontSize: 14,
             fontWeight: 500,

@@ -52,14 +52,19 @@ export default function AppCard({
       onClick={onClick}
       sx={[
         {
-          borderRadius: 0,
+          borderRadius: uiTokens.radius.xl,
           overflow: "hidden",
+          boxShadow: uiTokens.elevation.card,
           transition: "transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
+          textAlign: "left",
           ...(interactive && {
             cursor: "pointer",
             "&:hover": {
               transform: "translateY(-1px)",
-              boxShadow: uiTokens.elevation.card
+              boxShadow: uiTokens.elevation.raised
+            },
+            "&:active": {
+              transform: "translateY(0)"
             }
           })
         },
@@ -69,7 +74,13 @@ export default function AppCard({
     >
       <CardContent
         sx={[
-          { px: 2, py: 1.75 },
+          {
+            px: { xs: uiTokens.spacing.md, md: uiTokens.spacing.lg },
+            py: { xs: uiTokens.spacing.md, md: uiTokens.spacing.mdPlus },
+            display: "flex",
+            flexDirection: "column",
+            gap: uiTokens.spacing.sm
+          },
           ...(Array.isArray(contentSx) ? contentSx : contentSx ? [contentSx] : [])
         ]}
       >
@@ -78,4 +89,3 @@ export default function AppCard({
     </Card>
   );
 }
-

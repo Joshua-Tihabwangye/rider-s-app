@@ -35,7 +35,7 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
           aria-label="Back"
           onClick={() => navigate(-1)}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (t) =>
               t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
             border: (t) =>
@@ -57,7 +57,7 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
             justifyContent: "center",
             width: 72,
             height: 72,
-            borderRadius: "999px",
+            borderRadius: "5px",
             bgcolor: "rgba(34,197,94,0.12)",
             mb: 1.5
           }}
@@ -98,7 +98,7 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
               sx={{
                 width: 44,
                 height: 44,
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
                 display: "flex",
@@ -163,7 +163,7 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
           fullWidth
           variant="outlined"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 1,
             fontSize: 14,
             textTransform: "none"
@@ -175,7 +175,7 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
           fullWidth
           variant="contained"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 1,
             fontSize: 14,
             fontWeight: 600,

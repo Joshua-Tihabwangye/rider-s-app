@@ -181,7 +181,14 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
               sx={{
                 width: "100%",
                 maxWidth: CONTENT_MAX_WIDTH,
-                mx: "auto"
+                mx: "auto",
+                "--rider-shell-content-px-xs": "20px",
+                "--rider-shell-content-px-md": "24px",
+                "--rider-shell-section-gap": "16px",
+                "--rider-scaffold-pt-xs": "20px",
+                "--rider-scaffold-pt-md": "24px",
+                "--rider-scaffold-pb-xs": "24px",
+                "--rider-scaffold-pb-md": "28px"
               }}
             >
               {children}
@@ -205,14 +212,10 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
               sx={{
                 mx: 0,
                 borderRadius: 0,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "rgba(255,255,255,0.97)" : "rgba(15,23,42,0.96)",
+                bgcolor: "var(--evz-shell-nav-bg)",
                 backdropFilter: "blur(22px)",
-                borderTop: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(229,231,235,1)"
-                    : "1px solid rgba(30,64,175,0.6)",
-                boxShadow: "0 -14px 40px rgba(15,23,42,0.24), 0 -1px 0 rgba(148,163,184,0.35)"
+                borderTop: "1px solid var(--evz-shell-nav-border)",
+                boxShadow: "var(--evz-shell-nav-shadow)"
               }}
             >
               <BottomNavigation
@@ -226,13 +229,12 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
                   bgcolor: "transparent",
                   px: 0.5,
                   "& .MuiBottomNavigationAction-root": {
-                    color: (t) =>
-                      t.palette.mode === "light" ? "rgba(51,65,85,0.72)" : "rgba(148,163,184,0.9)",
+                    color: "var(--evz-shell-nav-icon)",
                     minWidth: 0,
                     minHeight: 56,
                     py: 0.75,
                     "&.Mui-selected": {
-                      color: "#22C55E"
+                      color: "var(--evz-shell-nav-icon-active)"
                     }
                   },
                   "& .MuiBottomNavigationAction-label": {

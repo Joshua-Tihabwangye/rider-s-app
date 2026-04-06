@@ -77,7 +77,7 @@ function UpcomingRideCard({ dateLabel, timeLabel, from, to, status, statusColor,
             sx={{
               fontSize: 11,
               height: 24,
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: statusColor.bg,
               color: statusColor.fg
             }}
@@ -162,7 +162,7 @@ function UpcomingRideCard({ dateLabel, timeLabel, from, to, status, statusColor,
               size="small"
               variant="outlined"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 px: 1.8,
                 py: 0.2,
                 fontSize: 11,
@@ -175,7 +175,7 @@ function UpcomingRideCard({ dateLabel, timeLabel, from, to, status, statusColor,
               size="small"
               variant="text"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 px: 1.6,
                 py: 0.2,
                 fontSize: 11,
@@ -211,7 +211,7 @@ function UpcomingRidesScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -246,7 +246,7 @@ function UpcomingRidesScreen(): React.JSX.Element {
           size="small"
           sx={{
             height: 26,
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: "primary.main",
             color: "#020617",
             fontSize: 11
@@ -257,7 +257,7 @@ function UpcomingRidesScreen(): React.JSX.Element {
           size="small"
           sx={{
             height: 26,
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
             border: (theme) =>
@@ -272,7 +272,7 @@ function UpcomingRidesScreen(): React.JSX.Element {
           size="small"
           sx={{
             height: 26,
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
             border: (theme) =>

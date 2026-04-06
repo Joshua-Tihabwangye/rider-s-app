@@ -515,7 +515,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 						aria-label="Back"
 						onClick={() => navigate(-1)}
 						sx={{
-							borderRadius: 999,
+							borderRadius: 5,
 							bgcolor:
 								theme.palette.mode === "light"
 									? "rgba(255,255,255,0.1)"
@@ -605,7 +605,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 									}}
 									sx={{
 										"& .MuiOutlinedInput-root": {
-											borderRadius: 999,
+											borderRadius: 5,
 											bgcolor:
 												theme.palette.mode === "light"
 													? "rgba(0,0,0,0.05)"
@@ -721,7 +721,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 										}}
 										sx={{
 											"& .MuiOutlinedInput-root": {
-												borderRadius: 999,
+												borderRadius: 5,
 												bgcolor:
 													theme.palette.mode ===
 													"light"
@@ -756,7 +756,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 										}
 										sx={{
 											minWidth: 100,
-											borderRadius: 999,
+											borderRadius: 5,
 											textTransform: "none",
 											borderColor:
 												theme.palette.mode === "light"
@@ -947,7 +947,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 													sx={{
 														"& .MuiOutlinedInput-root":
 															{
-																borderRadius: 999,
+																borderRadius: 5,
 																bgcolor:
 																	theme
 																		.palette
@@ -1011,7 +1011,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 											}}
 											sx={{
 												"& .MuiOutlinedInput-root": {
-													borderRadius: 999,
+													borderRadius: 5,
 													bgcolor:
 														theme.palette.mode ===
 														"light"
@@ -1051,7 +1051,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 											/>
 										}
 										sx={{
-											borderRadius: 999,
+											borderRadius: 5,
 											textTransform: "none",
 											borderColor:
 												theme.palette.mode === "light"
@@ -1195,7 +1195,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 										);
 									}}
 									sx={{
-										borderRadius: 999,
+										borderRadius: 5,
 										bgcolor:
 											theme.palette.mode === "light"
 												? "rgba(0,0,0,0.05)"
@@ -1396,7 +1396,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 										</Box>
 									)}
 									sx={{
-										borderRadius: 999,
+										borderRadius: 5,
 										bgcolor:
 											theme.palette.mode === "light"
 												? "rgba(0,0,0,0.05)"
@@ -1569,7 +1569,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 											setShowTripTypeModal(true)
 										}
 										sx={{
-											borderRadius: 999,
+											borderRadius: 5,
 											bgcolor:
 												theme.palette.mode === "light"
 													? "rgba(0,0,0,0.05)"

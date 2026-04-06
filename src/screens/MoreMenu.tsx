@@ -8,6 +8,7 @@ import HelpRoundedIcon from "@mui/icons-material/HelpRounded";
 import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
 import MailRoundedIcon from "@mui/icons-material/MailRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
+import PageHeader from "../components/PageHeader";
 import ActionGrid from "../components/primitives/ActionGrid";
 import AppCard from "../components/primitives/AppCard";
 import ListSection from "../components/primitives/ListSection";
@@ -78,12 +79,7 @@ function ItemGroup({
 }): React.JSX.Element {
   return (
     <Box>
-      <Typography
-        variant="caption"
-        sx={{ ...uiTokens.text.eyebrow, color: (t) => t.palette.text.secondary, display: "block", mb: 0.75 }}
-      >
-        {title}
-      </Typography>
+      <SectionHeader title={title} compact />
       <ListSection sx={{ mt: 0.75 }}>
         {items.map((item) => (
           <RowActionItem
@@ -103,11 +99,16 @@ export default function MoreMenu(): React.JSX.Element {
   const navigate = useNavigate();
 
   return (
-    <ScreenScaffold contentSx={{ pt: { xs: 3, md: 3.5 } }}>
-      <SectionHeader
-        title="More"
-        subtitle="Settings, history, help and more"
-      />
+    <ScreenScaffold
+      header={
+        <PageHeader
+          title="More"
+          subtitle="Menu"
+          hideBack
+        />
+      }
+      contentSx={{ pt: { xs: 2.5, md: 3 } }}
+    >
 
       <AppCard variant="brand" onClick={() => navigate("/profile")}>
         <Stack direction="row" spacing={1.5} alignItems="center">

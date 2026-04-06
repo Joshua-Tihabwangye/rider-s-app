@@ -53,7 +53,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#DCFCE7" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -133,7 +133,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
               fullWidth
               variant="contained"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.9,
                 fontSize: 13,
                 fontWeight: 600,
@@ -149,7 +149,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
               fullWidth
               variant="outlined"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.9,
                 fontSize: 13,
                 textTransform: "none",
@@ -332,7 +332,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
               variant="contained"
               onClick={handleBrowseRentals}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.85,
                 fontSize: 13,
                 fontWeight: 600,
@@ -348,7 +348,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
               fullWidth
               variant="outlined"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.85,
                 fontSize: 13,
                 textTransform: "none"

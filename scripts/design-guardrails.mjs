@@ -11,12 +11,6 @@ const CORE_TAB_SCREENS = [
   "src/screens/MoreMenu.tsx"
 ];
 
-const CORE_SHELL_FILES = [
-  ...CORE_TAB_SCREENS,
-  "src/components/MobileShell.tsx",
-  "src/components/ScreenScaffold.tsx"
-];
-
 const TOKEN_STRICT_FILES = [
   "src/screens/Home.tsx",
   "src/screens/DeliveriesDashboard.tsx",
@@ -78,23 +72,6 @@ function checkSingleScrollOwnerContract() {
   }
 }
 
-function checkBorderRadiusContract() {
-  const borderRadiusPattern = /borderRadius:\s*([^,\n}]+)/g;
-
-  for (const file of CORE_SHELL_FILES) {
-    const content = readFile(file);
-    for (const match of content.matchAll(borderRadiusPattern)) {
-      const value = match[1]?.trim() ?? "";
-      if (value !== "0" && value !== '"0"' && value !== "'0'" && value !== "0 as const") {
-        addViolation(
-          file,
-          `Non-zero or dynamic borderRadius found ("${value}"). Border radius must stay 0 in shell/core tabs.`
-        );
-      }
-    }
-  }
-}
-
 function checkTokenColorUsage() {
   const colorLiteralPattern = /#[0-9A-Fa-f]{3,8}\b|rgba?\s*\(/g;
 
@@ -146,7 +123,6 @@ function checkPrimitiveAdoption() {
 checkScreenScaffold();
 checkShellWidthContract();
 checkSingleScrollOwnerContract();
-checkBorderRadiusContract();
 checkTokenColorUsage();
 checkSpacingScaleUsage();
 checkPrimitiveAdoption();

@@ -92,7 +92,7 @@ function RentalVehicleCard({ vehicle }: RentalVehicleCardProps): React.JSX.Eleme
             sx={{
               width: 64,
               height: 40,
-              borderRadius: 999,
+              borderRadius: 5,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -123,7 +123,7 @@ function RentalVehicleCard({ vehicle }: RentalVehicleCardProps): React.JSX.Eleme
                   label={vehicle.tag}
                   size="small"
                   sx={{
-                    borderRadius: 999,
+                    borderRadius: 5,
                     fontSize: 10,
                     height: 20,
                     bgcolor: "rgba(34,197,94,0.12)",
@@ -171,7 +171,7 @@ function RentalVehicleCard({ vehicle }: RentalVehicleCardProps): React.JSX.Eleme
             size="small"
             variant="contained"
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               px: 2,
               py: 0.5,
               fontSize: 12,
@@ -218,7 +218,7 @@ function RentalVehicleListScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -253,7 +253,7 @@ function RentalVehicleListScreen(): React.JSX.Element {
           onClick={() => setFilter("all")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "all" ? "primary.main" : (t) =>
@@ -268,7 +268,7 @@ function RentalVehicleListScreen(): React.JSX.Element {
           onClick={() => setFilter("self")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "self" ? "primary.main" : (t) =>
@@ -283,7 +283,7 @@ function RentalVehicleListScreen(): React.JSX.Element {
           onClick={() => setFilter("chauffeur")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "chauffeur" ? "primary.main" : (t) =>
@@ -298,7 +298,7 @@ function RentalVehicleListScreen(): React.JSX.Element {
           onClick={() => setFilter("suv")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "suv" ? "primary.main" : (t) =>

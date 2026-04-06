@@ -59,7 +59,7 @@ function ReceivedHistoryRow({ order }: ReceivedHistoryRowProps): React.JSX.Eleme
           sx={{
             width: 10,
             height: 10,
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: "primary.main",
             mb: 0.5
           }}
@@ -99,7 +99,7 @@ function ReceivedHistoryRow({ order }: ReceivedHistoryRowProps): React.JSX.Eleme
           icon={<Inventory2RoundedIcon sx={{ fontSize: 14 }} />}
           sx={{
             mt: 0.5,
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 10,
             height: 22,
             bgcolor: (t) =>
@@ -124,7 +124,7 @@ function DeliveriesDashboardReceivedV3Screen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -180,7 +180,7 @@ function DeliveriesDashboardReceivedV3Screen(): React.JSX.Element {
               icon={<MarkunreadMailboxRoundedIcon sx={{ fontSize: 16 }} />}
               label="Received"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 10,
                 height: 24,
                 bgcolor: "rgba(34,197,94,0.12)",

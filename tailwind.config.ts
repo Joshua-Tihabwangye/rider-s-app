@@ -11,7 +11,7 @@ const config: Config = {
         evgrayLight: "#F2F2F2"
       },
       borderRadius: {
-        mobile: "18px"
+        mobile: "5px"
       }
     }
   },

@@ -13,6 +13,7 @@
     "react-router-dom": "^7.9.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/node": "^24.10.1",
     "@types/postcss-load-config": "^2.0.1",
     "@types/react": "^19.2.7",
@@ -30,7 +31,14 @@
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "design:check": "node scripts/design-guardrails.mjs"
+    "design:guardrails": "node scripts/design-guardrails.mjs",
+    "design:lint:screens": "node scripts/design-screen-style-lint.mjs",
+    "design:lint:screens:update": "node scripts/design-screen-style-lint.mjs --update-baseline",
+    "design:check": "npm run design:guardrails && npm run design:lint:screens",
+    "visual:install": "playwright install chromium",
+    "visual:baseline": "playwright test tests/visual/parity.visual.spec.ts --update-snapshots",
+    "visual:regress": "playwright test tests/visual/parity.visual.spec.ts",
+    "qa:parity": "npm run design:check && npm run build && npm run visual:regress"
   },
   "eslintConfig": {
     "extends": [

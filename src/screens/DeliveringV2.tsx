@@ -118,7 +118,7 @@ function DeliveriesDashboardDeliveringV2Screen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -175,7 +175,7 @@ function DeliveriesDashboardDeliveringV2Screen(): React.JSX.Element {
                 icon={<LocalShippingRoundedIcon sx={{ fontSize: 16 }} />}
                 label="Out for pickup"
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 10,
                   height: 24,
                   bgcolor: "rgba(249,115,22,0.12)",
@@ -187,7 +187,7 @@ function DeliveriesDashboardDeliveringV2Screen(): React.JSX.Element {
                 icon={<RouteRoundedIcon sx={{ fontSize: 16 }} />}
                 label="In transit"
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 10,
                   height: 24,
                   bgcolor: "rgba(34,197,94,0.12)",
@@ -206,7 +206,7 @@ function DeliveriesDashboardDeliveringV2Screen(): React.JSX.Element {
               onClick={() => setSegment("today")}
               sx={{
                 height: 26,
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 bgcolor: segment === "today" ? "primary.main" : (t) =>
                   t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
@@ -219,7 +219,7 @@ function DeliveriesDashboardDeliveringV2Screen(): React.JSX.Element {
               onClick={() => setSegment("week")}
               sx={{
                 height: 26,
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 bgcolor: segment === "week" ? "primary.main" : (t) =>
                   t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",

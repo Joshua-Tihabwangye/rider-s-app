@@ -41,7 +41,7 @@ function WhereToTodayAlternateScreen(): React.JSX.Element {
           aria-label="Back"
           onClick={() => navigate(-1)}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (t) =>
               t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
             border: (t) =>
@@ -103,7 +103,7 @@ function WhereToTodayAlternateScreen(): React.JSX.Element {
         sx={{
           mb: 2.5,
           "& .MuiOutlinedInput-root": {
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (t) =>
               t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
             "& fieldset": {
@@ -127,7 +127,7 @@ function WhereToTodayAlternateScreen(): React.JSX.Element {
           icon={<HomeRoundedIcon sx={{ fontSize: 16 }} />}
           label="Home"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 28,
             bgcolor: (t) =>
@@ -139,7 +139,7 @@ function WhereToTodayAlternateScreen(): React.JSX.Element {
           icon={<ApartmentRoundedIcon sx={{ fontSize: 16 }} />}
           label="Work"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 28,
             bgcolor: (t) =>
@@ -151,7 +151,7 @@ function WhereToTodayAlternateScreen(): React.JSX.Element {
           icon={<SchoolRoundedIcon sx={{ fontSize: 16 }} />}
           label="School runs"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 28,
             bgcolor: (t) =>
@@ -163,7 +163,7 @@ function WhereToTodayAlternateScreen(): React.JSX.Element {
           icon={<AccessTimeRoundedIcon sx={{ fontSize: 16 }} />}
           label="Recent places"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 28,
             bgcolor: (t) =>

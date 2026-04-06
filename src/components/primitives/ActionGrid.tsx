@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, SxProps, Theme } from "@mui/material";
+import { uiTokens } from "../../design/tokens";
 
 interface ActionGridProps {
   children: React.ReactNode;
@@ -17,10 +18,15 @@ export default function ActionGrid({
       sx={[
         {
           display: "grid",
-          gap: 1.5,
+          gap: uiTokens.spacing.md,
           gridTemplateColumns: {
             xs: "1fr",
-            md: `repeat(2, minmax(${minWidth}px, 1fr))`
+            sm: `repeat(2, minmax(${Math.max(220, minWidth - 30)}px, 1fr))`,
+            lg: `repeat(2, minmax(${minWidth}px, 1fr))`
+          },
+          alignItems: "stretch",
+          "& > *": {
+            height: "100%"
           }
         },
         ...(Array.isArray(sx) ? sx : sx ? [sx] : [])
@@ -30,4 +36,3 @@ export default function ActionGrid({
     </Box>
   );
 }
-

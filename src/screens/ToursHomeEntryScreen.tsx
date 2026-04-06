@@ -85,7 +85,7 @@ function TourCard({ tour }: TourCardProps): React.JSX.Element {
             sx={{
               width: 52,
               height: 52,
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -121,7 +121,7 @@ function TourCard({ tour }: TourCardProps): React.JSX.Element {
                   label={tour.tag}
                   size="small"
                   sx={{
-                    borderRadius: 999,
+                    borderRadius: 5,
                     fontSize: 10,
                     height: 22,
                     bgcolor: "rgba(34,197,94,0.12)",
@@ -152,7 +152,7 @@ function TourCard({ tour }: TourCardProps): React.JSX.Element {
                 label="EV transport included"
                 size="small"
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 10,
                   height: 22,
                   bgcolor: "rgba(3,205,140,0.12)",
@@ -202,7 +202,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -247,7 +247,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
           }}
           sx={{
             "& .MuiOutlinedInput-root": {
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
               "& fieldset": {
@@ -267,7 +267,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
             onClick={() => setFilter("all")}
             size="small"
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 11,
               height: 26,
               bgcolor: filter === "all" ? "primary.main" : (t) =>
@@ -284,7 +284,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
             onClick={() => setFilter("city")}
             size="small"
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 11,
               height: 26,
               bgcolor: filter === "city" ? "primary.main" : (t) =>
@@ -301,7 +301,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
             onClick={() => setFilter("day")}
             size="small"
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 11,
               height: 26,
               bgcolor: filter === "day" ? "primary.main" : (t) =>
@@ -318,7 +318,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
             onClick={() => setFilter("safari")}
             size="small"
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 11,
               height: 26,
               bgcolor: filter === "safari" ? "primary.main" : (t) =>

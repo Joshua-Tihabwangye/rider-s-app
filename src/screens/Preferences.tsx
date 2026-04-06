@@ -119,7 +119,7 @@ function PreferenceSelectionScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: contentBg,
               border: theme.palette.mode === "light"
                 ? "1px solid rgba(0,0,0,0.1)"
@@ -144,7 +144,7 @@ function PreferenceSelectionScreen(): React.JSX.Element {
           aria-label="Setup Preferences"
           onClick={() => navigate("/rides/preferences/setup")}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: contentBg,
             border: theme.palette.mode === "light"
               ? "1px solid rgba(0,0,0,0.1)"
@@ -233,7 +233,7 @@ function PreferenceSelectionScreen(): React.JSX.Element {
                   });
                 }}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   bgcolor: theme.palette.mode === "light"
                     ? "rgba(0,0,0,0.05)"
                     : "rgba(255,255,255,0.05)",
@@ -303,7 +303,7 @@ function PreferenceSelectionScreen(): React.JSX.Element {
                   );
                 }}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   bgcolor: theme.palette.mode === "light"
                     ? "rgba(0,0,0,0.05)"
                     : "rgba(255,255,255,0.05)",
@@ -344,7 +344,7 @@ function PreferenceSelectionScreen(): React.JSX.Element {
                   </Box>
                 )}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   bgcolor: theme.palette.mode === "light"
                     ? "rgba(0,0,0,0.05)"
                     : "rgba(255,255,255,0.05)",

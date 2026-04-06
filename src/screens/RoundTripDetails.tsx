@@ -90,7 +90,7 @@ function PreferenceChip({ option, active, onToggle }: PreferenceChipProps): Reac
       size="medium"
       sx={{
         justifyContent: "flex-start",
-        borderRadius: 999,
+        borderRadius: 5,
         px: 1.4,
         py: 0.4,
         height: 34,
@@ -141,7 +141,7 @@ function RidePreferencesScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -172,7 +172,7 @@ function RidePreferencesScreen(): React.JSX.Element {
           aria-label="Setup Preferences"
           onClick={() => navigate("/rides/preferences/setup")}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
             border: (theme) =>
@@ -275,7 +275,7 @@ function RidePreferencesScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

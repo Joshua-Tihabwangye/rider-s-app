@@ -36,7 +36,7 @@ function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
           aria-label="Back"
           onClick={() => navigate(-1)}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (t) =>
               t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
             border: (t) =>
@@ -75,7 +75,7 @@ function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
               sx={{
                 width: 40,
                 height: 40,
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#FEE2E2" : "rgba(248,113,113,0.25)",
                 display: "flex",
@@ -106,7 +106,7 @@ function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
             variant="contained"
             startIcon={<PhoneEnabledRoundedIcon sx={{ fontSize: 18 }} />}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               py: 1,
               fontSize: 14,
               fontWeight: 600,
@@ -163,7 +163,7 @@ function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
                 variant="contained"
                 sx={{
                   mt: 1,
-                  borderRadius: 999,
+                  borderRadius: 5,
                   py: 1,
                   fontSize: 14,
                   fontWeight: 600,
@@ -196,7 +196,7 @@ function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
                 variant="outlined"
                 sx={{
                   mt: 1,
-                  borderRadius: 999,
+                  borderRadius: 5,
                   py: 1,
                   fontSize: 14,
                   fontWeight: 600,

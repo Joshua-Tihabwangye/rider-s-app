@@ -76,7 +76,7 @@ export default function Help(): React.JSX.Element {
               aria-label="Back"
               onClick={() => navigate(-1)}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
                 border: (t) =>
@@ -159,7 +159,7 @@ export default function Help(): React.JSX.Element {
               fullWidth
               variant="contained"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 1.2,
                 fontSize: 15,
                 fontWeight: 600,

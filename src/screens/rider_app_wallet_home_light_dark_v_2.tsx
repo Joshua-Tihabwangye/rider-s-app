@@ -54,7 +54,7 @@ const getDesignTokens = (mode: "light" | "dark") => ({
           divider: "rgba(148,163,184,0.24)"
         })
   },
-  shape: { borderRadius: 12 },
+  shape: { borderRadius: 5 },
   typography: {
     fontFamily:
       '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
@@ -234,7 +234,7 @@ function WalletHomeScreen(): React.JSX.Element {
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#ECFDF5" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -310,7 +310,7 @@ function WalletHomeScreen(): React.JSX.Element {
                 icon={<PaymentRoundedIcon sx={{ fontSize: 14 }} />}
                 label="EV-first payments"
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 10,
                   height: 22,
                   bgcolor: "rgba(255,255,255,0.85)",
@@ -324,10 +324,10 @@ function WalletHomeScreen(): React.JSX.Element {
                   mt: 0.3,
                   width: 96,
                   height: 5,
-                  borderRadius: 999,
+                  borderRadius: 5,
                   bgcolor: "rgba(15,23,42,0.15)",
                   "& .MuiLinearProgress-bar": {
-                    borderRadius: 999,
+                    borderRadius: 5,
                     bgcolor: "#059669"
                   }
                 }}
@@ -347,7 +347,7 @@ function WalletHomeScreen(): React.JSX.Element {
               variant="contained"
               startIcon={<AddCircleRoundedIcon sx={{ fontSize: 18 }} />}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.9,
                 fontSize: 13,
                 fontWeight: 600,
@@ -364,7 +364,7 @@ function WalletHomeScreen(): React.JSX.Element {
               variant="outlined"
               startIcon={<ArrowUpwardRoundedIcon sx={{ fontSize: 18 }} />}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 py: 0.9,
                 fontSize: 13,
                 textTransform: "none",

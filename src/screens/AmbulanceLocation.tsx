@@ -49,7 +49,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -113,7 +113,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
             sx={{
               mb: 1.25,
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#FFF7F7" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -131,7 +131,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
               label="Use current GPS location"
               size="small"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 26,
                 bgcolor: (t) =>
@@ -143,7 +143,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
               label="Share live location"
               size="small"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 26,
                 bgcolor: (t) =>
@@ -198,7 +198,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
             sx={{
               mb: 1.2,
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -228,7 +228,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
             sx={{
               mb: 1.4,
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -254,7 +254,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
               size="small"
               onClick={() => setForWhom("me")}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 26,
                 bgcolor:
@@ -270,7 +270,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
               size="small"
               onClick={() => setForWhom("other")}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 26,
                 bgcolor:
@@ -286,7 +286,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
               size="small"
               onClick={() => setForWhom("facility")}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 26,
                 bgcolor:
@@ -345,7 +345,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
         variant="contained"
         disabled={!canContinue}
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

@@ -35,7 +35,7 @@ function PickUpConfirmedOrderDetailsScreen(): React.JSX.Element {
           aria-label="Back"
           onClick={() => navigate(-1)}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (t) =>
               t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
             border: (t) =>
@@ -57,7 +57,7 @@ function PickUpConfirmedOrderDetailsScreen(): React.JSX.Element {
             justifyContent: "center",
             width: 72,
             height: 72,
-            borderRadius: "999px",
+            borderRadius: "5px",
             bgcolor: "rgba(34,197,94,0.12)",
             mb: 1.5
           }}

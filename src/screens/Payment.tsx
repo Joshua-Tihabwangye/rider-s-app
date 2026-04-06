@@ -189,7 +189,7 @@ function PaymentMethodCard({ method, selected, onSelect }: PaymentMethodCardProp
               sx={{
                 width: 44,
                 height: 44,
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)",
                 display: "flex",
                 alignItems: "center",
@@ -278,8 +278,8 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
           bottom: { xs: "calc(64px + env(safe-area-inset-bottom))", sm: "64px" },
           left: 0,
           right: 0,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
+          borderTopLeftRadius: 5,
+          borderTopRightRadius: 5,
           bgcolor: contentBg,
           maxHeight: { xs: 'calc(100vh - 40vh - 64px - env(safe-area-inset-bottom))', sm: 'calc(100vh - 40vh - 64px)' },
           overflow: "auto",
@@ -303,7 +303,7 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
                 aria-label="Back"
                 onClick={() => navigate(-1)}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   bgcolor: theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
                   border: theme.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
@@ -375,7 +375,7 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
             onClick={handleConfirm}
             disabled={!selected}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               py: 1.4,
               fontSize: 15,
               fontWeight: 600,

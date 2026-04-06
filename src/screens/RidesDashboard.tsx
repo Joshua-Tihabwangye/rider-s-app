@@ -52,6 +52,7 @@ import DialogActions from "@mui/material/DialogActions";
 import ScreenScaffold from "../components/ScreenScaffold";
 import ActionGrid from "../components/primitives/ActionGrid";
 import InfoCard from "../components/primitives/InfoCard";
+import MapShell from "../components/maps/MapShell";
 import { uiTokens } from "../design/tokens";
 
 
@@ -1155,30 +1156,13 @@ function EnterDestinationMainScreen(): React.JSX.Element {
 
       {/* White body section */}
       <ScreenScaffold>
-      {/* Map preview */}
-      <Box
-        sx={{
-          mb: 2,
-          borderRadius: 0,
-          height: 170,
-          position: "relative",
-          overflow: "hidden",
-          background: (theme) =>
-            theme.palette.mode === "light"
-              ? "radial-gradient(circle at top, rgba(3,205,140,0.15) 0, rgba(34,197,94,0.08) 55%, rgba(3,205,140,0.05) 100%)"
-              : "radial-gradient(circle at top, rgba(15,118,205,0.6), rgba(15,23,42,1))"
-        }}
+      <MapShell
+        preset="home"
+        rounded
+        sx={{ mb: 2 }}
+        showControls
+        canvasSx={{ background: uiTokens.map.canvasEmphasis }}
       >
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            opacity: 0.18,
-            backgroundImage:
-              "linear-gradient(to right, rgba(148,163,184,0.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.35) 1px, transparent 1px)",
-            backgroundSize: "28px 28px"
-          }}
-        />
         
         {/* Route preview line */}
         {routeData && routeData.polyline && (
@@ -1222,8 +1206,8 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               sx={{
                 width: 14,
                 height: 14,
-                borderRadius: 0,
-                bgcolor: "#03CD8C",
+                borderRadius: "50%",
+                bgcolor: uiTokens.map.markerStart,
                 border: "2px solid white",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
               }}
@@ -1232,7 +1216,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               sx={{
                 position: "absolute",
                 inset: -8,
-                borderRadius: 0,
+                borderRadius: "50%",
                 border: "1px solid rgba(59,130,246,0.5)",
                 animation: `${pulse} 2s infinite`
               }}
@@ -1258,7 +1242,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             <PlaceRoundedIcon
               sx={{
                 fontSize: 28,
-                color: "#10B981",
+                color: uiTokens.map.markerEnd,
                 filter: "drop-shadow(0 4px 8px rgba(15,23,42,0.9))"
               }}
             />
@@ -1273,8 +1257,9 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               bottom: 8,
               left: 8,
               right: 8,
-              bgcolor: "rgba(255,255,255,0.95)",
-              borderRadius: 0,
+              bgcolor: "var(--evz-map-overlay-bg)",
+              border: "1px solid var(--evz-map-overlay-border)",
+              borderRadius: "var(--evz-radius-md)",
               px: 1.5,
               py: 1,
               display: "flex",
@@ -1288,7 +1273,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             </Typography>
           </Box>
         )}
-      </Box>
+      </MapShell>
 
       <InfoCard title="Quick actions">
         <Box

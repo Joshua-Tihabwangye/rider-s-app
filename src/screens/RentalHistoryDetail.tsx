@@ -43,7 +43,7 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -73,7 +73,7 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
           size="small"
           label={status}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 10,
             height: 22,
             bgcolor: status === "Upcoming" ? "rgba(34,197,94,0.12)" : "rgba(148,163,184,0.18)",
@@ -102,7 +102,7 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
               sx={{
                 width: 44,
                 height: 44,
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#E0F2FE" : "rgba(15,23,42,0.9)",
                 display: "flex",
@@ -245,7 +245,7 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
               icon={<ShieldRoundedIcon sx={{ fontSize: 14 }} />}
               label="Covered by EVzone Pay"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 10,
                 height: 24,
                 bgcolor: (t) =>
@@ -263,7 +263,7 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
           fullWidth
           variant="outlined"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 1,
             fontSize: 14,
             textTransform: "none"
@@ -275,7 +275,7 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
           fullWidth
           variant="outlined"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 1,
             fontSize: 14,
             textTransform: "none",

@@ -60,7 +60,7 @@ function OrderCompletionRatingPromptScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -126,7 +126,7 @@ function OrderCompletionRatingPromptScreen(): React.JSX.Element {
               icon={<LocalShippingRoundedIcon sx={{ fontSize: 14 }} />}
               label="EV courier"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: "rgba(34,197,94,0.12)",
@@ -138,7 +138,7 @@ function OrderCompletionRatingPromptScreen(): React.JSX.Element {
               icon={<PlaceRoundedIcon sx={{ fontSize: 14 }} />}
               label="Nsambya → Bugolobi"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: (t) =>
@@ -216,7 +216,7 @@ function OrderCompletionRatingPromptScreen(): React.JSX.Element {
                   onClick={() => toggleTag(tag)}
                   icon={active ? <StarRoundedIcon sx={{ fontSize: 14 }} /> : undefined}
                   sx={{
-                    borderRadius: 999,
+                    borderRadius: 5,
                     fontSize: 11,
                     height: 26,
                     bgcolor: active
@@ -292,7 +292,7 @@ function OrderCompletionRatingPromptScreen(): React.JSX.Element {
         disabled={!canSubmit}
         startIcon={<StarRoundedIcon sx={{ fontSize: 18 }} />}
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

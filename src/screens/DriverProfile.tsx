@@ -47,7 +47,7 @@ function DriverProfileDuringTripScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -120,7 +120,7 @@ function DriverProfileDuringTripScreen(): React.JSX.Element {
                   }
                   label="Verified"
                   sx={{
-                    borderRadius: 999,
+                    borderRadius: 5,
                     fontSize: 10,
                     height: 22,
                     bgcolor: (theme) =>
@@ -153,7 +153,7 @@ function DriverProfileDuringTripScreen(): React.JSX.Element {
               label="EV expert"
               size="small"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: "rgba(34,197,94,0.1)",
@@ -165,7 +165,7 @@ function DriverProfileDuringTripScreen(): React.JSX.Element {
               label="Top-rated 3 months"
               size="small"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: "rgba(253,224,71,0.15)",
@@ -177,7 +177,7 @@ function DriverProfileDuringTripScreen(): React.JSX.Element {
               label="98% on-time"
               size="small"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 height: 24,
                 bgcolor: "rgba(59,130,246,0.12)",
@@ -201,7 +201,7 @@ function DriverProfileDuringTripScreen(): React.JSX.Element {
                   label="English"
                   size="small"
                   sx={{
-                    borderRadius: 999,
+                    borderRadius: 5,
                     fontSize: 10,
                     height: 22,
                     bgcolor: (t) =>
@@ -213,7 +213,7 @@ function DriverProfileDuringTripScreen(): React.JSX.Element {
                   label="Luganda"
                   size="small"
                   sx={{
-                    borderRadius: 999,
+                    borderRadius: 5,
                     fontSize: 10,
                     height: 22,
                     bgcolor: (t) =>
@@ -262,7 +262,7 @@ function DriverProfileDuringTripScreen(): React.JSX.Element {
           variant="outlined"
           startIcon={<PhoneRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 0.9,
             fontSize: 13,
             textTransform: "none"
@@ -275,7 +275,7 @@ function DriverProfileDuringTripScreen(): React.JSX.Element {
           variant="outlined"
           startIcon={<MessageRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 0.9,
             fontSize: 13,
             textTransform: "none"
@@ -288,7 +288,7 @@ function DriverProfileDuringTripScreen(): React.JSX.Element {
           variant="outlined"
           startIcon={<ShareRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 0.9,
             fontSize: 13,
             textTransform: "none"
@@ -305,7 +305,7 @@ function DriverProfileDuringTripScreen(): React.JSX.Element {
         startIcon={<SettingsRoundedIcon sx={{ fontSize: 18 }} />}
         onClick={() => navigate("/rides/preferences/driver", { state: { isModal: true } })}
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 0.9,
           fontSize: 13,
           textTransform: "none",

@@ -46,7 +46,7 @@ function SimpleEnterDestinationScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -117,7 +117,7 @@ function SimpleEnterDestinationScreen(): React.JSX.Element {
             sx={{
               mb: 1.5,
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -159,7 +159,7 @@ function SimpleEnterDestinationScreen(): React.JSX.Element {
             }}
             sx={{
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -222,7 +222,7 @@ function SimpleEnterDestinationScreen(): React.JSX.Element {
                   sx={{
                     px: 0.5,
                     height: 28,
-                    borderRadius: 999,
+                    borderRadius: 5,
                     fontSize: 11,
                     bgcolor: isActive
                       ? "primary.main"
@@ -258,7 +258,7 @@ function SimpleEnterDestinationScreen(): React.JSX.Element {
         variant="contained"
         disabled={!canContinue}
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

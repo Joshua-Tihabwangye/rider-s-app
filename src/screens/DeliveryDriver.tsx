@@ -44,7 +44,7 @@ function ActiveDeliveryDriverInfoLiveTrackingScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -156,7 +156,7 @@ function ActiveDeliveryDriverInfoLiveTrackingScreen(): React.JSX.Element {
             icon={<AccessTimeRoundedIcon sx={{ fontSize: 14 }} />}
             label={`ETA ${eta}`}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 11,
               height: 24,
               bgcolor: "rgba(15,23,42,0.72)",
@@ -223,7 +223,7 @@ function ActiveDeliveryDriverInfoLiveTrackingScreen(): React.JSX.Element {
               size="small"
               label="Verified"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 10,
                 height: 22,
                 bgcolor: "rgba(34,197,94,0.12)",
@@ -239,7 +239,7 @@ function ActiveDeliveryDriverInfoLiveTrackingScreen(): React.JSX.Element {
               variant="outlined"
               startIcon={<PhoneRoundedIcon sx={{ fontSize: 18 }} />}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 13,
                 textTransform: "none"
               }}
@@ -252,7 +252,7 @@ function ActiveDeliveryDriverInfoLiveTrackingScreen(): React.JSX.Element {
               variant="outlined"
               startIcon={<MessageRoundedIcon sx={{ fontSize: 18 }} />}
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 13,
                 textTransform: "none"
               }}

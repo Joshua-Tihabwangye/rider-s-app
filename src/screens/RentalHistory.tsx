@@ -86,7 +86,7 @@ function RentalBookingCard({ booking }: RentalBookingCardProps): React.JSX.Eleme
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#E0F2FE" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -125,7 +125,7 @@ function RentalBookingCard({ booking }: RentalBookingCardProps): React.JSX.Eleme
             size="small"
             label={booking.status}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 10,
               height: 22,
               bgcolor:
@@ -174,7 +174,7 @@ function RentalBookingCard({ booking }: RentalBookingCardProps): React.JSX.Eleme
             size="small"
             variant="outlined"
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               px: 2,
               py: 0.4,
               fontSize: 12,
@@ -212,7 +212,7 @@ function RentalBookingsUpcomingHistoryScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -247,7 +247,7 @@ function RentalBookingsUpcomingHistoryScreen(): React.JSX.Element {
           onClick={() => setTab("upcoming")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: tab === "upcoming" ? "primary.main" : (t) =>
@@ -262,7 +262,7 @@ function RentalBookingsUpcomingHistoryScreen(): React.JSX.Element {
           onClick={() => setTab("history")}
           size="small"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             fontSize: 11,
             height: 26,
             bgcolor: tab === "history" ? "primary.main" : (t) =>

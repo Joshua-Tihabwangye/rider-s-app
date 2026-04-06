@@ -11,6 +11,8 @@ import {
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import MapShell from "../components/maps/MapShell";
+import { uiTokens } from "../design/tokens";
 
 // Mock geocoding service
 const geocodeAddress = async (
@@ -374,7 +376,7 @@ function PickDestinationMapScreen(): React.JSX.Element {
 						aria-label="Back"
 						onClick={() => navigate(-1)}
 						sx={{
-							borderRadius: 999,
+							borderRadius: 5,
 							bgcolor:
 								theme.palette.mode === "light"
 									? "rgba(0,0,0,0.05)"
@@ -419,7 +421,7 @@ function PickDestinationMapScreen(): React.JSX.Element {
 					disabled={isGeocoding}
 					sx={{
 						"& .MuiOutlinedInput-root": {
-							borderRadius: 999,
+							borderRadius: 5,
 							bgcolor:
 								theme.palette.mode === "light"
 									? "#FFFFFF"
@@ -463,12 +465,15 @@ function PickDestinationMapScreen(): React.JSX.Element {
 			</Box>
 
 			{/* Map area - City map style with beige/grey land, blue water, white roads, green parks */}
-			<Box
-				ref={mapRef}
-				sx={{
-					position: "relative",
-					flex: 1,
-					overflow: "hidden",
+			<MapShell
+				height="100%"
+				childrenLayer="canvas"
+				showBackButton={false}
+				showControls
+				onRecenter={() => setMapOffset({ x: 0, y: 0 })}
+				canvasRef={mapRef}
+				sx={{ flex: 1 }}
+				canvasSx={{
 					cursor: "grab",
 					userSelect: "none",
 					touchAction: "none",
@@ -585,7 +590,7 @@ function PickDestinationMapScreen(): React.JSX.Element {
 						transform: "translate(-50%, -50%)",
 						width: 200,
 						height: 200,
-						borderRadius: "999px",
+						borderRadius: "5px",
 						border: "1px dashed rgba(59,130,246,0.6)",
 						bgcolor: "rgba(147,197,253,0.15)",
 					}}
@@ -604,12 +609,12 @@ function PickDestinationMapScreen(): React.JSX.Element {
 					<PlaceRoundedIcon
 						sx={{
 							fontSize: 40,
-							color: "#4CAF50",
+							color: uiTokens.map.markerStart,
 							filter: "drop-shadow(0 0 0 2px #000) drop-shadow(0 4px 8px rgba(0,0,0,0.3))",
 						}}
 					/>
 				</Box>
-			</Box>
+			</MapShell>
 
 			{/* Fixed Footer with Button */}
 			<Box

@@ -54,7 +54,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -123,7 +123,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
             sx={{
               mb: 1.6,
               "& .MuiOutlinedInput-root": {
-                borderRadius: 999,
+                borderRadius: 5,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -160,7 +160,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
                 size="small"
                 onClick={() => setTimeSlot(slot)}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   fontSize: 11,
                   height: 26,
                   bgcolor:
@@ -226,7 +226,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
                   onClick={() => adjust(setAdults, -1, 1)}
                   sx={{
                     minWidth: 32,
-                    borderRadius: 999,
+                    borderRadius: 5,
                     px: 0,
                     fontSize: 16,
                     lineHeight: 1
@@ -243,7 +243,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
                   onClick={() => adjust(setAdults, 1, 1)}
                   sx={{
                     minWidth: 32,
-                    borderRadius: 999,
+                    borderRadius: 5,
                     px: 0,
                     fontSize: 16,
                     lineHeight: 1
@@ -273,7 +273,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
                   onClick={() => adjust(setChildren, -1, 0)}
                   sx={{
                     minWidth: 32,
-                    borderRadius: 999,
+                    borderRadius: 5,
                     px: 0,
                     fontSize: 16,
                     lineHeight: 1
@@ -290,7 +290,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
                   onClick={() => adjust(setChildren, 1, 0)}
                   sx={{
                     minWidth: 32,
-                    borderRadius: 999,
+                    borderRadius: 5,
                     px: 0,
                     fontSize: 16,
                     lineHeight: 1
@@ -309,7 +309,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
         variant="contained"
         disabled={!canContinue}
         sx={{
-          borderRadius: 999,
+          borderRadius: 5,
           py: 1.1,
           fontSize: 15,
           fontWeight: 600,

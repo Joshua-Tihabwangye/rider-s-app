@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useMemo, useEffect, ReactNode } from "react";
 import { ThemeProvider, Theme } from "@mui/material/styles";
-import { CssBaseline, GlobalStyles } from "@mui/material";
+import { CssBaseline } from "@mui/material";
 import { createEvzoneTheme } from "../theme";
 
 type PaletteMode = "light" | "dark";
@@ -27,6 +27,22 @@ export function GlobalThemeProvider({ children }: GlobalThemeProviderProps): Rea
   // Save mode to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("themeMode", mode);
+    const root = document.getElementById("root");
+
+    document.documentElement.setAttribute("data-theme", mode);
+    document.body.setAttribute("data-theme", mode);
+    if (root) {
+      root.setAttribute("data-theme", mode);
+    }
+
+    const isDark = mode === "dark";
+    document.documentElement.classList.toggle("dark", isDark);
+    document.body.classList.toggle("dark", isDark);
+    if (root) {
+      root.classList.toggle("dark", isDark);
+    }
+
+    document.documentElement.style.colorScheme = mode;
   }, [mode]);
 
   const theme = useMemo(() => createEvzoneTheme(mode), [mode]);
@@ -45,13 +61,6 @@ export function GlobalThemeProvider({ children }: GlobalThemeProviderProps): Rea
     <ThemeContext.Provider value={value}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <GlobalStyles
-          styles={{
-            "*, *::before, *::after": {
-              borderRadius: "0 !important"
-            }
-          }}
-        />
         {children}
       </ThemeProvider>
     </ThemeContext.Provider>

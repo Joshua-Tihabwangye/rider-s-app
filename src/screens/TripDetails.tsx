@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "@mui/material/styles";
 import {
   Box,
   IconButton,
@@ -17,7 +16,6 @@ import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFil
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import LocalFireDepartmentRoundedIcon from "@mui/icons-material/LocalFireDepartmentRounded";
 import NavigationRoundedIcon from "@mui/icons-material/NavigationRounded";
 import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded";
@@ -27,10 +25,11 @@ import HotelRoundedIcon from "@mui/icons-material/HotelRounded";
 import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
+import MapShell from "../components/maps/MapShell";
+import { uiTokens } from "../design/tokens";
 
 function TripInProgressWithDriverScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const theme = useTheme();
   const [progress, setProgress] = useState(40); // 40% of trip completed
   const [eta, setEta] = useState({ hours: 1, minutes: 20 });
   const [distanceCovered, setDistanceCovered] = useState(22);
@@ -128,51 +127,12 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
 
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (theme) => theme.palette.background.default }}>
-      {/* Live Map Section - Full width at top */}
-      <Box
-        sx={{
-          position: "relative",
-          width: "100%",
-          height: "50vh",
-          background: (theme) =>
-            theme.palette.mode === "light"
-              ? "#F5F5F5" // Light grey/white map background
-              : "linear-gradient(135deg, rgba(15,23,42,0.3), #020617 60%, #020617 100%)",
-          overflow: "hidden"
-        }}
+      <MapShell
+        preset="full"
+        onBack={() => navigate(-1)}
+        showBackButton
+        canvasSx={{ background: uiTokens.map.canvasEmphasis }}
       >
-        {/* Grid overlay - faint for light background */}
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            opacity: theme.palette.mode === "light" ? 0.12 : 0.2,
-            backgroundImage:
-              "linear-gradient(to right, rgba(148,163,184,0.4) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.4) 1px, transparent 1px)",
-            backgroundSize: "32px 32px"
-          }}
-        />
-
-        {/* Back Button - Light blue circular in top-left */}
-        <IconButton
-          size="small"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-          sx={{
-            position: "absolute",
-            top: 16,
-            left: 16,
-            bgcolor: "#BAE6FD", // Light blue
-            color: "#1E40AF", // Dark blue icon
-            width: 40,
-            height: 40,
-            "&:hover": {
-              bgcolor: "#93C5FD"
-            }
-          }}
-        >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
 
         {/* Map Labels - Organized with proper z-index */}
         {/* Entebbe - top-left */}
@@ -621,7 +581,7 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
         >
           Emergency
         </Button>
-      </Box>
+      </MapShell>
 
       {/* Trip Info Card - Overlapping map slightly */}
       <Box sx={{ px: 2.5, pt: 0, pb: 2, mt: -3 }}>
@@ -737,10 +697,10 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
                   value={progress}
                   sx={{
                     height: 8,
-                    borderRadius: 999,
+                    borderRadius: 5,
                     bgcolor: "rgba(255,255,255,0.2)",
                     "& .MuiLinearProgress-bar": {
-                      borderRadius: 999,
+                      borderRadius: 5,
                       bgcolor: "#2196F3"
                     }
                   }}
@@ -1171,7 +1131,7 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
                 variant="contained"
                 onClick={handlePayNow}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 5,
                   px: 3,
                   py: 1,
                   fontSize: 14,

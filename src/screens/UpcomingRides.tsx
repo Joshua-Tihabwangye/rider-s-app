@@ -97,7 +97,7 @@ function UpcomingRideCard({ ride }: UpcomingRideCardProps): React.JSX.Element {
             label={ride.status}
             size="small"
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 11,
               height: 24,
               bgcolor: statusBg,
@@ -133,7 +133,7 @@ function UpcomingRideCard({ ride }: UpcomingRideCardProps): React.JSX.Element {
             icon={<DirectionsCarFilledRoundedIcon sx={{ fontSize: 14 }} />}
             label={ride.type}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               fontSize: 10,
               height: 22,
               bgcolor: (t) =>
@@ -146,7 +146,7 @@ function UpcomingRideCard({ ride }: UpcomingRideCardProps): React.JSX.Element {
               size="small"
               variant="outlined"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 textTransform: "none",
                 px: 1.8,
@@ -159,7 +159,7 @@ function UpcomingRideCard({ ride }: UpcomingRideCardProps): React.JSX.Element {
               size="small"
               variant="text"
               sx={{
-                borderRadius: 999,
+                borderRadius: 5,
                 fontSize: 11,
                 textTransform: "none",
                 color: "#EF4444"
@@ -197,7 +197,7 @@ function RideHistoryUpcomingScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -244,7 +244,7 @@ function RideHistoryUpcomingScreen(): React.JSX.Element {
           },
           "& .MuiTabs-indicator": {
             height: 2,
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: "primary.main"
           }
         }}

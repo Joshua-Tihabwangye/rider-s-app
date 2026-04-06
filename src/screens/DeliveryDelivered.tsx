@@ -35,7 +35,7 @@ function OrderDeliveredConfirmationScreen(): React.JSX.Element {
           aria-label="Back"
           onClick={() => navigate(-1)}
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             bgcolor: (t) =>
               t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
             border: (t) =>
@@ -57,7 +57,7 @@ function OrderDeliveredConfirmationScreen(): React.JSX.Element {
             justifyContent: "center",
             width: 72,
             height: 72,
-            borderRadius: "999px",
+            borderRadius: "5px",
             bgcolor: "rgba(34,197,94,0.12)",
             mb: 1.5
           }}
@@ -167,7 +167,7 @@ function OrderDeliveredConfirmationScreen(): React.JSX.Element {
           fullWidth
           variant="outlined"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 1,
             fontSize: 14,
             textTransform: "none"
@@ -179,7 +179,7 @@ function OrderDeliveredConfirmationScreen(): React.JSX.Element {
           fullWidth
           variant="outlined"
           sx={{
-            borderRadius: 999,
+            borderRadius: 5,
             py: 1,
             fontSize: 14,
             textTransform: "none"

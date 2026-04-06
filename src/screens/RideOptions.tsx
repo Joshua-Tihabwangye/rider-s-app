@@ -348,8 +348,8 @@ function SelectYourRideScreen(): React.JSX.Element {
           bottom: { xs: "calc(64px + env(safe-area-inset-bottom))", sm: "64px" },
           left: 0,
           right: 0,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
+          borderTopLeftRadius: 5,
+          borderTopRightRadius: 5,
           bgcolor: contentBg,
           maxHeight: { xs: 'calc(100vh - 40vh - 64px - env(safe-area-inset-bottom))', sm: 'calc(100vh - 40vh - 64px)' },
           overflow: "auto",
@@ -536,7 +536,7 @@ function SelectYourRideScreen(): React.JSX.Element {
             onClick={handleConfirm}
             disabled={!selectedRide}
             sx={{
-              borderRadius: 999,
+              borderRadius: 5,
               py: 1.4,
               fontSize: 15,
               fontWeight: 600,
