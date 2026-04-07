@@ -44,6 +44,7 @@ import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
+import { uiTokens } from "../design/tokens";
 
 
 const TRANSACTIONS = [
@@ -595,7 +596,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                   variant="caption"
                   sx={{ fontSize: 10, color: (t) => t.palette.text.secondary }}
                 >
-                  MTN Mobile Money • +256777777777
+                  MTN Mobile Money
                 </Typography>
               </CardContent>
             </Card>

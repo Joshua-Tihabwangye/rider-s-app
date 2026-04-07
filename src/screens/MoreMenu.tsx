@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Avatar, Box, Stack, Typography } from "@mui/material";
+import { Avatar, Box, Button, Stack, Typography } from "@mui/material";
 import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
@@ -9,6 +9,7 @@ import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
 import MailRoundedIcon from "@mui/icons-material/MailRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import PageHeader from "../components/PageHeader";
 import ActionGrid from "../components/primitives/ActionGrid";
@@ -17,6 +18,7 @@ import ListSection from "../components/primitives/ListSection";
 import RowActionItem from "../components/primitives/RowActionItem";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
+import { useAuth } from "../contexts/AuthContext";
 
 interface MenuItem {
   icon: React.ReactNode;
@@ -111,6 +113,17 @@ function ItemGroup({
 
 export default function MoreMenu(): React.JSX.Element {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const initials = user?.initials ?? "??";
+  const displayName = user?.fullName?.split(" ")[0] ?? "—";
+  const phone = user?.phone ?? "";
+  const email = user?.email ?? "";
+
+  const handleSignOut = (): void => {
+    signOut();
+    navigate("/auth/sign-in", { replace: true });
+  };
 
   return (
     <ScreenScaffold
@@ -136,17 +149,17 @@ export default function MoreMenu(): React.JSX.Element {
               color: uiTokens.colors.ink
             }}
           >
-            RZ
+            {initials}
           </Avatar>
           <Box sx={{ flex: 1 }}>
             <Typography variant="subtitle1" sx={{ ...uiTokens.text.itemTitle, mb: 0.25 }}>
-              Rachel
+              {displayName}
             </Typography>
             <Typography variant="caption" sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary }}>
-              +256 777 777 777
+              {phone}
             </Typography>
             <Typography variant="caption" sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary, display: "block" }}>
-              rachel@example.com
+              {email}
             </Typography>
           </Box>
         </Stack>
@@ -159,6 +172,31 @@ export default function MoreMenu(): React.JSX.Element {
           <ItemGroup title="Support" items={SUPPORT_ITEMS} onNavigate={navigate} />
         </Stack>
       </ActionGrid>
+
+      {/* Logout */}
+      <Box sx={{ mt: 1 }}>
+        <Button
+          fullWidth
+          variant="outlined"
+          startIcon={<LogoutRoundedIcon />}
+          onClick={handleSignOut}
+          sx={{
+            py: 1.1,
+            fontSize: 13,
+            fontWeight: 600,
+            textTransform: "none",
+            borderRadius: "var(--evz-radius-md)",
+            borderColor: "var(--evz-danger)",
+            color: "var(--evz-danger)",
+            "&:hover": {
+              borderColor: "var(--evz-danger-hover)",
+              bgcolor: "var(--evz-surface-danger-tint-soft)"
+            }
+          }}
+        >
+          Sign out
+        </Button>
+      </Box>
     </ScreenScaffold>
   );
 }
