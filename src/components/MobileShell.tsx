@@ -86,7 +86,10 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
   const location = useLocation();
   const navigate = useNavigate();
 
-  if (isNested) {
+  // Don't render the shell chrome on auth pages
+  const isAuthPage = location.pathname.startsWith("/auth");
+
+  if (isNested || isAuthPage) {
     return <>{children}</>;
   }
 

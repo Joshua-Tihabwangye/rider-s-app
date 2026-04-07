@@ -3,9 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Box,
   Chip,
-  InputAdornment,
   Stack,
-  TextField,
   Typography
 } from "@mui/material";
 import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
@@ -14,7 +12,7 @@ import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
 import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+
 import RouteRoundedIcon from "@mui/icons-material/RouteRounded";
 import WorkRoundedIcon from "@mui/icons-material/WorkRounded";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
@@ -27,13 +25,7 @@ import SectionHeader from "../components/primitives/SectionHeader";
 import ServiceActionCard from "../components/primitives/ServiceActionCard";
 import InlineStat from "../components/primitives/InlineStat";
 import { uiTokens } from "../design/tokens";
-
-interface Reminder {
-  id: number;
-  title: string;
-  description: string;
-  actionRoute: string;
-}
+import { useAppData } from "../contexts/AppDataContext";
 
 interface ServiceAction {
   title: string;
@@ -42,27 +34,6 @@ interface ServiceAction {
   icon: React.ReactNode;
   danger?: boolean;
 }
-
-const REMINDERS: Reminder[] = [
-  {
-    id: 1,
-    title: "Student Bus Fees",
-    description: "John Doe - Expires in 5 days. Grace period: 2 days remaining.",
-    actionRoute: "/school-handoff/fees"
-  },
-  {
-    id: 2,
-    title: "Ride Promotion",
-    description: "Get 20% off your next ride. Valid until end of month.",
-    actionRoute: "/rides/promotions"
-  },
-  {
-    id: 3,
-    title: "Payment Alert",
-    description: "Your wallet balance is low. Add funds to continue booking.",
-    actionRoute: "/wallet"
-  }
-];
 
 const SERVICE_ACTIONS: ServiceAction[] = [
   {
@@ -113,61 +84,26 @@ const QUICK_ACTIONS = [
 
 function HomeMultiServiceScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
+  const { reminders } = useAppData();
+
   const [currentReminderIndex, setCurrentReminderIndex] = useState(0);
 
   useEffect(() => {
-    if (REMINDERS.length > 1) {
+    if (reminders.length > 1) {
       const interval = setInterval(() => {
-        setCurrentReminderIndex((prev) => (prev + 1) % REMINDERS.length);
+        setCurrentReminderIndex((prev) => (prev + 1) % reminders.length);
       }, 5000);
       return () => clearInterval(interval);
     }
     return undefined;
-  }, []);
+  }, [reminders.length]);
 
-  const activeReminder: Reminder = REMINDERS[currentReminderIndex] ?? REMINDERS[0]!;
+  const activeReminder = reminders[currentReminderIndex] ?? reminders[0]!;
 
-  const handleSearchSubmit = (
-    e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLInputElement>
-  ): void => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate("/rides/enter", { state: { searchQuery: searchQuery.trim() } });
-    }
-  };
+
 
   return (
     <ScreenScaffold>
-      <Box component="form" onSubmit={handleSearchSubmit}>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Search rides, shops, contacts..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === "Enter") {
-                handleSearchSubmit(e);
-              }
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchRoundedIcon sx={{ fontSize: 20, color: (t) => t.palette.text.secondary }} />
-                </InputAdornment>
-              )
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                bgcolor: uiTokens.surfaces.card,
-                "& fieldset": { border: uiTokens.borders.subtle }
-              }
-            }}
-          />
-        </Stack>
-      </Box>
 
       <PrimarySection>
         <SectionHeader
