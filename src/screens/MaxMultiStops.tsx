@@ -29,6 +29,8 @@ import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
+import ScreenScaffold from "../components/ScreenScaffold";
+import PageHeader from "../components/PageHeader";
 
 const MAX_STOPS = 6; // A-F
 
@@ -167,74 +169,24 @@ function EnterDestinationMaxStopsScreen(): React.JSX.Element {
 		stops.some((stop: Stop) => stop.value.trim() !== "");
 
 	return (
-		<Box
-			sx={{
-				minHeight: "100vh",
-				bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "#03CD8C",
-				paddingBottom: {
-					xs: "calc(100px + env(safe-area-inset-bottom))",
-					sm: "120px",
-				},
-			}}
+		<ScreenScaffold
+			header={<PageHeader title="Enter Destination" />}
 		>
-			{/* Header Section - Deep Navy */}
-			<Box
+			{/* Route Setup Card */}
+			<Card
+				elevation={0}
 				sx={{
-					px: 2.5,
-					pt: 2.5,
-					pb: 2,
-					bgcolor: headerBg,
+					borderRadius: 3,
+					bgcolor: contentBg,
+					border:
+						theme.palette.mode === "light"
+							? "1px solid rgba(0,0,0,0.1)"
+							: "1px solid rgba(255,255,255,0.1)",
+					boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+					maxHeight: "60vh",
+					overflowY: "auto",
 				}}
 			>
-				<Box
-					sx={{
-						display: "flex",
-						alignItems: "center",
-						gap: 1.5,
-						mb: 2,
-					}}
-				>
-					<IconButton
-						size="small"
-						aria-label="Back"
-						onClick={() => navigate(-1)}
-						sx={{
-							borderRadius: 5,
-							bgcolor: "rgba(255,255,255,0.1)",
-							color: headerText,
-							"&:hover": {
-								bgcolor: "rgba(255,255,255,0.2)",
-							},
-						}}
-					>
-						<ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-					</IconButton>
-					<Typography
-						variant="subtitle1"
-						sx={{
-							fontWeight: 600,
-							letterSpacing: "-0.01em",
-							color: headerText,
-						}}
-					>
-						Enter Destination
-					</Typography>
-				</Box>
-
-				{/* Route Setup Card */}
-				<Card
-					elevation={0}
-					sx={{
-						borderRadius: 2,
-						bgcolor: contentBg,
-						border:
-							theme.palette.mode === "light"
-								? "1px solid rgba(0,0,0,0.1)"
-								: "1px solid rgba(255,255,255,0.1)",
-						maxHeight: "60vh",
-						overflowY: "auto",
-					}}
-				>
 					<CardContent sx={{ px: 2, py: 2 }}>
 						<Stack spacing={2}>
 							{/* Pickup Point - Locked with Green Dot Marker */}
@@ -509,7 +461,7 @@ function EnterDestinationMaxStopsScreen(): React.JSX.Element {
 						</Stack>
 					</CardContent>
 				</Card>
-			</Box>
+
 
 			{/* Lower Section */}
 			<Box
@@ -1003,7 +955,7 @@ function EnterDestinationMaxStopsScreen(): React.JSX.Element {
 					Continue
 				</Button>
 			</Box>
-		</Box>
+		</ScreenScaffold>
 	);
 }
 
