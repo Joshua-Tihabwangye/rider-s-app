@@ -98,6 +98,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
             <Button
               fullWidth
               variant="outlined"
+              onClick={() => window.open("https://play.google.com/store/apps/details?id=com.evzone.school", "_blank")}
               sx={{
                 borderRadius: uiTokens.radius.xl,
                 py: 0.9,

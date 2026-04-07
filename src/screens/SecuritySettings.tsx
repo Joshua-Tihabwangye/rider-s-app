@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Typography, Stack } from "@mui/material";
 import ScreenScaffold from "../components/ScreenScaffold";
@@ -6,12 +6,13 @@ import PageHeader from "../components/PageHeader";
 import ListSection from "../components/primitives/ListSection";
 import RowActionItem from "../components/primitives/RowActionItem";
 import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded";
-import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import FingerprintRoundedIcon from "@mui/icons-material/FingerprintRounded";
 import { uiTokens } from "../design/tokens";
 
 export default function SecuritySettings(): React.JSX.Element {
   const navigate = useNavigate();
+  const [is2faEnabled, setIs2faEnabled] = useState(true);
+  const [isBioEnabled, setIsBioEnabled] = useState(false);
 
   return (
     <ScreenScaffold
@@ -31,16 +32,10 @@ export default function SecuritySettings(): React.JSX.Element {
           </Typography>
           <ListSection>
             <RowActionItem
-              icon={<LockRoundedIcon />}
-              title="Change Password"
-              description="Last changed 3 months ago"
-              onClick={() => {}}
-            />
-            <RowActionItem
               icon={<SecurityRoundedIcon />}
               title="Two-Factor Authentication"
-              description="On • SMS (...77)"
-              onClick={() => {}}
+              description={is2faEnabled ? "On • SMS (...77)" : "Off"}
+              onClick={() => setIs2faEnabled(!is2faEnabled)}
             />
           </ListSection>
         </Box>
@@ -53,8 +48,8 @@ export default function SecuritySettings(): React.JSX.Element {
             <RowActionItem
               icon={<FingerprintRoundedIcon />}
               title="Touch ID / Face ID"
-              description="Use biometrics for quick login"
-              onClick={() => {}}
+              description={isBioEnabled ? "On" : "Use biometrics for quick login"}
+              onClick={() => setIsBioEnabled(!isBioEnabled)}
             />
           </ListSection>
         </Box>
