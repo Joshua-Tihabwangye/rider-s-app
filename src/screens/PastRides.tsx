@@ -19,13 +19,18 @@ import {
   DialogActions
 } from "@mui/material";
 
+import StarRoundedIcon from "@mui/icons-material/StarRounded";
+import Button from "@mui/material/Button";
+import SharedPassengersModal from "../components/SharedPassengersModal";
+
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import StraightenRoundedIcon from "@mui/icons-material/StraightenRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
-import StarRoundedIcon from "@mui/icons-material/StarRounded";
-import Button from "@mui/material/Button";
-import SharedPassengersModal from "../components/SharedPassengersModal";
+
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
+import { uiTokens } from "../design/tokens";
 
 // Mock data - would come from API: GET /user/rides?status=past
 const PAST_RIDES = [
@@ -228,8 +233,8 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
         elevation={0}
         onClick={onClick}
         sx={{
-          mb: 2,
-          borderRadius: 2,
+          mb: uiTokens.spacing.lg,
+          borderRadius: uiTokens.radius.xl,
           cursor: "pointer",
           bgcolor: (theme) =>
             theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
@@ -237,7 +242,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
             theme.palette.mode === "light"
               ? "1px solid rgba(209,213,219,0.9)"
               : "1px solid rgba(51,65,85,0.9)",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+          boxShadow: uiTokens.elevation.card,
           transition: "transform 0.2s ease, box-shadow 0.2s ease",
           "&:hover": {
             transform: "translateY(-2px)",
@@ -245,9 +250,9 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
           }
         }}
       >
-        <CardContent sx={{ px: 2, py: 2 }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           {/* Driver Info */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.md, mb: uiTokens.spacing.lg }}>
             <Avatar
               sx={{
                 width: 48,
@@ -266,7 +271,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
                 sx={{
                   fontWeight: 600,
                   letterSpacing: "-0.01em",
-                  mb: 0.25,
+                  mb: uiTokens.spacing.xxs / 2,
                   color: (theme) => theme.palette.text.primary
                 }}
               >
@@ -278,12 +283,12 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
                   fontSize: 11,
                   color: (theme) => theme.palette.text.secondary,
                   display: "block",
-                  mb: 0.25
+                  mb: uiTokens.spacing.xxs / 2
                 }}
               >
                 {ride.driver.carModel} – {ride.driver.licensePlate}
               </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.xxs }}>
                 {Array.from({ length: fullStars }).map((_, i) => (
                   <StarRoundedIcon key={i} sx={{ fontSize: 14, color: "#FFC107" }} />
                 ))}
@@ -298,7 +303,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
           </Box>
 
           {/* Trip Details - Origin and Destination with dotted line */}
-          <Box sx={{ mb: 2, position: "relative", pl: 2 }}>
+          <Box sx={{ mb: uiTokens.spacing.lg, position: "relative", pl: uiTokens.spacing.lg }}>
             {/* Vertical dotted line */}
             <Box
               sx={{
@@ -314,7 +319,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
             />
             
             {/* Origin */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.sm, mb: uiTokens.spacing.mdPlus }}>
               <Box
                 sx={{
                   width: 14,
@@ -340,7 +345,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
             </Box>
 
             {/* Destination */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.sm }}>
               <Box
                 sx={{
                   width: 14,
@@ -366,10 +371,10 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
             </Box>
           </Box>
 
-          <Divider sx={{ my: 1.5 }} />
+          <Divider sx={{ my: uiTokens.spacing.mdPlus }} />
 
           {/* Ride Summary Row */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.lg, mb: uiTokens.spacing.lg }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
               <CalendarTodayRoundedIcon
                 sx={{ fontSize: 16, color: (theme) => theme.palette.text.secondary }}
@@ -406,18 +411,18 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
           </Box>
 
           {/* Action Buttons */}
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" spacing={uiTokens.spacing.sm}>
             <Button
               fullWidth
               variant="contained"
               size="small"
               onClick={handleChangeDateClick}
               sx={{
-                borderRadius: 2,
+                borderRadius: uiTokens.radius.xl,
                 fontSize: 13,
                 fontWeight: 600,
                 textTransform: "none",
-                py: 1,
+                py: uiTokens.spacing.smPlus,
                 bgcolor: "#03CD8C",
                 color: "#FFFFFF",
                 "&:hover": {
@@ -433,11 +438,11 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
               size="small"
               onClick={handleCancelClick}
               sx={{
-                borderRadius: 2,
+                borderRadius: uiTokens.radius.xl,
                 fontSize: 13,
                 fontWeight: 600,
                 textTransform: "none",
-                py: 1,
+                py: uiTokens.spacing.smPlus,
                 bgcolor: "#EF4444",
                 color: "#FFFFFF",
                 "&:hover": {
@@ -457,7 +462,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
         onClose={handleCancelClose}
         PaperProps={{
           sx: {
-            borderRadius: 2,
+            borderRadius: uiTokens.radius.xl,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
   }
@@ -469,7 +474,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
             Are you sure you want to cancel this ride? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
-        <DialogActions sx={{ px: 2, pb: 2 }}>
+        <DialogActions sx={{ px: uiTokens.spacing.lg, pb: uiTokens.spacing.lg }}>
           <Button
             onClick={handleCancelClose}
             sx={{
@@ -569,8 +574,8 @@ function RideHistoryCard({ ride, onClick, onSharedPassengersClick }: RideHistory
       elevation={0}
       onClick={onClick}
       sx={{
-        mb: 2,
-        borderRadius: 2,
+        mb: uiTokens.spacing.lg,
+        borderRadius: uiTokens.radius.xl,
         cursor: "pointer",
         bgcolor: (theme) =>
           theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
@@ -585,10 +590,10 @@ function RideHistoryCard({ ride, onClick, onSharedPassengersClick }: RideHistory
         }
       }}
     >
-      <CardContent sx={{ px: 2, py: 2 }}>
+      <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
         {/* Driver Info Row */}
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flex: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: uiTokens.spacing.lg }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.md, flex: 1 }}>
             <Avatar
               sx={{
                 width: 48,
@@ -607,7 +612,7 @@ function RideHistoryCard({ ride, onClick, onSharedPassengersClick }: RideHistory
                 sx={{
                   fontWeight: 600,
                   letterSpacing: "-0.01em",
-                  mb: 0.25,
+                  mb: uiTokens.spacing.xxs / 2,
                   color: (theme) => theme.palette.text.primary
                 }}
               >
@@ -623,7 +628,7 @@ function RideHistoryCard({ ride, onClick, onSharedPassengersClick }: RideHistory
               >
                 {ride.driver.carModel} – {ride.driver.licensePlate}
               </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.25 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.xxs, mt: uiTokens.spacing.xxs / 2 }}>
                 <StarRoundedIcon sx={{ fontSize: 14, color: "#FFC107" }} />
                 <Typography
                   variant="caption"
@@ -648,13 +653,13 @@ function RideHistoryCard({ ride, onClick, onSharedPassengersClick }: RideHistory
               fontWeight: 600,
               bgcolor: statusColor.bg,
               color: statusColor.color,
-              borderRadius: 1
+              borderRadius: uiTokens.radius.sm
             }}
           />
         </Box>
 
         {/* Trip Route Details */}
-        <Box sx={{ mb: 2, position: "relative", pl: 2 }}>
+        <Box sx={{ mb: uiTokens.spacing.lg, position: "relative", pl: uiTokens.spacing.lg }}>
           {/* Vertical dotted line */}
           <Box
             sx={{
@@ -670,7 +675,7 @@ function RideHistoryCard({ ride, onClick, onSharedPassengersClick }: RideHistory
           />
           
           {/* Pickup Point */}
-          <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", mb: 1.5 }}>
+          <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", mb: uiTokens.spacing.mdPlus }}>
             <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, flex: 1 }}>
               <Box
                 sx={{
@@ -970,139 +975,121 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
   };
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header Section */}
-      <Box
-        sx={{
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          gap: 1.5
-        }}
-      >
+    <ScreenScaffold>
+      <SectionHeader
+        title="Ride history"
+        subtitle="Manage your EV rides"
+        leadingAction={
           <IconButton
             size="small"
-            aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
               borderRadius: 5,
-              bgcolor: (theme) =>
-                theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (theme) =>
-                theme.palette.mode === "light"
+              bgcolor: (t) =>
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+              border: (t) =>
+                t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
                   : "1px solid rgba(51,65,85,0.9)"
             }}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-            <Typography
-          variant="h6"
+        }
+      />
+
+      <Box sx={{ mt: 1 }}>
+        <Tabs
+          value={tab}
+          onChange={handleTabChange}
+          variant="fullWidth"
           sx={{
-            fontWeight: 600,
-            letterSpacing: "-0.01em",
-            flex: 1,
-            textAlign: "center",
-            color: (theme) => theme.palette.text.primary
+            minHeight: 36,
+            mb: 2,
+            "& .MuiTab-root": {
+              minHeight: 36,
+              fontSize: 12,
+              textTransform: "none",
+              color: "rgba(148,163,184,1)"
+            },
+            "& .Mui-selected": {
+              color: (theme) => (theme.palette.mode === "light" ? "#111827" : "#FFFFFF"),
+              fontWeight: 600
+            },
+            "& .MuiTabs-indicator": {
+              height: 2,
+              borderRadius: 5,
+              bgcolor: "primary.main"
+            }
           }}
-            >
-          Ride History
-            </Typography>
-        <Box sx={{ width: 40 }} /> {/* Spacer for centering */}
-      </Box>
+        >
+          <Tab value="upcoming" label="Upcoming" />
+          <Tab value="past" label="Past trips" />
+        </Tabs>
 
-      {/* Tabs */}
-      <Tabs
-        value={tab}
-        onChange={handleTabChange}
-        variant="fullWidth"
-        sx={{
-          minHeight: 40,
-          mb: 2.5,
-          "& .MuiTab-root": {
-            minHeight: 40,
-            fontSize: 14,
-            fontWeight: 500,
-            textTransform: "none",
-            color: (theme) =>
-              theme.palette.mode === "light" ? "#6B7280" : "#9CA3AF"
-          },
-          "& .Mui-selected": {
-            color: "#03CD8C", // Green for active tab
-            fontWeight: 600
-          },
-          "& .MuiTabs-indicator": {
-            height: 3,
-            borderRadius: 5,
-            bgcolor: "#03CD8C" // Green underline
-          }
-        }}
-      >
-        <Tab value="upcoming" label="Upcoming" />
-        <Tab value="past" label="Past" />
-      </Tabs>
-
-      {/* Ride Cards (Scrollable List) */}
-      <Box sx={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}>
         {loading ? (
           <Typography
             variant="body2"
             sx={{
               textAlign: "center",
-              color: (theme) => theme.palette.text.secondary,
+              color: (t) => t.palette.text.secondary,
               py: 4
             }}
           >
             Loading rides...
           </Typography>
         ) : tab === "past" ? (
-          pastRides.length === 0 ? (
-            <Typography
-              variant="body2"
-              sx={{
-                textAlign: "center",
-                color: (theme) => theme.palette.text.secondary,
-                py: 4
-              }}
-            >
-              No past rides found
-            </Typography>
-          ) : (
-            pastRides.map((ride) => (
-              <RideHistoryCard
-                key={ride.id}
-                ride={ride}
-                onClick={() => handleRideClick(ride.id)}
-                onSharedPassengersClick={(passengerData) => {
-                  setSelectedRideForPassengers(passengerData);
-                  setSharedPassengersModalOpen(true);
+          <Box>
+            {pastRides.length === 0 ? (
+              <Typography
+                variant="body2"
+                sx={{
+                  textAlign: "center",
+                  color: (t) => t.palette.text.secondary,
+                  py: 4
                 }}
-              />
-            ))
-          )
+              >
+                No past rides found
+              </Typography>
+            ) : (
+              pastRides.map((ride) => (
+                <RideHistoryCard
+                  key={ride.id}
+                  ride={ride}
+                  onClick={() => handleRideClick(ride.id)}
+                  onSharedPassengersClick={(passengerData) => {
+                    setSelectedRideForPassengers(passengerData);
+                    setSharedPassengersModalOpen(true);
+                  }}
+                />
+              ))
+            )}
+          </Box>
         ) : (
-          upcomingRides.length === 0 ? (
-        <Typography
-              variant="body2"
-              sx={{
-                textAlign: "center",
-                color: (theme) => theme.palette.text.secondary,
-                py: 4
-              }}
-        >
-              No upcoming rides
-        </Typography>
-          ) : (
-            upcomingRides.map((ride) => (
-              <UpcomingRideCard
-                key={ride.id}
-                ride={ride}
-                onCancel={handleCancelRide}
-                onChangeDate={handleChangeDate}
-                onClick={() => handleRideClick(ride.id)}
-              />
-            ))
-          )
+          <Box>
+            {upcomingRides.length === 0 ? (
+              <Typography
+                variant="body2"
+                sx={{
+                  textAlign: "center",
+                  color: (t) => t.palette.text.secondary,
+                  py: 4
+                }}
+              >
+                You have no upcoming rides. Scheduled EV rides will appear here.
+              </Typography>
+            ) : (
+              upcomingRides.map((ride) => (
+                <UpcomingRideCard
+                  key={ride.id}
+                  ride={ride}
+                  onCancel={handleCancelRide}
+                  onChangeDate={handleChangeDate}
+                  onClick={() => handleRideClick(ride.id)}
+                />
+              ))
+            )}
+          </Box>
         )}
       </Box>
 
@@ -1113,24 +1100,12 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
           setSharedPassengersModalOpen(false);
           setSelectedRideForPassengers(null);
         }}
-        rideData={selectedRideForPassengers}
+        selectedRideData={selectedRideForPassengers}
       />
-    </Box>
+    </ScreenScaffold>
   );
 }
 
 export default function RiderScreen33RideHistoryPastTripsCanvas_v2() {
-      return (
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: (theme) => theme.palette.background.default
-        }}
-      >
-
-          <RideHistoryPastTripsScreen />
-        
-      </Box>
-  );
+  return <RideHistoryPastTripsScreen />;
 }

@@ -92,16 +92,16 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
   const maxDistance = Math.max(...tripData.tripBreakdown.map(d => d.distance));
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+    <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.xl, pb: uiTokens.spacing.xxl }}>
       {/* Header with Status Tag and Title */}
-      <Box sx={{ mb: 2.5 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
+      <Box sx={{ mb: uiTokens.spacing.xl }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.mdPlus, mb: uiTokens.spacing.mdPlus }}>
           <IconButton
             size="small"
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -143,8 +143,8 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2.5,
-          borderRadius: 2,
+          mb: uiTokens.spacing.xl,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -153,10 +153,10 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 2, py: 2 }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           {/* Pickup & Drop-off Points */}
-          <Box sx={{ mb: 2 }}>
-            <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5, mb: 1.5 }}>
+          <Box sx={{ mb: uiTokens.spacing.lg }}>
+            <Box sx={{ display: "flex", alignItems: "flex-start", gap: uiTokens.spacing.mdPlus, mb: uiTokens.spacing.mdPlus }}>
         <Box
           sx={{
                   width: 8,
@@ -189,7 +189,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
               </Box>
             </Box>
 
-            <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
+            <Box sx={{ display: "flex", alignItems: "flex-start", gap: uiTokens.spacing.mdPlus }}>
               <PlaceRoundedIcon
             sx={{
                   fontSize: 20,
@@ -223,7 +223,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
 
           {/* Shared Passengers */}
           {tripData.sharedPassengers && tripData.sharedPassengers.length > 0 && (
-            <Box sx={{ mb: 2, pt: 1.5, borderTop: "1px solid", borderColor: (t) => t.palette.divider }}>
+            <Box sx={{ mb: uiTokens.spacing.lg, pt: uiTokens.spacing.mdPlus, borderTop: "1px solid", borderColor: (t) => t.palette.divider }}>
               <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <Typography
                   variant="caption"
@@ -270,8 +270,8 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
           )}
 
           {/* Trip Stats */}
-          <Box sx={{ pt: 1.5, borderTop: "1px solid", borderColor: (t) => t.palette.divider }}>
-            <Stack direction="row" spacing={2}>
+          <Box sx={{ pt: uiTokens.spacing.mdPlus, borderTop: "1px solid", borderColor: (t) => t.palette.divider }}>
+            <Stack direction="row" spacing={uiTokens.spacing.lg}>
               <Box>
                 <Typography
                   variant="caption"
@@ -331,7 +331,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
           >
             Booking Summary
           </Typography>
-          <Stack spacing={1.25}>
+          <Stack spacing={uiTokens.spacing.md}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <CalendarTodayRoundedIcon
                 sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
@@ -393,7 +393,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
               </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600, color: "#22c55e" }}>
                   {tripData.booking.fare}
-              </Typography>
+                </Typography>
             </Box>
             </Box>
           </Stack>
@@ -421,7 +421,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
           >
             Driver
           </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.mdPlus, mb: uiTokens.spacing.lg }}>
             <Avatar
               sx={{
                 width: 56,
@@ -458,8 +458,8 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
             sx={{
               bgcolor: "#F77F00",
               color: "#FFFFFF",
-              borderRadius: 5,
-              py: 0.9,
+              borderRadius: uiTokens.radius.xl,
+              py: uiTokens.spacing.md,
               fontSize: 13,
               fontWeight: 600,
               textTransform: "none",
@@ -506,7 +506,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
                 bgcolor: (t) => t.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.9)"
               }}
             />
-            <Stack spacing={2}>
+            <Stack spacing={uiTokens.spacing.lg}>
               {tripData.routeStops.map((stop, index) => (
                 <Box key={index} sx={{ position: "relative" }}>
                   {/* Dot marker */}
@@ -564,8 +564,8 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2.5,
-          borderRadius: 2,
+          mb: uiTokens.spacing.xl,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -574,10 +574,10 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 2, py: 2 }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
             <Typography
             variant="subtitle2"
-            sx={{ fontWeight: 600, mb: 2, fontSize: 13 }}
+            sx={{ fontWeight: 600, mb: uiTokens.spacing.lg, fontSize: 13 }}
           >
             Trip Breakdown
           </Typography>
@@ -709,14 +709,14 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
       </Card>
 
       {/* Receipt & issue actions */}
-      <Stack direction="row" spacing={1.25} sx={{ mb: 1.5 }}>
+      <Stack direction="row" spacing={uiTokens.spacing.md} sx={{ mb: uiTokens.spacing.mdPlus }}>
         <Button
           fullWidth
           variant="outlined"
           startIcon={<ReceiptLongRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
-            borderRadius: 5,
-            py: 0.9,
+            borderRadius: uiTokens.radius.xl,
+            py: uiTokens.spacing.md,
             fontSize: 13,
             textTransform: "none"
           }}
@@ -728,8 +728,8 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
           variant="outlined"
           startIcon={<FlagRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
-            borderRadius: 5,
-            py: 0.9,
+            borderRadius: uiTokens.radius.xl,
+            py: uiTokens.spacing.md,
             fontSize: 13,
             textTransform: "none",
             borderColor: "#F97316",

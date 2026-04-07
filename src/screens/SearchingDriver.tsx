@@ -19,7 +19,10 @@ import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import DirectionsBusRoundedIcon from "@mui/icons-material/DirectionsBusRounded";
 import HotelRoundedIcon from "@mui/icons-material/HotelRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import MapShell from "../components/maps/MapShell";
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
 
 function SearchingForDriverScreen(): React.JSX.Element {
@@ -71,7 +74,30 @@ function SearchingForDriverScreen(): React.JSX.Element {
   };
 
   return (
-    <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (theme) => theme.palette.background.default }}>
+    <ScreenScaffold>
+      <SectionHeader
+        title="Searching for Driver"
+        subtitle="Finding the best driver for your trip"
+        leadingAction={
+          <IconButton
+            size="small"
+            onClick={() => navigate(-1)}
+            sx={{
+              borderRadius: 5,
+              bgcolor: (t) =>
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+              border: (t) =>
+                t.palette.mode === "light"
+                  ? "1px solid rgba(209,213,219,0.9)"
+                  : "1px solid rgba(51,65,85,0.9)"
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        }
+      />
+
+      <Box sx={{ position: "relative", minHeight: "40vh", bgcolor: (theme) => theme.palette.background.default, borderRadius: uiTokens.radius.xl, overflow: 'hidden' }}>
       <MapShell
         preset="compact"
         onBack={() => navigate(-1)}
@@ -462,7 +488,8 @@ function SearchingForDriverScreen(): React.JSX.Element {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+      </Box>
+    </ScreenScaffold>
   );
 }
 

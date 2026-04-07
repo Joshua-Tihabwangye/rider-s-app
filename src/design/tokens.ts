@@ -35,7 +35,12 @@ export const uiTokens = {
     lg: 2,
     lgPlus: 2.25,
     xl: 2.5,
-    xxl: 3
+    xxl: 3,
+    container: {
+      xs: 2.5,
+      md: 3
+    },
+    sectionGap: 2
   },
   radius: {
     sm: 2,

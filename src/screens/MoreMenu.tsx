@@ -96,7 +96,7 @@ function ItemGroup({
   return (
     <Box>
       <SectionHeader title={title} compact />
-      <ListSection sx={{ mt: 0.75 }}>
+      <ListSection sx={{ mt: uiTokens.spacing.sm }}>
         {items.map((item) => (
           <RowActionItem
             key={item.route}
@@ -134,11 +134,11 @@ export default function MoreMenu(): React.JSX.Element {
           hideBack
         />
       }
-      contentSx={{ pt: { xs: 2.5, md: 3 } }}
+      contentSx={{ pt: { xs: uiTokens.spacing.xl, md: uiTokens.spacing.xxl } }}
     >
 
       <AppCard variant="brand" onClick={() => navigate("/profile")}>
-        <Stack direction="row" spacing={1.5} alignItems="center">
+        <Stack direction="row" spacing={uiTokens.spacing.mdPlus} alignItems="center">
           <Avatar
             sx={{
               width: 48,
@@ -174,18 +174,18 @@ export default function MoreMenu(): React.JSX.Element {
       </ActionGrid>
 
       {/* Logout */}
-      <Box sx={{ mt: 1 }}>
+      <Box sx={{ mt: uiTokens.spacing.smPlus }}>
         <Button
           fullWidth
           variant="outlined"
           startIcon={<LogoutRoundedIcon />}
           onClick={handleSignOut}
           sx={{
-            py: 1.1,
+            py: uiTokens.spacing.md,
             fontSize: 13,
             fontWeight: 600,
             textTransform: "none",
-            borderRadius: "var(--evz-radius-md)",
+            borderRadius: uiTokens.radius.md,
             borderColor: "var(--evz-danger)",
             color: "var(--evz-danger)",
             "&:hover": {

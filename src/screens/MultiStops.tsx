@@ -18,7 +18,6 @@ import {
 	Alert,
 } from "@mui/material";
 
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
@@ -29,6 +28,7 @@ import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import PageHeader from "../components/PageHeader";
+import { uiTokens } from "../design/tokens";
 
 const MAX_STOPS = 5; // Maximum for RA39, navigate to RA40 for 6 stops
 
@@ -65,12 +65,6 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 	const [showError, setShowError] = useState(false);
 
 	// Theme-aware colors
-	const headerBg = "#03CD8C"; // Green header
-	const headerText = "#FFFFFF";
-	const contentBg =
-		theme.palette.mode === "light"
-			? "#FFFFFF"
-			: theme.palette.background.paper;
 	const accentGreen = "#03CD8C"; // Green
 	const lightGreen = "rgba(3,205,140,0.1)"; // Light green for active passenger
 
@@ -165,17 +159,16 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 			<Card
 				elevation={0}
 				sx={{
-					borderRadius: 3,
-					bgcolor: contentBg,
-					border:
-						theme.palette.mode === "light"
+					borderRadius: uiTokens.radius.md,
+					bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : t.palette.background.paper,
+					border: theme.palette.mode === "light"
 							? "1px solid rgba(0,0,0,0.1)"
 							: "1px solid rgba(255,255,255,0.1)",
 					boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 				}}
 			>
-					<CardContent sx={{ px: 2, py: 2 }}>
-						<Stack spacing={2}>
+					<CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
+						<Stack spacing={uiTokens.spacing.lg}>
 							{/* Pickup Point - Non-deletable */}
 							<TextField
 								fullWidth
@@ -211,7 +204,7 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 								}}
 								sx={{
 									"& .MuiOutlinedInput-root": {
-										borderRadius: 5,
+										borderRadius: uiTokens.radius.xl,
 										bgcolor:
 											theme.palette.mode === "light"
 												? "rgba(0,0,0,0.05)"
@@ -234,14 +227,14 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 							/>
 
 							{/* Stops A, B, C, etc. */}
-							{stops.map((stop: Stop, index: number) => {
+							{stops.map((stop: Stop) => {
 								const isSquare = stop.id === "B"; // Stop B is square per spec, others are circular
 								return (
 									<Box
 										key={stop.id}
 										sx={{
 											display: "flex",
-											gap: 1,
+											gap: uiTokens.spacing.sm,
 											alignItems: "center",
 										}}
 									>
@@ -320,7 +313,7 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 											}}
 											sx={{
 												"& .MuiOutlinedInput-root": {
-													borderRadius: 5,
+													borderRadius: uiTokens.radius.xl,
 													bgcolor:
 														theme.palette.mode ===
 														"light"
@@ -373,7 +366,7 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 									}}
 									sx={{
 										"& .MuiOutlinedInput-root": {
-											borderRadius: 5,
+											borderRadius: uiTokens.radius.xl,
 											bgcolor:
 												theme.palette.mode === "light"
 													? "rgba(0,0,0,0.05)"
@@ -409,7 +402,7 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 									/>
 								}
 								sx={{
-									borderRadius: 5,
+									borderRadius: uiTokens.radius.xl,
 									textTransform: "none",
 									borderColor:
 										theme.palette.mode === "light"
@@ -438,7 +431,7 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 				{showError && (
 					<Alert
 						severity="error"
-						sx={{ mb: 2 }}
+						sx={{ mb: uiTokens.spacing.lg }}
 						onClose={() => setShowError(false)}
 					>
 						Please provide pickup location and at least one
@@ -447,20 +440,20 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 				)}
 
 				{/* Trip Type Section */}
-				<Stack spacing={1.5} sx={{ mb: 2 }}>
+				<Stack spacing={uiTokens.spacing.md} sx={{ mb: uiTokens.spacing.lg }}>
 					{/* Ride Type Dropdown */}
 					<Card
 						elevation={0}
 						sx={{
-							borderRadius: 2,
-							bgcolor: contentBg,
+							borderRadius: uiTokens.radius.sm,
+							bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : t.palette.background.paper,
 							border:
 								theme.palette.mode === "light"
 									? "1px solid rgba(0,0,0,0.1)"
 									: "1px solid rgba(255,255,255,0.1)",
 						}}
 					>
-						<CardContent sx={{ px: 2, py: 1.5 }}>
+						<CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.md }}>
 							<FormControl fullWidth size="small">
 								<Select
 									value={rideType}
@@ -485,7 +478,7 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 										</Box>
 									)}
 									sx={{
-										borderRadius: 5,
+										borderRadius: uiTokens.radius.xl,
 										bgcolor:
 											theme.palette.mode === "light"
 												? "rgba(0,0,0,0.05)"
@@ -572,15 +565,15 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 					<Card
 						elevation={0}
 						sx={{
-							borderRadius: 2,
-							bgcolor: contentBg,
+							borderRadius: uiTokens.radius.sm,
+							bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : t.palette.background.paper,
 							border:
 								theme.palette.mode === "light"
 									? "1px solid rgba(0,0,0,0.1)"
 									: "1px solid rgba(255,255,255,0.1)",
 						}}
 					>
-						<CardContent sx={{ px: 2, py: 1.5 }}>
+						<CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.md }}>
 							<FormControl fullWidth size="small">
 								<Select
 									value={tripDirection}
@@ -605,7 +598,7 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 										</Box>
 									)}
 									sx={{
-										borderRadius: 5,
+										borderRadius: uiTokens.radius.xl,
 										bgcolor:
 											theme.palette.mode === "light"
 												? "rgba(0,0,0,0.05)"
@@ -679,21 +672,21 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 				<Card
 					elevation={0}
 					sx={{
-						mb: 2.5,
-						borderRadius: 2,
-						bgcolor: contentBg,
+						mb: uiTokens.spacing.xl,
+						borderRadius: uiTokens.radius.sm,
+						bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : t.palette.background.paper,
 						border:
 							theme.palette.mode === "light"
 								? "1px solid rgba(0,0,0,0.1)"
 								: "1px solid rgba(255,255,255,0.1)",
 					}}
 				>
-					<CardContent sx={{ px: 2, py: 1.5 }}>
+					<CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.md }}>
 						<Typography
 							variant="subtitle2"
 							sx={{
 								fontWeight: 600,
-								mb: 1.5,
+								mb: uiTokens.spacing.md,
 								color: theme.palette.text.primary,
 							}}
 						>
@@ -707,7 +700,7 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 								overflowX: "auto",
 								"&::-webkit-scrollbar": { display: "none" },
 								scrollbarWidth: "none",
-								mb: 1.5,
+								mb: uiTokens.spacing.md,
 							}}
 						>
 							{passengerOptions.map((pax) => (
@@ -723,7 +716,7 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 										minWidth: 48,
 										width: 48,
 										height: 48,
-										borderRadius: 2,
+										borderRadius: uiTokens.radius.sm,
 										fontSize: 14,
 										fontWeight: 600,
 										flexShrink: 0,

@@ -12,7 +12,6 @@ import {
   Divider
 } from "@mui/material";
 
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
@@ -20,6 +19,11 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import KeyboardDoubleArrowRightRoundedIcon from "@mui/icons-material/KeyboardDoubleArrowRightRounded";
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
+import MapShell from "../components/maps/MapShell";
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
+import { uiTokens } from "../design/tokens";
 
 function DriverHasArrivedScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -81,13 +85,36 @@ function DriverHasArrivedScreen(): React.JSX.Element {
   };
 
   return (
-    <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (theme) => theme.palette.background.default }}>
+    <ScreenScaffold>
+      <SectionHeader
+        title="Driver Arrived"
+        subtitle="Your trip is ready to start"
+        leadingAction={
+          <IconButton
+            size="small"
+            onClick={() => navigate(-1)}
+            sx={{
+              borderRadius: uiTokens.radius.xl,
+              bgcolor: (t) =>
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+              border: (t) =>
+                t.palette.mode === "light"
+                  ? "1px solid rgba(209,213,219,0.9)"
+                  : "1px solid rgba(51,65,85,0.9)"
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        }
+      />
+
       {/* Map Section - Full width at top (45% height) */}
       <Box
         sx={{
           position: "relative",
           width: "100%",
           height: "45vh",
+          borderRadius: uiTokens.radius.xl,
           background: (theme) =>
             theme.palette.mode === "light"
               ? "linear-gradient(135deg, #F5F5DC 0%, #FAFAF0 50%, #FFFFFF 100%)"
@@ -106,27 +133,6 @@ function DriverHasArrivedScreen(): React.JSX.Element {
             backgroundSize: "30px 30px"
           }}
         />
-
-        {/* Back button on map */}
-        <IconButton
-          size="small"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-          sx={{
-            position: "absolute",
-            top: 16,
-            left: 16,
-            bgcolor: "rgba(0,0,0,0.6)",
-            color: "#FFFFFF",
-            width: 40,
-            height: 40,
-            "&:hover": {
-              bgcolor: "rgba(0,0,0,0.8)"
-            }
-          }}
-        >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
 
         {/* Driver's car icon at pickup point (with pulsating effect) */}
         <Box
@@ -152,7 +158,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 0 0 4px rgba(33,150,243,0.2), 0 0 0 8px rgba(33,150,243,0.1)"
+              boxShadow: uiTokens.elevation.card
             }}
           >
             <DirectionsCarFilledRoundedIcon
@@ -167,15 +173,15 @@ function DriverHasArrivedScreen(): React.JSX.Element {
       </Box>
 
       {/* Content below map */}
-      <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
+      <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.lg, pb: uiTokens.spacing.xxl }}>
         {/* Driver Profile Section */}
-        <Box sx={{ textAlign: "center", mb: 2.5 }}>
+        <Box sx={{ textAlign: "center", mb: uiTokens.spacing.xl }}>
           <Avatar
             sx={{
               width: 100,
               height: 100,
               mx: "auto",
-              mb: 1.5,
+              mb: uiTokens.spacing.md,
               bgcolor: "#03CD8C",
               fontSize: 36,
               fontWeight: 600
@@ -191,7 +197,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
             Tim Smith
           </Typography>
           
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, mb: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: uiTokens.spacing.xxs, mb: uiTokens.spacing.lg }}>
             <StarRoundedIcon sx={{ fontSize: 18, color: "#FFC107" }} />
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
               4.6
@@ -207,13 +213,11 @@ function DriverHasArrivedScreen(): React.JSX.Element {
             sx={{
               mx: "auto",
               maxWidth: 280,
-              borderRadius: 2,
-              bgcolor: "#1E3A5F",
-              mb: 2
+              mb: uiTokens.spacing.lg
             }}
           >
-            <CardContent sx={{ px: 2, py: 1.5 }}>
-              <Stack direction="row" spacing={3} justifyContent="center" sx={{ mb: 1.5 }}>
+            <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.mdPlus }}>
+              <Stack direction="row" spacing={uiTokens.spacing.xl} justifyContent="center" sx={{ mb: uiTokens.spacing.mdPlus }}>
                 <Box sx={{ textAlign: "center" }}>
                   <Typography
                     variant="h6"
@@ -310,9 +314,9 @@ function DriverHasArrivedScreen(): React.JSX.Element {
           fullWidth
           variant="contained"
           sx={{
-            mb: 2,
-            borderRadius: 2,
-            py: 1.5,
+            mb: uiTokens.spacing.lg,
+            borderRadius: uiTokens.radius.xl,
+            py: uiTokens.spacing.mdPlus,
             fontSize: 15,
             fontWeight: 600,
             textTransform: "none",
@@ -330,8 +334,8 @@ function DriverHasArrivedScreen(): React.JSX.Element {
         <Card
           elevation={0}
           sx={{
-            mb: 2.5,
-            borderRadius: 2,
+            mb: uiTokens.spacing.xl,
+            borderRadius: uiTokens.radius.xl,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
             border: (theme) =>
@@ -499,7 +503,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
             </Box>
           </Box>
 
-          <CardContent sx={{ px: 2, py: 1.5 }}>
+          <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.mdPlus }}>
             <Typography
               variant="h6"
               sx={{
@@ -538,7 +542,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                   gap: 0.5,
                   px: 1,
                   py: 0.5,
-                  borderRadius: 1,
+                  borderRadius: uiTokens.radius.sm,
                   bgcolor: "rgba(34,197,94,0.1)"
                 }}
               >
@@ -564,7 +568,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
             position: "relative",
             width: "100%",
             height: 56,
-            borderRadius: 5,
+            borderRadius: uiTokens.radius.xl,
             bgcolor: "#03CD8C",
             overflow: "hidden",
             cursor: isSliding ? "grabbing" : "grab",
@@ -601,7 +605,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
               transform: "translateY(-50%)",
               width: 60,
               height: 48,
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.lg,
               bgcolor: "#FFFFFF",
               display: "flex",
               alignItems: "center",
@@ -640,7 +644,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
           </Box>
         </Box>
       </Box>
-    </Box>
+    </ScreenScaffold>
   );
 }
 

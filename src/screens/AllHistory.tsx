@@ -25,6 +25,8 @@ import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
+import { uiTokens } from "../design/tokens";
+
 
 const ALL_ORDERS = [
   {
@@ -133,8 +135,8 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
       elevation={0}
       onClick={handleViewDetails}
       sx={{
-        mb: 1.75,
-        borderRadius: 2,
+        mb: uiTokens.spacing.mdPlus,
+        borderRadius: uiTokens.radius.sm,
         cursor: "pointer",
         bgcolor: (t) =>
           t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
@@ -149,13 +151,13 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
         }
       }}
     >
-      <CardContent sx={{ px: 1.75, py: 1.6 }}>
+      <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
         <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
           <Box
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#E5E7EB" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -178,7 +180,7 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
             >
               {order.type} • {order.date}
             </Typography>
-            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.4 }}>
+            <Stack direction="row" spacing={uiTokens.spacing.xs} alignItems="center" sx={{ mt: uiTokens.spacing.xxs }}>
               <PlaceRoundedIcon
                 sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
               />
@@ -194,7 +196,7 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
             size="small"
             label={order.status}
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               fontSize: 10,
               height: 22,
               bgcolor:
@@ -222,9 +224,9 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
               handleViewDetails();
             }}
             sx={{
-              borderRadius: 5,
-              px: 2,
-              py: 0.4,
+              borderRadius: uiTokens.radius.xl,
+              px: uiTokens.spacing.lg,
+              py: uiTokens.spacing.xxs,
               fontSize: 12,
               textTransform: "none"
             }}
@@ -281,7 +283,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
   });
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+    <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.xl, pb: uiTokens.spacing.xxl }}>
       {/* Header */}
       <Box
         sx={{
@@ -297,7 +299,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -326,7 +328,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
       </Box>
 
       {/* Period Selection */}
-      <Box sx={{ mb: 2, overflowX: "auto", pb: 1, display: 'flex' }}>
+      <Box sx={{ mb: uiTokens.spacing.lg, overflowX: "auto", pb: uiTokens.spacing.sm, display: 'flex' }}>
         <Stack direction="row" spacing={1}>
           {periods.map((p) => (
             <Chip
@@ -335,7 +337,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
               onClick={() => setPeriod(p)}
               size="small"
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 fontSize: 10,
                 height: 24,
                 bgcolor: period === p ? "primary.main" : "transparent",
@@ -360,7 +362,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
               value={selectedQuarter}
               label="Quarter"
               onChange={(e) => setSelectedQuarter(e.target.value as string)}
-              sx={{ borderRadius: 2, fontSize: 13 }}
+              sx={{ borderRadius: uiTokens.radius.sm, fontSize: 13 }}
             >
               {quarters.map(q => <MenuItem key={q} value={q} sx={{ fontSize: 13 }}>{q}</MenuItem>)}
             </Select>
@@ -372,7 +374,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
               value={selectedYear}
               label="Year"
               onChange={(e) => setSelectedYear(e.target.value as number)}
-              sx={{ borderRadius: 2, fontSize: 13 }}
+              sx={{ borderRadius: uiTokens.radius.sm, fontSize: 13 }}
             >
               {years.map(y => <MenuItem key={y} value={y} sx={{ fontSize: 13 }}>{y}</MenuItem>)}
             </Select>
@@ -389,7 +391,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
               value={selectedYear}
               label="Select Year"
               onChange={(e) => setSelectedYear(e.target.value as number)}
-              sx={{ borderRadius: 2, fontSize: 13 }}
+              sx={{ borderRadius: uiTokens.radius.sm, fontSize: 13 }}
             >
               {years.map(y => <MenuItem key={y} value={y} sx={{ fontSize: 13 }}>{y}</MenuItem>)}
             </Select>
@@ -404,7 +406,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           onClick={() => setFilter("all")}
           size="small"
           sx={{
-            borderRadius: 5,
+            borderRadius: uiTokens.radius.xl,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "all" ? "primary.main" : (t) =>
@@ -421,7 +423,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           onClick={() => setFilter("Ride")}
           size="small"
           sx={{
-            borderRadius: 5,
+            borderRadius: uiTokens.radius.xl,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "Ride" ? "primary.main" : (t) =>
@@ -438,7 +440,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           onClick={() => setFilter("Delivery")}
           size="small"
           sx={{
-            borderRadius: 5,
+            borderRadius: uiTokens.radius.xl,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "Delivery" ? "primary.main" : (t) =>
@@ -455,7 +457,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           onClick={() => setFilter("Rental")}
           size="small"
           sx={{
-            borderRadius: 5,
+            borderRadius: uiTokens.radius.xl,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "Rental" ? "primary.main" : (t) =>
@@ -472,7 +474,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           onClick={() => setFilter("Tour")}
           size="small"
           sx={{
-            borderRadius: 5,
+            borderRadius: uiTokens.radius.xl,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "Tour" ? "primary.main" : (t) =>
@@ -489,7 +491,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           onClick={() => setFilter("Ambulance")}
           size="small"
           sx={{
-            borderRadius: 5,
+            borderRadius: uiTokens.radius.xl,
             fontSize: 11,
             height: 26,
             bgcolor: filter === "Ambulance" ? "primary.main" : (t) =>

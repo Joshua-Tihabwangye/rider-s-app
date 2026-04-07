@@ -13,6 +13,8 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 
+import { uiTokens } from "../design/tokens";
+
 interface Passenger {
   id?: string | number;
   name?: string;
@@ -34,15 +36,15 @@ interface RideData {
 interface SharedPassengersModalProps {
   open: boolean;
   onClose: () => void;
-  rideData?: RideData | null;
+  selectedRideData?: RideData | null;
 }
 
-function SharedPassengersModal({ open, onClose, rideData }: SharedPassengersModalProps): React.JSX.Element | null {
-  if (!rideData) return null;
+function SharedPassengersModal({ open, onClose, selectedRideData }: SharedPassengersModalProps): React.JSX.Element | null {
+  if (!selectedRideData) return null;
 
   // Separate main passenger from sharing passengers
-  const mainPassenger = rideData.passengers?.find(p => p.isMain) || rideData.mainPassenger;
-  const sharingPassengers = rideData.passengers?.filter(p => !p.isMain) || rideData.sharingPassengers || [];
+  const mainPassenger = selectedRideData.passengers?.find(p => p.isMain) || selectedRideData.mainPassenger;
+  const sharingPassengers = selectedRideData.passengers?.filter(p => !p.isMain) || selectedRideData.sharingPassengers || [];
 
   return (
     <Drawer
@@ -51,8 +53,8 @@ function SharedPassengersModal({ open, onClose, rideData }: SharedPassengersModa
       onClose={onClose}
       PaperProps={{
         sx: {
-          borderTopLeftRadius: 5,
-          borderTopRightRadius: 5,
+          borderTopLeftRadius: uiTokens.radius.xl,
+          borderTopRightRadius: uiTokens.radius.xl,
           maxHeight: "85vh",
           bgcolor: (theme) =>
             theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
@@ -62,17 +64,17 @@ function SharedPassengersModal({ open, onClose, rideData }: SharedPassengersModa
         keepMounted: false
       }}
     >
-      <Box sx={{ px: 2.5, pt: 1.5, pb: 3 }}>
+      <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.md, pb: uiTokens.spacing.xxl }}>
         {/* Drag handle indicator - at the top */}
         <Box
           sx={{
             width: 40,
             height: 4,
-            borderRadius: 2,
+            borderRadius: uiTokens.radius.pill,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#D1D5DB" : "#4B5563",
             mx: "auto",
-            mb: 2.5
+            mb: uiTokens.spacing.xl
           }}
         />
 
@@ -83,7 +85,7 @@ function SharedPassengersModal({ open, onClose, rideData }: SharedPassengersModa
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            mb: 2.5
+            mb: uiTokens.spacing.xl
           }}
         >
           <Typography
@@ -116,12 +118,12 @@ function SharedPassengersModal({ open, onClose, rideData }: SharedPassengersModa
 
         {/* Main Passenger Section */}
         {mainPassenger && (
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: uiTokens.spacing.xxl }}>
             <Typography
               variant="subtitle2"
               sx={{
                 fontWeight: 600,
-                mb: 1.5,
+                mb: uiTokens.spacing.md,
                 fontSize: 13,
                 color: (theme) => theme.palette.text.primary
               }}
@@ -131,18 +133,18 @@ function SharedPassengersModal({ open, onClose, rideData }: SharedPassengersModa
             <Card
               elevation={0}
               sx={{
-                borderRadius: 2,
+                borderRadius: uiTokens.radius.xl,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
                 border: (theme) =>
                   theme.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
                     : "1px solid rgba(51,65,85,0.9)",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
+                boxShadow: uiTokens.elevation.card
               }}
             >
-              <CardContent sx={{ px: 2, py: 1.5 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.mdPlus }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.md }}>
                   <Avatar
                     sx={{
                       width: 48,
@@ -161,13 +163,13 @@ function SharedPassengersModal({ open, onClose, rideData }: SharedPassengersModa
                       sx={{
                         fontWeight: 600,
                         letterSpacing: "-0.01em",
-                        mb: 0.5,
+                        mb: uiTokens.spacing.xxs,
                         color: (theme) => theme.palette.text.primary
                       }}
                     >
                       {mainPassenger.name}
                     </Typography>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.xxs, mb: uiTokens.spacing.xxs }}>
                       <PlaceRoundedIcon
                         sx={{ fontSize: 14, color: (theme) => theme.palette.text.secondary }}
                       />
@@ -205,31 +207,31 @@ function SharedPassengersModal({ open, onClose, rideData }: SharedPassengersModa
               variant="subtitle2"
               sx={{
                 fontWeight: 600,
-                mb: 1.5,
+                mb: uiTokens.spacing.md,
                 fontSize: 13,
                 color: (theme) => theme.palette.text.primary
               }}
             >
               Sharing Passengers
             </Typography>
-            <Stack spacing={1.5}>
+            <Stack spacing={uiTokens.spacing.mdPlus}>
               {sharingPassengers.map((passenger) => (
                 <Card
                   key={passenger.id || passenger.name}
                   elevation={0}
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: uiTokens.radius.xl,
                     bgcolor: (theme) =>
                       theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
                     border: (theme) =>
                       theme.palette.mode === "light"
                         ? "1px solid rgba(209,213,219,0.9)"
                         : "1px solid rgba(51,65,85,0.9)",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
+                    boxShadow: uiTokens.elevation.card
                   }}
                 >
-                  <CardContent sx={{ px: 2, py: 1.5 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                  <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.mdPlus }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.md }}>
                       <Avatar
                         sx={{
                           width: 48,
@@ -243,7 +245,7 @@ function SharedPassengersModal({ open, onClose, rideData }: SharedPassengersModa
                         {passenger.initials || passenger.name?.substring(0, 2).toUpperCase()}
                       </Avatar>
                       <Box sx={{ flex: 1 }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 0.5 }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.xs, mb: uiTokens.spacing.xxs }}>
                           <Typography
                             variant="body2"
                             sx={{
@@ -255,7 +257,7 @@ function SharedPassengersModal({ open, onClose, rideData }: SharedPassengersModa
                             {passenger.name}
                           </Typography>
                           {passenger.rating && (
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.xxs }}>
                               <StarRoundedIcon sx={{ fontSize: 14, color: "#FFC107" }} />
                               <Typography
                                 variant="caption"
@@ -270,7 +272,7 @@ function SharedPassengersModal({ open, onClose, rideData }: SharedPassengersModa
                             </Box>
                           )}
                         </Box>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5 }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.xxs, mb: uiTokens.spacing.xxs }}>
                           <PlaceRoundedIcon
                             sx={{ fontSize: 14, color: (theme) => theme.palette.text.secondary }}
                           />
@@ -309,7 +311,7 @@ function SharedPassengersModal({ open, onClose, rideData }: SharedPassengersModa
             sx={{
               textAlign: "center",
               color: (theme) => theme.palette.text.secondary,
-              py: 4
+              py: uiTokens.spacing.xxl
             }}
           >
             No shared passengers for this ride

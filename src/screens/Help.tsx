@@ -82,7 +82,7 @@ export default function Help(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -117,8 +117,8 @@ export default function Help(): React.JSX.Element {
                   <ListItemButton
                     onClick={item.action}
                     sx={{
-                      py: 1.5,
-                      px: 2,
+                      py: uiTokens.spacing.mdPlus,
+                      px: uiTokens.spacing.lg,
                       "&:hover": {
                         bgcolor: (t) =>
                           t.palette.mode === "light"
@@ -150,7 +150,7 @@ export default function Help(): React.JSX.Element {
                   </ListItemButton>
                 </ListItem>
                 {index < helpItems.length - 1 && (
-                  <Divider sx={{ mx: 2, opacity: 0.1 }} />
+                  <Divider sx={{ mx: uiTokens.spacing.lg, opacity: 0.1 }} />
                 )}
               </React.Fragment>
             ))}
@@ -159,14 +159,14 @@ export default function Help(): React.JSX.Element {
       </Card>
 
       {/* Quick Actions */}
-      <Box sx={{ mt: 3 }}>
+      <Box sx={{ mt: uiTokens.spacing.xxl }}>
         <Button
           fullWidth
           variant="contained"
           onClick={() => setChatOpen(true)}
           sx={{
             borderRadius: uiTokens.radius.xl,
-            py: 1.2,
+            py: uiTokens.spacing.md,
             fontSize: 15,
             fontWeight: 600,
             textTransform: "none",
@@ -195,7 +195,7 @@ export default function Help(): React.JSX.Element {
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           {/* Custom Header */}
           <Box sx={{ 
-            p: 2, 
+            p: uiTokens.spacing.lg, 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'space-between',
@@ -203,7 +203,7 @@ export default function Help(): React.JSX.Element {
             borderColor: 'divider',
             bgcolor: (theme) => theme.palette.background.paper
           }}>
-            <Stack direction="row" spacing={1.5} alignItems="center">
+            <Stack direction="row" spacing={uiTokens.spacing.mdPlus} alignItems="center">
               <IconButton onClick={() => setChatOpen(false)} size="small">
                 <CloseRoundedIcon />
               </IconButton>
@@ -219,12 +219,12 @@ export default function Help(): React.JSX.Element {
           </Box>
 
           {/* Chat Messages Area */}
-          <Box sx={{ flex: 1, overflowY: 'auto', p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ flex: 1, overflowY: 'auto', p: uiTokens.spacing.lg, display: 'flex', flexDirection: 'column', gap: uiTokens.spacing.lg }}>
             <Box sx={{ 
               alignSelf: 'flex-start', 
               maxWidth: '80%', 
               bgcolor: (theme) => theme.palette.mode === 'light' ? '#F3F4F6' : 'rgba(255,255,255,0.05)',
-              p: 1.5,
+              p: uiTokens.spacing.mdPlus,
               borderRadius: '16px 16px 16px 4px'
             }}>
               <Typography variant="body2">
@@ -234,8 +234,8 @@ export default function Help(): React.JSX.Element {
           </Box>
 
           {/* Input Area */}
-          <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider', bgcolor: (theme) => theme.palette.background.paper }}>
-            <Stack direction="row" spacing={1}>
+          <Box sx={{ p: uiTokens.spacing.lg, borderTop: '1px solid', borderColor: 'divider', bgcolor: (theme) => theme.palette.background.paper }}>
+            <Stack direction="row" spacing={uiTokens.spacing.sm}>
               <TextField
                 fullWidth
                 placeholder="Type your message..."
@@ -243,7 +243,7 @@ export default function Help(): React.JSX.Element {
                 variant="outlined"
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: 5,
+                    borderRadius: uiTokens.radius.xl,
                     bgcolor: (theme) => theme.palette.mode === 'light' ? '#F9FAFB' : 'rgba(255,255,255,0.03)'
                   }
                 }}

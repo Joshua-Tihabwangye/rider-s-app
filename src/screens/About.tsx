@@ -19,6 +19,10 @@ import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import GavelRoundedIcon from "@mui/icons-material/GavelRounded";
 import UpdateRoundedIcon from "@mui/icons-material/UpdateRounded";
 
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
+import { uiTokens } from "../design/tokens";
+
 export default function About(): React.JSX.Element {
   const navigate = useNavigate();
 
@@ -50,82 +54,66 @@ export default function About(): React.JSX.Element {
   ];
 
   return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (t) => t.palette.background.default
-      }}
-    >
-
-        <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-          {/* Header */}
-          <Box
+    <ScreenScaffold>
+      <SectionHeader
+        title="About"
+        subtitle="EVzone Rider App"
+        leadingAction={
+          <IconButton
+            size="small"
+            onClick={() => navigate(-1)}
             sx={{
-              mb: 3,
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5
-            }}
-          >
-            <IconButton
-              size="small"
-              aria-label="Back"
-              onClick={() => navigate(-1)}
-              sx={{
-                borderRadius: 5,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
-              }}
-            >
-              <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-            <Box>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                About
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontSize: 11,
-                  color: (t) => t.palette.text.secondary
-                }}
-              >
-                EVzone Rider App
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* App Info */}
-          <Box
-            sx={{
-              mb: 3,
-              textAlign: "center",
-              py: 3,
-              borderRadius: 2,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
-                t.palette.mode === "light"
-                  ? "#FFFFFF"
-                  : "rgba(15,23,42,0.98)",
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
                   : "1px solid rgba(51,65,85,0.9)"
             }}
           >
-            <Typography
-              variant="h6"
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        }
+      />
+
+      <Box sx={{ mt: uiTokens.spacing.smPlus }}>
+
+          {/* App Info */}
+          <Box
+            sx={{
+              mb: uiTokens.spacing.xl,
+              textAlign: "center",
+              py: uiTokens.spacing.xxl,
+              background: (t) =>
+                t.palette.mode === "light"
+                  ? "linear-gradient(135deg, #03CD8C 0%, #00BFA5 100%)"
+                  : "linear-gradient(135deg, #028A5E 0%, #016F4F 100%)",
+              color: "#FFFFFF",
+              boxShadow: "0 8px 32px rgba(3, 205, 140, 0.2)",
+              position: "relative",
+              overflow: "hidden"
+            }}
+          >
+            {/* Background Pattern */}
+            <Box
               sx={{
-                fontWeight: 600,
+                position: "absolute",
+                top: -20,
+                right: -20,
+                width: 100,
+                height: 100,
+                borderRadius: "50%",
+                bgcolor: "rgba(255,255,255,0.1)"
+              }}
+            />
+            
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 800,
                 mb: 0.5,
-                color: "primary.main"
+                letterSpacing: "-0.02em"
               }}
             >
               EVzone Rider
@@ -134,7 +122,8 @@ export default function About(): React.JSX.Element {
               variant="caption"
               sx={{
                 fontSize: 12,
-                color: (t) => t.palette.text.secondary
+                opacity: 0.9,
+                fontWeight: 500
               }}
             >
               Version 1.0.0
@@ -143,9 +132,9 @@ export default function About(): React.JSX.Element {
               variant="body2"
               sx={{
                 mt: 2,
-                px: 2,
-                fontSize: 12,
-                color: (t) => t.palette.text.secondary,
+                px: 3,
+                fontSize: 13,
+                opacity: 0.95,
                 lineHeight: 1.6
               }}
             >
@@ -168,10 +157,10 @@ export default function About(): React.JSX.Element {
                   <ListItemButton
                     onClick={item.action}
                     sx={{
-                      borderRadius: 2,
-                      mb: 1,
-                      py: 1.5,
-                      px: 1.5,
+                      borderRadius: uiTokens.radius.sm,
+                      mb: uiTokens.spacing.smPlus,
+                      py: uiTokens.spacing.mdPlus,
+                      px: uiTokens.spacing.mdPlus,
                       bgcolor: (t) =>
                         t.palette.mode === "light"
                           ? "#FFFFFF"
@@ -225,8 +214,7 @@ export default function About(): React.JSX.Element {
             </Typography>
           </Box>
         </Box>
-      
-    </Box>
+    </ScreenScaffold>
   );
 }
 

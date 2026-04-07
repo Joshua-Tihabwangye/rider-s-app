@@ -14,9 +14,13 @@ import {
   Button
 } from "@mui/material";
 
+import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
+
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
+import { uiTokens } from "../design/tokens";
 
 const UPCOMING_RIDES = [
   {
@@ -65,8 +69,8 @@ function UpcomingRideCard({ ride }: UpcomingRideCardProps): React.JSX.Element {
     <Card
       elevation={0}
       sx={{
-        mb: 1.75,
-        borderRadius: 2,
+        mb: uiTokens.spacing.mdPlus,
+        borderRadius: uiTokens.radius.xl,
         bgcolor: (theme) =>
           theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
         border: (theme) =>
@@ -75,9 +79,9 @@ function UpcomingRideCard({ ride }: UpcomingRideCardProps): React.JSX.Element {
             : "1px solid rgba(51,65,85,0.9)"
       }}
     >
-      <CardContent sx={{ px: 1.75, py: 1.6 }}>
+      <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.md }}>
         <Box
-          sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}
+          sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: uiTokens.spacing.sm }}
         >
           <Box>
             <Typography
@@ -97,7 +101,7 @@ function UpcomingRideCard({ ride }: UpcomingRideCardProps): React.JSX.Element {
             label={ride.status}
             size="small"
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               fontSize: 11,
               height: 24,
               bgcolor: statusBg,
@@ -106,8 +110,8 @@ function UpcomingRideCard({ ride }: UpcomingRideCardProps): React.JSX.Element {
           />
         </Box>
 
-        <Box sx={{ mb: 1 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ mb: uiTokens.spacing.sm }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.sm }}>
             <PlaceRoundedIcon sx={{ fontSize: 16, color: "#22c55e" }} />
             <Typography
               variant="caption"
@@ -116,7 +120,7 @@ function UpcomingRideCard({ ride }: UpcomingRideCardProps): React.JSX.Element {
               {ride.from}
             </Typography>
           </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.sm, mt: uiTokens.spacing.xs / 2 }}>
             <PlaceRoundedIcon sx={{ fontSize: 16, color: "#03CD8C" }} />
             <Typography
               variant="caption"
@@ -133,7 +137,7 @@ function UpcomingRideCard({ ride }: UpcomingRideCardProps): React.JSX.Element {
             icon={<DirectionsCarFilledRoundedIcon sx={{ fontSize: 14 }} />}
             label={ride.type}
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               fontSize: 10,
               height: 22,
               bgcolor: (t) =>
@@ -146,11 +150,11 @@ function UpcomingRideCard({ ride }: UpcomingRideCardProps): React.JSX.Element {
               size="small"
               variant="outlined"
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 fontSize: 11,
                 textTransform: "none",
-                px: 1.8,
-                py: 0.3
+                px: uiTokens.spacing.mdPlus,
+                py: uiTokens.spacing.xxs / 2
               }}
             >
               Edit
@@ -159,7 +163,7 @@ function UpcomingRideCard({ ride }: UpcomingRideCardProps): React.JSX.Element {
               size="small"
               variant="text"
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 fontSize: 11,
                 textTransform: "none",
                 color: "#EF4444"
@@ -181,23 +185,16 @@ function RideHistoryUpcomingScreen(): React.JSX.Element {
   const handleTabChange = (_e: React.SyntheticEvent, value: string): void => setTab(value);
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 1.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+    <ScreenScaffold>
+      <SectionHeader
+        title="Ride history"
+        subtitle="Manage your upcoming EV rides"
+        leadingAction={
           <IconButton
             size="small"
-            aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -208,77 +205,65 @@ function RideHistoryUpcomingScreen(): React.JSX.Element {
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              Ride history
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              Manage your upcoming EV rides
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
+        }
+      />
 
-      {/* Tabs – Upcoming focused */}
-      <Tabs
-        value={tab}
-        onChange={handleTabChange}
-        variant="fullWidth"
-        sx={{
-          minHeight: 36,
-          mb: 2,
-          "& .MuiTab-root": {
+      <Box sx={{ mt: uiTokens.spacing.sm }}>
+        {/* Tabs – Upcoming focused */}
+        <Tabs
+          value={tab}
+          onChange={handleTabChange}
+          variant="fullWidth"
+          sx={{
             minHeight: 36,
-            fontSize: 12,
-            textTransform: "none",
-            color: "rgba(148,163,184,1)"
-          },
-          "& .Mui-selected": {
-            color: "#111827"
-          },
-          "& .MuiTabs-indicator": {
-            height: 2,
-            borderRadius: 5,
-            bgcolor: "primary.main"
-          }
-        }}
-      >
-        <Tab value="past" label="Past trips" />
-        <Tab value="upcoming" label="Upcoming" />
-      </Tabs>
-
-      {tab === "upcoming" && (
-        <Box>
-          {UPCOMING_RIDES.length === 0 ? (
-            <Typography
-              variant="caption"
-              sx={{ mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
-            >
-              You have no upcoming rides. Scheduled EV rides will appear here.
-            </Typography>
-          ) : (
-            UPCOMING_RIDES.map((ride) => (
-              <UpcomingRideCard key={ride.id} ride={ride} />
-            ))
-          )}
-        </Box>
-      )}
-
-      {tab === "past" && (
-        <Typography
-          variant="caption"
-          sx={{ mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
+            mb: uiTokens.spacing.lg,
+            "& .MuiTab-root": {
+              minHeight: 36,
+              fontSize: 12,
+              textTransform: "none",
+              color: "rgba(148,163,184,1)"
+            },
+            "& .Mui-selected": {
+              color: "#111827"
+            },
+            "& .MuiTabs-indicator": {
+              height: 2,
+              borderRadius: uiTokens.radius.xl,
+              bgcolor: "primary.main"
+            }
+          }}
         >
-          Switch to Past trips to view your completed EV rides.
-        </Typography>
-      )}
-    </Box>
+          <Tab value="past" label="Past trips" />
+          <Tab value="upcoming" label="Upcoming" />
+        </Tabs>
+
+        {tab === "upcoming" && (
+          <Box>
+            {UPCOMING_RIDES.length === 0 ? (
+              <Typography
+                variant="caption"
+                sx={{ mt: uiTokens.spacing.xl, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
+              >
+                You have no upcoming rides. Scheduled EV rides will appear here.
+              </Typography>
+            ) : (
+              UPCOMING_RIDES.map((ride) => (
+                <UpcomingRideCard key={ride.id} ride={ride} />
+              ))
+            )}
+          </Box>
+        )}
+
+        {tab === "past" && (
+          <Typography
+            variant="caption"
+            sx={{ mt: uiTokens.spacing.xl, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
+          >
+            Switch to Past trips to view your completed EV rides.
+          </Typography>
+        )}
+      </Box>
+    </ScreenScaffold>
   );
 }
 

@@ -18,6 +18,8 @@ import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
+import { uiTokens } from "../design/tokens";
+
 interface UpcomingRideCardProps {
   dateLabel: string;
   timeLabel: string;
@@ -33,8 +35,8 @@ function UpcomingRideCard({ dateLabel, timeLabel, from, to, status, statusColor,
     <Card
       elevation={0}
       sx={{
-        mb: 1.75,
-        borderRadius: 2,
+        mb: uiTokens.spacing.mdPlus,
+        borderRadius: uiTokens.radius.sm,
         bgcolor: (theme) =>
           theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
         border: (theme) =>
@@ -43,7 +45,7 @@ function UpcomingRideCard({ dateLabel, timeLabel, from, to, status, statusColor,
             : "1px solid rgba(51,65,85,0.9)"
       }}
     >
-      <CardContent sx={{ px: 1.75, py: 1.75 }}>
+      <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
         <Box
           sx={{
             display: "flex",
@@ -77,15 +79,15 @@ function UpcomingRideCard({ dateLabel, timeLabel, from, to, status, statusColor,
             sx={{
               fontSize: 11,
               height: 24,
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: statusColor.bg,
               color: statusColor.fg
             }}
           />
         </Box>
 
-        <Box sx={{ mb: 1.25 }}>
-          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.2 }}>
+        <Box sx={{ mb: uiTokens.spacing.smPlus }}>
+          <Box sx={{ display: "flex", alignItems: "flex-start", gap: uiTokens.spacing.smPlus }}>
             <PlaceRoundedIcon
               sx={{ fontSize: 18, color: "#22c55e", mt: 0.1 }}
             />
@@ -112,7 +114,7 @@ function UpcomingRideCard({ dateLabel, timeLabel, from, to, status, statusColor,
 
           <Box sx={{ height: 1, my: 1, bgcolor: "rgba(148,163,184,0.3)" }} />
 
-          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.2 }}>
+          <Box sx={{ display: "flex", alignItems: "flex-start", gap: uiTokens.spacing.smPlus }}>
             <PlaceRoundedIcon
               sx={{ fontSize: 18, color: "#03CD8C", mt: 0.1 }}
             />
@@ -162,7 +164,7 @@ function UpcomingRideCard({ dateLabel, timeLabel, from, to, status, statusColor,
               size="small"
               variant="outlined"
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 px: 1.8,
                 py: 0.2,
                 fontSize: 11,
@@ -175,7 +177,7 @@ function UpcomingRideCard({ dateLabel, timeLabel, from, to, status, statusColor,
               size="small"
               variant="text"
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 px: 1.6,
                 py: 0.2,
                 fontSize: 11,
@@ -195,7 +197,7 @@ function UpcomingRideCard({ dateLabel, timeLabel, from, to, status, statusColor,
 function UpcomingRidesScreen(): React.JSX.Element {
   const navigate = useNavigate();
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+    <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.xl, pb: uiTokens.spacing.xxl }}>
       {/* Header */}
       <Box
         sx={{
@@ -205,13 +207,13 @@ function UpcomingRidesScreen(): React.JSX.Element {
           justifyContent: "space-between"
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.md }}>
           <IconButton
             size="small"
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -246,7 +248,7 @@ function UpcomingRidesScreen(): React.JSX.Element {
           size="small"
           sx={{
             height: 26,
-            borderRadius: 5,
+            borderRadius: uiTokens.radius.xl,
             bgcolor: "primary.main",
             color: "#020617",
             fontSize: 11
@@ -257,7 +259,7 @@ function UpcomingRidesScreen(): React.JSX.Element {
           size="small"
           sx={{
             height: 26,
-            borderRadius: 5,
+            borderRadius: uiTokens.radius.xl,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
             border: (theme) =>
@@ -272,7 +274,7 @@ function UpcomingRidesScreen(): React.JSX.Element {
           size="small"
           sx={{
             height: 26,
-            borderRadius: 5,
+            borderRadius: uiTokens.radius.xl,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
             border: (theme) =>

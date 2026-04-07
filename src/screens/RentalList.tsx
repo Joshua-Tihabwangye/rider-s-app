@@ -17,6 +17,9 @@ import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import BatteryChargingFullRoundedIcon from "@mui/icons-material/BatteryChargingFullRounded";
 
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
+
 
 const RENTAL_VEHICLES = [
   {
@@ -202,20 +205,13 @@ function RentalVehicleListScreen(): React.JSX.Element {
   });
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+    <ScreenScaffold>
+      <SectionHeader
+        title="Choose your EV rental"
+        subtitle="Results for Nsambya • Today 10:00 → Tomorrow 10:00"
+        leadingAction={
           <IconButton
             size="small"
-            aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
               borderRadius: 5,
@@ -229,22 +225,10 @@ function RentalVehicleListScreen(): React.JSX.Element {
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              Choose your EV rental
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              Results for Nsambya • Today 10:00 → Tomorrow 10:00
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
+        }
+      />
+
+      <Box sx={{ mt: 1 }}>
 
       {/* Filters */}
       <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: "wrap" }}>
@@ -323,7 +307,8 @@ function RentalVehicleListScreen(): React.JSX.Element {
           <RentalVehicleCard key={vehicle.id} vehicle={vehicle} />
         ))
       )}
-    </Box>
+      </Box>
+    </ScreenScaffold>
   );
 }
 

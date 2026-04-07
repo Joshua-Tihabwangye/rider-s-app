@@ -22,6 +22,10 @@ import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
+import { uiTokens } from "../design/tokens";
+
 function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -88,13 +92,36 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
   };
 
   return (
-    <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (theme) => theme.palette.background.default }}>
+    <ScreenScaffold>
+      <SectionHeader
+        title="Trip Completed"
+        subtitle="Lake Victoria Hotel → Entebbe"
+        leadingAction={
+          <IconButton
+            size="small"
+            onClick={() => navigate(-1)}
+            sx={{
+              borderRadius: uiTokens.radius.xl,
+              bgcolor: (t) =>
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+              border: (t) =>
+                t.palette.mode === "light"
+                  ? "1px solid rgba(209,213,219,0.9)"
+                  : "1px solid rgba(51,65,85,0.9)"
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        }
+      />
+
       {/* Map Section - Full width at top */}
       <Box
         sx={{
           position: "relative",
           width: "100%",
           height: "50vh",
+          borderRadius: uiTokens.radius.xl,
           background: (theme) =>
             theme.palette.mode === "light"
               ? "#F5F5F5"
@@ -113,28 +140,6 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
             backgroundSize: "32px 32px"
           }}
         />
-
-        {/* Back Button - Top left */}
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
-            sx={{
-            position: "absolute",
-            top: 16,
-            left: 16,
-            bgcolor: "rgba(3,205,140,0.15)",
-            color: "#03CD8C",
-            width: 40,
-            height: 40,
-            "&:hover": {
-              bgcolor: "#93C5FD"
-            },
-            zIndex: 10
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
 
         {/* Route line - showing completed journey path (from bottom-left to center) */}
         <Box
@@ -229,12 +234,12 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
       </Box>
 
       {/* Trip Info Card - Overlapping map slightly */}
-      <Box sx={{ px: 2.5, pt: 0, pb: 2, mt: -3 }}>
+      <Box sx={{ px: uiTokens.spacing.xl, pt: 0, pb: uiTokens.spacing.lg, mt: -3 }}>
       <Card
         elevation={0}
         sx={{
-            mb: 2,
-          borderRadius: 2,
+            mb: uiTokens.spacing.lg,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (theme) =>
             theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (theme) =>
@@ -244,9 +249,9 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
         }}
       >
-          <CardContent sx={{ px: 2, py: 1.5 }}>
+          <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.mdPlus }}>
             {/* Header with Title and Share Icon */}
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: uiTokens.spacing.lg }}>
               <Typography
                 variant="h6"
                 sx={{
@@ -271,7 +276,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
             </Box>
 
             {/* Vehicle Details */}
-            <Box sx={{ mb: 2 }}>
+            <Box sx={{ mb: uiTokens.spacing.lg }}>
               <Typography
                 variant="h6"
                 sx={{
@@ -296,9 +301,9 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
             {/* Trip Status Section - Green banner */}
             <Box
               sx={{
-                mb: 2,
-                p: 1.5,
-                borderRadius: 2,
+                mb: uiTokens.spacing.lg,
+                p: uiTokens.spacing.mdPlus,
+                borderRadius: uiTokens.radius.sm,
                 bgcolor: "#22c55e",
                 background: "linear-gradient(135deg, #22c55e 0%, #16A34A 100%)"
               }}
@@ -332,10 +337,10 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
                   value={progress}
                   sx={{
                     height: 10,
-                    borderRadius: 5,
+                    borderRadius: uiTokens.radius.xl,
                     bgcolor: "rgba(255,255,255,0.3)",
                     "& .MuiLinearProgress-bar": {
-                      borderRadius: 5,
+                      borderRadius: uiTokens.radius.xl,
                       bgcolor: "#FFFFFF",
                       boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
                     }
@@ -374,7 +379,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
             </Box>
 
             {/* Journey Metrics - displayed below progress bar */}
-            <Stack direction="row" spacing={2} sx={{ justifyContent: "space-between" }}>
+            <Stack direction="row" spacing={uiTokens.spacing.lg} sx={{ justifyContent: "space-between" }}>
               <Box sx={{ textAlign: "center", flex: 1 }}>
                 <Typography
                   variant="body2"
@@ -449,8 +454,8 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-            mb: 2,
-          borderRadius: 2,
+            mb: uiTokens.spacing.lg,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (theme) =>
             theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (theme) =>
@@ -459,9 +464,9 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-          <CardContent sx={{ px: 2, py: 1.5 }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1.5 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.mdPlus }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: uiTokens.spacing.mdPlus }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.mdPlus }}>
                 <Avatar
                   sx={{
                     width: 48,
@@ -495,9 +500,9 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
                 variant="outlined"
                 onClick={handleRateDriver}
                 sx={{
-                  borderRadius: 5,
-                  px: 2,
-                  py: 0.75,
+                  borderRadius: uiTokens.radius.xl,
+                  px: uiTokens.spacing.lg,
+                  py: uiTokens.spacing.smPlus,
                   fontSize: 13,
                   fontWeight: 600,
                   textTransform: "none",
@@ -522,8 +527,8 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
         <Card
           elevation={0}
           sx={{
-            mb: 2,
-            borderRadius: 2,
+            mb: uiTokens.spacing.lg,
+            borderRadius: uiTokens.radius.sm,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
             border: (theme) =>
@@ -532,8 +537,8 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
                 : "1px solid rgba(51,65,85,0.9)"
           }}
         >
-          <CardContent sx={{ px: 2, py: 1.5 }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
+          <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.mdPlus }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: uiTokens.spacing.mdPlus }}>
               <Typography
                 variant="subtitle2"
                 sx={{
@@ -548,9 +553,9 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
                 size="small"
                 startIcon={<AddRoundedIcon sx={{ fontSize: 16 }} />}
           sx={{
-            borderRadius: 5,
-                  px: 1.5,
-                  py: 0.5,
+            borderRadius: uiTokens.radius.xl,
+                  px: uiTokens.spacing.mdPlus,
+                  py: uiTokens.spacing.sm,
                   fontSize: 11,
                   fontWeight: 500,
             textTransform: "none",
@@ -565,7 +570,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
             </Box>
 
             {/* Departure Point */}
-            <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5, mb: 1.5 }}>
+            <Box sx={{ display: "flex", alignItems: "flex-start", gap: uiTokens.spacing.mdPlus, mb: uiTokens.spacing.mdPlus }}>
               <Box
                 sx={{
                   display: "flex",
@@ -623,7 +628,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
             </Box>
 
             {/* Destination Point */}
-            <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
+            <Box sx={{ display: "flex", alignItems: "flex-start", gap: uiTokens.spacing.mdPlus }}>
               <Box
                 sx={{
                   display: "flex",
@@ -672,8 +677,8 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
         <Card
           elevation={0}
           sx={{
-            mb: 2,
-            borderRadius: 2,
+            mb: uiTokens.spacing.lg,
+            borderRadius: uiTokens.radius.sm,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
             border: (theme) =>
@@ -682,7 +687,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
                 : "1px solid rgba(51,65,85,0.9)"
           }}
         >
-          <CardContent sx={{ px: 2, py: 1.5 }}>
+          <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.mdPlus }}>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <Box>
                 <Typography
@@ -706,9 +711,9 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
         variant="contained"
                 onClick={handlePayNow}
         sx={{
-          borderRadius: 5,
-                  px: 3,
-                  py: 1,
+          borderRadius: uiTokens.radius.xl,
+                  px: uiTokens.spacing.xl,
+                  py: uiTokens.spacing.md,
                   fontSize: 14,
           fontWeight: 600,
           textTransform: "none",
@@ -725,7 +730,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
           </CardContent>
         </Card>
       </Box>
-    </Box>
+    </ScreenScaffold>
   );
 }
 

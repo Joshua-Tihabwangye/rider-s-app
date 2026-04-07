@@ -52,7 +52,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          borderRadius: uiTokens.radius.xl,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light"
               ? "radial-gradient(circle at top, #DBEAFE, #EEF2FF)"
@@ -63,20 +63,20 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(129,140,248,0.9)"
         }}
       >
-        <CardContent sx={{ px: { xs: 1.5, sm: 1.8 }, py: { xs: 1.5, sm: 1.8 } }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           <Typography
             variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.6, display: "block" }}
+            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: uiTokens.spacing.sm, display: "block" }}
           >
             School shuttles live in the EVzone School / Parents app.
           </Typography>
           <Typography
             variant="body2"
-            sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", mb: 1 }}
+            sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", mb: uiTokens.spacing.md }}
           >
             Open EVzone School to book or track a bus.
           </Typography>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={uiTokens.spacing.mdPlus}>
             <Button
               fullWidth
               variant="contained"
@@ -84,7 +84,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
               onClick={() => navigate("/school-handoff")}
               sx={{
                 borderRadius: uiTokens.radius.xl,
-                py: 0.9,
+                py: uiTokens.spacing.md,
                 fontSize: 13,
                 fontWeight: 600,
                 textTransform: "none",
@@ -101,7 +101,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
               onClick={() => window.open("https://play.google.com/store/apps/details?id=com.evzone.school", "_blank")}
               sx={{
                 borderRadius: uiTokens.radius.xl,
-                py: 0.9,
+                py: uiTokens.spacing.md,
                 fontSize: 13,
                 textTransform: "none"
               }}
@@ -116,7 +116,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          borderRadius: uiTokens.radius.xl,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -125,12 +125,12 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.5, sm: 1.7 } }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
-            sx={{ mb: 1 }}
+            sx={{ mb: uiTokens.spacing.smPlus }}
           >
             <Stack direction="row" spacing={0.75} alignItems="center">
               <PeopleAltRoundedIcon
@@ -186,7 +186,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
                 size="small"
                 label={i === 0 ? "Onboard" : "Arriving soon"}
                 sx={{
-                  borderRadius: 5,
+                  borderRadius: uiTokens.radius.xl,
                   fontSize: 10,
                   height: 22,
                   bgcolor: (t) =>
@@ -216,7 +216,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          borderRadius: uiTokens.radius.xl,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -225,7 +225,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.4, sm: 1.6 } }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           <Stack
             direction="row"
             justifyContent="space-between"
