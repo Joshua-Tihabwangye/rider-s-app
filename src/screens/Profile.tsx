@@ -17,8 +17,8 @@ export default function Profile(): React.JSX.Element {
     <ScreenScaffold
       header={<PageHeader title="Profile" subtitle="Personal information" />}
     >
-      <Box sx={{ p: 3 }}>
-        <Stack spacing={3} alignItems="center">
+      <Box sx={{ p: uiTokens.spacing.xl }}>
+        <Stack spacing={uiTokens.spacing.xl} alignItems="center">
           <Avatar
             sx={{
               width: 80,
@@ -36,7 +36,7 @@ export default function Profile(): React.JSX.Element {
             <Typography variant="body2" color="text.secondary">{phone}</Typography>
             <Typography variant="body2" color="text.secondary">{email}</Typography>
           </Box>
-          <Typography variant="body2" sx={{ mt: 2, color: (t) => t.palette.text.disabled }}>
+          <Typography variant="body2" sx={{ mt: uiTokens.spacing.lg, color: (t) => t.palette.text.disabled }}>
             Full profile management coming soon.
           </Typography>
         </Stack>

@@ -17,13 +17,13 @@ export default function ScreenScaffold({
   disableBottomPadding = false,
   contentSx
 }: ScreenScaffoldProps): React.JSX.Element {
-  const defaultPxXs = `${uiTokens.spacing.xl * 8}px`;
-  const defaultPxMd = `${uiTokens.spacing.xxl * 8}px`;
-  const defaultPtXs = `${uiTokens.spacing.xl * 8}px`;
-  const defaultPtMd = `${uiTokens.spacing.xxl * 8}px`;
-  const defaultPbXs = `${uiTokens.spacing.xxl * 8}px`;
-  const defaultPbMd = `${uiTokens.spacing.xxl * 8 + 4}px`;
-  const defaultGap = `${uiTokens.spacing.lg * 8}px`;
+  const defaultPxXs = `${uiTokens.spacing.container.xs * 8}px`;
+  const defaultPxMd = `${uiTokens.spacing.container.md * 8}px`;
+  const defaultPtXs = `${uiTokens.spacing.container.xs * 8}px`;
+  const defaultPtMd = `${uiTokens.spacing.container.md * 8}px`;
+  const defaultPbXs = `${uiTokens.spacing.container.md * 8}px`;
+  const defaultPbMd = `${uiTokens.spacing.container.md * 8 + 4}px`;
+  const defaultGap = `${uiTokens.spacing.sectionGap * 8}px`;
 
   return (
     <Box

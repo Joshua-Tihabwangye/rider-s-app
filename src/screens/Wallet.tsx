@@ -228,6 +228,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               aria-label="Back"
               onClick={onBack}
               sx={{
+                borderRadius: uiTokens.radius.xl,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
                 border: (t) =>
@@ -246,8 +247,8 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: { xs: 1.5, sm: 2 },
-          borderRadius: uiTokens.radius.xl,
+          mb: uiTokens.spacing.lg,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light"
               ? "radial-gradient(circle at top, #BBF7D0, #ECFDF5)"
@@ -258,12 +259,12 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               : "1px solid rgba(22,163,74,0.65)"
         }}
       >
-        <CardContent sx={{ px: { xs: 1.5, sm: 1.9 }, py: { xs: 1.5, sm: 1.9 } }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           <Stack 
             direction={{ xs: "column", sm: "row" }} 
             justifyContent="space-between" 
             alignItems={{ xs: "flex-start", sm: "flex-start" }}
-            spacing={{ xs: 2, sm: 0 }}
+            spacing={uiTokens.spacing.lg}
           >
             <Box sx={{ flex: 1 }}>
               <Typography
@@ -408,8 +409,8 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
           {hasBalance && (
             <Stack 
               direction={{ xs: "column", sm: "row" }} 
-              spacing={1.25} 
-              sx={{ mt: 1.7 }}
+              spacing={uiTokens.spacing.mdPlus} 
+              sx={{ mt: uiTokens.spacing.lg }}
             >
             <Button
               fullWidth
@@ -418,7 +419,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               onClick={handleAddMoney}
               sx={{
                 borderRadius: uiTokens.radius.xl,
-                  py: { xs: 0.75, sm: 0.9 },
+                  py: uiTokens.spacing.md,
                   fontSize: { xs: 12, sm: 13 },
                 fontWeight: 600,
                 textTransform: "none",
@@ -436,7 +437,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               onClick={handleWithdraw}
               sx={{
                 borderRadius: uiTokens.radius.xl,
-                  py: { xs: 0.75, sm: 0.9 },
+                  py: uiTokens.spacing.md,
                   fontSize: { xs: 12, sm: 13 },
                 textTransform: "none",
                   borderColor: (t) => t.palette.mode === "light" ? "rgba(15,23,42,0.35)" : "rgba(255,255,255,0.35)",
@@ -454,12 +455,11 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
         </CardContent>
       </Card>
 
-      {/* Payment methods */}
       <Card
         elevation={0}
         sx={{
-          mb: { xs: 1.5, sm: 2 },
-          borderRadius: uiTokens.radius.xl,
+          mb: uiTokens.spacing.lg,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -468,12 +468,12 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.5, sm: 1.75 } }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
-            sx={{ mb: 1.2 }}
+            sx={{ mb: uiTokens.spacing.mdPlus }}
           >
             <Typography
               variant="caption"
@@ -491,8 +491,8 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 color: (t) => t.palette.text.secondary, 
                 textTransform: "none",
                 minWidth: "auto",
-                px: 1,
-                py: 0.25,
+                px: uiTokens.spacing.smPlus,
+                py: uiTokens.spacing.xs,
                 "&:hover": {
                   color: (t) => t.palette.text.primary,
                   bgcolor: "transparent"
@@ -505,7 +505,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
 
           <Stack 
             direction="row" 
-            spacing={1.3}
+            spacing={uiTokens.spacing.mdPlus}
           >
             <Card
               elevation={0}
@@ -524,7 +524,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 }
               }}
             >
-              <CardContent sx={{ px: 1.4, py: 1.3 }}>
+              <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
                 <Stack direction="row" spacing={0.85} alignItems="center" sx={{ mb: 0.4 }}>
                   <AccountBalanceWalletRoundedIcon sx={{ fontSize: 18, color: "#047857" }} />
                   <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: (t) => t.palette.text.primary }}>
@@ -546,17 +546,6 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               sx={{
                 flex: 1,
                 borderRadius: uiTokens.radius.xl,
-                cursor: "pointer",
-                bgcolor: (t) =>
-                  defaultMethod === "cards" 
-                    ? (t.palette.mode === "light" ? "#EFF6FF" : "rgba(37,99,235,0.1)")
-                    : (t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)"),
-                border: (t) =>
-                  defaultMethod === "cards"
-                    ? "1px solid rgba(37,99,235,0.5)"
-                    : (t.palette.mode === "light"
-                      ? "1px solid rgba(209,213,219,0.9)"
-                      : "1px solid rgba(51,65,85,0.9)"),
                 transition: "all 0.15s ease",
                 "&:hover": {
                   transform: "translateY(-2px)",
@@ -564,7 +553,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 }
               }}
             >
-              <CardContent sx={{ px: 1.4, py: 1.3 }}>
+              <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
                 <Stack direction="row" spacing={0.85} alignItems="center" sx={{ mb: 0.4 }}>
                   <CreditCardRoundedIcon sx={{ fontSize: 18, color: "#1D4ED8" }} />
                   <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: (t) => t.palette.text.primary }}>
@@ -586,17 +575,6 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               sx={{
                 flex: 1,
                 borderRadius: uiTokens.radius.xl,
-                cursor: "pointer",
-                bgcolor: (t) =>
-                  defaultMethod === "mobile"
-                    ? (t.palette.mode === "light" ? "#FFFBEB" : "rgba(245,158,11,0.1)")
-                    : (t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)"),
-                border: (t) =>
-                  defaultMethod === "mobile"
-                    ? "1px solid rgba(245,158,11,0.6)"
-                    : (t.palette.mode === "light"
-                      ? "1px solid rgba(209,213,219,0.9)"
-                      : "1px solid rgba(51,65,85,0.9)"),
                 transition: "all 0.15s ease",
                 "&:hover": {
                   transform: "translateY(-2px)",
@@ -604,7 +582,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 }
               }}
             >
-              <CardContent sx={{ px: 1.4, py: 1.3 }}>
+              <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
                 <Stack direction="row" spacing={0.85} alignItems="center" sx={{ mb: 0.4 }}>
                   <LocalAtmRoundedIcon sx={{ fontSize: 18, color: "#EA580C" }} />
                   <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: (t) => t.palette.text.primary }}>
@@ -627,8 +605,8 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: { xs: 1.25, sm: 1.5 },
-          borderRadius: uiTokens.radius.xl,
+          mb: uiTokens.spacing.lg,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -637,12 +615,12 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.4, sm: 1.6 } }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
-            sx={{ mb: 1.1 }}
+            sx={{ mb: uiTokens.spacing.md }}
           >
             <Stack direction="row" spacing={0.75} alignItems="center">
               <ReceiptLongRoundedIcon
@@ -710,7 +688,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 disableGutters
                 onClick={() => handleTransactionClick(tx)}
                 sx={{
-                    py: { xs: 0.5, sm: 0.4 },
+                    py: uiTokens.spacing.sm,
                   cursor: "pointer",
                   borderRadius: uiTokens.radius.xl,
                   transition: "background-color 0.15s ease",

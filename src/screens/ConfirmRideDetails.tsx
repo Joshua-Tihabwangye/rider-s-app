@@ -24,6 +24,7 @@ import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+import { uiTokens } from "../design/tokens";
 
 function RideDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -131,19 +132,19 @@ function RideDetailsScreen(): React.JSX.Element {
           borderBottom: theme.palette.mode === "light"
             ? "1px solid rgba(0,0,0,0.1)"
             : "1px solid rgba(255,255,255,0.1)",
-          px: 2.5,
-          py: 1.5,
+          px: uiTokens.spacing.xl,
+          py: uiTokens.spacing.mdPlus,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between"
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.mdPlus }}>
           <IconButton
             size="small"
             onClick={handleBack}
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.9)",
               "&:hover": {
                 bgcolor: theme.palette.mode === "light" ? "#E5E7EB" : "rgba(15,23,42,1)"
@@ -167,7 +168,7 @@ function RideDetailsScreen(): React.JSX.Element {
               size="small"
           onClick={handleNotificationClick}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
             bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.9)",
             "&:hover": {
               bgcolor: theme.palette.mode === "light" ? "#E5E7EB" : "rgba(15,23,42,1)"
@@ -178,20 +179,20 @@ function RideDetailsScreen(): React.JSX.Element {
         </IconButton>
       </Box>
 
-      <Box sx={{ px: 2.5, pt: 2, pb: 10 }}>
+      <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.lg, pb: uiTokens.spacing.xxl }}>
         {/* Trip Summary Section */}
       <Card
         elevation={0}
         sx={{
-            mb: 2.5,
-          borderRadius: 2,
+            mb: uiTokens.spacing.xl,
+          borderRadius: uiTokens.radius.sm,
             bgcolor: contentBg,
             border: theme.palette.mode === "light"
               ? "1px solid rgba(0,0,0,0.1)"
               : "1px solid rgba(255,255,255,0.1)"
         }}
       >
-          <CardContent sx={{ px: 2, py: 2 }}>
+          <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
             {/* Date Label */}
             <Typography
               variant="caption"
@@ -201,7 +202,7 @@ function RideDetailsScreen(): React.JSX.Element {
                 textTransform: "uppercase",
                 letterSpacing: "0.08em",
                 color: theme.palette.text.secondary,
-                mb: 2,
+                mb: uiTokens.spacing.lg,
                 display: "block"
               }}
             >
@@ -358,15 +359,15 @@ function RideDetailsScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-            mb: 2.5,
-          borderRadius: 2,
+            mb: uiTokens.spacing.xl,
+          borderRadius: uiTokens.radius.sm,
             bgcolor: contentBg,
             border: theme.palette.mode === "light"
               ? "1px solid rgba(0,0,0,0.1)"
               : "1px solid rgba(255,255,255,0.1)"
         }}
       >
-          <CardContent sx={{ px: 2, py: 1.5 }}>
+          <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.md }}>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <Typography
                 variant="body2"
@@ -395,15 +396,15 @@ function RideDetailsScreen(): React.JSX.Element {
         <Card
           elevation={0}
           sx={{
-            mb: 2.5,
-            borderRadius: 2,
+            mb: uiTokens.spacing.xl,
+            borderRadius: uiTokens.radius.sm,
             bgcolor: contentBg,
             border: theme.palette.mode === "light"
               ? "1px solid rgba(0,0,0,0.1)"
               : "1px solid rgba(255,255,255,0.1)"
           }}
         >
-          <CardContent sx={{ px: 2, py: 2 }}>
+          <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
             {/* Profile Section */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
               <Avatar
@@ -521,7 +522,7 @@ function RideDetailsScreen(): React.JSX.Element {
                 onClick={handleCallDriver}
                 sx={{
                   flex: 1,
-                  borderRadius: 5,
+                  borderRadius: uiTokens.radius.xl,
                   textTransform: "none",
                   borderColor: theme.palette.mode === "light"
                     ? "rgba(0,0,0,0.15)"
@@ -541,7 +542,7 @@ function RideDetailsScreen(): React.JSX.Element {
                 onClick={handleMessageDriver}
                 sx={{
                   flex: 1,
-                  borderRadius: 5,
+                  borderRadius: uiTokens.radius.xl,
                   textTransform: "none",
                   borderColor: theme.palette.mode === "light"
                     ? "rgba(0,0,0,0.15)"
@@ -558,7 +559,7 @@ function RideDetailsScreen(): React.JSX.Element {
               <IconButton
                 onClick={handleViewDriverProfile}
                 sx={{
-                  borderRadius: 5,
+                  borderRadius: uiTokens.radius.xl,
                   border: theme.palette.mode === "light"
                     ? "1px solid rgba(0,0,0,0.15)"
                     : "1px solid rgba(255,255,255,0.2)",
@@ -579,8 +580,8 @@ function RideDetailsScreen(): React.JSX.Element {
         <Card
           elevation={0}
           sx={{
-            mb: 2.5,
-            borderRadius: 2,
+            mb: uiTokens.spacing.xl,
+            borderRadius: uiTokens.radius.sm,
             bgcolor: contentBg,
             border: theme.palette.mode === "light"
               ? "1px solid rgba(0,0,0,0.1)"
@@ -631,8 +632,8 @@ function RideDetailsScreen(): React.JSX.Element {
         variant="contained"
           onClick={handleBookTrip}
         sx={{
-          borderRadius: 5,
-            py: 1.5,
+          borderRadius: uiTokens.radius.xl,
+            py: uiTokens.spacing.md,
             fontSize: 16,
           fontWeight: 600,
           textTransform: "none",

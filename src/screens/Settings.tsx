@@ -30,8 +30,8 @@ interface ToggleRowProps {
 
 function ToggleRow({ icon, title, description, checked, onChange }: ToggleRowProps): React.JSX.Element {
   return (
-    <AppCard contentSx={{ px: 1.75, py: 1.5, gap: 0 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.35 }}>
+    <AppCard contentSx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus, gap: 0 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.md }}>
         <Box
           sx={{
             width: 40,
@@ -53,7 +53,7 @@ function ToggleRow({ icon, title, description, checked, onChange }: ToggleRowPro
           </Typography>
           <Typography
             variant="caption"
-            sx={{ ...uiTokens.text.itemBody, display: "block", mt: 0.35, color: (t) => t.palette.text.secondary }}
+            sx={{ ...uiTokens.text.itemBody, display: "block", mt: uiTokens.spacing.xxs, color: (t) => t.palette.text.secondary }}
           >
             {description}
           </Typography>
@@ -79,9 +79,9 @@ export default function Settings(): React.JSX.Element {
           onBack={() => navigate(-1)}
         />
       }
-      contentSx={{ pt: { xs: 2.5, md: 3 } }}
+      contentSx={{ pt: { xs: uiTokens.spacing.xl, md: uiTokens.spacing.xl } }}
     >
-      <ListSection sx={{ gap: 1.1 }}>
+      <ListSection sx={{ gap: uiTokens.spacing.smPlus }}>
         <ToggleRow
           icon={<DarkModeRoundedIcon />}
           title="Dark Mode"
@@ -98,7 +98,7 @@ export default function Settings(): React.JSX.Element {
         />
       </ListSection>
 
-      <Stack spacing={1.1}>
+      <Stack spacing={uiTokens.spacing.smPlus}>
         <SectionHeader eyebrow="General" title="App settings" compact />
         <ListSection>
           <RowActionItem
@@ -116,7 +116,7 @@ export default function Settings(): React.JSX.Element {
         </ListSection>
       </Stack>
 
-      <Stack spacing={1.1}>
+      <Stack spacing={uiTokens.spacing.smPlus}>
         <SectionHeader eyebrow="Privacy" title="Security controls" compact />
         <ListSection>
           <RowActionItem
@@ -133,9 +133,9 @@ export default function Settings(): React.JSX.Element {
           />
           <AppCard
             onClick={() => navigate("/rides/preferences/setup")}
-            contentSx={{ px: 1.75, py: 1.45, gap: 0 }}
+            contentSx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus, gap: 0 }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.4 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.md }}>
               <Box
                 sx={{
                   width: 40,
@@ -156,7 +156,7 @@ export default function Settings(): React.JSX.Element {
                 </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary, mt: 0.35, display: "block" }}
+                  sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary, mt: uiTokens.spacing.xxs, display: "block" }}
                 >
                   Customize your ride experience preferences
                 </Typography>

@@ -1,5 +1,4 @@
 import React from "react";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -11,18 +10,17 @@ import {
   Avatar
 } from "@mui/material";
 
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
-import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutline";
 import ScreenScaffold from "../components/ScreenScaffold";
 import PageHeader from "../components/PageHeader";
+import { uiTokens } from "../design/tokens";
 
 function RideBookingConfirmationScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -79,9 +77,6 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
     navigate("/home");
   };
 
-  const headerBg = "#22C55E"; // Green header
-  const headerText = "#FFFFFF";
-  const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
   const greenAccent = "#03CD8C";
 
   return (
@@ -124,12 +119,12 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
     >
 
       
-        <Box sx={{ px: 2.5, pt: 3, pb: 3 }}>
+        <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.xxl, pb: uiTokens.spacing.xxl }}>
           {/* Confirmation Illustration */}
           <Box 
             sx={{ 
               textAlign: "center", 
-              mb: 4,
+              mb: uiTokens.spacing.xxl,
               "@keyframes fadeIn": {
                 from: {
                   opacity: 0,
@@ -147,7 +142,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
               sx={{
                 position: "relative",
                 display: "inline-block",
-                mb: 2
+                mb: uiTokens.spacing.lg
               }}
             >
               {/* Illustration Container */}
@@ -158,7 +153,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
                   height: 200,
                   position: "relative",
                   mx: "auto",
-                  mb: 2
+                  mb: uiTokens.spacing.lg
                 }}
               >
                 {/* Background buildings (subtle) */}
@@ -188,7 +183,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
                     alignItems: "center",
                     justifyContent: "center",
                     bgcolor: greenAccent,
-                    borderRadius: 3,
+                    borderRadius: uiTokens.radius.md,
                     boxShadow: "0 4px 12px rgba(34,197,94,0.3)"
                   }}
                 >
@@ -209,7 +204,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    gap: 0.5
+                    gap: uiTokens.spacing.xxs
                   }}
                 >
                   <Avatar
@@ -375,7 +370,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
               variant="h5"
               sx={{
                 fontWeight: 700,
-                mb: 1,
+                mb: uiTokens.spacing.sm,
                 color: theme.palette.text.primary,
                 fontSize: { xs: 22, sm: 24 }
               }}
@@ -408,14 +403,14 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
         </Box>
 
           {/* Communication Buttons */}
-          <Stack direction="row" spacing={1.5} sx={{ mb: 3 }}>
+          <Stack direction="row" spacing={uiTokens.spacing.md} sx={{ mb: uiTokens.spacing.xxl }}>
             <Button
               fullWidth
               variant="outlined"
               startIcon={<PhoneRoundedIcon sx={{ color: greenAccent }} />}
               onClick={handleCallDriver}
               sx={{
-                borderRadius: 2,
+                borderRadius: uiTokens.radius.sm,
                 py: 1.25,
                 fontSize: 14,
                 fontWeight: 600,
@@ -437,7 +432,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
               startIcon={<MessageRoundedIcon sx={{ color: greenAccent }} />}
               onClick={handleMessageDriver}
               sx={{
-                borderRadius: 2,
+                borderRadius: uiTokens.radius.sm,
                 py: 1.25,
                 fontSize: 14,
                 fontWeight: 600,
@@ -455,13 +450,13 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
           </Stack>
 
           {/* Payment and Completion Actions */}
-          <Stack spacing={1.5}>
+          <Stack spacing={uiTokens.spacing.md}>
             <Button
               fullWidth
               variant="contained"
               onClick={handlePayNow}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 py: 1.4,
                 fontSize: 15,
                 fontWeight: 600,
@@ -481,7 +476,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
               variant="contained"
               onClick={handleDone}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 py: 1.4,
                 fontSize: 15,
                 fontWeight: 600,

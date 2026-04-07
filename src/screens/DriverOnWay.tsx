@@ -17,7 +17,10 @@ import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import MapShell from "../components/maps/MapShell";
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
 
 function DriverAssignedOnTheWayScreen(): React.JSX.Element {
@@ -62,7 +65,30 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   };
 
   return (
-    <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (theme) => theme.palette.background.default }}>
+    <ScreenScaffold>
+      <SectionHeader
+        title="Driver on the Way"
+        subtitle="Your driver is heading to your location"
+        leadingAction={
+          <IconButton
+            size="small"
+            onClick={() => navigate(-1)}
+            sx={{
+              borderRadius: 5,
+              bgcolor: (t) =>
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+              border: (t) =>
+                t.palette.mode === "light"
+                  ? "1px solid rgba(209,213,219,0.9)"
+                  : "1px solid rgba(51,65,85,0.9)"
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        }
+      />
+
+      <Box sx={{ position: "relative", minHeight: "45vh", bgcolor: (theme) => theme.palette.background.default, borderRadius: uiTokens.radius.xl, overflow: 'hidden' }}>
       <MapShell
         preset="compact"
         height="45vh"
@@ -449,7 +475,8 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
           </Button>
         </Stack>
       </Box>
-    </Box>
+      </Box>
+    </ScreenScaffold>
   );
 }
 

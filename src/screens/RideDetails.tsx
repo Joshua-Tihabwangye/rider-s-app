@@ -23,16 +23,16 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const fareEstimate = "UGX 14,500";
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+    <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.xl, pb: uiTokens.spacing.xxl }}>
       {/* Header */}
-      <Box sx={{ mb: 2, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Box sx={{ mb: uiTokens.spacing.lg, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.mdPlus }}>
           <IconButton
             size="small"
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -60,10 +60,10 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
       <Box
         sx={{
           position: "relative",
-          borderRadius: 3,
+          borderRadius: uiTokens.radius.lg,
           overflow: "hidden",
           height: 180,
-          mb: 2.5,
+          mb: uiTokens.spacing.xl,
           background: (t) =>
             t.palette.mode === "light"
               ? "radial-gradient(circle at top, rgba(3,205,140,0.15) 0, #E5E7EB 55%, rgba(3,205,140,0.1) 100%)"
@@ -123,15 +123,15 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2,
-          borderRadius: 2,
+          mb: uiTokens.spacing.lg,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
           border: (t) =>
             t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Box sx={{ mb: 1.1 }}>
+        <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
+          <Box sx={{ mb: uiTokens.spacing.smPlus }}>
             <Typography
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
@@ -145,7 +145,7 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
               Nsambya Road 472, Kampala
             </Typography>
           </Box>
-          <Box sx={{ mb: 1.1 }}>
+          <Box sx={{ mb: uiTokens.spacing.smPlus }}>
             <Typography
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
@@ -159,13 +159,13 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
               Bugolobi Village, Kampala
             </Typography>
           </Box>
-          <Stack direction="row" spacing={1.5} alignItems="center">
+          <Stack direction="row" spacing={uiTokens.spacing.mdPlus} alignItems="center">
             <Chip
               size="small"
               icon={<DirectionsCarFilledRoundedIcon sx={{ fontSize: 14 }} />}
               label="Eco EV • 1–4 riders"
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 fontSize: 11,
                 height: 24,
                 bgcolor: (t) =>
@@ -178,7 +178,7 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
               icon={<ElectricCarRoundedIcon sx={{ fontSize: 14 }} />}
               label="100% electric"
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 fontSize: 11,
                 height: 24,
                 bgcolor: "rgba(34,197,94,0.1)",
@@ -193,14 +193,14 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2,
-          borderRadius: 2,
+          mb: uiTokens.spacing.lg,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
           border: (t) =>
             t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
+        <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <Box>
               <Typography
@@ -225,7 +225,7 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
           </Box>
           <Typography
             variant="caption"
-            sx={{ mt: 1.25, display: "block", fontSize: 11, color: (t) => t.palette.text.secondary }}
+            sx={{ mt: uiTokens.spacing.md, display: "block", fontSize: 11, color: (t) => t.palette.text.secondary }}
           >
             Final fare may change slightly based on actual distance and traffic.
           </Typography>
@@ -233,7 +233,7 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
       </Card>
 
       {/* Info + Confirm */}
-      <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
+      <Stack direction="row" spacing={uiTokens.spacing.sm} sx={{ mb: uiTokens.spacing.mdPlus }}>
         <InfoOutlinedIcon
           sx={{ fontSize: 18, color: (t) => t.palette.text.secondary, mt: 0.5 }}
         />
@@ -251,8 +251,8 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         sx={{
-          borderRadius: 5,
-          py: 1.1,
+          borderRadius: uiTokens.radius.xl,
+          py: uiTokens.spacing.smPlus,
           fontSize: 15,
           fontWeight: 600,
           textTransform: "none",

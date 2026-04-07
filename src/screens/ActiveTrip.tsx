@@ -22,7 +22,10 @@ import LocalFireDepartmentRoundedIcon from "@mui/icons-material/LocalFireDepartm
 import HotelRoundedIcon from "@mui/icons-material/HotelRounded";
 import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
 import BeachAccessRoundedIcon from "@mui/icons-material/BeachAccessRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import MapShell from "../components/maps/MapShell";
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
 
 function TripInProgressBasicScreen(): React.JSX.Element {
@@ -103,7 +106,30 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   };
 
   return (
-    <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (theme) => theme.palette.background.default }}>
+    <ScreenScaffold>
+      <SectionHeader
+        title="Active Trip"
+        subtitle="Lake Victoria Hotel → Entebbe"
+        leadingAction={
+          <IconButton
+            size="small"
+            onClick={() => navigate(-1)}
+            sx={{
+              borderRadius: uiTokens.radius.xl,
+              bgcolor: (t) =>
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+              border: (t) =>
+                t.palette.mode === "light"
+                  ? "1px solid rgba(209,213,219,0.9)"
+                  : "1px solid rgba(51,65,85,0.9)"
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        }
+      />
+
+      <Box sx={{ position: "relative", minHeight: "50vh", bgcolor: (theme) => theme.palette.background.default, borderRadius: uiTokens.radius.xl, overflow: 'hidden' }}>
       <MapShell preset="full" canvasSx={{ background: uiTokens.map.canvasEmphasis }}>
 
         {/* Map Labels - Landmarks */}
@@ -243,7 +269,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             width: "64%",
             height: 4,
             bgcolor: "#1E3A5F",
-            borderRadius: 2,
+            borderRadius: uiTokens.radius.sm,
             transform: "rotate(-25deg)",
             transformOrigin: "left center",
             zIndex: 1
@@ -298,9 +324,9 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             bottom: 16,
             left: "50%",
             transform: "translateX(-50%)",
-            borderRadius: 5,
-            px: 3,
-            py: 1,
+            borderRadius: uiTokens.radius.xl,
+            px: uiTokens.spacing.xl,
+            py: uiTokens.spacing.sm,
             fontSize: 14,
             fontWeight: 700,
             textTransform: "none",
@@ -318,7 +344,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
         {/* Floating Action Buttons (right side) - Light blue */}
         <Stack
-          spacing={1.5}
+          spacing={uiTokens.spacing.md}
           sx={{
             position: "absolute",
             right: 16,
@@ -393,14 +419,15 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           </IconButton>
         </Stack>
       </MapShell>
+      </Box>
 
       {/* Trip Info Section (Bottom Card) */}
-      <Box sx={{ px: 2.5, pt: 2, pb: 2 }}>
+      <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.lg, pb: uiTokens.spacing.lg }}>
         <Card
           elevation={0}
           sx={{
-            mb: 2,
-            borderRadius: 2,
+            mb: uiTokens.spacing.lg,
+            borderRadius: uiTokens.radius.sm,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
             border: (theme) =>
@@ -409,9 +436,9 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                 : "1px solid rgba(51,65,85,0.9)"
           }}
         >
-          <CardContent sx={{ px: 2, py: 1.5 }}>
+          <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.md }}>
             {/* Header with Rating and Share icons */}
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: uiTokens.spacing.lg }}>
               <Typography
                 variant="h6"
                 sx={{
@@ -451,9 +478,9 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             {/* Progress Summary Box - Light green */}
             <Box
               sx={{
-                mb: 2,
-                p: 1.5,
-                borderRadius: 2,
+                mb: uiTokens.spacing.lg,
+                p: uiTokens.spacing.md,
+                borderRadius: uiTokens.radius.sm,
                 bgcolor: "#DCFCE7" // Light green background
               }}
             >
@@ -462,7 +489,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                 sx={{
                   fontWeight: 600,
                   color: "#22c55e",
-                  mb: 0.5,
+                  mb: uiTokens.spacing.xxs,
                   fontSize: 14
                 }}
               >
@@ -473,24 +500,24 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                 sx={{
                   color: (theme) => theme.palette.text.secondary,
                   fontSize: 13,
-                  mb: 1.5
+                  mb: uiTokens.spacing.md
                 }}
               >
                 You will reach your destination in {eta.hours} hr and {eta.minutes} mins.
               </Typography>
 
               {/* Progress bar with car icon */}
-              <Box sx={{ position: "relative", mb: 1 }}>
+              <Box sx={{ position: "relative", mb: uiTokens.spacing.xxs }}>
                 <LinearProgress
                   variant="determinate"
                   value={progress}
                   sx={{
                     height: 8,
-                    borderRadius: 5,
+                    borderRadius: uiTokens.radius.xl,
                     bgcolor: (theme) =>
                       theme.palette.mode === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)",
                     "& .MuiLinearProgress-bar": {
-                      borderRadius: 5,
+                      borderRadius: uiTokens.radius.xl,
                       bgcolor: "#22c55e"
                     }
                   }}
@@ -517,7 +544,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             </Box>
 
             {/* Trip Metrics */}
-            <Stack spacing={1.5}>
+            <Stack spacing={uiTokens.spacing.md}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography variant="body2" sx={{ color: (theme) => theme.palette.text.secondary, fontSize: 13 }}>
                   Distance
@@ -550,8 +577,8 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         <Card
           elevation={0}
           sx={{
-            mb: 2,
-            borderRadius: 2,
+            mb: uiTokens.spacing.lg,
+            borderRadius: uiTokens.radius.sm,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
             border: (theme) =>
@@ -560,12 +587,12 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                 : "1px solid rgba(51,65,85,0.9)"
           }}
         >
-          <CardContent sx={{ px: 2, py: 1.5 }}>
+          <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.md }}>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <Box>
                 <Typography
                   variant="caption"
-                  sx={{ color: (theme) => theme.palette.text.secondary, fontSize: 11, display: "block", mb: 0.5 }}
+                  sx={{ color: (theme) => theme.palette.text.secondary, fontSize: 11, display: "block", mb: uiTokens.spacing.xxs }}
                 >
                   Total Fare
                 </Typography>
@@ -584,9 +611,9 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                 variant="contained"
                 onClick={handlePayNow}
                 sx={{
-                  borderRadius: 5,
-                  px: 3,
-                  py: 1,
+                  borderRadius: uiTokens.radius.xl,
+                  px: uiTokens.spacing.xl,
+                  py: uiTokens.spacing.sm,
                   fontSize: 14,
                   fontWeight: 600,
                   textTransform: "none",
@@ -603,7 +630,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           </CardContent>
         </Card>
       </Box>
-    </Box>
+    </ScreenScaffold>
   );
 }
 

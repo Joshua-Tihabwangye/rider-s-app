@@ -421,7 +421,7 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
         {/* Floating Action Buttons - Right side (light blue circular) */}
         <Stack
           direction="column"
-          spacing={1.25}
+          spacing={uiTokens.spacing.md}
           sx={{
             position: "absolute",
             right: 14,
@@ -563,9 +563,9 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
             position: "absolute",
             bottom: 14,
             left: 14,
-            borderRadius: 2.5,
-            px: 3.5,
-            py: 1.25,
+            borderRadius: uiTokens.radius.md,
+            px: uiTokens.spacing.xxl,
+            py: uiTokens.spacing.md,
             fontSize: 14,
             fontWeight: 700,
             textTransform: "none",
@@ -584,12 +584,12 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
       </MapShell>
 
       {/* Trip Info Card - Overlapping map slightly */}
-      <Box sx={{ px: 2.5, pt: 0, pb: 2, mt: -3 }}>
+      <Box sx={{ px: uiTokens.spacing.xl, pt: 0, pb: uiTokens.spacing.lg, mt: -3 }}>
         <Card
           elevation={0}
           sx={{
-            mb: 2,
-            borderRadius: 2,
+            mb: uiTokens.spacing.lg,
+            borderRadius: uiTokens.radius.sm,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
             border: (theme) =>
@@ -599,9 +599,9 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
           }}
         >
-          <CardContent sx={{ px: 2, py: 1.5 }}>
+          <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.mdPlus }}>
             {/* Header with Title and Share Icon */}
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: uiTokens.spacing.lg }}>
               <Typography
                 variant="h6"
                 sx={{
@@ -626,7 +626,7 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
             </Box>
 
             {/* Vehicle Information */}
-            <Box sx={{ mb: 2 }}>
+            <Box sx={{ mb: uiTokens.spacing.lg }}>
               <Typography
                 variant="h6"
                 sx={{
@@ -662,9 +662,9 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
             {/* Progress Summary - Dark blue box */}
             <Box
               sx={{
-                mb: 2,
-                p: 1.5,
-                borderRadius: 2,
+                mb: uiTokens.spacing.lg,
+                p: uiTokens.spacing.mdPlus,
+                borderRadius: uiTokens.radius.sm,
                 bgcolor: "#1E3A5F"
               }}
             >
@@ -697,10 +697,10 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
                   value={progress}
                   sx={{
                     height: 8,
-                    borderRadius: 5,
+                    borderRadius: uiTokens.radius.xl,
                     bgcolor: "rgba(255,255,255,0.2)",
                     "& .MuiLinearProgress-bar": {
-                      borderRadius: 5,
+                      borderRadius: uiTokens.radius.xl,
                       bgcolor: "#2196F3"
                     }
                   }}

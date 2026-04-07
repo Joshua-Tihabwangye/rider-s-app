@@ -69,7 +69,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          borderRadius: uiTokens.radius.xl,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light"
               ? "radial-gradient(circle at top, #FECACA, #FEF2F2)"
@@ -80,13 +80,13 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(248,113,113,0.8)"
         }}
       >
-        <CardContent sx={{ px: { xs: 1.5, sm: 1.9 }, py: { xs: 1.5, sm: 1.9 } }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           <Stack
             direction={{ xs: "column", sm: "row" }}
             justifyContent="space-between"
             alignItems={{ xs: "flex-start", sm: "center" }}
-            spacing={1}
-            sx={{ mb: 1.5 }}
+            spacing={uiTokens.spacing.sm}
+            sx={{ mb: uiTokens.spacing.mdPlus }}
           >
             <Box>
               <Typography
@@ -124,14 +124,14 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
             />
           </Stack>
 
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={uiTokens.spacing.mdPlus}>
             <Button
               fullWidth
               variant="contained"
               onClick={handleRequestNow}
               sx={{
                 borderRadius: uiTokens.radius.xl,
-                py: 0.9,
+                py: uiTokens.spacing.md,
                 fontSize: 13,
                 fontWeight: 700,
                 textTransform: "none",
@@ -148,7 +148,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               onClick={handlePlanTransfer}
               sx={{
                 borderRadius: uiTokens.radius.xl,
-                py: 0.9,
+                py: uiTokens.spacing.md,
                 fontSize: 13,
                 textTransform: "none",
                 borderColor: (t) =>
@@ -182,7 +182,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          borderRadius: uiTokens.radius.xl,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -191,12 +191,12 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.5, sm: 1.7 } }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
-            sx={{ mb: 1 }}
+            sx={{ mb: uiTokens.spacing.smPlus }}
           >
             <Stack direction="row" spacing={0.75} alignItems="center">
               <PeopleAltRoundedIcon
@@ -211,13 +211,13 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
             </Stack>
           </Stack>
 
-          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+          <Stack direction="row" spacing={uiTokens.spacing.sm} sx={{ flexWrap: "wrap" }}>
             <Chip
               label="Me"
               size="small"
               onClick={() => handleSetForWhom("me")}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 fontSize: 11,
                 height: 26,
                 bgcolor:
@@ -242,7 +242,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               size="small"
               onClick={() => handleSetForWhom("family")}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 fontSize: 11,
                 height: 26,
                 bgcolor:
@@ -267,7 +267,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               size="small"
               onClick={() => handleSetForWhom("facility")}
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 fontSize: 11,
                 height: 26,
                 bgcolor:
@@ -295,7 +295,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          borderRadius: uiTokens.radius.xl,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -304,12 +304,12 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.5, sm: 1.6 } }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
-            sx={{ mb: 1 }}
+            sx={{ mb: uiTokens.spacing.smPlus }}
           >
             <Typography
               variant="caption"
@@ -325,7 +325,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
               View history
             </Typography>
           </Stack>
-          <Divider sx={{ mb: 1, borderColor: (t) => t.palette.divider }} />
+          <Divider sx={{ mb: uiTokens.spacing.md, borderColor: (t) => t.palette.divider }} />
 
           {[0, 1].map((i) => (
               <Box

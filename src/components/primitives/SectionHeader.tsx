@@ -28,11 +28,11 @@ export default function SectionHeader({
         flexDirection: centered ? "column" : "row",
         alignItems: centered ? "center" : (compact ? "center" : "flex-start"),
         justifyContent: centered ? "center" : "space-between",
-        gap: centered ? 1 : 1.5,
+        gap: centered ? uiTokens.spacing.sm : uiTokens.spacing.md,
         textAlign: centered ? "center" : "left"
       }}
     >
-      {leadingAction && !centered && <Box sx={{ flexShrink: 0, mr: 0.5, mt: compact ? 0 : 0.5 }}>{leadingAction}</Box>}
+      {leadingAction && !centered && <Box sx={{ flexShrink: 0, mr: uiTokens.spacing.xxs, mt: compact ? 0 : uiTokens.spacing.xxs }}>{leadingAction}</Box>}
       <Box sx={{ minWidth: 0, flex: centered ? "none" : 1 }}>
         {eyebrow && (
           <Typography
@@ -41,7 +41,7 @@ export default function SectionHeader({
               ...uiTokens.text.eyebrow,
               color: (t) => t.palette.text.secondary,
               display: "block",
-              mb: compact ? 0.1 : 0.25
+              mb: compact ? uiTokens.spacing.xxs / 5 : uiTokens.spacing.xs / 3
             }}
           >
             {eyebrow}
@@ -51,7 +51,7 @@ export default function SectionHeader({
           variant="h6"
           sx={{
             ...uiTokens.text.sectionTitle,
-            mt: eyebrow ? 0.05 : 0,
+            mt: eyebrow ? uiTokens.spacing.xxs / 10 : 0,
             lineHeight: compact ? 1.25 : 1.3
           }}
         >
@@ -64,7 +64,7 @@ export default function SectionHeader({
               ...uiTokens.text.itemBody,
               fontSize: 11.5,
               color: (t) => t.palette.text.secondary,
-              mt: 0.35,
+              mt: uiTokens.spacing.xs / 2,
               display: "block"
             }}
           >

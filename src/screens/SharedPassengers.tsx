@@ -16,6 +16,7 @@ import {
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import PercentRoundedIcon from "@mui/icons-material/PercentRounded";
+import { uiTokens } from "../design/tokens";
 
 const SHARED_PASSENGERS = [
   { id: 1, name: "You", initials: "YOU", share: 0.4, isOwner: true },
@@ -43,10 +44,10 @@ function SharedPassengerRow({ passenger }: SharedPassengerRowProps): React.JSX.E
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        py: 1
+        py: uiTokens.spacing.smPlus
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.md }}>
         <Avatar
           sx={{
             width: 32,
@@ -60,7 +61,7 @@ function SharedPassengerRow({ passenger }: SharedPassengerRowProps): React.JSX.E
           {passenger.initials}
         </Avatar>
         <Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.6 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.sm }}>
             <Typography
               variant="body2"
               sx={{ fontSize: 13, fontWeight: 500, letterSpacing: "-0.01em" }}
@@ -72,7 +73,7 @@ function SharedPassengerRow({ passenger }: SharedPassengerRowProps): React.JSX.E
                 label="Payer"
                 size="small"
                 sx={{
-                  borderRadius: 5,
+                  borderRadius: uiTokens.radius.xl,
                   fontSize: 10,
                   height: 20,
                   bgcolor: "rgba(34,197,94,0.12)",
@@ -104,23 +105,23 @@ function SharedPassengersScreen(): React.JSX.Element {
   const totalFare = 14500;
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+    <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.xl, pb: uiTokens.spacing.xxl }}>
       {/* Header */}
       <Box
         sx={{
-          mb: 2,
+          mb: uiTokens.spacing.lg,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between"
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.mdPlus }}>
           <IconButton
             size="small"
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (theme) =>
                 theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (theme) =>
@@ -152,8 +153,8 @@ function SharedPassengersScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2.5,
-          borderRadius: 2,
+          mb: uiTokens.spacing.xl,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -162,8 +163,8 @@ function SharedPassengersScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
+          <Stack direction="row" spacing={uiTokens.spacing.mdPlus} alignItems="center" justifyContent="space-between">
             <Box>
               <Typography
                 variant="caption"
@@ -183,7 +184,7 @@ function SharedPassengersScreen(): React.JSX.Element {
               label="Split between passengers"
               size="small"
               sx={{
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 fontSize: 10,
                 height: 24,
                 bgcolor: "rgba(34,197,94,0.12)",
@@ -198,8 +199,8 @@ function SharedPassengersScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2,
-          borderRadius: 2,
+          mb: uiTokens.spacing.lg,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -208,7 +209,7 @@ function SharedPassengersScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           <Stack spacing={0.5}>
             {SHARED_PASSENGERS.map((p) => (
               <SharedPassengerRow key={p.id} passenger={p} />
@@ -219,7 +220,7 @@ function SharedPassengersScreen(): React.JSX.Element {
 
       <Typography
         variant="caption"
-        sx={{ mb: 1.25, display: "block", fontSize: 11, color: (t) => t.palette.text.secondary }}
+        sx={{ mb: uiTokens.spacing.mdPlus, display: "block", fontSize: 11, color: (t) => t.palette.text.secondary }}
       >
         Only joined passengers are charged at the end of the trip. Invited
         passengers who never joined will not be billed.
@@ -229,8 +230,8 @@ function SharedPassengersScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         sx={{
-          borderRadius: 5,
-          py: 1.1,
+          borderRadius: uiTokens.radius.xl,
+          py: uiTokens.spacing.md,
           fontSize: 15,
           fontWeight: 600,
           textTransform: "none",

@@ -17,6 +17,9 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
+import ScreenScaffold from "../components/ScreenScaffold";
+import { uiTokens } from "../design/tokens";
+
 
 const BRANCHES = [
   "Nsambya EV Hub",
@@ -33,56 +36,57 @@ function RentalPickupReturnBranchesScreen(): React.JSX.Element {
   const canContinue = Boolean(pickupBranch.trim() && returnBranch.trim());
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
-            sx={{
-              borderRadius: 5,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
+    <ScreenScaffold
+      header={
+        <Box
+          sx={{
+            mb: uiTokens.spacing.lg,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between"
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.md }}>
+            <IconButton
+              size="small"
+              aria-label="Back"
+              onClick={() => navigate(-1)}
+              sx={{
+                borderRadius: uiTokens.radius.xl,
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(209,213,219,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)"
+              }}
             >
-              Pickup & return locations
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              Choose where you collect and drop off the EV
-            </Typography>
+              <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+            <Box>
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
+              >
+                Pickup & return locations
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+              >
+                Choose where you collect and drop off the EV
+              </Typography>
+            </Box>
           </Box>
         </Box>
-      </Box>
-
+      }
+    >
       {/* Pickup card */}
       <Card
         elevation={0}
         sx={{
-          mb: 2,
-          borderRadius: 2,
+          mb: uiTokens.spacing.lg,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -91,10 +95,10 @@ function RentalPickupReturnBranchesScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
+        <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
           <Typography
             variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block" }}
+            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: uiTokens.spacing.xxs, display: "block" }}
           >
             Pickup branch
           </Typography>
@@ -111,9 +115,9 @@ function RentalPickupReturnBranchesScreen(): React.JSX.Element {
               )
             }}
             sx={{
-              mb: 1.5,
+              mb: uiTokens.spacing.md,
               "& .MuiOutlinedInput-root": {
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -127,7 +131,7 @@ function RentalPickupReturnBranchesScreen(): React.JSX.Element {
             }}
           />
 
-          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+          <Stack direction="row" spacing={uiTokens.spacing.sm} sx={{ flexWrap: "wrap" }}>
             {BRANCHES.map((b) => (
               <Chip
                 key={b}
@@ -135,7 +139,7 @@ function RentalPickupReturnBranchesScreen(): React.JSX.Element {
                 size="small"
                 onClick={() => setPickupBranch(b)}
                 sx={{
-                  borderRadius: 5,
+                  borderRadius: uiTokens.radius.xl,
                   fontSize: 11,
                   height: 24,
                   bgcolor:
@@ -156,8 +160,8 @@ function RentalPickupReturnBranchesScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2.5,
-          borderRadius: 2,
+          mb: uiTokens.spacing.xl,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -166,10 +170,10 @@ function RentalPickupReturnBranchesScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
+        <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
           <Typography
             variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block" }}
+            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: uiTokens.spacing.xxs, display: "block" }}
           >
             Return branch
           </Typography>
@@ -186,9 +190,9 @@ function RentalPickupReturnBranchesScreen(): React.JSX.Element {
               )
             }}
             sx={{
-              mb: 1.5,
+              mb: uiTokens.spacing.md,
               "& .MuiOutlinedInput-root": {
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.xl,
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
                 "& fieldset": {
@@ -202,7 +206,7 @@ function RentalPickupReturnBranchesScreen(): React.JSX.Element {
             }}
           />
 
-          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+          <Stack direction="row" spacing={uiTokens.spacing.sm} sx={{ flexWrap: "wrap" }}>
             {BRANCHES.map((b) => (
               <Chip
                 key={b}
@@ -210,7 +214,7 @@ function RentalPickupReturnBranchesScreen(): React.JSX.Element {
                 size="small"
                 onClick={() => setReturnBranch(b)}
                 sx={{
-                  borderRadius: 5,
+                  borderRadius: uiTokens.radius.xl,
                   fontSize: 11,
                   height: 24,
                   bgcolor:
@@ -227,7 +231,7 @@ function RentalPickupReturnBranchesScreen(): React.JSX.Element {
 
           <Typography
             variant="caption"
-            sx={{ mt: 1.2, fontSize: 11, color: (t) => t.palette.text.secondary }}
+            sx={{ mt: uiTokens.spacing.md, fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
           >
             Some locations may charge a one‑way drop‑off fee if pickup and
             return branches are different. You’ll see this on the summary screen.
@@ -240,8 +244,8 @@ function RentalPickupReturnBranchesScreen(): React.JSX.Element {
         variant="contained"
         disabled={!canContinue}
         sx={{
-          borderRadius: 5,
-          py: 1.1,
+          borderRadius: uiTokens.radius.xl,
+          py: uiTokens.spacing.smPlus,
           fontSize: 15,
           fontWeight: 600,
           textTransform: "none",
@@ -254,25 +258,20 @@ function RentalPickupReturnBranchesScreen(): React.JSX.Element {
       >
         Continue to summary & payment
       </Button>
-    </Box>
+    </ScreenScaffold>
   );
 }
 
 export default function RiderScreen73RentalPickupReturnBranchesCanvas_v2() {
-      return (
-    
-      
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: (t) => t.palette.background.default
-        }}
-      >
-
-          <RentalPickupReturnBranchesScreen />
-        
-      </Box>
-    
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        minHeight: "100vh",
+        bgcolor: (t) => t.palette.background.default
+      }}
+    >
+      <RentalPickupReturnBranchesScreen />
+    </Box>
   );
 }

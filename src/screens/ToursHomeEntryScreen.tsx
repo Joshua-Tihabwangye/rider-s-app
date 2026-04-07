@@ -18,6 +18,8 @@ import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
+import { uiTokens } from "../design/tokens";
+
 const TOURS = [
   {
     id: "TOUR-01",
@@ -67,8 +69,8 @@ function TourCard({ tour }: TourCardProps): React.JSX.Element {
     <Card
       elevation={0}
       sx={{
-        mb: 1.75,
-        borderRadius: 2,
+        mb: uiTokens.spacing.mdPlus,
+        borderRadius: uiTokens.radius.sm,
         bgcolor: (t) =>
           t.palette.mode === "light"
             ? "linear-gradient(135deg,#FFFFFF,#F9FAFB)"
@@ -79,13 +81,13 @@ function TourCard({ tour }: TourCardProps): React.JSX.Element {
             : "1px solid rgba(51,65,85,0.9)"
       }}
     >
-      <CardContent sx={{ px: 1.75, py: 1.6 }}>
+      <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
         <Stack direction="row" spacing={1.5} alignItems="flex-start" sx={{ mb: 1 }}>
           <Box
             sx={{
               width: 52,
               height: 52,
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
               display: "flex",
@@ -121,7 +123,7 @@ function TourCard({ tour }: TourCardProps): React.JSX.Element {
                   label={tour.tag}
                   size="small"
                   sx={{
-                    borderRadius: 5,
+                    borderRadius: uiTokens.radius.xl,
                     fontSize: 10,
                     height: 22,
                     bgcolor: "rgba(34,197,94,0.12)",
@@ -152,7 +154,7 @@ function TourCard({ tour }: TourCardProps): React.JSX.Element {
                 label="EV transport included"
                 size="small"
                 sx={{
-                  borderRadius: 5,
+                  borderRadius: uiTokens.radius.xl,
                   fontSize: 10,
                   height: 22,
                   bgcolor: "rgba(3,205,140,0.12)",
@@ -186,7 +188,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
   });
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+    <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.xl, pb: uiTokens.spacing.xxl }}>
       {/* Header */}
       <Box
         sx={{
@@ -202,7 +204,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -231,7 +233,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
       </Box>
 
       {/* Search + date */}
-      <Stack spacing={1.25} sx={{ mb: 2.2 }}>
+      <Stack spacing={uiTokens.spacing.smPlus} sx={{ mb: uiTokens.spacing.xl }}>
         <TextField
           fullWidth
           size="small"
@@ -247,7 +249,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
           }}
           sx={{
             "& .MuiOutlinedInput-root": {
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
               "& fieldset": {
@@ -267,7 +269,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
             onClick={() => setFilter("all")}
             size="small"
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               fontSize: 11,
               height: 26,
               bgcolor: filter === "all" ? "primary.main" : (t) =>
@@ -284,7 +286,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
             onClick={() => setFilter("city")}
             size="small"
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               fontSize: 11,
               height: 26,
               bgcolor: filter === "city" ? "primary.main" : (t) =>
@@ -301,7 +303,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
             onClick={() => setFilter("day")}
             size="small"
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               fontSize: 11,
               height: 26,
               bgcolor: filter === "day" ? "primary.main" : (t) =>
@@ -318,7 +320,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
             onClick={() => setFilter("safari")}
             size="small"
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               fontSize: 11,
               height: 26,
               bgcolor: filter === "safari" ? "primary.main" : (t) =>

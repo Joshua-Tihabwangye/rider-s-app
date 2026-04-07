@@ -17,6 +17,7 @@ import {
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
+import { uiTokens } from "../design/tokens";
 
 function RideRatingFeedbackScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -152,12 +153,13 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
             onClick={() => navigate(-1)}
             sx={{
             position: "absolute",
-            top: 16,
-            left: 16,
+            top: uiTokens.spacing.lg,
+            left: uiTokens.spacing.lg,
             bgcolor: "rgba(3,205,140,0.15)",
             color: "#03CD8C",
             width: 40,
             height: 40,
+            borderRadius: uiTokens.radius.xl,
             "&:hover": {
               bgcolor: "#93C5FD"
             },
@@ -169,12 +171,12 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
       </Box>
 
       {/* Content Section - White rounded card over faded map */}
-      <Box sx={{ px: 2.5, pt: 3, pb: 2 }}>
+      <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.xxl, pb: uiTokens.spacing.lg }}>
       <Card
         elevation={0}
         sx={{
-            mb: 2,
-            borderRadius: 3,
+            mb: uiTokens.spacing.lg,
+            borderRadius: uiTokens.radius.sm,
           bgcolor: (theme) =>
             theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (theme) =>
@@ -184,9 +186,9 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
         }}
       >
-          <CardContent sx={{ px: 2.5, py: 2.5 }}>
+          <CardContent sx={{ px: uiTokens.spacing.xl, py: uiTokens.spacing.xl }}>
             {/* Driver Section - Profile image centered at top */}
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 3 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: uiTokens.spacing.xl }}>
               <Avatar
                 sx={{
                   width: 80,
@@ -194,7 +196,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
                   bgcolor: "#03CD8C",
                   fontSize: 32,
                   fontWeight: 700,
-                  mb: 2,
+                  mb: uiTokens.spacing.lg,
                   border: "4px solid",
                   borderColor: (theme) =>
                     theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
@@ -209,7 +211,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
                   fontWeight: 600,
                   letterSpacing: "-0.01em",
                   textAlign: "center",
-                  mb: 0.5,
+                  mb: uiTokens.spacing.xs,
                   color: (theme) => theme.palette.text.primary
                 }}
             >
@@ -218,7 +220,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
           </Box>
 
             {/* Rating Bar - 5-star horizontal rating system */}
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", mb: uiTokens.spacing.xl }}>
               <Rating
                 value={rating}
                 onChange={(e, newValue) => {
@@ -243,7 +245,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
             </Box>
 
             {/* Feedback Input Field */}
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: uiTokens.spacing.xl }}>
               <TextField
                 multiline
                 rows={4}
@@ -253,7 +255,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
                 placeholder="Write your message here…"
                   sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: 2,
+                    borderRadius: uiTokens.radius.md,
                     bgcolor: (theme) =>
                       theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                     "& fieldset": {
@@ -274,12 +276,12 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
             </Box>
 
             {/* Tip Section */}
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: uiTokens.spacing.xl }}>
               <Typography
                 variant="body2"
                 sx={{
                   fontWeight: 600,
-                  mb: 1.5,
+                  mb: uiTokens.spacing.mdPlus,
                   color: (theme) => theme.palette.text.primary
                 }}
               >
@@ -299,7 +301,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
                   startAdornment: (
                     <Typography
                       sx={{
-                        mr: 1,
+                        mr: uiTokens.spacing.sm,
                         color: (theme) => theme.palette.text.secondary,
                         fontWeight: 500
                       }}
@@ -310,7 +312,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
                 }}
               sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: 2,
+                    borderRadius: uiTokens.radius.md,
                     bgcolor: (theme) =>
                       theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
                     "& fieldset": {
@@ -331,7 +333,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
           <Typography
             variant="caption"
             sx={{
-                  mt: 0.75,
+                  mt: uiTokens.spacing.smPlus,
               display: "block",
               fontSize: 11,
               color: (theme) => theme.palette.text.secondary
@@ -348,8 +350,8 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
         disabled={!canSubmit}
         onClick={handleSubmit}
         sx={{
-                borderRadius: 2,
-                py: 1.5,
+                borderRadius: uiTokens.radius.md,
+                py: uiTokens.spacing.mdPlus,
                 fontSize: 16,
           fontWeight: 600,
           textTransform: "none",

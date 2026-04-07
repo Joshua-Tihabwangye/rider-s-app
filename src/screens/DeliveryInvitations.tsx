@@ -114,7 +114,7 @@ function InvitationsPendingScreen(): React.JSX.Element {
             size="small"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.xl,
               bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) => t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)"
             }}
@@ -127,8 +127,8 @@ function InvitationsPendingScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2.5,
-          borderRadius: uiTokens.radius.xl,
+          mb: uiTokens.spacing.lg,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) => t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)"
         }}
@@ -139,7 +139,7 @@ function InvitationsPendingScreen(): React.JSX.Element {
             onChange={(_, val) => setActiveTab(val)}
             variant="fullWidth"
             sx={{
-              minHeight: 48,
+              minHeight: 44,
               borderBottom: '1px solid',
               borderColor: 'divider',
               "& .MuiTab-root": {
@@ -153,8 +153,8 @@ function InvitationsPendingScreen(): React.JSX.Element {
             <Tab value="pending" label="Pending" />
           </Tabs>
 
-          <Box sx={{ p: 2 }}>
-            <Stack spacing={2}>
+          <Box sx={{ p: uiTokens.spacing.lg }}>
+            <Stack spacing={uiTokens.spacing.lg}>
               {filteredInvitations.length === 0 ? (
                 <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
                   {activeTab === "pending" ? "No pending invitations" : "No received invitations"}
@@ -162,7 +162,7 @@ function InvitationsPendingScreen(): React.JSX.Element {
               ) : (
                 filteredInvitations.map((invitation, index) => (
                   <Box key={invitation.id}>
-                    <Stack direction="row" spacing={2} alignItems="center">
+                    <Stack direction="row" spacing={uiTokens.spacing.lg} alignItems="center">
                       <Avatar
                         src={invitation.profileImage || undefined}
                         sx={{ width: 48, height: 48, bgcolor: (t) => t.palette.mode === 'light' ? '#F3F4F6' : 'rgba(255,255,255,0.05)', color: 'text.primary', fontWeight: 600 }}
@@ -180,7 +180,7 @@ function InvitationsPendingScreen(): React.JSX.Element {
                             variant="contained" 
                             size="small" 
                             onClick={() => handleWithdraw(invitation.id)}
-                            sx={{ borderRadius: 5, textTransform: 'none', fontWeight: 600, bgcolor: 'primary.main', color: '#020617', "&:hover": { bgcolor: '#06e29a' } }}
+                            sx={{ borderRadius: uiTokens.radius.xl, textTransform: 'none', fontWeight: 600, bgcolor: 'primary.main', color: '#020617', "&:hover": { bgcolor: '#06e29a' } }}
                           >
                             Withdraw
                           </Button>
@@ -189,12 +189,12 @@ function InvitationsPendingScreen(): React.JSX.Element {
                             size="small" 
                             label={invitation.status.toUpperCase()} 
                             color={invitation.status === "accepted" ? "success" : "error"}
-                            sx={{ fontWeight: 700, borderRadius: 5, fontSize: 10 }}
+                            sx={{ fontWeight: 700, borderRadius: uiTokens.radius.xl, fontSize: 10 }}
                           />
                         )}
                       </Box>
                     </Stack>
-                    {index < filteredInvitations.length - 1 && <Divider sx={{ mt: 2, opacity: 0.1 }} />}
+                    {index < filteredInvitations.length - 1 && <Divider sx={{ mt: uiTokens.spacing.lg, opacity: 0.1 }} />}
                   </Box>
                 ))
               )}

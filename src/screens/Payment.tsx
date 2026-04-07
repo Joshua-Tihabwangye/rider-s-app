@@ -15,6 +15,10 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
 
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
+import { uiTokens } from "../design/tokens";
+
 interface MapBackgroundProps {
   onBackClick?: () => void;
 }
@@ -260,142 +264,107 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
     : theme.palette.background.paper || "rgba(15,23,42,0.98)";
   
   return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: theme.palette.background.default,
-        overflow: "hidden"
-      }}
-    >
-      {/* Map Background */}
-      <MapBackground onBackClick={() => navigate(-1)} />
-      
-      {/* Content Panel - slides up from bottom */}
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: { xs: "calc(64px + env(safe-area-inset-bottom))", sm: "64px" },
-          left: 0,
-          right: 0,
-          borderTopLeftRadius: 5,
-          borderTopRightRadius: 5,
-          bgcolor: contentBg,
-          maxHeight: { xs: 'calc(100vh - 40vh - 64px - env(safe-area-inset-bottom))', sm: 'calc(100vh - 40vh - 64px)' },
-          overflow: "auto",
-          boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
-          zIndex: 1
-        }}
-      >
-        <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-          {/* Header with Title and Fare Summary */}
-          <Box
-            sx={{
-              mb: 2.5,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between"
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <IconButton
-                size="small"
-                aria-label="Back"
-                onClick={() => navigate(-1)}
-                sx={{
-                  borderRadius: 5,
-                  bgcolor: theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-                  border: theme.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
-                }}
-              >
-                <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                Payment method
-              </Typography>
-            </Box>
-            
-            {/* Fare Summary on the right */}
-            <Box sx={{ textAlign: "right" }}>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: theme.palette.text.secondary, display: "block" }}
-              >
-                Total Amount
-              </Typography>
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 700, letterSpacing: "-0.02em", fontSize: 18 }}
-              >
-                {fare}
-              </Typography>
-            </Box>
-          </Box>
-          
-          {/* Payment Options */}
-          <Box sx={{ mb: 2.5 }}>
-            {PAYMENT_METHODS.map((pm) => (
-              <PaymentMethodCard
-                key={pm.id}
-                method={pm}
-                selected={selected}
-                onSelect={setSelected}
-              />
-            ))}
-          </Box>
-          
-          {/* Manage Payment Methods Link */}
-          <Box sx={{ mb: 2.5, textAlign: "center" }}>
-            <Button
-              variant="text"
-              onClick={() => navigate("/wallet")}
-              sx={{
-                textTransform: "none",
-                fontSize: 13,
-                color: theme.palette.text.secondary,
-                "&:hover": {
-                  bgcolor: "transparent",
-                  color: theme.palette.text.primary
-                }
-              }}
+    <ScreenScaffold>
+      <SectionHeader
+        title="Payment method"
+        action={
+          <Box sx={{ textAlign: "right" }}>
+            <Typography
+              variant="caption"
+              sx={{ fontSize: 11, color: theme.palette.text.secondary, display: "block" }}
             >
-              Manage payment methods
-            </Button>
+              Total Amount
+            </Typography>
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 700, letterSpacing: "-0.02em", fontSize: 18 }}
+            >
+              {fare}
+            </Typography>
           </Box>
-          
-          {/* Confirm Button */}
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={handleConfirm}
-            disabled={!selected}
+        }
+        leadingAction={
+          <IconButton
+            size="small"
+            onClick={() => navigate(-1)}
             sx={{
               borderRadius: 5,
-              py: 1.4,
-              fontSize: 15,
-              fontWeight: 600,
+              bgcolor: (t) =>
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+              border: (t) =>
+                t.palette.mode === "light"
+                  ? "1px solid rgba(209,213,219,0.9)"
+                  : "1px solid rgba(51,65,85,0.9)"
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        }
+      />
+
+      <Box sx={{ position: "relative", minHeight: "35vh", bgcolor: theme.palette.background.default, borderRadius: uiTokens.radius.xl, overflow: 'hidden', mb: 2 }}>
+        <MapBackground onBackClick={() => navigate(-1)} />
+      </Box>
+
+      <Box sx={{ flex: 1 }}>
+        {/* Payment Options */}
+        <Box sx={{ mb: 2.5 }}>
+          {PAYMENT_METHODS.map((pm) => (
+            <PaymentMethodCard
+              key={pm.id}
+              method={pm}
+              selected={selected}
+              onSelect={setSelected}
+            />
+          ))}
+        </Box>
+        
+        {/* Manage Payment Methods Link */}
+        <Box sx={{ mb: 2.5, textAlign: "center" }}>
+          <Button
+            variant="text"
+            onClick={() => navigate("/wallet")}
+            sx={{
               textTransform: "none",
-              bgcolor: selected ? "#000000" : "rgba(0,0,0,0.3)", // Black button
-              color: "#FFFFFF",
+              fontSize: 13,
+              color: theme.palette.text.secondary,
               "&:hover": {
-                bgcolor: selected ? "#1a1a1a" : "rgba(0,0,0,0.3)"
-              },
-              "&.Mui-disabled": {
-                bgcolor: "rgba(0,0,0,0.3)",
-                color: "rgba(255,255,255,0.5)"
+                bgcolor: "transparent",
+                color: theme.palette.text.primary
               }
             }}
           >
-            Confirm
+            Manage payment methods
           </Button>
         </Box>
+        
+        {/* Confirm Button */}
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={handleConfirm}
+          disabled={!selected}
+          sx={{
+            borderRadius: 5,
+            py: 1.4,
+            fontSize: 15,
+            fontWeight: 600,
+            textTransform: "none",
+            bgcolor: selected ? "#000000" : "rgba(0,0,0,0.3)",
+            color: "#FFFFFF",
+            "&:hover": {
+              bgcolor: selected ? "#1a1a1a" : "rgba(0,0,0,0.3)"
+            },
+            "&.Mui-disabled": {
+              bgcolor: "rgba(0,0,0,0.3)",
+              color: "rgba(255,255,255,0.5)"
+            }
+          }}
+        >
+          Confirm
+        </Button>
       </Box>
-    </Box>
+    </ScreenScaffold>
   );
 }
 
@@ -408,9 +377,7 @@ export default function RiderScreen21PaymentMethodSelectionCanvas_v2() {
         bgcolor: (theme) => theme.palette.background.default
       }}
     >
-
         <PaymentMethodSelectionScreen />
-      
     </Box>
   );
 }

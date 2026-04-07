@@ -367,8 +367,8 @@ function PickDestinationMapScreen(): React.JSX.Element {
 					sx={{
 						display: "flex",
 						alignItems: "center",
-						gap: 1.5,
-						mb: 2,
+						gap: uiTokens.spacing.md,
+						mb: uiTokens.spacing.lg,
 					}}
 				>
 					<IconButton
@@ -376,7 +376,7 @@ function PickDestinationMapScreen(): React.JSX.Element {
 						aria-label="Back"
 						onClick={() => navigate(-1)}
 						sx={{
-							borderRadius: 5,
+							borderRadius: uiTokens.radius.xl,
 							bgcolor:
 								theme.palette.mode === "light"
 									? "rgba(0,0,0,0.05)"
@@ -421,7 +421,7 @@ function PickDestinationMapScreen(): React.JSX.Element {
 					disabled={isGeocoding}
 					sx={{
 						"& .MuiOutlinedInput-root": {
-							borderRadius: 5,
+							borderRadius: uiTokens.radius.xl,
 							bgcolor:
 								theme.palette.mode === "light"
 									? "#FFFFFF"
@@ -451,7 +451,7 @@ function PickDestinationMapScreen(): React.JSX.Element {
 								theme.palette.mode === "light"
 									? theme.palette.text.primary
 									: "#FFFFFF",
-							pl: 1.5,
+							pl: uiTokens.spacing.md,
 							"&::placeholder": {
 								color:
 									theme.palette.mode === "light"
@@ -590,7 +590,7 @@ function PickDestinationMapScreen(): React.JSX.Element {
 						transform: "translate(-50%, -50%)",
 						width: 200,
 						height: 200,
-						borderRadius: "5px",
+						borderRadius: uiTokens.radius.xl,
 						border: "1px dashed rgba(59,130,246,0.6)",
 						bgcolor: "rgba(147,197,253,0.15)",
 					}}
@@ -635,8 +635,8 @@ function PickDestinationMapScreen(): React.JSX.Element {
 						theme.palette.mode === "light"
 							? "1px solid rgba(0,0,0,0.1)"
 							: "1px solid rgba(255,255,255,0.1)",
-					px: 2.5,
-					py: 2,
+					px: uiTokens.spacing.xl,
+					py: uiTokens.spacing.lg,
 					zIndex: 999,
 					width: "100%",
 					maxWidth: "100%",
@@ -648,8 +648,8 @@ function PickDestinationMapScreen(): React.JSX.Element {
 					variant="contained"
 					onClick={handleConfirm}
 					sx={{
-						borderRadius: 2,
-						py: 1.5,
+						borderRadius: uiTokens.radius.sm,
+						py: uiTokens.spacing.md,
 						fontSize: 16,
 						fontWeight: 600,
 						textTransform: "none",
