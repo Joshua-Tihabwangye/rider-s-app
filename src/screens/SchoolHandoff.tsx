@@ -1,49 +1,42 @@
 import React from "react";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useNavigate } from "react-router-dom";
-import { Box,
-  Typography,
-  Card,
-  CardContent,
-  Stack,
-  Button, IconButton } from "@mui/material";
+import { Box, Typography, Card, CardContent, Stack, Button, IconButton } from "@mui/material";
 
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
+
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
 
 
 function SchoolShuttlesHandoffScreen(): React.JSX.Element {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+    <ScreenScaffold>
       {/* Header */}
-      <Box
-        sx={{
-          mb: 2.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <IconButton
-          size="small"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-          sx={{
-            borderRadius: 5,
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
-          }}
-        >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-        <Box sx={{ width: 32 }} />
-      </Box>
+      <SectionHeader
+        title="School Shuttle Links"
+        subtitle="Operations moved to EVzone School"
+        leadingAction={
+          <IconButton
+            size="small"
+            aria-label="Back"
+            onClick={() => navigate(-1)}
+            sx={{
+              borderRadius: 5,
+              bgcolor: (t) =>
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+              border: (t) =>
+                t.palette.mode === "light"
+                  ? "1px solid rgba(209,213,219,0.9)"
+                  : "1px solid rgba(51,65,85,0.9)"
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        }
+      />
       <Box
         sx={{
           mb: 2.5,
@@ -161,7 +154,7 @@ function SchoolShuttlesHandoffScreen(): React.JSX.Element {
         Once installed, you’ll be able to move between EVzone and EVzone School
         seamlessly.
       </Typography>
-    </Box>
+    </ScreenScaffold>
   );
 }
 

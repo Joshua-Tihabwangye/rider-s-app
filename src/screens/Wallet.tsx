@@ -24,7 +24,9 @@ import {
   MenuItem,
   Divider,
   Snackbar,
-  Alert
+  Alert,
+  Tooltip,
+  TextField
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
@@ -103,6 +105,8 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" | "warning" | "info" }>({ open: false, message: "", severity: "success" });
   const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [transactionError, setTransactionError] = useState(false);
+  const [defaultMethod, setDefaultMethod] = useState("wallet");
+  const [editMethod, setEditMethod] = useState<{ open: boolean; method: string | null }>({ open: false, method: null });
   
   // For demo purposes - can be toggled to show empty states
   const hasTransactions = TRANSACTIONS.length > 0;
@@ -157,8 +161,8 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
   };
 
   const handleViewAllTransactions = () => {
-    // Navigate to full transaction history (could be a new screen or existing)
-    navigate("/wallet/transactions");
+    // Navigate to full transaction history mapping to All History
+    navigate("/history/all");
   };
 
   const handlePaymentMethodClick = (event: React.MouseEvent<HTMLElement>, method: string): void => {
@@ -175,18 +179,22 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
 
   const handleSetAsDefault = () => {
     // Set payment method as default
-    console.log("Set as default:", paymentMethodMenu.method);
+    if (paymentMethodMenu.method) {
+      setDefaultMethod(paymentMethodMenu.method);
+      setSnackbar({
+        open: true,
+        message: `${paymentMethodMenu.method === "wallet" ? "EVzone Wallet" : paymentMethodMenu.method === "cards" ? "Card" : "Mobile Money"} set as default.`,
+        severity: "success"
+      });
+    }
     handlePaymentMethodMenuClose();
   };
 
   const handleEditPaymentMethod = (method?: string | null): void => {
     // Edit payment method
     const methodToEdit = method || paymentMethodMenu.method;
-    console.log("Edit:", methodToEdit);
     handlePaymentMethodMenuClose();
-    // Could navigate to edit screen or show edit dialog
-    // For now, navigate to settings
-    navigate("/settings");
+    setEditMethod({ open: true, method: methodToEdit });
   };
 
   const handleRemovePaymentMethod = () => {
@@ -525,9 +533,9 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 </Stack>
                 <Typography
                   variant="caption"
-                  sx={{ fontSize: 10, color: (t) => t.palette.mode === "light" ? "rgba(22,101,52,0.9)" : "rgba(236,253,245,0.8)" }}
+                  sx={{ fontSize: 10, color: (t) => defaultMethod === "wallet" ? "rgba(22,101,52,0.9)" : t.palette.text.secondary }}
                 >
-                  Default for rides & deliveries
+                  {defaultMethod === "wallet" ? "Default for rides & deliveries" : "Secondary payment method"}
                 </Typography>
               </CardContent>
             </Card>
@@ -540,11 +548,15 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 borderRadius: uiTokens.radius.xl,
                 cursor: "pointer",
                 bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+                  defaultMethod === "cards" 
+                    ? (t.palette.mode === "light" ? "#EFF6FF" : "rgba(37,99,235,0.1)")
+                    : (t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)"),
                 border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
+                  defaultMethod === "cards"
+                    ? "1px solid rgba(37,99,235,0.5)"
+                    : (t.palette.mode === "light"
+                      ? "1px solid rgba(209,213,219,0.9)"
+                      : "1px solid rgba(51,65,85,0.9)"),
                 transition: "all 0.15s ease",
                 "&:hover": {
                   transform: "translateY(-2px)",
@@ -561,9 +573,9 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 </Stack>
                 <Typography
                   variant="caption"
-                  sx={{ fontSize: 10, color: (t) => t.palette.text.secondary }}
+                  sx={{ fontSize: 10, color: (t) => defaultMethod === "cards" ? "rgba(29,78,216,0.9)" : t.palette.text.secondary }}
                 >
-                  VISA 768 767 879 2451 • Expires 11/27
+                  {defaultMethod === "cards" ? "Default for rides & deliveries" : "VISA •••• 2451"}
                 </Typography>
               </CardContent>
             </Card>
@@ -576,8 +588,15 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 borderRadius: uiTokens.radius.xl,
                 cursor: "pointer",
                 bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFBEB" : "rgba(15,23,42,0.96)",
-                border: "1px solid rgba(245,158,11,0.6)",
+                  defaultMethod === "mobile"
+                    ? (t.palette.mode === "light" ? "#FFFBEB" : "rgba(245,158,11,0.1)")
+                    : (t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)"),
+                border: (t) =>
+                  defaultMethod === "mobile"
+                    ? "1px solid rgba(245,158,11,0.6)"
+                    : (t.palette.mode === "light"
+                      ? "1px solid rgba(209,213,219,0.9)"
+                      : "1px solid rgba(51,65,85,0.9)"),
                 transition: "all 0.15s ease",
                 "&:hover": {
                   transform: "translateY(-2px)",
@@ -594,9 +613,9 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 </Stack>
                 <Typography
                   variant="caption"
-                  sx={{ fontSize: 10, color: (t) => t.palette.text.secondary }}
+                  sx={{ fontSize: 10, color: (t) => defaultMethod === "mobile" ? "rgba(234,88,12,0.9)" : t.palette.text.secondary }}
                 >
-                  MTN Mobile Money
+                  {defaultMethod === "mobile" ? "Default for rides & deliveries" : "MTN Mobile Money"}
                 </Typography>
               </CardContent>
             </Card>
@@ -1102,6 +1121,60 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* Edit Payment Method Dialog */}
+      <Dialog
+        open={editMethod.open}
+        onClose={() => setEditMethod({ open: false, method: null })}
+        PaperProps={{
+          sx: {
+            borderRadius: uiTokens.radius.xl,
+            bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+            maxWidth: 400
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Edit {editMethod.method === "wallet" ? "EVzone Wallet" : editMethod.method === "cards" ? "Card" : "Mobile Money"}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              fullWidth
+              label="Account Name"
+              defaultValue={editMethod.method === "wallet" ? "Stewart Robinson" : editMethod.method === "cards" ? "S ROBINSON" : "Stewart Robinson"}
+              size="small"
+            />
+            {editMethod.method === "cards" && (
+              <TextField
+                fullWidth
+                label="Card Number"
+                defaultValue="•••• •••• •••• 2451"
+                size="small"
+              />
+            )}
+            {editMethod.method === "mobile" && (
+              <TextField
+                fullWidth
+                label="Phone Number"
+                defaultValue="+256 772 000 000"
+                size="small"
+              />
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 2.5, pb: 2 }}>
+          <Button onClick={() => setEditMethod({ open: false, method: null })} sx={{ textTransform: "none" }}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={() => {
+              setEditMethod({ open: false, method: null });
+              setSnackbar({ open: true, message: "Changes saved successfully!", severity: "success" });
+            }}
+            sx={{ textTransform: "none", bgcolor: "primary.main", color: "#020617", "&:hover": { bgcolor: "#06e29a" } }}
+          >
+            Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
     </ScreenScaffold>
   );
 }

@@ -463,15 +463,7 @@ function EnterDestinationMaxStopsScreen(): React.JSX.Element {
 				</Card>
 
 
-			{/* Lower Section */}
-			<Box
-				sx={{
-					px: 2.5,
-					pt: 2,
-					bgcolor: contentBg,
-					minHeight: "calc(100vh - 200px)",
-				}}
-			>
+			{/* Lower Section Cards */}
 				{/* Error Alert */}
 				{showError && (
 					<Alert
@@ -880,7 +872,6 @@ function EnterDestinationMaxStopsScreen(): React.JSX.Element {
 						/>
 					</CardContent>
 				</Card>
-			</Box>
 
 			{/* Fixed Bottom Section */}
 			<Box

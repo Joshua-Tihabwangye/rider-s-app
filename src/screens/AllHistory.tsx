@@ -9,7 +9,11 @@ import {
   CardContent,
   Stack,
   Chip,
-  Button
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from "@mui/material";
 
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
@@ -236,10 +240,44 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
 function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("all");
+  const [period, setPeriod] = useState("Month");
+  const [selectedYear, setSelectedYear] = useState(2025);
+  const [selectedQuarter, setSelectedQuarter] = useState("Q4");
+
+  const periods = ["Today", "Week", "Month", "Quarter", "Year"];
+  const years = [2023, 2024, 2025];
+  const quarters = ["Q1", "Q2", "Q3", "Q4"];
 
   const filtered = ALL_ORDERS.filter((order) => {
-    if (filter === "all") return true;
-    return order.type === filter;
+    // Type Filter
+    const matchesType = filter === "all" || order.type === filter;
+    
+    // Period Filter logic
+    let matchesPeriod = true;
+    if (period === "Today") {
+      matchesPeriod = order.date.includes("01 Oct 2025");
+    } else if (period === "Week") {
+      matchesPeriod = ["01", "05", "07"].some(d => order.date.includes(`${d} Oct`));
+    } else if (period === "Month") {
+      matchesPeriod = order.date.includes("Oct 2025");
+    } else if (period === "Quarter") {
+      const isYearMatch = order.date.includes(selectedYear.toString());
+      let isQuarterMatch = false;
+      if (selectedQuarter === "Q4") {
+        isQuarterMatch = ["Oct", "Nov", "Dec"].some(m => order.date.includes(m));
+      } else if (selectedQuarter === "Q3") {
+        isQuarterMatch = ["Jul", "Aug", "Sep"].some(m => order.date.includes(m));
+      } else if (selectedQuarter === "Q2") {
+        isQuarterMatch = ["Apr", "May", "Jun"].some(m => order.date.includes(m));
+      } else if (selectedQuarter === "Q1") {
+        isQuarterMatch = ["Jan", "Feb", "Mar"].some(m => order.date.includes(m));
+      }
+      matchesPeriod = isYearMatch && isQuarterMatch;
+    } else if (period === "Year") {
+      matchesPeriod = order.date.includes(selectedYear.toString());
+    }
+
+    return matchesType && matchesPeriod;
   });
 
   return (
@@ -287,8 +325,80 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
         </Box>
       </Box>
 
+      {/* Period Selection */}
+      <Box sx={{ mb: 2, overflowX: "auto", pb: 1, display: 'flex' }}>
+        <Stack direction="row" spacing={1}>
+          {periods.map((p) => (
+            <Chip
+              key={p}
+              label={p}
+              onClick={() => setPeriod(p)}
+              size="small"
+              sx={{
+                borderRadius: 5,
+                fontSize: 10,
+                height: 24,
+                bgcolor: period === p ? "primary.main" : "transparent",
+                color: period === p ? "#020617" : "text.secondary",
+                border: '1px solid',
+                borderColor: period === p ? 'primary.main' : 'divider',
+                fontWeight: period === p ? 600 : 400,
+                transition: 'all 0.2s ease'
+              }}
+            />
+          ))}
+        </Stack>
+      </Box>
+
+      {/* Granular Period Selectors */}
+      {period === "Quarter" && (
+        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 100 }}>
+            <InputLabel id="quarter-select-label" sx={{ fontSize: 12 }}>Quarter</InputLabel>
+            <Select
+              labelId="quarter-select-label"
+              value={selectedQuarter}
+              label="Quarter"
+              onChange={(e) => setSelectedQuarter(e.target.value as string)}
+              sx={{ borderRadius: 2, fontSize: 13 }}
+            >
+              {quarters.map(q => <MenuItem key={q} value={q} sx={{ fontSize: 13 }}>{q}</MenuItem>)}
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 100 }}>
+            <InputLabel id="year-select-label" sx={{ fontSize: 12 }}>Year</InputLabel>
+            <Select
+              labelId="year-select-label"
+              value={selectedYear}
+              label="Year"
+              onChange={(e) => setSelectedYear(e.target.value as number)}
+              sx={{ borderRadius: 2, fontSize: 13 }}
+            >
+              {years.map(y => <MenuItem key={y} value={y} sx={{ fontSize: 13 }}>{y}</MenuItem>)}
+            </Select>
+          </FormControl>
+        </Stack>
+      )}
+
+      {period === "Year" && (
+        <Box sx={{ mb: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel id="year-only-select-label" sx={{ fontSize: 12 }}>Select Year</InputLabel>
+            <Select
+              labelId="year-only-select-label"
+              value={selectedYear}
+              label="Select Year"
+              onChange={(e) => setSelectedYear(e.target.value as number)}
+              sx={{ borderRadius: 2, fontSize: 13 }}
+            >
+              {years.map(y => <MenuItem key={y} value={y} sx={{ fontSize: 13 }}>{y}</MenuItem>)}
+            </Select>
+          </FormControl>
+        </Box>
+      )}
+
       {/* Filters */}
-      <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: "wrap" }}>
+      <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: "wrap", rowGap: 1 }}>
         <Chip
           label="All"
           onClick={() => setFilter("all")}

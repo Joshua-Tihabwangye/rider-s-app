@@ -1030,15 +1030,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 				</Card>
 
 
-			{/* Lower Section - White/Light Background */}
-			<Box
-				sx={{
-					px: 2.5,
-					pt: 2,
-					bgcolor: contentBg,
-					minHeight: "calc(100vh - 200px)",
-				}}
-			>
+			{/* Lower Section Cards */}
 				{/* Error Alert */}
 				{showError && (
 					<Alert
@@ -1820,7 +1812,6 @@ function EnterDestinationScreen(): React.JSX.Element {
 						)}
 					</Box>
 				)}
-			</Box>
 
 			{/* Fixed Bottom Section with Locate on Map and Continue Button */}
 			<Box

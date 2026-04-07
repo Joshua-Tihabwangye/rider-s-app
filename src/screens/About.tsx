@@ -26,22 +26,26 @@ export default function About(): React.JSX.Element {
     {
       icon: <InfoRoundedIcon />,
       label: "App Version",
-      description: "1.0.0"
+      description: "1.0.0",
+      action: undefined
     },
     {
       icon: <DescriptionRoundedIcon />,
       label: "Terms of Service",
-      description: "Read our terms and conditions"
+      description: "Read our terms and conditions",
+      action: () => window.open("https://evzone.com/terms", "_blank")
     },
     {
       icon: <GavelRoundedIcon />,
       label: "Privacy Policy",
-      description: "How we handle your data"
+      description: "How we handle your data",
+      action: () => window.open("https://evzone.com/privacy", "_blank")
     },
     {
       icon: <UpdateRoundedIcon />,
       label: "What's New",
-      description: "Latest updates and features"
+      description: "Latest updates and features",
+      action: () => window.open("https://evzone.com/updates", "_blank")
     }
   ];
 
@@ -162,6 +166,7 @@ export default function About(): React.JSX.Element {
               <React.Fragment key={item.label}>
                 <ListItem disablePadding>
                   <ListItemButton
+                    onClick={item.action}
                     sx={{
                       borderRadius: 2,
                       mb: 1,
