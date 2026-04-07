@@ -21,6 +21,8 @@ import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutline";
+import ScreenScaffold from "../components/ScreenScaffold";
+import PageHeader from "../components/PageHeader";
 
 function RideBookingConfirmationScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -83,72 +85,43 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
   const greenAccent = "#03CD8C";
 
   return (
-    <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: theme.palette.background.default }}>
-{/* Header Bar */}
-      <Box
-      sx={{
-          bgcolor: headerBg,
-          px: 2.5,
-          pt: 2,
-          pb: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <IconButton
-          size="small"
-          onClick={handleBack}
-          sx={{
-            color: headerText,
-            "&:hover": {
-              bgcolor: "rgba(255,255,255,0.1)"
-            }
-          }}
-        >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 20 }} />
-        </IconButton>
-        
-            <Typography
-          variant="h6"
-          sx={{
-            fontWeight: 600,
-            color: headerText,
-            fontSize: 18,
-            letterSpacing: "-0.01em"
-          }}
-            >
-          Ride Details
-            </Typography>
-        
-        <Box sx={{ position: "relative" }}>
-          <IconButton
-            size="small"
-            onClick={handleNotifications}
-            sx={{
-              color: headerText,
-              "&:hover": {
-                bgcolor: "rgba(255,255,255,0.1)"
-              }
-            }}
-          >
-            <NotificationsRoundedIcon sx={{ fontSize: 22 }} />
-          </IconButton>
-          {/* Notification dot */}
-          <Box
-            sx={{
-              position: "absolute",
-              top: 8,
-              right: 8,
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              bgcolor: "#EF4444",
-              border: "1.5px solid #FFFFFF"
-            }}
-          />
-        </Box>
-      </Box>
+    <ScreenScaffold
+      header={
+        <PageHeader
+          title="Ride Details"
+          onBack={handleBack}
+          rightAction={
+            <Box sx={{ position: "relative" }}>
+              <IconButton
+                size="small"
+                onClick={handleNotifications}
+                sx={{
+                  color: theme.palette.text.primary,
+                  "&:hover": {
+                    bgcolor: theme.palette.mode === "light" ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)"
+                  }
+                }}
+              >
+                <NotificationsRoundedIcon sx={{ fontSize: 22 }} />
+              </IconButton>
+              {/* Notification dot */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  bgcolor: "#EF4444",
+                  border: theme.palette.mode === "light" ? "1.5px solid #FFFFFF" : "1.5px solid #1E2A47"
+                }}
+              />
+            </Box>
+          }
+        />
+      }
+    >
 
       
         <Box sx={{ px: 2.5, pt: 3, pb: 3 }}>
@@ -525,7 +498,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
           </Stack>
         </Box>
       
-    </Box>
+    </ScreenScaffold>
   );
 }
 

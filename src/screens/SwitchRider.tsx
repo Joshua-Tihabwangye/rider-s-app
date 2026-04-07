@@ -132,13 +132,13 @@ function SwitchRiderChooserScreen(): React.JSX.Element {
           onClick={(e) => e.stopPropagation()}
         >
           <Box>
-            {/* Header Section */}
+            {/* Header Section (Neutral) */}
             <Box
               sx={{
                 px: 2.5,
                 pt: 2.5,
                 pb: 2,
-                bgcolor: headerBg
+                bgcolor: contentBg
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
@@ -147,22 +147,25 @@ function SwitchRiderChooserScreen(): React.JSX.Element {
                   aria-label="Back"
                   onClick={handleClose}
                   sx={{
-                    borderRadius: 5,
-                    bgcolor: "rgba(255,255,255,0.1)",
-                    color: headerText,
+                    width: 36,
+                    height: 36,
+                    bgcolor: "var(--evz-header-back-bg)",
+                    border: "1px solid var(--evz-header-back-border)",
+                    borderRadius: "var(--evz-radius-md)",
+                    color: theme.palette.text.primary,
                     "&:hover": {
-                      bgcolor: "rgba(255,255,255,0.2)"
+                      bgcolor: theme.palette.mode === "light" ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)"
                     }
                   }}
                 >
-                  <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+                  <ArrowBackIosNewRoundedIcon sx={{ fontSize: 17 }} />
                 </IconButton>
                 <Typography
                   variant="subtitle1"
                   sx={{ 
-                    fontWeight: 600, 
+                    fontWeight: 700, 
                     letterSpacing: "-0.01em", 
-                    color: headerText 
+                    color: theme.palette.text.primary 
                   }}
                 >
                   Enter Destination
@@ -173,11 +176,12 @@ function SwitchRiderChooserScreen(): React.JSX.Element {
               <Card
                 elevation={0}
                 sx={{
-                  borderRadius: 2,
+                  borderRadius: 3,
                   bgcolor: contentBg,
                   border: theme.palette.mode === "light"
                     ? "1px solid rgba(0,0,0,0.1)"
-                    : "1px solid rgba(255,255,255,0.1)"
+                    : "1px solid rgba(255,255,255,0.1)",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
                 }}
               >
                 <CardContent sx={{ px: 2, py: 2 }}>

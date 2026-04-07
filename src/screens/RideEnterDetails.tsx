@@ -34,6 +34,8 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SwapVertRoundedIcon from "@mui/icons-material/SwapVertRounded";
 import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
 import Avatar from "@mui/material/Avatar";
+import ScreenScaffold from "../components/ScreenScaffold";
+import PageHeader from "../components/PageHeader";
 import SwitchRiderModal from "../components/SwitchRiderModal";
 import TripTypeModal from "../components/TripTypeModal";
 import AddStopModal from "../components/AddStopModal";
@@ -483,78 +485,22 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const lightGreen = "rgba(3,205,140,0.1)"; // Light green for active passenger selection
 
 	return (
-		<Box
-			sx={{
-				minHeight: "100vh",
-				bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "#1E2A47",
-				paddingBottom: {
-					xs: "calc(100px + env(safe-area-inset-bottom))",
-					sm: "120px",
-				},
-			}}
+		<ScreenScaffold
+			header={<PageHeader title="Enter Destination" />}
 		>
-			{/* Header Section - Green */}
-			<Box
+			{/* Trip Setup Card - Neutral Background */}
+			<Card
+				elevation={0}
 				sx={{
-					px: 2.5,
-					pt: 2.5,
-					pb: 2,
-					bgcolor: headerBg,
+					borderRadius: 3,
+					bgcolor: contentBg,
+					border:
+						theme.palette.mode === "light"
+							? "1px solid rgba(0,0,0,0.1)"
+							: "1px solid rgba(255,255,255,0.1)",
+					boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
 				}}
 			>
-				<Box
-					sx={{
-						display: "flex",
-						alignItems: "center",
-						gap: 1.5,
-						mb: 2,
-					}}
-				>
-					<IconButton
-						size="small"
-						aria-label="Back"
-						onClick={() => navigate(-1)}
-						sx={{
-							borderRadius: 5,
-							bgcolor:
-								theme.palette.mode === "light"
-									? "rgba(255,255,255,0.1)"
-									: "rgba(255,255,255,0.1)",
-							color: headerText,
-							"&:hover": {
-								bgcolor:
-									theme.palette.mode === "light"
-										? "rgba(255,255,255,0.2)"
-										: "rgba(255,255,255,0.2)",
-							},
-						}}
-					>
-						<ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-					</IconButton>
-					<Typography
-						variant="subtitle1"
-						sx={{
-							fontWeight: 600,
-							letterSpacing: "-0.01em",
-							color: headerText,
-						}}
-					>
-						Enter Destination
-					</Typography>
-				</Box>
-
-				{/* Trip Setup Card - White/Light Background */}
-				<Card
-					elevation={0}
-					sx={{
-						borderRadius: 2,
-						bgcolor: contentBg,
-						border:
-							theme.palette.mode === "light"
-								? "1px solid rgba(0,0,0,0.1)"
-								: "1px solid rgba(255,255,255,0.1)",
-					}}
-				>
 					<CardContent sx={{ px: 2, py: 2 }}>
 						<Stack spacing={2}>
 							{/* Origin Field with Green Pin */}
@@ -1082,7 +1028,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 						</Stack>
 					</CardContent>
 				</Card>
-			</Box>
+
 
 			{/* Lower Section - White/Light Background */}
 			<Box
@@ -2058,7 +2004,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 				}}
 				currentStopCount={stops.length}
 			/>
-		</Box>
+		</ScreenScaffold>
 	);
 }
 
