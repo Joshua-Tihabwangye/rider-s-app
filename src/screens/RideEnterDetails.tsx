@@ -274,7 +274,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 		scheduleTime,
 		riderType,
 		selectedContact,
-		actions,
+		actions.updateRideRequest,
 	]);
 
 	const passengerOptions = [1, 2, 3, 4, 5, 6];
@@ -1881,59 +1881,33 @@ function EnterDestinationScreen(): React.JSX.Element {
 					</Box>
 				)}
 
-			{/* Fixed Bottom Section with Locate on Map and Continue Button */}
+			{/* Inline Action Section */}
 			<Box
 				sx={{
-					position: "fixed",
-					bottom: {
-						xs: "calc(64px + env(safe-area-inset-bottom))",
-						sm: 64,
-					},
-					left: 0,
-					right: 0,
+					mt: 2,
 					bgcolor: contentBg,
-					borderTop:
+					border:
 						theme.palette.mode === "light"
-							? "1px solid rgba(0,0,0,0.1)"
+							? "1px solid rgba(0,0,0,0.08)"
 							: "1px solid rgba(255,255,255,0.1)",
-					px: 2.5,
-					py: 2,
-					zIndex: 999,
-					width: "100%",
-					maxWidth: "100%",
-					margin: 0,
+					borderRadius: 2,
+					px: 2,
+					py: 1.5,
 				}}
 			>
-				{/* Locate on Map Button */}
-				<Button
-					fullWidth
-					onClick={handleLocateOnMap}
-					sx={{
-						mb: 1.5,
-						color: accentGreen,
-						textTransform: "none",
-						fontSize: 14,
-						fontWeight: 500,
-						"&:hover": {
-							bgcolor: "rgba(3,205,140,0.1)",
-						},
-					}}
-					startIcon={<MapRoundedIcon />}
-				>
-					Locate on Map
-				</Button>
-
 				{/* Test Navigation to Sharing Passengers Screen - Remove in production */}
 				<Button
 					fullWidth
 					onClick={() => navigate("/rides/trip/sharing")}
 					sx={{
-						mb: 1.5,
+						mb: 1,
 						color: accentGreen,
 						textTransform: "none",
-						fontSize: 14,
-						fontWeight: 500,
+						fontSize: 12,
+						fontWeight: 600,
 						border: "1px solid #03CD8C",
+						borderRadius: 2,
+						py: 0.6,
 						"&:hover": {
 							bgcolor: "rgba(3,205,140,0.1)",
 						},
@@ -1954,8 +1928,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 					disabled={!canContinue}
 					sx={{
 						borderRadius: 2,
-						py: 1.5,
-						fontSize: 16,
+						py: 0.9,
+						fontSize: 13.5,
 						fontWeight: 600,
 						textTransform: "none",
 						bgcolor: canContinue ? "#000000" : "rgba(0,0,0,0.2)",

@@ -62,7 +62,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
     }, 1000);
 
     return () => clearInterval(searchInterval);
-  }, [searchTime, driverFound, navigate]);
+  }, [searchTime, driverFound, navigate, actions.setRideStatus]);
 
   const handleCancelClick = () => {
     setShowCancelDialog(true);

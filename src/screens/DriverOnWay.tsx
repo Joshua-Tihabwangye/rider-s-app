@@ -45,7 +45,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [actions.setRideStatus]);
 
   const handleAccept = () => {
     // Proceed to waiting state / driver arrived screen

@@ -43,7 +43,7 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
 
   React.useEffect(() => {
     actions.setRideStatus("driver_assigned");
-  }, [actions]);
+  }, [actions.setRideStatus]);
 
   const handleBack = () => {
     navigate(-1);
