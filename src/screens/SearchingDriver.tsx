@@ -77,6 +77,23 @@ function SearchingForDriverScreen(): React.JSX.Element {
     setShowCancelDialog(false);
   };
 
+  const topMapBleedSx = {
+    position: "relative",
+    width: {
+      xs: "calc(100% + (var(--rider-shell-content-px-xs, 20px) * 2))",
+      md: "calc(100% + (var(--rider-shell-content-px-md, 24px) * 2))"
+    },
+    ml: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    mr: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    overflow: "hidden"
+  } as const;
+
   return (
     <ScreenScaffold>
       <SectionHeader
@@ -101,13 +118,14 @@ function SearchingForDriverScreen(): React.JSX.Element {
         }
       />
 
-      <Box sx={{ position: "relative", minHeight: "40vh", bgcolor: (theme) => theme.palette.background.default, borderRadius: uiTokens.radius.xl, overflow: 'hidden' }}>
-      <MapShell
-        preset="compact"
-        onBack={() => navigate(-1)}
-        showBackButton
-        canvasSx={{ background: uiTokens.map.canvasEmphasis }}
-      >
+      <Box sx={topMapBleedSx}>
+        <MapShell
+          preset="compact"
+          sx={{ height: { xs: "56dvh", md: "55vh" } }}
+          onBack={() => navigate(-1)}
+          showBackButton
+          canvasSx={{ background: uiTokens.map.canvasEmphasis }}
+        >
 
         {/* Lake Victoria label */}
         <Typography
@@ -207,7 +225,8 @@ function SearchingForDriverScreen(): React.JSX.Element {
             boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
           }}
         />
-      </MapShell>
+        </MapShell>
+      </Box>
 
       {/* Content below map */}
       <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.lg, pb: uiTokens.spacing.xxl }}>
@@ -492,7 +511,6 @@ function SearchingForDriverScreen(): React.JSX.Element {
           </Button>
         </DialogActions>
       </Dialog>
-      </Box>
     </ScreenScaffold>
   );
 }

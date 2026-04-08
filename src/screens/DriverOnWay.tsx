@@ -72,6 +72,23 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
     setChatOpen(true);
   };
 
+  const topMapBleedSx = {
+    position: "relative",
+    width: {
+      xs: "calc(100% + (var(--rider-shell-content-px-xs, 20px) * 2))",
+      md: "calc(100% + (var(--rider-shell-content-px-md, 24px) * 2))"
+    },
+    ml: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    mr: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    overflow: "hidden"
+  } as const;
+
   return (
     <ScreenScaffold>
       <SectionHeader
@@ -112,14 +129,14 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
         }
       />
 
-      <Box sx={{ position: "relative", minHeight: "55vh", bgcolor: (theme) => theme.palette.background.default, borderRadius: uiTokens.radius.xl, overflow: 'hidden' }}>
-      <MapShell
-        preset="compact"
-        height="55vh"
-        onBack={() => navigate(-1)}
-        showBackButton
-        canvasSx={{ background: uiTokens.map.canvasEmphasis }}
-      >
+      <Box sx={topMapBleedSx}>
+        <MapShell
+          preset="compact"
+          sx={{ height: { xs: "56dvh", md: "55vh" } }}
+          onBack={() => navigate(-1)}
+          showBackButton
+          canvasSx={{ background: uiTokens.map.canvasEmphasis }}
+        >
 
         {/* Map Labels */}
         <Typography
@@ -248,7 +265,8 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
             }}
           />
         </Box>
-      </MapShell>
+        </MapShell>
+      </Box>
 
       {/* Content below map */}
       <Box sx={{ px: 2.5, pt: 0, pb: 3 }}>
@@ -498,7 +516,6 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
             Change
           </Button>
         </Stack>
-      </Box>
       </Box>
 
       <DriverChatRoom

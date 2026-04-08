@@ -104,6 +104,23 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     navigate("/rides/payment");
   };
 
+  const topMapBleedSx = {
+    position: "relative",
+    width: {
+      xs: "calc(100% + (var(--rider-shell-content-px-xs, 20px) * 2))",
+      md: "calc(100% + (var(--rider-shell-content-px-md, 24px) * 2))"
+    },
+    ml: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    mr: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    overflow: "hidden"
+  } as const;
+
   return (
     <ScreenScaffold>
       <SectionHeader
@@ -144,8 +161,12 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         }
       />
 
-      <Box sx={{ position: "relative", minHeight: "50vh", bgcolor: (theme) => theme.palette.background.default, borderRadius: uiTokens.radius.xl, overflow: 'hidden' }}>
-      <MapShell preset="full" canvasSx={{ background: uiTokens.map.canvasEmphasis }}>
+      <Box sx={topMapBleedSx}>
+        <MapShell
+          preset="full"
+          sx={{ height: { xs: "56dvh", md: "60vh" } }}
+          canvasSx={{ background: uiTokens.map.canvasEmphasis }}
+        >
 
         {/* Map Labels - Landmarks */}
         <Typography
@@ -433,7 +454,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             <SettingsRoundedIcon />
           </IconButton>
         </Stack>
-      </MapShell>
+        </MapShell>
       </Box>
 
       {/* Trip Info Section (Bottom Card) */}
