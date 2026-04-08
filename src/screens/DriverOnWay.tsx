@@ -21,6 +21,7 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import MapShell from "../components/maps/MapShell";
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
+import DriverChatRoom from "../components/DriverChatRoom";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 
@@ -30,6 +31,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const activeTrip = ride.activeTrip;
   const driver = activeTrip?.driver;
   const [arrivalTime, setArrivalTime] = useState(activeTrip?.etaMinutes ?? 5); // minutes
+  const [chatOpen, setChatOpen] = useState(false);
   const otp = activeTrip?.otp ?? "—";
 
   // Simulate countdown timer
@@ -67,7 +69,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   };
 
   const handleMessage = () => {
-    navigate("/help");
+    setChatOpen(true);
   };
 
   return (
@@ -498,6 +500,13 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
         </Stack>
       </Box>
       </Box>
+
+      <DriverChatRoom
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+        driverName={driver?.name}
+        driverAvatar={driver?.avatar}
+      />
     </ScreenScaffold>
   );
 }

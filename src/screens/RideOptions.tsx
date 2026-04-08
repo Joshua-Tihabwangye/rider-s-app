@@ -293,9 +293,18 @@ function SelectYourRideScreen(): React.JSX.Element {
     const tripData = location.state || {};
     const selectedRideOption = ride.options.find((opt) => opt.id === selectedRide);
     const fare = selectedRideOption?.fare || ride.activeTrip?.fareEstimate || "UGX 40,365";
+    const estimatedEtaMinutes =
+      Number.parseInt(selectedRideOption?.eta.replace(/[^0-9]/g, ""), 10) || ride.activeTrip?.etaMinutes || 0;
     
-    // Navigate to Ride Details screen (RA47) before booking
-    navigate("/rides/details/confirm", {
+    actions.updateRideTrip({
+      fareEstimate: fare,
+      etaMinutes: estimatedEtaMinutes,
+      distance: tripData.distance || ride.activeTrip?.distance || "—"
+    });
+    actions.setRideStatus("searching");
+
+    // Directly continue to driver search after ride confirmation
+    navigate("/rides/searching", {
       state: {
         ...tripData,
         selectedRide,
@@ -303,18 +312,7 @@ function SelectYourRideScreen(): React.JSX.Element {
         fare,
         distance: tripData.distance || ride.activeTrip?.distance || "—",
         estimatedTime: tripData.estimatedTime || `${ride.activeTrip?.etaMinutes ?? 0} mins`,
-        origin: tripData.pickup ? {
-          name: tripData.pickup,
-          address: tripData.pickupAddress || tripData.pickup,
-          time: tripData.scheduleTime || "Now"
-        } : null,
-        destination: tripData.destination ? {
-          name: tripData.destination,
-          address: tripData.destinationAddress || tripData.destination,
-          time: tripData.arrivalTime || null
-        } : null,
-        passengers: tripData.passengers || 1,
-        dateLabel: tripData.isScheduled ? tripData.schedule : "Today"
+        fromRideOptions: true
       }
     });
   };
