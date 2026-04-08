@@ -43,6 +43,7 @@ export const uiTokens = {
     sectionGap: 2
   },
   radius: {
+    xs: 1,
     sm: 2,
     md: 3,
     lg: 4,
@@ -94,6 +95,7 @@ export const uiTokens = {
   },
   elevation: {
     card: "var(--evz-shadow-card)",
+    cardHover: "var(--evz-shadow-raised)",
     raised: "var(--evz-shadow-raised)"
   },
   map: {

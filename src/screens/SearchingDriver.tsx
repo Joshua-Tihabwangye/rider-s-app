@@ -83,7 +83,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
             size="small"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 5,
+              borderRadius: uiTokens.radius.pill,
               bgcolor: (t) =>
                 t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
               border: (t) =>
@@ -206,9 +206,9 @@ function SearchingForDriverScreen(): React.JSX.Element {
       </MapShell>
 
       {/* Content below map */}
-      <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
+      <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.lg, pb: uiTokens.spacing.xxl }}>
         {/* Profile placeholder + text placeholders */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.lg, mb: uiTokens.spacing.xl }}>
           {/* Large circular placeholder */}
           <Avatar
             sx={{
@@ -227,17 +227,17 @@ function SearchingForDriverScreen(): React.JSX.Element {
               sx={{
                 height: 18,
                 width: "70%",
-                borderRadius: 1,
+                borderRadius: uiTokens.radius.xs,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)",
-                mb: 1.2
+                mb: uiTokens.spacing.md
               }}
             />
             <Box
               sx={{
                 height: 14,
                 width: "50%",
-                borderRadius: 1,
+                borderRadius: uiTokens.radius.xs,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)"
               }}
@@ -249,8 +249,8 @@ function SearchingForDriverScreen(): React.JSX.Element {
         <Card
           elevation={0}
           sx={{
-            mb: 2.5,
-            borderRadius: 2,
+            mb: uiTokens.spacing.xl,
+            borderRadius: uiTokens.radius.sm,
             bgcolor: "#1E3A5F", // Dark navy
             overflow: "hidden"
           }}
@@ -261,8 +261,8 @@ function SearchingForDriverScreen(): React.JSX.Element {
               sx={{
                 display: "flex",
                 borderBottom: "1px solid rgba(255,255,255,0.2)",
-                px: 2,
-                py: 1.5
+                px: uiTokens.spacing.lg,
+                py: uiTokens.spacing.mdPlus
               }}
             >
               {/* Left filter placeholder */}
@@ -320,8 +320,8 @@ function SearchingForDriverScreen(): React.JSX.Element {
             {/* Searching text with refresh icon */}
             <Box
               sx={{
-                px: 2,
-                py: 1.5,
+                px: uiTokens.spacing.lg,
+                py: uiTokens.spacing.mdPlus,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between"
@@ -356,8 +356,8 @@ function SearchingForDriverScreen(): React.JSX.Element {
         <Card
           elevation={0}
           sx={{
-            mb: 2,
-            borderRadius: 2,
+            mb: uiTokens.spacing.lg,
+            borderRadius: uiTokens.radius.sm,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
             border: (theme) =>
@@ -366,36 +366,36 @@ function SearchingForDriverScreen(): React.JSX.Element {
                 : "1px solid rgba(51,65,85,0.9)"
           }}
         >
-          <CardContent sx={{ px: 2, py: 2 }}>
+          <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
             {/* Large rectangular placeholder at top */}
             <Box
               sx={{
                 height: 120,
                 width: "100%",
-                borderRadius: 2,
+                borderRadius: uiTokens.radius.sm,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)",
-                mb: 2
+                mb: uiTokens.spacing.lg
               }}
             />
 
             {/* Two horizontal rectangular placeholders */}
-            <Box sx={{ mb: 1.5 }}>
+            <Box sx={{ mb: uiTokens.spacing.mdPlus }}>
               <Box
                 sx={{
                   height: 16,
                   width: "85%",
-                  borderRadius: 1,
+                  borderRadius: uiTokens.radius.xs,
                   bgcolor: (theme) =>
                     theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)",
-                  mb: 1
+                  mb: uiTokens.spacing.xs
                 }}
               />
               <Box
                 sx={{
                   height: 16,
                   width: "75%",
-                  borderRadius: 1,
+                  borderRadius: uiTokens.radius.xs,
                   bgcolor: (theme) =>
                     theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)"
                 }}
@@ -407,7 +407,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
               sx={{
                 height: 24,
                 width: "40%",
-                borderRadius: 5,
+                borderRadius: uiTokens.radius.pill,
                 bgcolor: (theme) =>
                   theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)"
               }}
@@ -421,8 +421,8 @@ function SearchingForDriverScreen(): React.JSX.Element {
           variant="outlined"
           onClick={handleCancelClick}
           sx={{
-            borderRadius: 5,
-            py: 1.2,
+            borderRadius: uiTokens.radius.pill,
+            py: uiTokens.spacing.mdPlus,
             fontSize: 14,
             fontWeight: 500,
             textTransform: "none",
@@ -449,7 +449,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
         onClose={handleCancelClose}
         PaperProps={{
           sx: {
-            borderRadius: 3,
+            borderRadius: uiTokens.radius.lg,
             bgcolor: (theme) =>
               theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
           }
@@ -463,7 +463,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
             Are you sure you want to cancel this ride request? You can request a new ride at any time.
           </DialogContentText>
         </DialogContent>
-        <DialogActions sx={{ px: 2.5, pb: 2 }}>
+        <DialogActions sx={{ px: uiTokens.spacing.xl, pb: uiTokens.spacing.lg }}>
           <Button
             onClick={handleCancelClose}
             sx={{

@@ -305,7 +305,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             <Button
               fullWidth
               variant="outlined"
-              onClick={() => navigate("/rental/list")}
+              onClick={() => navigate("/rental/list", { state: { mode: "custom" } })}
               sx={{
                 borderRadius: uiTokens.radius.xl,
                 py: 0.85,

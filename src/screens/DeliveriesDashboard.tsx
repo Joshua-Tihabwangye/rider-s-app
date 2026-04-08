@@ -1,13 +1,20 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  Alert,
   Badge,
   Box,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
   IconButton,
   InputAdornment,
   Menu,
   MenuItem,
+  Snackbar,
   Stack,
   Tab,
   Tabs,
@@ -168,6 +175,11 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
     anchorEl: null,
     orderId: null
   });
+  const [shareSnackbar, setShareSnackbar] = useState(false);
+  const [rejectDialog, setRejectDialog] = useState<{ open: boolean; orderId: string | null }>({
+    open: false,
+    orderId: null
+  });
 
   const pendingDeliveriesCount = DELIVERING_ORDERS.filter(
     (order) => order.status === "Waiting to accept"
@@ -190,11 +202,16 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
   };
 
   const handleRejectDelivery = (orderId: string): void => {
-    if (window.confirm("Are you sure you want to reject this delivery?")) {
-      navigate(`/deliveries/tracking/${orderId}/cancel`, {
-        state: { action: "reject", orderId }
+    setRejectDialog({ open: true, orderId });
+  };
+
+  const handleRejectConfirm = (): void => {
+    if (rejectDialog.orderId) {
+      navigate(`/deliveries/tracking/${rejectDialog.orderId}/cancel`, {
+        state: { action: "reject", orderId: rejectDialog.orderId }
       });
     }
+    setRejectDialog({ open: false, orderId: null });
   };
 
   const handleMakePayment = (orderId: string): void => {
@@ -522,7 +539,20 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
         </MenuItem>
         <MenuItem
           onClick={() => {
-            console.log("Share for order:", menuAnchor.orderId);
+            const orderId = menuAnchor.orderId;
+            const shareUrl = `${window.location.origin}/deliveries/tracking/${orderId}/details`;
+            const shareData = {
+              title: "EVzone Delivery Tracking",
+              text: `Track delivery ${orderId}`,
+              url: shareUrl
+            };
+            if (navigator.share) {
+              navigator.share(shareData).catch(() => {});
+            } else if (navigator.clipboard) {
+              navigator.clipboard.writeText(shareUrl).then(() => {
+                setShareSnackbar(true);
+              }).catch(() => {});
+            }
             setMenuAnchor({ open: false, anchorEl: null, orderId: null });
           }}
           sx={{ py: uiTokens.spacing.smPlus }}
@@ -533,6 +563,55 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
           </Typography>
         </MenuItem>
       </Menu>
+
+      {/* Reject Delivery Confirmation Dialog */}
+      <Dialog
+        open={rejectDialog.open}
+        onClose={() => setRejectDialog({ open: false, orderId: null })}
+        PaperProps={{ sx: { borderRadius: uiTokens.radius.xl, minWidth: 280 } }}
+      >
+        <DialogTitle sx={{ fontSize: 16, fontWeight: 600 }}>Reject Delivery?</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ fontSize: 13, color: "text.secondary" }}>
+            Are you sure you want to reject this delivery? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 2, pb: 2 }}>
+          <Button
+            onClick={() => setRejectDialog({ open: false, orderId: null })}
+            sx={{ textTransform: "none", color: "text.secondary" }}
+          >
+            Keep
+          </Button>
+          <Button
+            onClick={handleRejectConfirm}
+            sx={{
+              textTransform: "none",
+              bgcolor: uiTokens.colors.danger,
+              color: "white",
+              "&:hover": { bgcolor: uiTokens.colors.dangerHover }
+            }}
+          >
+            Reject
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Share Link Copied Snackbar */}
+      <Snackbar
+        open={shareSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setShareSnackbar(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setShareSnackbar(false)}
+          severity="success"
+          sx={{ borderRadius: uiTokens.radius.xl, width: "100%" }}
+        >
+          Tracking link copied to clipboard!
+        </Alert>
+      </Snackbar>
     </ScreenScaffold>
   );
 }

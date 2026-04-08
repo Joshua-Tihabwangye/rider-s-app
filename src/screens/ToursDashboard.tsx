@@ -347,6 +347,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             <Button
               fullWidth
               variant="outlined"
+              onClick={() => navigate("/tours/new", { state: { mode: "quote" } })}
               sx={{
                 borderRadius: uiTokens.radius.xl,
                 py: 0.85,

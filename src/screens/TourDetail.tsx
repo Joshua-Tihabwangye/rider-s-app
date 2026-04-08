@@ -55,13 +55,13 @@ function TourDetailsScreen(): React.JSX.Element {
               variant="subtitle1"
               sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
             >
-              Kampala City EV Highlights
+              EV Day Trip – Jinja, Source of the Nile
             </Typography>
             <Typography
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Kampala • Half day
+              Jinja • Full day
             </Typography>
           </Box>
         </Box>
@@ -149,13 +149,13 @@ function TourDetailsScreen(): React.JSX.Element {
             variant="body2"
             sx={{ fontWeight: 700, letterSpacing: "-0.02em", mt: 0.5 }}
           >
-            UGX 180,000 <Typography component="span" variant="caption" sx={{ fontSize: 11 }}>/ person</Typography>
+            UGX 250,000 <Typography component="span" variant="caption" sx={{ fontSize: 11 }}>/ person</Typography>
           </Typography>
           <Typography
             variant="caption"
             sx={{ mt: 0.3, fontSize: 11, color: (t) => t.palette.text.secondary }}
           >
-            Includes EV city transport, guide and bottled water.
+            Includes EV transport to Jinja, guide and bottled water.
           </Typography>
         </CardContent>
       </Card>
@@ -185,9 +185,7 @@ function TourDetailsScreen(): React.JSX.Element {
             variant="caption"
             sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 1.2, display: "block" }}
           >
-            Explore Kampala’s highlights with quiet, zero‑emission EV transport.
-            Stops typically include Old Taxi Park, Parliament Avenue, a local
-            market and sunset views near Ggaba.
+            Explore Jinja, the adventure capital of East Africa and the true source of the Nile River, with quiet, zero‑emission EV transport. Stops typically include Sezibwa Falls, Mabira Forest, and the Source of the Nile.
           </Typography>
 
           <Typography
@@ -198,19 +196,22 @@ function TourDetailsScreen(): React.JSX.Element {
           </Typography>
           <Stack spacing={0.4}>
             <Typography variant="caption" sx={{ fontSize: 11 }}>
-              • 14:00 – Pickup from central Kampala hotel or meeting point
+              • 08:00 – Pickup from central Kampala hotel or meeting point
             </Typography>
             <Typography variant="caption" sx={{ fontSize: 11 }}>
-              • 14:30 – Old Taxi Park & downtown EV drive‑through
+              • 09:30 – Stop at Sezibwa Falls for a short nature walk
             </Typography>
             <Typography variant="caption" sx={{ fontSize: 11 }}>
-              • 15:30 – Local market stop
+              • 11:30 – Drive through Mabira Forest
             </Typography>
             <Typography variant="caption" sx={{ fontSize: 11 }}>
-              • 17:00 – Ggaba area for lakeside views
+              • 13:00 – Arrive in Jinja & visit the Source of the Nile
             </Typography>
             <Typography variant="caption" sx={{ fontSize: 11 }}>
-              • 18:30 – Drop‑off at original pickup point
+              • 15:30 – Depart Jinja for Kampala
+            </Typography>
+            <Typography variant="caption" sx={{ fontSize: 11 }}>
+              • 19:00 – Drop‑off at original pickup point
             </Typography>
           </Stack>
         </CardContent>
@@ -251,7 +252,7 @@ function TourDetailsScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Duration: ~4–5 hours
+                Duration: ~10–11 hours
               </Typography>
             </Stack>
           </Stack>
@@ -261,6 +262,7 @@ function TourDetailsScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
+        onClick={() => navigate('/tours/1/dates')}
         sx={{
           borderRadius: 5,
           py: 1.1,

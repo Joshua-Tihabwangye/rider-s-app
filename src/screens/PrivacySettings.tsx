@@ -20,14 +20,14 @@ export default function PrivacySettings(): React.JSX.Element {
           onBack={() => navigate(-1)}
         />
       }
-      contentSx={{ pt: { xs: 2.5, md: 3 } }}
+      contentSx={{ pt: uiTokens.spacing.container }}
     >
-      <Stack spacing={2}>
+      <Stack spacing={uiTokens.spacing.lg}>
         <AppCard>
-          <Typography variant="subtitle2" sx={{ ...uiTokens.text.itemTitle, mb: 2 }}>
+          <Typography variant="subtitle2" sx={{ ...uiTokens.text.itemTitle, mb: uiTokens.spacing.lg }}>
             Data Privacy
           </Typography>
-          <Stack spacing={2}>
+          <Stack spacing={uiTokens.spacing.lg}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Box>
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -62,7 +62,7 @@ export default function PrivacySettings(): React.JSX.Element {
           </Stack>
         </AppCard>
         
-        <Box sx={{ mt: 3, px: 1 }}>
+        <Box sx={{ mt: uiTokens.spacing.xxl, px: uiTokens.spacing.sm }}>
           <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
             You can request a copy of your data or account deletion at any time through our support center.
           </Typography>

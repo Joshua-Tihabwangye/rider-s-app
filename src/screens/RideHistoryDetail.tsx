@@ -20,6 +20,7 @@ import FlagRoundedIcon from "@mui/icons-material/FlagRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import StraightenRoundedIcon from "@mui/icons-material/StraightenRounded";
+import { uiTokens } from "../design/tokens";
 
 function CompletedTripSummaryScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -113,7 +114,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
           <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.sm, mb: uiTokens.spacing.xxs }}>
               <Chip
                 label="Completed"
                 size="small"
@@ -123,8 +124,9 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
                   fontWeight: 600,
                   fontSize: 11,
                   height: 22,
+                  borderRadius: uiTokens.radius.pill,
                   "& .MuiChip-label": {
-                    px: 1
+                    px: uiTokens.spacing.sm
                   }
                 }}
               />
@@ -314,8 +316,8 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2.5,
-          borderRadius: 2,
+          mb: uiTokens.spacing.xl,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -324,22 +326,22 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 2, py: 2 }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           <Typography
             variant="subtitle2"
-            sx={{ fontWeight: 600, mb: 1.5, fontSize: 13 }}
+            sx={{ fontWeight: 600, mb: uiTokens.spacing.mdPlus, fontSize: 13 }}
           >
             Booking Summary
           </Typography>
           <Stack spacing={uiTokens.spacing.md}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.sm }}>
               <CalendarTodayRoundedIcon
                 sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
               />
               <Box sx={{ flex: 1 }}>
               <Typography
                 variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
+                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block", mb: uiTokens.spacing.xxs }}
               >
                   Booking Time
               </Typography>
@@ -348,14 +350,14 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
               </Typography>
               </Box>
             </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.sm }}>
               <CalendarTodayRoundedIcon
                 sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
               />
               <Box sx={{ flex: 1 }}>
                 <Typography
                   variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
+                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block", mb: uiTokens.spacing.xxs }}
                 >
                   Travel Date
               </Typography>
@@ -364,14 +366,14 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
               </Typography>
               </Box>
             </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.sm }}>
               <StraightenRoundedIcon
                 sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
               />
               <Box sx={{ flex: 1 }}>
                 <Typography
                   variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
+                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block", mb: uiTokens.spacing.xxs }}
                 >
                   Trip Distance
               </Typography>
@@ -380,14 +382,14 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
               </Typography>
               </Box>
             </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.sm }}>
               <ReceiptLongRoundedIcon
                 sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
               />
               <Box sx={{ flex: 1 }}>
                 <Typography
                   variant="caption"
-                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
+                  sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block", mb: uiTokens.spacing.xxs }}
                 >
                   Fare
               </Typography>
@@ -404,8 +406,8 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2.5,
-          borderRadius: 2,
+          mb: uiTokens.spacing.xl,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -414,10 +416,10 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 2, py: 2 }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           <Typography
             variant="subtitle2"
-            sx={{ fontWeight: 600, mb: 1.5, fontSize: 13 }}
+            sx={{ fontWeight: 600, mb: uiTokens.spacing.mdPlus, fontSize: 13 }}
           >
             Driver
           </Typography>
@@ -434,7 +436,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
               {tripData.driver.name.substring(0, 2).toUpperCase()}
             </Avatar>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.25 }}>
+              <Typography variant="body1" sx={{ fontWeight: 600, mb: uiTokens.spacing.xxs }}>
                 {tripData.driver.name}
               </Typography>
               <Typography
@@ -443,7 +445,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
               >
                 {tripData.driver.vehicle} – {tripData.driver.licensePlate}
               </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.25 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.xxs, mt: uiTokens.spacing.xxs }}>
                 <StarRoundedIcon sx={{ fontSize: 14, color: "#FFC107" }} />
                 <Typography variant="caption" sx={{ fontSize: 12, fontWeight: 600 }}>
                   {tripData.driver.rating}
@@ -477,8 +479,8 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
       <Card
         elevation={0}
         sx={{
-          mb: 2.5,
-          borderRadius: 2,
+          mb: uiTokens.spacing.xl,
+          borderRadius: uiTokens.radius.sm,
           bgcolor: (t) =>
             t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
           border: (t) =>
@@ -487,10 +489,10 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: 2, py: 2 }}>
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
           <Typography
             variant="subtitle2"
-            sx={{ fontWeight: 600, mb: 1.5, fontSize: 13 }}
+            sx={{ fontWeight: 600, mb: uiTokens.spacing.mdPlus, fontSize: 13 }}
           >
             My Route
           </Typography>
@@ -525,10 +527,10 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
                     }}
                   />
                   <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.25 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, mb: uiTokens.spacing.xxs }}>
                       {stop.name}
                     </Typography>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.sm }}>
                       <Typography
                         variant="caption"
                         sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
