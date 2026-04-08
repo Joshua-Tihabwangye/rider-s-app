@@ -23,11 +23,11 @@ export default function SecuritySettings(): React.JSX.Element {
           onBack={() => navigate(-1)}
         />
       }
-      contentSx={{ pt: { xs: 2.5, md: 3 } }}
+      contentSx={{ pt: uiTokens.spacing.container }}
     >
-      <Stack spacing={2.5}>
+      <Stack spacing={uiTokens.spacing.xl}>
         <Box>
-          <Typography variant="subtitle2" sx={{ ...uiTokens.text.itemTitle, mb: 1.5, px: 1 }}>
+          <Typography variant="subtitle2" sx={{ ...uiTokens.text.itemTitle, mb: uiTokens.spacing.mdPlus, px: uiTokens.spacing.xs }}>
             Login & Security
           </Typography>
           <ListSection>
@@ -41,7 +41,7 @@ export default function SecuritySettings(): React.JSX.Element {
         </Box>
 
         <Box>
-          <Typography variant="subtitle2" sx={{ ...uiTokens.text.itemTitle, mb: 1.5, px: 1 }}>
+          <Typography variant="subtitle2" sx={{ ...uiTokens.text.itemTitle, mb: uiTokens.spacing.mdPlus, px: uiTokens.spacing.xs }}>
             Biometrics
           </Typography>
           <ListSection>
@@ -55,7 +55,7 @@ export default function SecuritySettings(): React.JSX.Element {
         </Box>
       </Stack>
       
-      <Box sx={{ mt: 4, px: 1 }}>
+      <Box sx={{ mt: uiTokens.spacing.xxl, px: uiTokens.spacing.xs }}>
         <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
           Your security is our priority. We recommend enabling 2FA for all accounts.
         </Typography>

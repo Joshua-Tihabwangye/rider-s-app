@@ -21,7 +21,7 @@ import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 
 function TourDateGuestsScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [date, setDate] = useState("Sat, 12 Oct 2025");
+  const [date, setDate] = useState("");
   const [timeSlot, setTimeSlot] = useState("Afternoon (14:00)");
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
@@ -76,7 +76,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Kampala City EV Highlights
+              EV Day Trip – Jinja, Source of the Nile
             </Typography>
           </Box>
         </Box>
@@ -111,8 +111,10 @@ function TourDateGuestsScreen(): React.JSX.Element {
           <TextField
             fullWidth
             size="small"
+            type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -308,6 +310,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         disabled={!canContinue}
+        onClick={() => navigate('/tours/1/summary', { state: { date, timeSlot, adults, children } })}
         sx={{
           borderRadius: 5,
           py: 1.1,

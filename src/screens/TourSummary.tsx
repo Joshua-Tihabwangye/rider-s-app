@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   
   Box,
@@ -24,7 +24,17 @@ import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 
 function TourBookingSummaryPaymentScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
   const [paymentMethod, setPaymentMethod] = useState("wallet");
+
+  const { date = "Sat, 12 Oct 2025", timeSlot = "Afternoon (14:00)", adults = 2, children = 1 } = (location.state as any) || {};
+  const adultPrice = 250000;
+  const childPrice = 150000;
+  const bookingFee = 15000;
+
+  const totalAdultsPrice = adults * adultPrice;
+  const totalChildrenPrice = children * childPrice;
+  const totalPrice = totalAdultsPrice + totalChildrenPrice + bookingFee;
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -65,7 +75,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Kampala City EV Highlights • 2 adults, 1 child
+              EV Day Trip – Jinja • {adults} {adults === 1 ? "adult" : "adults"}{children > 0 ? `, ${children} ${children === 1 ? "child" : "children"}` : ""}
             </Typography>
           </Box>
         </Box>
@@ -106,13 +116,13 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
                 variant="body2"
                 sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
               >
-                Kampala City EV Highlights
+                EV Day Trip – Jinja, Source of the Nile
               </Typography>
               <Typography
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Half day • EV transport included
+                Full day • EV transport included
               </Typography>
             </Box>
           </Stack>
@@ -126,7 +136,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Sat, 12 Oct 2025 • Afternoon (14:00)
+                {date} • {timeSlot}
               </Typography>
             </Stack>
             <Stack direction="row" spacing={0.75} alignItems="center">
@@ -148,7 +158,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                2 adults, 1 child
+                {adults} {adults === 1 ? "adult" : "adults"}{children > 0 ? `, ${children} ${children === 1 ? "child" : "children"}` : ""}
               </Typography>
             </Stack>
           </Stack>
@@ -179,26 +189,28 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
           <Stack spacing={0.4}>
             <Stack direction="row" justifyContent="space-between" alignItems="center">
               <Typography variant="caption" sx={{ fontSize: 11 }}>
-                2 × Adult (UGX 180,000)
+                {adults} × Adult (UGX {adultPrice.toLocaleString()})
               </Typography>
               <Typography variant="caption" sx={{ fontSize: 11 }}>
-                UGX 360,000
+                UGX {totalAdultsPrice.toLocaleString()}
               </Typography>
             </Stack>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                1 × Child (UGX 120,000)
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                UGX 120,000
-              </Typography>
-            </Stack>
+            {children > 0 && (
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="caption" sx={{ fontSize: 11 }}>
+                  {children} × Child (UGX {childPrice.toLocaleString()})
+                </Typography>
+                <Typography variant="caption" sx={{ fontSize: 11 }}>
+                  UGX {totalChildrenPrice.toLocaleString()}
+                </Typography>
+              </Stack>
+            )}
             <Stack direction="row" justifyContent="space-between" alignItems="center">
               <Typography variant="caption" sx={{ fontSize: 11 }}>
                 Booking fee
               </Typography>
               <Typography variant="caption" sx={{ fontSize: 11 }}>
-                UGX 15,000
+                UGX {bookingFee.toLocaleString()}
               </Typography>
             </Stack>
           </Stack>
@@ -215,7 +227,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
               variant="body2"
               sx={{ fontWeight: 700, letterSpacing: "-0.02em" }}
             >
-              UGX 495,000
+              UGX {totalPrice.toLocaleString()}
             </Typography>
           </Stack>
         </CardContent>
@@ -378,6 +390,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
+        onClick={() => navigate('/tours/1/confirmation')}
         sx={{
           borderRadius: 5,
           py: 1.1,

@@ -18,6 +18,7 @@ import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
 
 import ScreenScaffold from "../components/ScreenScaffold";
 import PageHeader from "../components/PageHeader";
+import { uiTokens } from "../design/tokens";
 
 // Mock driver preferences data (would come from API)
 const DRIVER_PREFERENCES = [
@@ -98,35 +99,31 @@ function PreferenceCard({ preference, onClick }: PreferenceCardProps): React.JSX
       elevation={0}
       onClick={() => onClick(preference)}
       sx={{
-        borderRadius: 2,
+        borderRadius: uiTokens.radius.xl,
         bgcolor: theme.palette.mode === "light" ? lightBgColor : darkBgColor,
         border: theme.palette.mode === "light" 
           ? `1px solid ${hexToRgba(preference.color, 0.2)}`
           : `1px solid ${hexToRgba(preference.color, 0.3)}`,
-        boxShadow: theme.palette.mode === "light" 
-          ? "0 1px 3px rgba(0,0,0,0.1)"
-          : "0 1px 3px rgba(0,0,0,0.3)",
+        boxShadow: uiTokens.elevation.card,
         cursor: "pointer",
         transition: "all 0.2s ease",
         "&:hover": {
           transform: "translateY(-2px)",
-          boxShadow: theme.palette.mode === "light"
-            ? "0 4px 8px rgba(0,0,0,0.15)"
-            : "0 4px 8px rgba(0,0,0,0.4)",
+          boxShadow: uiTokens.elevation.cardHover,
           bgcolor: theme.palette.mode === "light" 
             ? hexToRgba(preference.color, 0.2)
             : hexToRgba(preference.color, 0.3)
         }
       }}
     >
-      <CardContent sx={{ px: 2, py: 1.5 }}>
-        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
+      <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.mdPlus }}>
+        <Box sx={{ display: "flex", alignItems: "flex-start", gap: uiTokens.spacing.mdPlus }}>
           {/* Colored square icon */}
           <Box
             sx={{
               width: 40,
               height: 40,
-              borderRadius: 1.5,
+              borderRadius: uiTokens.radius.lg,
               bgcolor: preference.color,
               display: "flex",
               alignItems: "center",
@@ -148,7 +145,7 @@ function PreferenceCard({ preference, onClick }: PreferenceCardProps): React.JSX
                 fontWeight: 500,
                 color: theme.palette.text.primary,
                 fontSize: 14,
-                mb: 0.5,
+                mb: uiTokens.spacing.xxs,
                 lineHeight: 1.4
               }}
             >
@@ -185,11 +182,11 @@ export default function DriverPreferences(): React.JSX.Element {
       }
       contentSx={{ pt: { xs: 2.5, md: 3 } }}
     >
-      <Typography variant="body2" sx={{ mb: 2, px: 0.5, color: (t) => t.palette.text.secondary }}>
+      <Typography variant="body2" sx={{ mb: uiTokens.spacing.lg, px: uiTokens.spacing.xxs, color: (t) => t.palette.text.secondary }}>
         These preferences are shared by your driver to ensure a comfortable and personalized trip experience.
       </Typography>
       
-      <Stack spacing={1.5}>
+      <Stack spacing={uiTokens.spacing.mdPlus}>
         {DRIVER_PREFERENCES.map((preference) => (
           <PreferenceCard
             key={preference.id}
@@ -202,7 +199,7 @@ export default function DriverPreferences(): React.JSX.Element {
         ))}
       </Stack>
       
-      <Box sx={{ mt: 3, px: 0.5 }}>
+      <Box sx={{ mt: uiTokens.spacing.xxl, px: uiTokens.spacing.xxs }}>
         <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
           Note: These settings are provided by the driver. You can also set your own trip preferences in the main app settings.
         </Typography>

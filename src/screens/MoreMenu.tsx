@@ -167,7 +167,7 @@ export default function MoreMenu(): React.JSX.Element {
 
       <ActionGrid minWidth={280}>
         <ItemGroup title="Account & history" items={ACCOUNT_ITEMS} onNavigate={navigate} />
-        <Stack spacing={2}>
+        <Stack spacing={uiTokens.spacing.lg}>
           <ItemGroup title="App & payments" items={APP_ITEMS} onNavigate={navigate} />
           <ItemGroup title="Support" items={SUPPORT_ITEMS} onNavigate={navigate} />
         </Stack>

@@ -25,7 +25,6 @@ import {
   Divider,
   Snackbar,
   Alert,
-  Tooltip,
   TextField
 } from "@mui/material";
 
@@ -107,6 +106,9 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
   const [transactionError, setTransactionError] = useState(false);
   const [defaultMethod, setDefaultMethod] = useState("wallet");
   const [editMethod, setEditMethod] = useState<{ open: boolean; method: string | null }>({ open: false, method: null });
+  const [infoDialog, setInfoDialog] = useState<{ open: boolean; title: string; content: string }>({
+    open: false, title: "", content: ""
+  });
   
   // For demo purposes - can be toggled to show empty states
   const hasTransactions = TRANSACTIONS.length > 0;
@@ -278,7 +280,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               <Typography
                 variant="h5"
                 sx={{
-                  mt: 0.4,
+                  mt: uiTokens.spacing.xxs,
                   fontWeight: 700,
                   letterSpacing: "-0.04em",
                       color: (t) => t.palette.mode === "light" ? "#022C22" : "#ECFDF5",
@@ -289,7 +291,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               </Typography>
               <Typography
                 variant="caption"
-                    sx={{ fontSize: { xs: 9.5, sm: 10 }, color: (t) => t.palette.mode === "light" ? "rgba(15,23,42,0.6)" : "rgba(255,255,255,0.6)", mt: 0.3, display: "block" }}
+                    sx={{ fontSize: { xs: 9.5, sm: 10 }, color: (t) => t.palette.mode === "light" ? "rgba(15,23,42,0.6)" : "rgba(255,255,255,0.6)", mt: uiTokens.spacing.xxs, display: "block" }}
                   >
                     Available for rides, deliveries, rentals & tours
                   </Typography>
@@ -297,12 +299,16 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                     variant="caption"
                     onClick={() => {
                       // Open reserved funds breakdown
-                      alert(`Reserved funds breakdown:\n- Ongoing trip: UGX 100,000\n- Delivery hold: UGX 80,000\nTotal: UGX ${reserved.toLocaleString()}`);
+                      setInfoDialog({
+                        open: true,
+                        title: "Reserved funds breakdown",
+                        content: `• Ongoing trip: UGX 100,000\n• Delivery hold: UGX 80,000\n\nTotal reserved: UGX ${reserved.toLocaleString()}`
+                      });
                     }}
                     sx={{
                       fontSize: { xs: 10, sm: 10.5 },
                       color: (t) => t.palette.mode === "light" ? "rgba(15,23,42,0.7)" : "rgba(255,255,255,0.7)",
-                      mt: 0.5,
+                      mt: uiTokens.spacing.xxs,
                       display: "block",
                       cursor: "pointer",
                       textDecoration: "underline",
@@ -318,7 +324,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 <Box sx={{ mt: 2, textAlign: { xs: "center", sm: "left" } }}>
                   <Typography
                     variant="body2"
-                    sx={{ fontSize: { xs: 12, sm: 13 }, color: (t) => t.palette.text.secondary, mb: 2 }}
+                    sx={{ fontSize: { xs: 12, sm: 13 }, color: (t) => t.palette.text.secondary, mb: uiTokens.spacing.lg }}
                   >
                     Your wallet is empty. Add money to start booking rides and deliveries.
                   </Typography>
@@ -330,8 +336,8 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                       bgcolor: (t) => t.palette.mode === "light" ? "#022C22" : "#03CD8C",
                       color: (t) => t.palette.mode === "light" ? "#ECFDF5" : "#020617",
                       borderRadius: uiTokens.radius.xl,
-                      px: 3,
-                      py: 1,
+                      px: uiTokens.spacing.xxl,
+                      py: uiTokens.spacing.sm,
                       fontSize: { xs: 12, sm: 13 },
                       fontWeight: 600,
                       textTransform: "none",
@@ -354,7 +360,11 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                   icon={<PaymentRoundedIcon sx={{ fontSize: { xs: 12, sm: 14 } }} />}
                 label="EV-first payments"
                   onClick={() => {
-                    alert(`EV-first payments: part of your balance may be reserved for ongoing trips and deliveries.\n\nFree: UGX ${balance.toLocaleString()}\nReserved: UGX ${reserved.toLocaleString()}`);
+                    setInfoDialog({
+                      open: true,
+                      title: "EV-first payments",
+                      content: `Part of your balance may be reserved for ongoing trips and deliveries.\n\nFree: UGX ${balance.toLocaleString()}\nReserved: UGX ${reserved.toLocaleString()}`
+                    });
                   }}
                 sx={{
                   borderRadius: uiTokens.radius.xl,
@@ -370,7 +380,11 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               />
                 <Box
                   onClick={() => {
-                    alert(`Balance breakdown:\nFree: UGX ${balance.toLocaleString()}\nReserved: UGX ${reserved.toLocaleString()}\n\nReserved funds are held for:\n- Ongoing trips\n- Active deliveries`);
+                    setInfoDialog({
+                      open: true,
+                      title: "Balance breakdown",
+                      content: `Free: UGX ${balance.toLocaleString()}\nReserved: UGX ${reserved.toLocaleString()}\n\nReserved funds are held for:\n• Ongoing trips\n• Active deliveries`
+                    });
                   }}
                   sx={{ cursor: "pointer", width: { xs: "100%", sm: 96 } }}
                 >
@@ -378,7 +392,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 variant="determinate"
                 value={Math.min(100, (balance / (balance + reserved)) * 100)}
                 sx={{
-                  mt: 0.3,
+                  mt: uiTokens.spacing.xxs,
                       width: "100%",
                   height: 5,
                   borderRadius: uiTokens.radius.xl,
@@ -395,7 +409,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                     fontSize: { xs: 9.5, sm: 10 },
                     color: (t) => t.palette.mode === "light" ? "rgba(15,23,42,0.7)" : "rgba(255,255,255,0.7)",
                     display: "block",
-                    mt: 0.25,
+                    mt: uiTokens.spacing.xxs,
                     textAlign: { xs: "left", sm: "center" }
                   }}
               >
@@ -525,7 +539,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               }}
             >
               <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
-                <Stack direction="row" spacing={0.85} alignItems="center" sx={{ mb: 0.4 }}>
+                <Stack direction="row" spacing={uiTokens.spacing.xs} alignItems="center" sx={{ mb: uiTokens.spacing.xxs }}>
                   <AccountBalanceWalletRoundedIcon sx={{ fontSize: 18, color: "#047857" }} />
                   <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: (t) => t.palette.text.primary }}>
                     EVzone Wallet
@@ -1147,9 +1161,46 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               setEditMethod({ open: false, method: null });
               setSnackbar({ open: true, message: "Changes saved successfully!", severity: "success" });
             }}
-            sx={{ textTransform: "none", bgcolor: "primary.main", color: "#020617", "&:hover": { bgcolor: "#06e29a" } }}
+            sx={{
+              textTransform: "none",
+              bgcolor: uiTokens.colors.brand,
+              color: uiTokens.colors.ink,
+              "&:hover": { bgcolor: uiTokens.colors.brandHover }
+            }}
           >
             Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Wallet Info Dialog (replaces alert() calls) */}
+      <Dialog
+        open={infoDialog.open}
+        onClose={() => setInfoDialog({ ...infoDialog, open: false })}
+        PaperProps={{
+          sx: {
+            borderRadius: uiTokens.radius.xl,
+            bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+            minWidth: 280
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontSize: 16, fontWeight: 600 }}>{infoDialog.title}</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ fontSize: 13, whiteSpace: "pre-line", color: (t) => t.palette.text.secondary }}>
+            {infoDialog.content}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 2.5, pb: 2 }}>
+          <Button
+            onClick={() => setInfoDialog({ ...infoDialog, open: false })}
+            sx={{
+              textTransform: "none",
+              color: uiTokens.colors.brand,
+              fontWeight: 600
+            }}
+          >
+            Got it
           </Button>
         </DialogActions>
       </Dialog>
