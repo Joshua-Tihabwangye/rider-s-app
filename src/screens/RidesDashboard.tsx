@@ -811,12 +811,9 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   };
 
   const quickActions = [
-    { key: "book-now", label: "Book ride now", icon: <DirectionsCarFilledRoundedIcon sx={{ fontSize: 16 }} /> },
-    { key: "schedule", label: "Schedule ride", icon: <AccessTimeRoundedIcon sx={{ fontSize: 16 }} /> },
     { key: "book-contact", label: "Book for a contact" },
     { key: "book-someone", label: "Book for someone" },
-    { key: "multi-stop", label: "Multi-stop trip", icon: <ArrowForwardIosRoundedIcon sx={{ fontSize: 14 }} /> },
-    { key: "history", label: "View ride history", icon: <ReceiptLongRoundedIcon sx={{ fontSize: 14 }} /> }
+    { key: "multi-stop", label: "Multi-stop trip", icon: <ArrowForwardIosRoundedIcon sx={{ fontSize: 14 }} /> }
   ];
 
   const handleSelectPlace = async (place: string): Promise<void> => {

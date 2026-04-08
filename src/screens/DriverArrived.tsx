@@ -96,6 +96,23 @@ function DriverHasArrivedScreen(): React.JSX.Element {
     navigate("/rides/trip");
   };
 
+  const topMapBleedSx = {
+    position: "relative",
+    width: {
+      xs: "calc(100% + (var(--rider-shell-content-px-xs, 20px) * 2))",
+      md: "calc(100% + (var(--rider-shell-content-px-md, 24px) * 2))"
+    },
+    ml: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    mr: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    overflow: "hidden"
+  } as const;
+
   return (
     <ScreenScaffold>
       <SectionHeader
@@ -136,68 +153,55 @@ function DriverHasArrivedScreen(): React.JSX.Element {
         }
       />
 
-      {/* Map Section - Full width at top (55% height) */}
-      <Box
-        sx={{
-          position: "relative",
-          width: "100%",
-          height: "55vh",
-          borderRadius: uiTokens.radius.xl,
-          background: (theme) =>
-            theme.palette.mode === "light"
-              ? "linear-gradient(135deg, #F5F5DC 0%, #FAFAF0 50%, #FFFFFF 100%)"
-              : "linear-gradient(135deg, rgba(15,23,42,0.3), #020617 60%, #020617 100%)",
-          overflow: "hidden"
-        }}
-      >
-        {/* Grid overlay */}
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            opacity: 0.15,
-            backgroundImage:
-              "linear-gradient(to right, rgba(148,163,184,0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.3) 1px, transparent 1px)",
-            backgroundSize: "30px 30px"
-          }}
-        />
-
-        {/* Driver's car icon at pickup point (with pulsating effect) */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            transform: "translate(-50%, -50%)",
-            animation: "pulse 2s ease-in-out infinite",
-            "@keyframes pulse": {
-              "0%, 100%": { transform: "translate(-50%, -50%) scale(1)" },
-              "50%": { transform: "translate(-50%, -50%) scale(1.1)" }
-            }
+      {/* Map Section - Full-bleed top map */}
+      <Box sx={topMapBleedSx}>
+        <MapShell
+          showControls={false}
+          sx={{ height: { xs: "56dvh", md: "55vh" } }}
+          canvasSx={{
+            background: (theme) =>
+              theme.palette.mode === "light"
+                ? "linear-gradient(135deg, #F5F5DC 0%, #FAFAF0 50%, #FFFFFF 100%)"
+                : "linear-gradient(135deg, rgba(15,23,42,0.3), #020617 60%, #020617 100%)"
           }}
         >
+          {/* Driver's car icon at pickup point (with pulsating effect) */}
           <Box
             sx={{
-              position: "relative",
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              bgcolor: "#03CD8C",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: uiTokens.elevation.card
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              animation: "pulse 2s ease-in-out infinite",
+              "@keyframes pulse": {
+                "0%, 100%": { transform: "translate(-50%, -50%) scale(1)" },
+                "50%": { transform: "translate(-50%, -50%) scale(1.1)" }
+              }
             }}
           >
-            <DirectionsCarFilledRoundedIcon
+            <Box
               sx={{
-                fontSize: 24,
-                color: "#FFFFFF",
-                filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
+                position: "relative",
+                width: 48,
+                height: 48,
+                borderRadius: "50%",
+                bgcolor: "#03CD8C",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: uiTokens.elevation.card
               }}
-            />
+            >
+              <DirectionsCarFilledRoundedIcon
+                sx={{
+                  fontSize: 24,
+                  color: "#FFFFFF",
+                  filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
+                }}
+              />
+            </Box>
           </Box>
-        </Box>
+        </MapShell>
       </Box>
 
       {/* Content below map */}
