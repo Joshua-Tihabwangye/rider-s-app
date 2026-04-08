@@ -38,7 +38,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
 
   useEffect(() => {
     actions.setRideStatus("driver_arrived");
-  }, [actions]);
+  }, [actions.setRideStatus]);
 
   const handleCall = () => {
     if (activeTrip?.driver?.phone) {

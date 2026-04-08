@@ -68,7 +68,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     }, 5000); // Update every 5 seconds
 
     return () => clearInterval(interval);
-  }, []);
+  }, [actions.setRideStatus]);
 
   const handleEmergency = () => {
     navigate("/rides/sos");

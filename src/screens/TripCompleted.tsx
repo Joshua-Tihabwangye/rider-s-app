@@ -49,7 +49,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
 
   React.useEffect(() => {
     actions.setRideStatus("completed");
-  }, [actions]);
+  }, [actions.setRideStatus]);
   
   // Status Update Logic:
   // Trip status should automatically update to Completed once arrival is detected via GPS

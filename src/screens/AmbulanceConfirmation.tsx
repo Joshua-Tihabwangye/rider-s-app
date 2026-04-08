@@ -29,7 +29,7 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
 
   React.useEffect(() => {
     actions.updateAmbulanceRequest({ status: "assigned" });
-  }, [actions]);
+  }, [actions.updateAmbulanceRequest]);
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>

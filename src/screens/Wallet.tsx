@@ -497,20 +497,29 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
             </Button>
           </Stack>
 
-          <Stack 
-            direction="row" 
-            spacing={uiTokens.spacing.mdPlus}
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={{ xs: uiTokens.spacing.smPlus, sm: uiTokens.spacing.mdPlus }}
           >
             <Card
               elevation={0}
               onClick={(e) => handlePaymentMethodClick(e, "wallet")}
               sx={{
                 flex: 1,
+                width: "100%",
+                minHeight: { xs: 74, sm: 90 },
                 borderRadius: uiTokens.radius.xl,
                 cursor: "pointer",
                 bgcolor: (t) =>
                   t.palette.mode === "light" ? "#ECFDF5" : "rgba(15,23,42,0.9)",
-                border: "1px solid rgba(52,211,153,0.5)",
+                border:
+                  defaultMethod === "wallet"
+                    ? "2px solid rgba(52,211,153,0.9)"
+                    : "1px solid rgba(52,211,153,0.45)",
+                boxShadow:
+                  defaultMethod === "wallet"
+                    ? "0 0 0 3px rgba(16,185,129,0.18)"
+                    : "0 0 0 1px rgba(16,185,129,0.08)",
                 transition: "all 0.15s ease",
                 "&:hover": {
                   transform: "translateY(-2px)",
@@ -518,8 +527,18 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 }
               }}
             >
-              <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
-                <Stack direction="row" spacing={uiTokens.spacing.xs} alignItems="center" sx={{ mb: uiTokens.spacing.xxs }}>
+              <CardContent
+                sx={{
+                  px: { xs: uiTokens.spacing.md, sm: uiTokens.spacing.mdPlus },
+                  py: { xs: uiTokens.spacing.smPlus, sm: uiTokens.spacing.mdPlus }
+                }}
+              >
+                <Stack
+                  direction="row"
+                  spacing={uiTokens.spacing.xs}
+                  alignItems="center"
+                  sx={{ mb: uiTokens.spacing.xxs }}
+                >
                   <AccountBalanceWalletRoundedIcon sx={{ fontSize: 18, color: "#047857" }} />
                   <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: (t) => t.palette.text.primary }}>
                     EVzone Wallet
@@ -539,7 +558,17 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               onClick={(e) => handlePaymentMethodClick(e, "cards")}
               sx={{
                 flex: 1,
+                width: "100%",
+                minHeight: { xs: 74, sm: 90 },
                 borderRadius: uiTokens.radius.xl,
+                border:
+                  defaultMethod === "cards"
+                    ? "2px solid rgba(59,130,246,0.9)"
+                    : "1px solid rgba(148,163,184,0.35)",
+                boxShadow:
+                  defaultMethod === "cards"
+                    ? "0 0 0 3px rgba(59,130,246,0.16)"
+                    : "0 0 0 1px rgba(148,163,184,0.08)",
                 transition: "all 0.15s ease",
                 "&:hover": {
                   transform: "translateY(-2px)",
@@ -547,7 +576,12 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 }
               }}
             >
-              <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
+              <CardContent
+                sx={{
+                  px: { xs: uiTokens.spacing.md, sm: uiTokens.spacing.mdPlus },
+                  py: { xs: uiTokens.spacing.smPlus, sm: uiTokens.spacing.mdPlus }
+                }}
+              >
                 <Stack direction="row" spacing={0.85} alignItems="center" sx={{ mb: 0.4 }}>
                   <CreditCardRoundedIcon sx={{ fontSize: 18, color: "#1D4ED8" }} />
                   <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: (t) => t.palette.text.primary }}>
@@ -568,7 +602,17 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               onClick={(e) => handlePaymentMethodClick(e, "mobile")}
               sx={{
                 flex: 1,
+                width: "100%",
+                minHeight: { xs: 74, sm: 90 },
                 borderRadius: uiTokens.radius.xl,
+                border:
+                  defaultMethod === "mobile"
+                    ? "2px solid rgba(234,88,12,0.9)"
+                    : "1px solid rgba(148,163,184,0.35)",
+                boxShadow:
+                  defaultMethod === "mobile"
+                    ? "0 0 0 3px rgba(234,88,12,0.16)"
+                    : "0 0 0 1px rgba(148,163,184,0.08)",
                 transition: "all 0.15s ease",
                 "&:hover": {
                   transform: "translateY(-2px)",
@@ -576,7 +620,12 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                 }
               }}
             >
-              <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
+              <CardContent
+                sx={{
+                  px: { xs: uiTokens.spacing.md, sm: uiTokens.spacing.mdPlus },
+                  py: { xs: uiTokens.spacing.smPlus, sm: uiTokens.spacing.mdPlus }
+                }}
+              >
                 <Stack direction="row" spacing={0.85} alignItems="center" sx={{ mb: 0.4 }}>
                   <LocalAtmRoundedIcon sx={{ fontSize: 18, color: "#EA580C" }} />
                   <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, color: (t) => t.palette.text.primary }}>
@@ -1045,12 +1094,13 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
           }
         }}
       >
-        {paymentMethodMenu.method !== "wallet" && (
-          <MenuItem onClick={handleSetAsDefault}>
-            <CheckCircleRoundedIcon sx={{ fontSize: 18, mr: 1.5 }} />
-            Set as default
-          </MenuItem>
-        )}
+        {paymentMethodMenu.method &&
+          paymentMethodMenu.method !== defaultMethod && (
+            <MenuItem onClick={handleSetAsDefault}>
+              <CheckCircleRoundedIcon sx={{ fontSize: 18, mr: 1.5 }} />
+              Set as default
+            </MenuItem>
+          )}
         <MenuItem onClick={() => handleEditPaymentMethod()}>
           <EditRoundedIcon sx={{ fontSize: 18, mr: 1.5 }} />
           Edit
