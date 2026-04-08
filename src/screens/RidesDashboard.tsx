@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
@@ -597,7 +598,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const [selectedPlace, setSelectedPlace] = useState<string | PlaceSuggestion | null>(null);
   const [whereTo, setWhereTo] = useState("");
   const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([]);
-  const [loadingLocations, setLoadingLocations] = useState(true);
+  const [loadingLocations, setLoadingLocations] = useState(false);
   const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
@@ -607,58 +608,54 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const [loadingCommutes, setLoadingCommutes] = useState(false);
   const [upcomingRides, setUpcomingRides] = useState<UpcomingRide[]>([]);
   const [loadingUpcomingRides, setLoadingUpcomingRides] = useState(false);
+  const [hasOrderedRide, setHasOrderedRide] = useState(false);
+  const [loadingRideInsights, setLoadingRideInsights] = useState(false);
 
-  // Fetch saved locations on mount
+  // Load recommendation cards only after user has already ordered a ride.
+  // This simulates the algorithm-driven card population after ride activity.
   useEffect(() => {
-    const loadSavedLocations = async () => {
+    const orderedRideFlag = typeof window !== "undefined"
+      ? window.localStorage.getItem("evz_has_ordered_ride") === "true"
+      : false;
+    setHasOrderedRide(orderedRideFlag);
+
+    if (!orderedRideFlag) {
+      setSavedLocations([]);
+      setDailyCommutes([]);
+      setUpcomingRides([]);
+      setLoadingLocations(false);
+      setLoadingCommutes(false);
+      setLoadingUpcomingRides(false);
+      return;
+    }
+
+    const loadRideInsights = async () => {
       try {
+        setLoadingRideInsights(true);
         setLoadingLocations(true);
-        const locations = await fetchSavedLocations();
+        setLoadingCommutes(true);
+        setLoadingUpcomingRides(true);
+
+        const [locations, commutes, rides] = await Promise.all([
+          fetchSavedLocations(),
+          fetchDailyCommutes(),
+          fetchUpcomingRides()
+        ]);
+
         setSavedLocations(locations);
+        setDailyCommutes(commutes);
+        setUpcomingRides(rides);
       } catch (error) {
-        console.error("Error loading saved locations:", error);
+        console.error("Error loading ride insights:", error);
       } finally {
         setLoadingLocations(false);
+        setLoadingCommutes(false);
+        setLoadingUpcomingRides(false);
+        setLoadingRideInsights(false);
       }
     };
-    loadSavedLocations();
+    loadRideInsights();
   }, []);
-
-  // Fetch daily commutes when Daily Commutes tab is active
-  useEffect(() => {
-    if (tab === "commutes") {
-      const loadCommutes = async () => {
-        try {
-          setLoadingCommutes(true);
-          const commutes = await fetchDailyCommutes();
-          setDailyCommutes(commutes);
-        } catch (error) {
-          console.error("Error loading daily commutes:", error);
-        } finally {
-          setLoadingCommutes(false);
-        }
-      };
-      loadCommutes();
-    }
-  }, [tab]);
-
-  // Fetch upcoming rides when Upcoming Rides tab is active
-  useEffect(() => {
-    if (tab === "upcoming") {
-      const loadUpcomingRides = async () => {
-        try {
-          setLoadingUpcomingRides(true);
-          const rides = await fetchUpcomingRides();
-          setUpcomingRides(rides);
-        } catch (error) {
-          console.error("Error loading upcoming rides:", error);
-        } finally {
-          setLoadingUpcomingRides(false);
-        }
-      };
-      loadUpcomingRides();
-    }
-  }, [tab]);
 
   // Get current GPS location
   useEffect(() => {
@@ -816,6 +813,23 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     { key: "multi-stop", label: "Multi-stop trip", icon: <ArrowForwardIosRoundedIcon sx={{ fontSize: 14 }} /> }
   ];
 
+  const topMapBleedSx = {
+    position: "relative",
+    width: {
+      xs: "calc(100% + (var(--rider-shell-content-px-xs, 20px) * 2))",
+      md: "calc(100% + (var(--rider-shell-content-px-md, 24px) * 2))"
+    },
+    ml: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    mr: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    overflow: "hidden"
+  } as const;
+
   const handleSelectPlace = async (place: string): Promise<void> => {
     const location = savedLocations.find(loc => loc.id === place);
     if (location) {
@@ -886,11 +900,154 @@ function EnterDestinationMainScreen(): React.JSX.Element {
 
 
   return (
-    <ScreenScaffold>
+    <ScreenScaffold disableTopPadding>
+      {/* Map section */}
+      <Box sx={topMapBleedSx}>
+        <MapShell
+          preset="home"
+          rounded={false}
+          sx={{ mb: 0, height: { xs: "62dvh", md: "55vh" } }}
+          showControls
+          canvasSx={{ background: uiTokens.map.canvasEmphasis }}
+        >
+          <IconButton
+            size="small"
+            aria-label="Back"
+            onClick={() => navigate(-1)}
+            sx={{
+              position: "absolute",
+              top: 14,
+              left: 14,
+              zIndex: 12,
+              width: 42,
+              height: 42,
+              borderRadius: "50%",
+              bgcolor: "rgba(255,255,255,0.95)",
+              color: "#111827",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.18)",
+              "&:hover": {
+                bgcolor: "#FFFFFF"
+              }
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 19 }} />
+          </IconButton>
+        
+          {/* Route preview line */}
+          {routeData && routeData.polyline && (
+            <svg
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                pointerEvents: "none"
+              }}
+            >
+              <polyline
+                points={routeData.polyline.map((p: { x: number; y: number }) => `${p.x},${p.y}`).join(" ")}
+                fill="none"
+                stroke="#03CD8C"
+                strokeWidth="0.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeDasharray="2,2"
+                opacity={0.8}
+              />
+            </svg>
+          )}
+
+          {/* Current location marker (blue pin) */}
+          <Box
+            sx={{
+              position: "absolute",
+              left: routeData?.polyline?.[0]?.x ? `${routeData.polyline[0].x}%` : "24%",
+              top: routeData?.polyline?.[0]?.y ? `${routeData.polyline[0].y}%` : "60%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 2
+            }}
+          >
+            <Box sx={{ position: "relative" }}>
+              <Box
+                sx={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: "50%",
+                  bgcolor: uiTokens.map.markerStart,
+                  border: "2px solid white",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
+                }}
+              />
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: -8,
+                  borderRadius: "50%",
+                  border: "1px solid rgba(59,130,246,0.5)",
+                  animation: `${pulse} 2s infinite`
+                }}
+              />
+            </Box>
+          </Box>
+
+          {/* Destination marker (green pin) - appears when a place is selected */}
+          {(selectedPlace || destinationCoords) && routeData && (
+            <Box
+              sx={{
+                position: "absolute",
+                left: routeData.polyline && routeData.polyline.length > 0 && routeData.polyline[routeData.polyline.length - 1]?.x 
+                  ? `${routeData.polyline[routeData.polyline.length - 1]!.x}%` 
+                  : "75%",
+                top: routeData.polyline && routeData.polyline.length > 0 && routeData.polyline[routeData.polyline.length - 1]?.y 
+                  ? `${routeData.polyline[routeData.polyline.length - 1]!.y}%` 
+                  : "26%",
+                transform: "translate(-50%, -50%)",
+                zIndex: 2
+              }}
+            >
+              <PlaceRoundedIcon
+                sx={{
+                  fontSize: 28,
+                  color: uiTokens.map.markerEnd,
+                  filter: "drop-shadow(0 4px 8px rgba(15,23,42,0.9))"
+                }}
+              />
+            </Box>
+          )}
+
+          {/* Route info overlay */}
+          {routeData && (
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: 8,
+                left: 8,
+                right: 8,
+                bgcolor: "var(--evz-map-overlay-bg)",
+                border: "1px solid var(--evz-map-overlay-border)",
+                borderRadius: "var(--evz-radius-md)",
+                px: 1.5,
+                py: 1,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+              }}
+            >
+              <Typography variant="caption" sx={{ fontSize: 10, fontWeight: 600 }}>
+                {routeData.distance} • {routeData.duration}
+              </Typography>
+            </Box>
+          )}
+        </MapShell>
+      </Box>
+
       <SectionHeader
-        centered
         title="Where to today?"
-        subtitle={isSharedRideMode ? "Shared ride active" : "Book an electric ride now or later"}
+        subtitle={isSharedRideMode ? "Shared ride active" : "Book an electric ride today"}
       />
 
       <Box
@@ -992,126 +1149,6 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         />
       </Box>
 
-      {/* Map section */}
-      <MapShell
-        preset="home"
-        rounded
-        sx={{ mb: 2 }}
-        showControls
-        canvasSx={{ background: uiTokens.map.canvasEmphasis }}
-      >
-        
-        {/* Route preview line */}
-        {routeData && routeData.polyline && (
-          <svg
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              pointerEvents: "none"
-            }}
-          >
-            <polyline
-              points={routeData.polyline.map((p: { x: number; y: number }) => `${p.x},${p.y}`).join(" ")}
-              fill="none"
-              stroke="#03CD8C"
-              strokeWidth="0.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeDasharray="2,2"
-              opacity={0.8}
-            />
-          </svg>
-        )}
-
-        {/* Current location marker (blue pin) */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: routeData?.polyline?.[0]?.x ? `${routeData.polyline[0].x}%` : "24%",
-            top: routeData?.polyline?.[0]?.y ? `${routeData.polyline[0].y}%` : "60%",
-            transform: "translate(-50%, -50%)",
-            zIndex: 2
-          }}
-        >
-          <Box sx={{ position: "relative" }}>
-            <Box
-              sx={{
-                width: 14,
-                height: 14,
-                borderRadius: "50%",
-                bgcolor: uiTokens.map.markerStart,
-                border: "2px solid white",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
-              }}
-            />
-            <Box
-              sx={{
-                position: "absolute",
-                inset: -8,
-                borderRadius: "50%",
-                border: "1px solid rgba(59,130,246,0.5)",
-                animation: `${pulse} 2s infinite`
-              }}
-            />
-          </Box>
-        </Box>
-
-        {/* Destination marker (green pin) - appears when a place is selected */}
-        {(selectedPlace || destinationCoords) && routeData && (
-          <Box
-            sx={{
-              position: "absolute",
-              left: routeData.polyline && routeData.polyline.length > 0 && routeData.polyline[routeData.polyline.length - 1]?.x 
-                ? `${routeData.polyline[routeData.polyline.length - 1]!.x}%` 
-                : "75%",
-              top: routeData.polyline && routeData.polyline.length > 0 && routeData.polyline[routeData.polyline.length - 1]?.y 
-                ? `${routeData.polyline[routeData.polyline.length - 1]!.y}%` 
-                : "26%",
-              transform: "translate(-50%, -50%)",
-              zIndex: 2
-            }}
-          >
-            <PlaceRoundedIcon
-              sx={{
-                fontSize: 28,
-                color: uiTokens.map.markerEnd,
-                filter: "drop-shadow(0 4px 8px rgba(15,23,42,0.9))"
-              }}
-            />
-          </Box>
-        )}
-
-        {/* Route info overlay */}
-        {routeData && (
-          <Box
-            sx={{
-              position: "absolute",
-              bottom: 8,
-              left: 8,
-              right: 8,
-              bgcolor: "var(--evz-map-overlay-bg)",
-              border: "1px solid var(--evz-map-overlay-border)",
-              borderRadius: "var(--evz-radius-md)",
-              px: 1.5,
-              py: 1,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-            }}
-          >
-            <Typography variant="caption" sx={{ fontSize: 10, fontWeight: 600 }}>
-              {routeData.distance} • {routeData.duration}
-            </Typography>
-          </Box>
-        )}
-      </MapShell>
-
       <InfoCard title="Quick actions">
         <Box
           sx={{
@@ -1150,6 +1187,54 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         </Box>
       </InfoCard>
 
+      {!hasOrderedRide && (
+        <Card
+          elevation={0}
+          sx={{
+            borderRadius: uiTokens.radius.xl,
+            bgcolor: (t) =>
+              t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+            border: (t) =>
+              t.palette.mode === "light"
+                ? "1px solid rgba(209,213,219,0.9)"
+                : "1px solid rgba(51,65,85,0.9)"
+          }}
+        >
+          <CardContent sx={{ py: 3, textAlign: "center" }}>
+            <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+              Common places, daily commutes and upcoming rides appear after your first ride order.
+            </Typography>
+            <Typography variant="caption" sx={{ color: "text.secondary", opacity: 0.85 }}>
+              We use your ride activity to fill these cards automatically.
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
+
+      {hasOrderedRide && loadingRideInsights && (
+        <Card
+          elevation={0}
+          sx={{
+            borderRadius: uiTokens.radius.xl,
+            bgcolor: (t) =>
+              t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+            border: (t) =>
+              t.palette.mode === "light"
+                ? "1px solid rgba(209,213,219,0.9)"
+                : "1px solid rgba(51,65,85,0.9)"
+          }}
+        >
+          <CardContent sx={{ py: 3, textAlign: "center" }}>
+            <CircularProgress size={24} />
+            <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mt: 1 }}>
+              Preparing ride insights...
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
+
+      {hasOrderedRide && !loadingRideInsights && (
+        <>
       {/* Tabs */}
       <Tabs
         value={tab}
@@ -1364,6 +1449,8 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           </Box>
         )}
       </Box>
+        </>
+      )}
 
       {/* Helper panel */}
       {helperState !== "idle" && (
