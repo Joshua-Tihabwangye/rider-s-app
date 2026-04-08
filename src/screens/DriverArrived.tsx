@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -24,21 +24,30 @@ import MapShell from "../components/maps/MapShell";
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
 
 function DriverHasArrivedScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { ride, actions } = useAppData();
+  const activeTrip = ride.activeTrip;
+  const driver = activeTrip?.driver;
+  const vehicle = activeTrip?.vehicle;
   const [sliderPosition, setSliderPosition] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
-  const otp = "256836";
+  const otp = activeTrip?.otp ?? "—";
+
+  useEffect(() => {
+    actions.setRideStatus("driver_arrived");
+  }, [actions]);
 
   const handleCall = () => {
-    console.log("Calling driver...");
-    // In production: window.location.href = `tel:+256...`;
+    if (activeTrip?.driver?.phone) {
+      window.location.href = `tel:${activeTrip.driver.phone}`;
+    }
   };
 
   const handleMessage = () => {
-    console.log("Opening chat...");
-    // In production: navigate to chat screen
+    navigate("/help");
   };
 
   const handleSliderStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>): void => {
@@ -81,6 +90,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
 
   const handleStartTrip = () => {
     // Navigate to trip in progress screen
+    actions.setRideStatus("in_progress");
     navigate("/rides/trip");
   };
 
@@ -106,14 +116,30 @@ function DriverHasArrivedScreen(): React.JSX.Element {
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
         }
+        action={
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => navigate("/rides/sos")}
+            sx={{
+              bgcolor: "var(--evz-danger)",
+              color: "#fff",
+              textTransform: "none",
+              px: 2,
+              "&:hover": { bgcolor: "var(--evz-danger-hover)" }
+            }}
+          >
+            SOS
+          </Button>
+        }
       />
 
-      {/* Map Section - Full width at top (45% height) */}
+      {/* Map Section - Full width at top (55% height) */}
       <Box
         sx={{
           position: "relative",
           width: "100%",
-          height: "45vh",
+          height: "55vh",
           borderRadius: uiTokens.radius.xl,
           background: (theme) =>
             theme.palette.mode === "light"
@@ -187,20 +213,20 @@ function DriverHasArrivedScreen(): React.JSX.Element {
               fontWeight: 600
             }}
           >
-            TS
+            {driver?.avatar ?? driver?.name?.split(" ").map((part) => part[0]).join("").slice(0, 2) ?? "DR"}
           </Avatar>
           
           <Typography
             variant="h6"
             sx={{ fontWeight: 600, mb: 0.5, letterSpacing: "-0.01em" }}
           >
-            Tim Smith
+            {driver?.name ?? "Driver"}
           </Typography>
           
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: uiTokens.spacing.xxs, mb: uiTokens.spacing.lg }}>
             <StarRoundedIcon sx={{ fontSize: 18, color: "#FFC107" }} />
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              4.6
+              {driver?.rating?.toFixed(1) ?? "4.6"}
             </Typography>
             <Typography variant="caption" sx={{ color: (theme) => theme.palette.text.secondary, ml: 0.5 }}>
               157 ratings
@@ -512,7 +538,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                 color: (theme) => theme.palette.text.primary
               }}
             >
-              Tesla Model Y
+              {vehicle?.model ?? "EV Vehicle"}
             </Typography>
             <Typography
               variant="body2"

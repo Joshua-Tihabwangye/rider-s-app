@@ -19,10 +19,13 @@ import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
+import { useAppData } from "../contexts/AppDataContext";
 
 
 function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { rental, actions } = useAppData();
+  const vehicle = rental.vehicles.find((item) => item.id === rental.selectedVehicleId) ?? rental.vehicles[0];
   const [paymentMethod, setPaymentMethod] = useState("wallet");
 
   return (
@@ -64,7 +67,7 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Nissan Leaf • Self-drive • 3 days
+              {vehicle ? `${vehicle.name} • ${vehicle.mode} • ${rental.booking.startDate ?? "Dates selected"}` : "Rental summary"}
             </Typography>
           </Box>
         </Box>
@@ -368,6 +371,10 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
+        onClick={() => {
+          actions.updateRentalBooking({ status: "confirmed" });
+          navigate("/rental/confirmation");
+        }}
         sx={{
           borderRadius: 5,
           py: 1.1,

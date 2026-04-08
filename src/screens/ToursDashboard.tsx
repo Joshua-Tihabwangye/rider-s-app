@@ -14,6 +14,7 @@ import {
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
 
 import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
@@ -24,14 +25,22 @@ import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRound
 
 function ToursDashboardHomeScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { tours, actions } = useAppData();
+  const featuredTour = tours.tours[0];
   const [activeCategory, setActiveCategory] = useState("daytrips");
 
   const handleBookFeatured = () => {
-    navigate("/tours/1/dates");
+    if (featuredTour) {
+      actions.selectTour(featuredTour.id);
+      navigate(`/tours/${featuredTour.id}/dates`);
+    }
   };
 
   const handleViewDetails = () => {
-    navigate("/tours/1");
+    if (featuredTour) {
+      actions.selectTour(featuredTour.id);
+      navigate(`/tours/${featuredTour.id}`);
+    }
   };
 
   const handleCreateCustom = () => {
@@ -87,7 +96,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             variant="body1"
             sx={{ fontWeight: 700, letterSpacing: "-0.02em", mb: 0.25 }}
           >
-            EV Day Trip – Jinja, Source of the Nile
+            {featuredTour?.title ?? "EV Day Trip"}
           </Typography>
           <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.6 }}>
             <PlaceRoundedIcon
@@ -97,7 +106,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Jinja • Full day • EV transport included
+              {featuredTour ? `${featuredTour.location} • ${featuredTour.duration} • EV transport included` : "Tour details"}
             </Typography>
           </Stack>
           <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
@@ -108,7 +117,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Sat 12 Oct • 08:00 – 19:00 • 4 spots left
+              {featuredTour ? `${featuredTour.scheduleLabel} • ${featuredTour.seatsLeft} spots left` : "Schedule"}
             </Typography>
           </Stack>
 
@@ -237,29 +246,30 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
           </Stack>
           <Divider sx={{ mb: 1, borderColor: (t) => t.palette.divider }} />
 
-          {[0, 1].map((i) => (
-              <Box
-                key={i}
-                onClick={() => navigate("/tours/1")}
-                sx={{
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  py: 0.6,
-                  "&:not(:last-of-type)": {
-                    borderBottom: (t) => `1px dashed ${t.palette.divider}`
-                  }
-                }}
-              >
+          {tours.tours.slice(0, 2).map((tour) => (
+            <Box
+              key={tour.id}
+              onClick={() => {
+                actions.selectTour(tour.id);
+                navigate(`/tours/${tour.id}`);
+              }}
+              sx={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                py: 0.6,
+                "&:not(:last-of-type)": {
+                  borderBottom: (t) => `1px dashed ${t.palette.divider}`
+                }
+              }}
+            >
               <Box>
                 <Typography
                   variant="body2"
                   sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
                 >
-                  {i === 0
-                    ? "Kampala City EV Highlights"
-                    : "Weekend EV Safari – Lake Mburo"}
+                  {tour.title}
                 </Typography>
                 <Stack direction="row" spacing={0.75} alignItems="center">
                   <CalendarMonthRoundedIcon
@@ -269,9 +279,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
                     variant="caption"
                     sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
                   >
-                    {i === 0
-                      ? "18 Oct • 14:00 – 18:30"
-                      : "25–26 Oct • 2 days"}
+                    {tour.scheduleLabel}
                   </Typography>
                 </Stack>
                 <Stack direction="row" spacing={0.75} alignItems="center">
@@ -282,7 +290,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
                     variant="caption"
                     sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
                   >
-                    {i === 0 ? "2 adults" : "4 guests"}
+                    {tours.booking.guests} guests
                   </Typography>
                 </Stack>
               </Box>

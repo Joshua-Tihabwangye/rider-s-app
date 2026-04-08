@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   
   Box,
@@ -19,11 +19,20 @@ import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
 import BatteryChargingFullRoundedIcon from "@mui/icons-material/BatteryChargingFullRounded";
 import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
-
+import { useAppData } from "../contexts/AppDataContext";
 
 function RentalVehicleDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { vehicleId } = useParams();
+  const { rental, actions } = useAppData();
   const [modeSelection, setModeSelection] = useState("self");
+  const vehicle = rental.vehicles.find((item) => item.id === vehicleId) ?? rental.vehicles[0];
+
+  useEffect(() => {
+    if (vehicleId) {
+      actions.selectRentalVehicle(vehicleId);
+    }
+  }, [vehicleId, actions]);
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -58,13 +67,13 @@ function RentalVehicleDetailsScreen(): React.JSX.Element {
               variant="subtitle1"
               sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
             >
-              Nissan Leaf • EV hatchback
+              {vehicle?.name ?? "EV Rental"} • {vehicle?.type ?? "EV"}
             </Typography>
             <Typography
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Self-drive or chauffeur, 220 km range
+              {vehicle?.mode ?? "Self-drive"} • {vehicle?.range ?? "Range info"}
             </Typography>
           </Box>
         </Box>
@@ -186,7 +195,7 @@ function RentalVehicleDetailsScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                220 km range
+                {vehicle?.range ?? "Range info"}
               </Typography>
             </Stack>
           </Stack>
@@ -278,6 +287,12 @@ function RentalVehicleDetailsScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
+        onClick={() => {
+          if (vehicle) {
+            actions.selectRentalVehicle(vehicle.id);
+          }
+          navigate("/rental/dates");
+        }}
         sx={{
           borderRadius: 5,
           py: 1.1,

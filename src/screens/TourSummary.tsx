@@ -20,14 +20,17 @@ import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
+import { useAppData } from "../contexts/AppDataContext";
 
 
 function TourBookingSummaryPaymentScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
+  const { tours, actions } = useAppData();
+  const selectedTour = tours.tours.find((tour) => tour.id === tours.selectedTourId) ?? tours.tours[0];
   const [paymentMethod, setPaymentMethod] = useState("wallet");
 
-  const { date = "Sat, 12 Oct 2025", timeSlot = "Afternoon (14:00)", adults = 2, children = 1 } = (location.state as any) || {};
+  const { date = tours.booking.date || "Sat, 12 Oct 2025", timeSlot = "Afternoon (14:00)", adults = tours.booking.guests || 2, children = 1 } = (location.state as any) || {};
   const adultPrice = 250000;
   const childPrice = 150000;
   const bookingFee = 15000;
@@ -390,7 +393,12 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
-        onClick={() => navigate('/tours/1/confirmation')}
+        onClick={() => {
+          if (selectedTour) {
+            actions.updateTourBooking({ status: "confirmed", tourId: selectedTour.id });
+            navigate(`/tours/${selectedTour.id}/confirmation`);
+          }
+        }}
         sx={{
           borderRadius: 5,
           py: 1.1,

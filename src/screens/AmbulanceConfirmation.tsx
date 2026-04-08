@@ -18,12 +18,18 @@ import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import PhoneEnabledRoundedIcon from "@mui/icons-material/PhoneEnabledRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
+import { useAppData } from "../contexts/AppDataContext";
 
 
 function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const requestId = "AMB-REQ-2025-10-07-001";
+  const { ambulance, actions } = useAppData();
+  const requestId = ambulance.request.id;
   const eta = "8 min";
+
+  React.useEffect(() => {
+    actions.updateAmbulanceRequest({ status: "assigned" });
+  }, [actions]);
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -175,6 +181,7 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
               fullWidth
               variant="outlined"
               startIcon={<PhoneEnabledRoundedIcon sx={{ fontSize: 18 }} />}
+              onClick={() => navigate("/help")}
               sx={{
                 borderRadius: 5,
                 py: 0.9,
@@ -188,6 +195,7 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
               fullWidth
               variant="outlined"
               startIcon={<PhoneIphoneRoundedIcon sx={{ fontSize: 18 }} />}
+              onClick={() => navigate(`/ambulance/tracking/${requestId}`)}
               sx={{
                 borderRadius: 5,
                 py: 0.9,

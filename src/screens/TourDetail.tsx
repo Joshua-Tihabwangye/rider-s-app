@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   
   Box,
@@ -18,10 +18,21 @@ import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
+import { useAppData } from "../contexts/AppDataContext";
 
 
 function TourDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { tourId } = useParams();
+  const { tours, actions } = useAppData();
+  const selectedTour = tours.tours.find((tour) => tour.id === tourId) ?? tours.tours[0];
+
+  useEffect(() => {
+    if (tourId) {
+      actions.selectTour(tourId);
+    }
+  }, [tourId, actions]);
+
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
       {/* Header */}
@@ -55,13 +66,13 @@ function TourDetailsScreen(): React.JSX.Element {
               variant="subtitle1"
               sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
             >
-              EV Day Trip – Jinja, Source of the Nile
+              {selectedTour?.title ?? "EV Tour"}
             </Typography>
             <Typography
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Jinja • Full day
+              {selectedTour ? `${selectedTour.location} • ${selectedTour.duration}` : "Tour details"}
             </Typography>
           </Box>
         </Box>
@@ -262,7 +273,12 @@ function TourDetailsScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
-        onClick={() => navigate('/tours/1/dates')}
+        onClick={() => {
+          if (selectedTour) {
+            actions.selectTour(selectedTour.id);
+            navigate(`/tours/${selectedTour.id}/dates`);
+          }
+        }}
         sx={{
           borderRadius: 5,
           py: 1.1,

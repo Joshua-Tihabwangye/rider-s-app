@@ -18,16 +18,19 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
 
 function RideRatingFeedbackScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
+  const { ride } = useAppData();
   
   // Get driver data from navigation state or use defaults
+  const driver = ride.activeTrip?.driver;
   const driverData = location.state?.driverData || {
-    name: "Tim Smith",
-    initials: "TS"
+    name: driver?.name ?? "Driver",
+    initials: driver?.avatar ?? driver?.name?.split(" ").map((part: string) => part[0]).join("").slice(0, 2) ?? "DR"
   };
   
   const [rating, setRating] = useState(0);
@@ -48,7 +51,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
     // Required fields: ride_id, rating
     // Optional fields: message, tip_amount
     const feedbackData = {
-      ride_id: location.state?.rideId || "trip_123", // Would come from trip state
+      ride_id: location.state?.rideId || ride.activeTrip?.id || "trip_123",
       rating: rating,
       message: feedback || null,
       tip_amount: tipAmount ? parseFloat(tipAmount.replace(/,/g, "")) : null
@@ -88,7 +91,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
         sx={{
           position: "relative",
           width: "100%",
-          height: "45vh",
+          height: "55vh",
           background: (theme) =>
             theme.palette.mode === "light"
               ? "#F5F5F5"

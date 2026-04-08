@@ -18,10 +18,14 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { useAppData } from "../contexts/AppDataContext";
 
 function RideDetailsPreConfirmScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const fareEstimate = "UGX 14,500";
+  const { ride } = useAppData();
+  const origin = ride.request.origin ?? ride.activeTrip?.pickup;
+  const destination = ride.request.destination ?? ride.activeTrip?.dropoff;
+  const fareEstimate = ride.activeTrip?.fareEstimate ?? "UGX 14,500";
   return (
     <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.xl, pb: uiTokens.spacing.xxl }}>
       {/* Header */}
@@ -142,7 +146,7 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
               variant="body2"
               sx={{ fontWeight: 500, letterSpacing: "-0.01em" }}
             >
-              Nsambya Road 472, Kampala
+              {origin?.address ?? "Select pickup"}
             </Typography>
           </Box>
           <Box sx={{ mb: uiTokens.spacing.smPlus }}>
@@ -156,7 +160,7 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
               variant="body2"
               sx={{ fontWeight: 500, letterSpacing: "-0.01em" }}
             >
-              Bugolobi Village, Kampala
+              {destination?.address ?? "Select destination"}
             </Typography>
           </Box>
           <Stack direction="row" spacing={uiTokens.spacing.mdPlus} alignItems="center">

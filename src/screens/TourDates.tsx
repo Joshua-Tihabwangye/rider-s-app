@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   
   Box,
@@ -17,13 +17,17 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
+import { useAppData } from "../contexts/AppDataContext";
 
 
 function TourDateGuestsScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [date, setDate] = useState("");
+  const { tourId } = useParams();
+  const { tours, actions } = useAppData();
+  const selectedTour = tours.tours.find((tour) => tour.id === tourId) ?? tours.tours[0];
+  const [date, setDate] = useState(tours.booking.date ?? "");
   const [timeSlot, setTimeSlot] = useState("Afternoon (14:00)");
-  const [adults, setAdults] = useState(2);
+  const [adults, setAdults] = useState(tours.booking.guests ?? 2);
   const [children, setChildren] = useState(0);
 
   const canContinue = Boolean(date.trim() && timeSlot.trim() && adults > 0);
@@ -76,7 +80,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              EV Day Trip – Jinja, Source of the Nile
+              {selectedTour?.title ?? "EV Tour"}
             </Typography>
           </Box>
         </Box>
@@ -310,7 +314,18 @@ function TourDateGuestsScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         disabled={!canContinue}
-        onClick={() => navigate('/tours/1/summary', { state: { date, timeSlot, adults, children } })}
+        onClick={() => {
+          if (!selectedTour) return;
+          const guests = adults + children;
+          const estimate = `${selectedTour.pricePerPerson} × ${guests}`;
+          actions.updateTourBooking({
+            tourId: selectedTour.id,
+            date,
+            guests,
+            priceEstimate: estimate
+          });
+          navigate(`/tours/${selectedTour.id}/summary`, { state: { date, timeSlot, adults, children } });
+        }}
         sx={{
           borderRadius: 5,
           py: 1.1,

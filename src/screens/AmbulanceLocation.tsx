@@ -19,15 +19,17 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
+import { useAppData } from "../contexts/AppDataContext";
 
 
 function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [location, setLocation] = useState("Nsambya Road 472, Kampala");
-  const [patientName, setPatientName] = useState("");
-  const [patientPhone, setPatientPhone] = useState("");
-  const [forWhom, setForWhom] = useState("me");
-  const [notes, setNotes] = useState("");
+  const { ambulance, actions } = useAppData();
+  const [location, setLocation] = useState(ambulance.request.pickup?.address ?? "Nsambya Road 472, Kampala");
+  const [patientName, setPatientName] = useState(ambulance.request.patientName ?? "");
+  const [patientPhone, setPatientPhone] = useState(ambulance.request.patientPhone ?? "");
+  const [forWhom, setForWhom] = useState(ambulance.request.forWhom ?? "me");
+  const [notes, setNotes] = useState(ambulance.request.notes ?? "");
 
   const canContinue =
     location.trim().length > 0 && patientPhone.trim().length > 0 && patientName.trim().length > 0;
@@ -343,6 +345,16 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
+        onClick={() => {
+          actions.updateAmbulanceRequest({
+            pickup: { label: location, address: location },
+            patientName,
+            patientPhone,
+            forWhom: forWhom === "me" ? "me" : "someone",
+            notes
+          });
+          navigate("/ambulance/destination");
+        }}
         disabled={!canContinue}
         sx={{
           borderRadius: 5,

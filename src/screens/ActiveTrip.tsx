@@ -27,18 +27,22 @@ import MapShell from "../components/maps/MapShell";
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
 
 function TripInProgressBasicScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { ride, actions } = useAppData();
+  const activeTrip = ride.activeTrip;
   const [progress, setProgress] = useState(40); // 40% of trip completed
   const [eta, setEta] = useState({ hours: 1, minutes: 20 });
   const [distanceCovered, setDistanceCovered] = useState(22);
   const totalDistance = 54;
   const totalTime = "2 hr 20 mins";
-  const totalFare = "20,565";
+  const totalFare = activeTrip?.fareEstimate ?? "UGX 20,565";
 
   // Simulate trip progress
   useEffect(() => {
+    actions.setRideStatus("in_progress");
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev < 95) {
@@ -67,9 +71,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   }, []);
 
   const handleEmergency = () => {
-    // Trigger emergency support
-    console.log("Emergency button pressed");
-    // In production: window.location.href = `tel:911` or open emergency chat
+    navigate("/rides/sos");
   };
 
   const handleNavigation = () => {
@@ -82,13 +84,11 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   };
 
   const handleGroup = () => {
-    console.log("Open ride sharing/contact support");
-    // In production: Navigate to ride sharing or support
+    navigate("/rides/trip/share");
   };
 
   const handleSettings = () => {
-    console.log("Open trip settings");
-    // In production: Open trip options (mute, cancel, help)
+    navigate("/settings");
   };
 
   const handleRating = () => {
@@ -96,8 +96,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   };
 
   const handleShare = () => {
-    console.log("Share live trip link");
-    // In production: Share trip link
+    navigate("/rides/trip/share");
   };
 
   const handlePayNow = () => {
@@ -109,7 +108,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     <ScreenScaffold>
       <SectionHeader
         title="Active Trip"
-        subtitle="Lake Victoria Hotel → Entebbe"
+        subtitle={activeTrip?.routeSummary ?? "Trip in progress"}
         leadingAction={
           <IconButton
             size="small"
@@ -126,6 +125,22 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
+        }
+        action={
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => navigate("/rides/sos")}
+            sx={{
+              bgcolor: "var(--evz-danger)",
+              color: "#fff",
+              textTransform: "none",
+              px: 2,
+              "&:hover": { bgcolor: "var(--evz-danger-hover)" }
+            }}
+          >
+            SOS
+          </Button>
         }
       />
 

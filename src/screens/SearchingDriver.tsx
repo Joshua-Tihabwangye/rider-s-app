@@ -24,9 +24,11 @@ import MapShell from "../components/maps/MapShell";
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
 
 function SearchingForDriverScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { actions } = useAppData();
   const [dots, setDots] = useState("....");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [searchTime, setSearchTime] = useState(0);
@@ -45,6 +47,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
 
   // Simulate API polling for driver assignment
   useEffect(() => {
+    actions.setRideStatus("searching");
     const searchInterval = setInterval(() => {
       setSearchTime((prev) => prev + 1);
       
@@ -52,6 +55,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
       if (searchTime >= 5 && Math.random() > 0.7 && !driverFound) {
         setDriverFound(true);
         setTimeout(() => {
+          actions.setRideStatus("driver_on_way");
           navigate("/rides/driver-on-way");
         }, 1000);
       }

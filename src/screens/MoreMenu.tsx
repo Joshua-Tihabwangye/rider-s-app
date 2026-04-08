@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Avatar, Box, Button, Stack, Typography } from "@mui/material";
 import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
-import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import HelpRoundedIcon from "@mui/icons-material/HelpRounded";
 import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
 import MailRoundedIcon from "@mui/icons-material/MailRounded";
@@ -62,10 +61,10 @@ const APP_ITEMS: MenuItem[] = [
     route: "/wallet"
   },
   {
-    icon: <SettingsRoundedIcon />,
-    label: "Settings",
-    description: "App preferences and account settings",
-    route: "/settings"
+    icon: <DirectionsCarFilledRoundedIcon />,
+    label: "Ride Promotions",
+    description: "Active promos and discounts",
+    route: "/rides/promotions"
   }
 ];
 

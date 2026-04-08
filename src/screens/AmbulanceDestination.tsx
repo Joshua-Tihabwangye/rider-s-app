@@ -17,6 +17,7 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import { useAppData } from "../contexts/AppDataContext";
 
 
 const HOSPITALS = [
@@ -28,6 +29,7 @@ const HOSPITALS = [
 
 function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { actions } = useAppData();
   const [destinationMode, setDestinationMode] = useState("nearest");
   const [selectedHospital, setSelectedHospital] = useState("Mulago National Referral Hospital");
 
@@ -239,6 +241,15 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
+        onClick={() => {
+          const destinationLabel =
+            destinationMode === "nearest" ? "Nearest hospital" : selectedHospital.trim();
+          actions.updateAmbulanceRequest({
+            destination: { label: destinationLabel, address: destinationLabel },
+            status: "requested"
+          });
+          navigate("/ambulance/confirmation");
+        }}
         disabled={!canContinue}
         sx={{
           borderRadius: 5,
