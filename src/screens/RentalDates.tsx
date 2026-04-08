@@ -17,12 +17,14 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import { useAppData } from "../contexts/AppDataContext";
 
 
 function RentalDatesDurationScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [startDateTime, setStartDateTime] = useState("Today • 10:00");
-  const [endDateTime, setEndDateTime] = useState("Tomorrow • 10:00");
+  const { rental, actions } = useAppData();
+  const [startDateTime, setStartDateTime] = useState(rental.booking.startDate ?? "Today • 10:00");
+  const [endDateTime, setEndDateTime] = useState(rental.booking.endDate ?? "Tomorrow • 10:00");
   const [durationLabel, setDurationLabel] = useState("1 day");
 
   const handleQuickDuration = (label: string, start: string, end: string): void => {
@@ -258,6 +260,10 @@ function RentalDatesDurationScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
+        onClick={() => {
+          actions.updateRentalBooking({ startDate: startDateTime, endDate: endDateTime });
+          navigate("/rental/branches");
+        }}
         disabled={!canContinue}
         sx={{
           borderRadius: 5,

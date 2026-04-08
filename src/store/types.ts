@@ -77,3 +77,324 @@ export interface AppData {
   transactions: WalletTransaction[];
   reminders: Reminder[];
 }
+
+/** Saved place for quick access */
+export interface SavedPlace {
+  id: string;
+  label: string;
+  address: string;
+  coordinates?: { lat: number; lng: number };
+  icon?: string;
+}
+
+/** Settings & preferences */
+export interface NotificationPreferences {
+  rideUpdates: boolean;
+  deliveryUpdates: boolean;
+  rentalUpdates: boolean;
+  tourUpdates: boolean;
+  safetyAlerts: boolean;
+  promotions: boolean;
+}
+
+export interface PrivacyPreferences {
+  shareTripStatus: boolean;
+  shareLocation: boolean;
+  allowContactBySupport: boolean;
+}
+
+export interface RidePreferences {
+  quietRide: boolean;
+  temperature: "Cool" | "Normal" | "Warm";
+  luggageAssistance: boolean;
+  accessibilityNeeds: boolean;
+}
+
+export interface DeliveryPreferences {
+  callBeforeDropoff: boolean;
+  leaveAtDoor: boolean;
+  fragileHandling: boolean;
+}
+
+export interface SettingsState {
+  language: string;
+  region: string;
+  notifications: NotificationPreferences;
+  privacy: PrivacyPreferences;
+  ride: RidePreferences;
+  delivery: DeliveryPreferences;
+}
+
+/** Emergency contacts */
+export interface EmergencyContact {
+  id: string;
+  name: string;
+  phone: string;
+  relationship: string;
+  isDefault: boolean;
+  notifyOnSOS: boolean;
+}
+
+/** Ride workflow */
+export type RideStatus =
+  | "idle"
+  | "searching"
+  | "driver_assigned"
+  | "driver_on_way"
+  | "driver_arrived"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
+
+export interface RideLocation {
+  label: string;
+  address: string;
+  coordinates?: { lat: number; lng: number };
+}
+
+export interface RideRequest {
+  origin: RideLocation | null;
+  destination: RideLocation | null;
+  stops: RideLocation[];
+  passengers: number;
+  schedule: "now" | "later";
+  scheduleTime?: string;
+  tripType: "One Way" | "Round Trip" | "Multi-stop";
+  rideType: "Personal" | "Business";
+  serviceLevel?: string;
+  serviceClass?: "standard" | "premium";
+  riderType?: "personal" | "contact";
+  riderContact?: { name: string; phone: string } | null;
+  notes?: string;
+}
+
+export interface DriverProfile {
+  id: string;
+  name: string;
+  phone: string;
+  rating: number;
+  avatar: string;
+}
+
+export interface VehicleProfile {
+  model: string;
+  color: string;
+  plate: string;
+  category: string;
+}
+
+export interface RideTrip {
+  id: string;
+  status: RideStatus;
+  otp: string;
+  etaMinutes: number;
+  fareEstimate: string;
+  distance: string;
+  routeSummary: string;
+  pickup: RideLocation | null;
+  dropoff: RideLocation | null;
+  driver: DriverProfile | null;
+  vehicle: VehicleProfile | null;
+  lastKnownLocation?: RideLocation | null;
+  startedAt?: string;
+  completedAt?: string;
+}
+
+export interface RideOption {
+  id: string;
+  name: string;
+  description: string;
+  eta: string;
+  fare: string;
+  capacity?: number;
+}
+
+export interface RideState {
+  request: RideRequest;
+  activeTrip: RideTrip | null;
+  history: RideTrip[];
+  savedPlaces: SavedPlace[];
+  options: RideOption[];
+}
+
+/** Delivery workflow */
+export type DeliveryStatus =
+  | "draft"
+  | "pending"
+  | "accepted"
+  | "en_route"
+  | "delivered"
+  | "cancelled";
+
+export interface DeliveryParty {
+  name: string;
+  phone: string;
+  address: string;
+}
+
+export interface DeliveryDraft {
+  pickup: RideLocation | null;
+  dropoff: RideLocation | null;
+  parcel: { description: string; weight?: string; notes?: string };
+  sender: DeliveryParty | null;
+  recipient: DeliveryParty | null;
+  schedule: "now" | "later";
+  scheduleTime?: string;
+  priceEstimate?: string;
+}
+
+export interface DeliveryOrder {
+  id: string;
+  packageName: string;
+  sender: {
+    city: string;
+    code: string;
+    name: string;
+    avatar: string;
+    address: string;
+    profileImage?: string | null;
+  };
+  receiver: { city: string; code: string };
+  date?: Date;
+  time?: string;
+  status: string;
+  progress: number;
+  needsPayment?: boolean;
+}
+
+export interface DeliveryState {
+  draft: DeliveryDraft;
+  activeOrder: DeliveryOrder | null;
+  orders: DeliveryOrder[];
+}
+
+/** Rentals */
+export interface RentalVehicle {
+  id: string;
+  name: string;
+  type: string;
+  dailyPrice: string;
+  mode: string;
+  seats: number;
+  range: string;
+  tag?: string;
+  image?: string;
+  features?: string[];
+}
+
+export interface RentalBooking {
+  id: string;
+  vehicleId: string;
+  startDate?: string;
+  endDate?: string;
+  pickupBranch?: string;
+  dropoffBranch?: string;
+  priceEstimate?: string;
+  status: "draft" | "confirmed" | "completed" | "cancelled";
+}
+
+export interface RentalState {
+  vehicles: RentalVehicle[];
+  selectedVehicleId?: string | null;
+  booking: RentalBooking;
+}
+
+/** Tours */
+export interface Tour {
+  id: string;
+  title: string;
+  location: string;
+  duration: string;
+  pricePerPerson: string;
+  seatsLeft: number;
+  description: string;
+  highlights: string[];
+  scheduleLabel: string;
+}
+
+export interface TourBooking {
+  id: string;
+  tourId: string;
+  date?: string;
+  guests: number;
+  priceEstimate?: string;
+  status: "draft" | "confirmed" | "completed" | "cancelled";
+}
+
+export interface ToursState {
+  tours: Tour[];
+  selectedTourId?: string | null;
+  booking: TourBooking;
+}
+
+/** Ambulance */
+export type AmbulanceStatus =
+  | "idle"
+  | "requested"
+  | "assigned"
+  | "en_route"
+  | "arrived"
+  | "completed"
+  | "cancelled";
+
+export interface AmbulanceRequest {
+  id: string;
+  pickup: RideLocation | null;
+  destination?: RideLocation | null;
+  urgency: "low" | "medium" | "high";
+  status: AmbulanceStatus;
+  patientName?: string;
+  patientPhone?: string;
+  forWhom?: "me" | "someone";
+  notes?: string;
+  assignedUnit?: string;
+}
+
+export interface AmbulanceState {
+  request: AmbulanceRequest;
+  history: AmbulanceRequest[];
+}
+
+/** SOS */
+export type SosStatus =
+  | "initiated"
+  | "alert_sent"
+  | "contacts_notified"
+  | "support_notified"
+  | "resolved";
+
+export interface SosLog {
+  status: SosStatus;
+  timestamp: string;
+  note?: string;
+}
+
+export interface SosEvent {
+  id: string;
+  tripId: string;
+  status: SosStatus;
+  createdAt: string;
+  updatedAt: string;
+  logs: SosLog[];
+  context: {
+    passengerName: string;
+    passengerPhone: string;
+    driverName?: string;
+    driverPhone?: string;
+    driverRating?: number;
+    vehicleModel?: string;
+    vehicleColor?: string;
+    licensePlate?: string;
+    pickup?: string;
+    destination?: string;
+    routeSummary?: string;
+    tripStatus?: RideStatus;
+    lastLocation?: string;
+  };
+}
+
+export interface SosState {
+  activeEventId?: string | null;
+  events: SosEvent[];
+  emergencyServicesNumber: string;
+}

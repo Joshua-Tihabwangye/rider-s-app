@@ -20,6 +20,8 @@ import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceW
 import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
 import SmartphoneRoundedIcon from "@mui/icons-material/SmartphoneRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+import { useAppData } from "../contexts/AppDataContext";
+import type { RideOption } from "../store/types";
 
 interface MapBackgroundProps {
   onBackClick: () => void;
@@ -36,7 +38,7 @@ function MapBackground({ onBackClick }: MapBackgroundProps): React.JSX.Element {
         top: 0,
         left: 0,
         right: 0,
-        height: "40vh",
+        height: "50vh",
         background: theme.palette.mode === "light"
           ? "#F5F5DC" // Light beige map background
           : "linear-gradient(135deg, #0f1e2e 0%, #1a2d3e 50%, #0f1e2e 100%)",
@@ -120,43 +122,17 @@ function MapBackground({ onBackClick }: MapBackgroundProps): React.JSX.Element {
   );
 }
 
-interface RideOption {
-  id: string;
-  name: string;
-  description: string;
-  price?: string;
-  eta?: string;
-  fare?: string;
-  icon: React.ReactElement;
-  thumbnail?: string | null;
-}
-
-// Ride options data
-const RIDE_OPTIONS: RideOption[] = [
-  {
-    id: "scooter",
-    name: "EV Scooter",
-    description: "Inter-City Travel",
-    icon: <TwoWheelerRoundedIcon sx={{ fontSize: 28 }} />,
-    eta: "4 mins",
-    fare: "UGX 25,365",
-    thumbnail: null // Would be an image in production
-  },
-  {
-    id: "car-mini",
-    name: "EV Car Mini",
-    description: "Senior Citizen Assistance",
-    icon: <DirectionsCarRoundedIcon sx={{ fontSize: 28 }} />,
-    eta: "4 mins",
-    fare: "UGX 40,365",
-    thumbnail: null // Would be an image in production
-  }
-];
-
 interface RideOptionCardProps {
   option: RideOption;
   selected: string;
   onSelect: (id: string) => void;
+}
+
+function getRideOptionIcon(id: string): React.ReactElement {
+  if (id === "scooter") {
+    return <TwoWheelerRoundedIcon sx={{ fontSize: 28 }} />;
+  }
+  return <DirectionsCarRoundedIcon sx={{ fontSize: 28 }} />;
 }
 
 function RideOptionCard({ option, selected, onSelect }: RideOptionCardProps): React.JSX.Element {
@@ -210,7 +186,7 @@ function RideOptionCard({ option, selected, onSelect }: RideOptionCardProps): Re
             bgcolor: theme.palette.mode === "light" ? "#E5E5E5" : "rgba(30,30,30,1)"
           }}
         >
-          {option.icon}
+          {getRideOptionIcon(option.id)}
         </Box>
       </Box>
       
@@ -275,8 +251,9 @@ function SelectYourRideScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const [selectedRide, setSelectedRide] = useState("car-mini"); // Default to EV Car Mini as per spec
-  const [rideType, setRideType] = useState("premium"); // Default to Premium as per spec
+  const { ride, actions } = useAppData();
+  const [selectedRide, setSelectedRide] = useState(ride.request.serviceLevel ?? ride.options[0]?.id ?? "");
+  const [rideType, setRideType] = useState(ride.request.serviceClass ?? "standard");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [paymentMethodName, setPaymentMethodName] = useState("Cash payment");
   
@@ -287,18 +264,35 @@ function SelectYourRideScreen(): React.JSX.Element {
       setPaymentMethodName(location.state.paymentMethodName || "Cash payment");
     }
   }, [location.state]);
+
+  useEffect(() => {
+    if (ride.request.serviceLevel && ride.request.serviceLevel !== selectedRide) {
+      setSelectedRide(ride.request.serviceLevel);
+    }
+  }, [ride.request.serviceLevel, selectedRide]);
   
   const handleRideTypeChange = (_event: React.SyntheticEvent, newType: string | null): void => {
     if (newType !== null) {
       setRideType(newType);
+      actions.updateRideRequest({ serviceClass: newType });
+    }
+  };
+
+  const handleSelectRide = (id: string): void => {
+    setSelectedRide(id);
+    const selectedOption = ride.options.find((opt) => opt.id === id);
+    actions.updateRideRequest({ serviceLevel: id });
+    if (selectedOption) {
+      const etaMinutes = Number.parseInt(selectedOption.eta.replace(/[^0-9]/g, ""), 10) || 0;
+      actions.updateRideTrip({ fareEstimate: selectedOption.fare, etaMinutes });
     }
   };
   
   const handleConfirm = () => {
     // Get trip data from location state
     const tripData = location.state || {};
-    const selectedRideOption = RIDE_OPTIONS.find(opt => opt.id === selectedRide);
-    const fare = selectedRideOption?.fare || "UGX 40,365";
+    const selectedRideOption = ride.options.find((opt) => opt.id === selectedRide);
+    const fare = selectedRideOption?.fare || ride.activeTrip?.fareEstimate || "UGX 40,365";
     
     // Navigate to Ride Details screen (RA47) before booking
     navigate("/rides/details/confirm", {
@@ -307,8 +301,8 @@ function SelectYourRideScreen(): React.JSX.Element {
         selectedRide,
         rideType,
         fare,
-        distance: tripData.distance || "41.5 km",
-        estimatedTime: tripData.estimatedTime || "1 hr",
+        distance: tripData.distance || ride.activeTrip?.distance || "—",
+        estimatedTime: tripData.estimatedTime || `${ride.activeTrip?.etaMinutes ?? 0} mins`,
         origin: tripData.pickup ? {
           name: tripData.pickup,
           address: tripData.pickupAddress || tripData.pickup,
@@ -351,7 +345,7 @@ function SelectYourRideScreen(): React.JSX.Element {
           borderTopLeftRadius: 5,
           borderTopRightRadius: 5,
           bgcolor: contentBg,
-          maxHeight: { xs: 'calc(100vh - 40vh - 64px - env(safe-area-inset-bottom))', sm: 'calc(100vh - 40vh - 64px)' },
+          maxHeight: { xs: 'calc(100vh - 50vh - 64px - env(safe-area-inset-bottom))', sm: 'calc(100vh - 50vh - 64px)' },
           overflow: "auto",
           boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
           zIndex: 1
@@ -370,7 +364,7 @@ function SelectYourRideScreen(): React.JSX.Element {
               variant="body2"
               sx={{ fontSize: 13, color: theme.palette.text.secondary }}
             >
-              41.5 km • 1 hr
+              {ride.activeTrip?.distance ?? "—"} • {ride.activeTrip?.etaMinutes ?? 0} mins
             </Typography>
           </Box>
           
@@ -433,12 +427,12 @@ function SelectYourRideScreen(): React.JSX.Element {
           
           {/* Ride Options Cards */}
           <Box sx={{ mb: 2.5 }}>
-            {RIDE_OPTIONS.map((option) => (
+            {ride.options.map((option) => (
               <RideOptionCard
                 key={option.id}
                 option={option}
                 selected={selectedRide}
-                onSelect={setSelectedRide}
+                onSelect={handleSelectRide}
               />
             ))}
           </Box>
@@ -448,8 +442,8 @@ function SelectYourRideScreen(): React.JSX.Element {
             elevation={0}
             onClick={() => {
               // Get fare from selected ride
-              const selectedRideOption = RIDE_OPTIONS.find(opt => opt.id === selectedRide);
-              const fare = selectedRideOption?.fare || "UGX 40,365";
+              const selectedRideOption = ride.options.find((opt) => opt.id === selectedRide);
+              const fare = selectedRideOption?.fare || ride.activeTrip?.fareEstimate || "UGX 40,365";
               
               // Navigate to payment method selection
               navigate("/rides/payment", {
@@ -457,8 +451,8 @@ function SelectYourRideScreen(): React.JSX.Element {
                   fromSelectRide: true,
                   selectedRide,
                   rideType,
-                  distance: "41.5 km",
-                  estimatedTime: "1 hr",
+                  distance: ride.activeTrip?.distance || "—",
+                  estimatedTime: `${ride.activeTrip?.etaMinutes ?? 0} mins`,
                   fare: fare
                 }
               });

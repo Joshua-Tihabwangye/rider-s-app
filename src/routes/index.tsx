@@ -39,6 +39,7 @@ import UpcomingRides from "../screens/UpcomingRides";
 import RateDriver from "../screens/RateDriver";
 import SharedPassengers from "../screens/SharedPassengers";
 import RideHistoryDetail from "../screens/RideHistoryDetail";
+import RideSOS from "../screens/RideSOS";
 import RideVariant from "../screens/RideVariant";
 import MultiStops from "../screens/MultiStops";
 import MaxMultiStops from "../screens/MaxMultiStops";
@@ -197,6 +198,7 @@ export default function AppRouter(): React.JSX.Element {
 					<Route path="trip/completed" element={<TripCompleted />} />
 					<Route path="trip/share" element={<ShareTrip />} />
 					<Route path="trip/sharing" element={<TripSharing />} />
+					<Route path="sos" element={<RideSOS />} />
 					<Route path="rating" element={<RateDriver />} />
 					<Route path="rating/tip" element={<TipDriver />} />
 					<Route path="rating/driver" element={<RateDriver />} />

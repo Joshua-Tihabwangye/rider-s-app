@@ -39,6 +39,7 @@ import PageHeader from "../components/PageHeader";
 import SwitchRiderModal from "../components/SwitchRiderModal";
 import TripTypeModal from "../components/TripTypeModal";
 import AddStopModal from "../components/AddStopModal";
+import { useAppData } from "../contexts/AppDataContext";
 
 interface SearchResult {
 	id: string;
@@ -120,30 +121,31 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const theme = useTheme();
+	const { ride, actions } = useAppData();
 
 	// Get initial values from navigation state
 	const initialState = location.state || {};
 
 	const [pickup, setPickup] = useState(
-		initialState.pickup || "Current location",
+		initialState.pickup || ride.request.origin?.label || "Current location",
 	);
 	const [destination, setDestination] = useState(
-		initialState.destination || "",
+		initialState.destination || ride.request.destination?.label || "",
 	);
-	const [passengers, setPassengers] = useState(initialState.passengers || 1);
+	const [passengers, setPassengers] = useState(initialState.passengers || ride.request.passengers || 1);
 	const [customPassengers, setCustomPassengers] = useState("");
 	const [rideType, setRideType] = useState(
-		initialState.rideType || "Personal",
+		initialState.rideType || ride.request.rideType || "Personal",
 	);
 	const [tripType, setTripType] = useState(
-		initialState.tripType || "One Way",
+		initialState.tripType || ride.request.tripType || "One Way",
 	);
-	const [schedule, setSchedule] = useState(initialState.schedule || "Now");
+	const [schedule, setSchedule] = useState(initialState.schedule || (ride.request.schedule === "later" ? "Schedule for later" : "Now"));
 	const [scheduleTime, setScheduleTime] = useState(
-		initialState.scheduleTime || "",
+		initialState.scheduleTime || ride.request.scheduleTime || "",
 	);
 	const [isScheduled, setIsScheduled] = useState(
-		initialState.isScheduled || false,
+		initialState.isScheduled || ride.request.schedule === "later" || false,
 	);
 	const [returnDate, setReturnDate] = useState(
 		initialState.returnDate || null,
@@ -165,12 +167,22 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [showTripTypeModal, setShowTripTypeModal] = useState(false);
 	const [showAddStopModal, setShowAddStopModal] = useState(false);
 	const [selectedContact, setSelectedContact] = useState(
-		initialState.selectedContact || null,
+		initialState.selectedContact || ride.request.riderContact || null,
 	);
 	const [riderType, setRiderType] = useState(
-		initialState.riderType || "personal",
+		initialState.riderType || ride.request.riderType || "personal",
 	);
-	const [stops, setStops] = useState<Stop[]>(initialState.stops || []);
+	const [stops, setStops] = useState<Stop[]>(
+		initialState.stops ||
+			(ride.request.stops?.length
+				? ride.request.stops.map((stop) => ({
+						id: stop.label,
+						value: stop.label,
+						coordinates: stop.coordinates,
+						address: stop.address,
+				  }))
+				: []),
+	);
 	const [isMultiStopMode, setIsMultiStopMode] = useState(
 		initialState.isMultiStopMode || tripType === "Multi-stop",
 	);
@@ -208,6 +220,62 @@ function EnterDestinationScreen(): React.JSX.Element {
 			setRiderType("personal");
 		}
 	}, [initialState.selectedContact, initialState.riderType]);
+
+	useEffect(() => {
+		const originLocation =
+			pickup.trim().length > 0
+				? { label: pickup, address: pickup }
+				: null;
+		const destinationLocation =
+			destination.trim().length > 0
+				? { label: destination, address: destination }
+				: null;
+		const stopLocations = stops
+			.filter((stop) => stop.value.trim().length > 0)
+			.map((stop) => ({
+				label: stop.value,
+				address: stop.address || stop.value,
+				coordinates: stop.coordinates,
+			}));
+		const scheduleMode =
+			isScheduled || schedule === "Schedule for later" ? "later" : "now";
+		const contactName =
+			selectedContact?.name ||
+			selectedContact?.fullName ||
+			selectedContact?.label ||
+			"";
+		const contactPhone =
+			selectedContact?.phone || selectedContact?.phoneNumber || "";
+
+		actions.updateRideRequest({
+			origin: originLocation,
+			destination: destinationLocation,
+			stops: stopLocations,
+			passengers,
+			tripType,
+			rideType,
+			schedule: scheduleMode,
+			scheduleTime: scheduleMode === "later" ? scheduleTime : "",
+			riderType: riderType === "contact" ? "contact" : "personal",
+			riderContact:
+				riderType === "contact" && contactName
+					? { name: contactName, phone: contactPhone }
+					: null,
+		});
+	}, [
+		pickup,
+		destination,
+		stops,
+		passengers,
+		tripType,
+		rideType,
+		isScheduled,
+		schedule,
+		scheduleTime,
+		riderType,
+		selectedContact,
+		actions,
+	]);
 
 	const passengerOptions = [1, 2, 3, 4, 5, 6];
 	const scheduleOptions = ["Now", "Schedule for later"];

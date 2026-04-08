@@ -108,7 +108,7 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
   const handleChatDriver = () => {
     console.log("Chat with driver");
     // In production: Open in-app messaging window (one-on-one)
-    navigate("/rides/chat/driver");
+    navigate("/help");
   };
 
   const handlePayNow = () => {

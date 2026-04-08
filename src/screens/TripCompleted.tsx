@@ -25,24 +25,31 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
 
 function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const theme = useTheme();
+  const { ride, actions } = useAppData();
+  const activeTrip = ride.activeTrip;
   
   // Trip data - would come from backend/API
   // Display summary using final trip data (total distance, time, fare) from backend trip logs
   // Ensure accurate synchronization before payment prompt
-  const totalDistance = 54;
-  const distanceCovered = 54; // Full distance covered - matches total distance
+  const totalDistance = activeTrip?.distance ?? "—";
+  const distanceCovered = totalDistance;
   const totalTime = "2 hr 20 mins";
-  const totalFare = "20,565";
-  const destination = "Ndeeba town";
-  const departurePoint = "Entebbe International Airport";
+  const totalFare = activeTrip?.fareEstimate ?? "UGX 20,565";
+  const destination = activeTrip?.dropoff?.address ?? "Destination";
+  const departurePoint = activeTrip?.pickup?.address ?? "Pickup";
   const departureTime = "12:10 PM";
-  const driverName = "Tim Smith";
-  const driverRating = 4.8;
+  const driverName = activeTrip?.driver?.name ?? "Driver";
+  const driverRating = activeTrip?.driver?.rating ?? 4.6;
   const progress = 100; // Trip completed - 100%
+
+  React.useEffect(() => {
+    actions.setRideStatus("completed");
+  }, [actions]);
   
   // Status Update Logic:
   // Trip status should automatically update to Completed once arrival is detected via GPS
@@ -68,8 +75,8 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
     navigate("/rides/rating/driver", {
       state: {
         tripCompleted: true,
-        driverName: driverName,
-        driverRating: driverRating
+        driverName,
+        driverRating
       }
     });
   };
@@ -81,7 +88,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
       state: {
         tripCompleted: true,
         totalFare: totalFare,
-        tripId: "trip_123" // Would come from backend
+        tripId: activeTrip?.id ?? "trip_123"
       }
     });
   };
@@ -95,7 +102,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
     <ScreenScaffold>
       <SectionHeader
         title="Trip Completed"
-        subtitle="Lake Victoria Hotel → Entebbe"
+        subtitle={activeTrip?.routeSummary ?? "Trip summary"}
         leadingAction={
           <IconButton
             size="small"

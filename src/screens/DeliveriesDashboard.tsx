@@ -37,132 +37,14 @@ import ListSection from "../components/primitives/ListSection";
 import PrimarySection from "../components/primitives/PrimarySection";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
+import type { DeliveryOrder } from "../store/types";
 
-interface DeliveryOrder {
-  id: string;
-  packageName: string;
-  sender: {
-    city: string;
-    code: string;
-    name: string;
-    avatar: string;
-    address: string;
-    profileImage?: string | null;
-  };
-  receiver: { city: string; code: string };
-  date?: Date;
-  time?: string;
-  status: string;
-  progress: number;
-  needsPayment?: boolean;
-}
-
-const DELIVERING_ORDERS: DeliveryOrder[] = [
-  {
-    id: "WC12564897",
-    packageName: "The Pair of Sneakers",
-    sender: {
-      city: "Atlanta",
-      code: "5243",
-      name: "John Doe",
-      avatar: "JD",
-      address: "123 Main Street, Atlanta, GA 30309, United States"
-    },
-    receiver: { city: "Chicago", code: "6342" },
-    date: new Date(2024, 1, 7),
-    status: "Waiting to accept",
-    progress: 20
-  },
-  {
-    id: "WC12564898",
-    packageName: "Electronics Package",
-    sender: {
-      city: "Kampala",
-      code: "256",
-      name: "Sarah M.",
-      avatar: "SM",
-      address: "45 Nakasero Road, Kampala, Central Region, Uganda"
-    },
-    receiver: { city: "Entebbe", code: "256" },
-    date: new Date(2024, 1, 8),
-    status: "Request accepted",
-    progress: 60
-  },
-  {
-    id: "WC12564900",
-    packageName: "Gift Box",
-    sender: {
-      city: "Nairobi",
-      code: "254",
-      name: "Michael K.",
-      avatar: "MK",
-      address: "78 Moi Avenue, Nairobi, Kenya"
-    },
-    receiver: { city: "Kampala", code: "256" },
-    date: new Date(2024, 1, 9),
-    status: "Waiting to accept",
-    progress: 10
-  }
-];
-
-const RECEIVED_ORDERS: DeliveryOrder[] = [
-  {
-    id: "WC12564899",
-    packageName: "The Pair of Sneakers",
-    sender: {
-      city: "Atlanta",
-      code: "5243",
-      name: "John Doe",
-      avatar: "JD",
-      address: "Atlanta"
-    },
-    receiver: { city: "Chicago", code: "6342" },
-    time: "2 day – 3 days",
-    status: "Waiting to collect",
-    progress: 100,
-    needsPayment: true
-  },
-  {
-    id: "WC12564900",
-    packageName: "Clothing Bundle",
-    sender: {
-      city: "Makerere",
-      code: "256",
-      name: "Mary K.",
-      avatar: "MK",
-      address: "Makerere"
-    },
-    receiver: { city: "Nsambya", code: "256" },
-    time: "1 day – 2 days",
-    status: "Delivered",
-    progress: 100
-  },
-  {
-    id: "WC12564901",
-    packageName: "Electronics Package",
-    sender: {
-      city: "Kampala",
-      code: "256",
-      name: "Peter W.",
-      avatar: "PW",
-      address: "Kampala"
-    },
-    receiver: { city: "Entebbe", code: "256" },
-    time: "3 days – 5 days",
-    status: "Waiting to collect",
-    progress: 100,
-    needsPayment: true
-  }
-];
-
-const RECENT_DELIVERIES = [
-  { route: "Nsambya → EV Hub", status: "Delivered", code: "DLV-001", date: "Today • 14:32", type: "sent" },
-  { route: "Kampala → Entebbe", status: "In transit", code: "DLV-002", date: "Mon • 11:03", type: "sent" },
-  { route: "Makerere → Bugolobi", status: "Delivered", code: "DLV-003", date: "Sun • 09:15", type: "received" }
-];
+const DELIVERY_RECEIVED_STATUSES = ["In transit", "Delivered", "Waiting to collect", "Arrived"] as const;
 
 function DeliveryDashboardHomeScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { delivery } = useAppData();
   const [viewMode, setViewMode] = useState<string>("sending");
   const [activeTab, setActiveTab] = useState<string>("delivering");
   const [trackingNumber, setTrackingNumber] = useState<string>("");
@@ -181,11 +63,25 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
     orderId: null
   });
 
-  const pendingDeliveriesCount = DELIVERING_ORDERS.filter(
+  const deliveringOrders: DeliveryOrder[] = delivery.orders.filter(
+    (order) => !DELIVERY_RECEIVED_STATUSES.includes(order.status as (typeof DELIVERY_RECEIVED_STATUSES)[number])
+  );
+  const receivedOrders: DeliveryOrder[] = delivery.orders.filter(
+    (order) => DELIVERY_RECEIVED_STATUSES.includes(order.status as (typeof DELIVERY_RECEIVED_STATUSES)[number])
+  );
+
+  const pendingDeliveriesCount = deliveringOrders.filter(
     (order) => order.status === "Waiting to accept"
   ).length;
 
-  const hasRecentDeliveries = RECENT_DELIVERIES.length > 0;
+  const recentDeliveries = delivery.orders.slice(0, 3).map((order) => ({
+    route: `${order.sender.city} → ${order.receiver.city}`,
+    status: order.status,
+    code: order.id,
+    date: order.time || "Today",
+    type: "sent"
+  }));
+  const hasRecentDeliveries = recentDeliveries.length > 0;
 
   const handleTrackShipment = (): void => {
     if (trackingNumber.trim()) {
@@ -388,7 +284,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
             <Tab
               value="received"
               label={
-                <Badge badgeContent={RECEIVED_ORDERS.length} color="error">
+                <Badge badgeContent={receivedOrders.length} color="error">
                   Received
                 </Badge>
               }
@@ -396,7 +292,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
           </Tabs>
 
           <ListSection>
-            {(activeTab === "delivering" ? DELIVERING_ORDERS : RECEIVED_ORDERS).map((order) => (
+            {(activeTab === "delivering" ? deliveringOrders : receivedOrders).map((order) => (
               <DeliveryCard
                 key={order.id}
                 order={order}
@@ -471,7 +367,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
             />
             <ListSection sx={{ mt: uiTokens.spacing.sm }}>
               {hasRecentDeliveries &&
-                RECENT_DELIVERIES.map((delivery) => (
+                recentDeliveries.map((delivery) => (
                   <Box
                     key={delivery.code}
                     sx={{

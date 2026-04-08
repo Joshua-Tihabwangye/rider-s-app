@@ -5,6 +5,7 @@ import { Box, BottomNavigation, BottomNavigationAction, Paper } from "@mui/mater
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 
 interface NavTab {
   value: string;
@@ -38,6 +39,12 @@ const NAV_TABS: NavTab[] = [
     icon: <AccountBalanceWalletRoundedIcon />
   },
   {
+    value: "settings",
+    label: "Settings",
+    route: "/settings",
+    icon: <SettingsRoundedIcon />
+  },
+  {
     value: "more",
     label: "More",
     route: "/more",
@@ -60,6 +67,10 @@ function getActiveTab(pathname: string): string {
     return "wallet";
   }
 
+  if (pathname.startsWith("/settings")) {
+    return "settings";
+  }
+
   if (
     pathname.startsWith("/rides") ||
     pathname.startsWith("/deliveries") ||
@@ -71,7 +82,6 @@ function getActiveTab(pathname: string): string {
     pathname.startsWith("/school-handoff") ||
     pathname.startsWith("/help") ||
     pathname.startsWith("/about") ||
-    pathname.startsWith("/settings") ||
     pathname.startsWith("/school") ||
     pathname.startsWith("/manager")
   ) {

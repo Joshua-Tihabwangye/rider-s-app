@@ -19,60 +19,16 @@ import BatteryChargingFullRoundedIcon from "@mui/icons-material/BatteryChargingF
 
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
+import { useAppData } from "../contexts/AppDataContext";
+import type { RentalVehicle } from "../store/types";
 
-
-const RENTAL_VEHICLES = [
-  {
-    id: "EV-RENT-01",
-    name: "Nissan Leaf",
-    type: "Hatchback",
-    dailyPrice: "UGX 180,000",
-    mode: "Self-drive",
-    seats: 5,
-    range: "220 km",
-    tag: "Most popular"
-  },
-  {
-    id: "EV-RENT-02",
-    name: "Hyundai Kona EV",
-    type: "SUV",
-    dailyPrice: "UGX 230,000",
-    mode: "Self-drive",
-    seats: 5,
-    range: "300 km",
-    tag: "Family friendly"
-  },
-  {
-    id: "EV-RENT-03",
-    name: "Tesla Model 3",
-    type: "Sedan",
-    dailyPrice: "UGX 320,000",
-    mode: "With chauffeur",
-    seats: 4,
-    range: "400 km",
-    tag: "Premium"
-  }
-];
-
-interface Vehicle {
-  id: string;
-  name: string;
-  type: string;
-  price?: string;
-  dailyPrice?: string;
-  mode?: string;
-  seats?: number;
-  range?: string;
-  tag?: string;
-  image?: string;
-  features?: string[];
-}
 
 interface RentalVehicleCardProps {
-  vehicle: Vehicle;
+  vehicle: RentalVehicle;
+  onSelect: (id: string) => void;
 }
 
-function RentalVehicleCard({ vehicle }: RentalVehicleCardProps): React.JSX.Element {
+function RentalVehicleCard({ vehicle, onSelect }: RentalVehicleCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -173,6 +129,7 @@ function RentalVehicleCard({ vehicle }: RentalVehicleCardProps): React.JSX.Eleme
           <Button
             size="small"
             variant="contained"
+            onClick={() => onSelect(vehicle.id)}
             sx={{
               borderRadius: 5,
               px: 2,
@@ -194,15 +151,21 @@ function RentalVehicleCard({ vehicle }: RentalVehicleCardProps): React.JSX.Eleme
 
 function RentalVehicleListScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { rental, actions } = useAppData();
   const [filter, setFilter] = useState("all");
 
-  const filteredVehicles = RENTAL_VEHICLES.filter((v) => {
+  const filteredVehicles = rental.vehicles.filter((v) => {
     if (filter === "all") return true;
     if (filter === "self") return v.mode === "Self-drive";
     if (filter === "chauffeur") return v.mode === "With chauffeur";
     if (filter === "suv") return v.type === "SUV";
     return true;
   });
+
+  const handleSelectVehicle = (id: string): void => {
+    actions.selectRentalVehicle(id);
+    navigate(`/rental/vehicle/${id}`);
+  };
 
   return (
     <ScreenScaffold>
@@ -304,7 +267,7 @@ function RentalVehicleListScreen(): React.JSX.Element {
         </Typography>
       ) : (
         filteredVehicles.map((vehicle) => (
-          <RentalVehicleCard key={vehicle.id} vehicle={vehicle} />
+          <RentalVehicleCard key={vehicle.id} vehicle={vehicle} onSelect={handleSelectVehicle} />
         ))
       )}
       </Box>

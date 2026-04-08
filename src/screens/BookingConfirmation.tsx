@@ -21,45 +21,47 @@ import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutline"
 import ScreenScaffold from "../components/ScreenScaffold";
 import PageHeader from "../components/PageHeader";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
 
 function RideBookingConfirmationScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
+  const { ride, actions } = useAppData();
   
   // Get trip data from navigation state
   const tripData = location.state || {};
   
-  // Mock driver data - would come from API
-  const driverData = {
-    name: tripData.driver?.name || "Tim Smith",
-    phone: tripData.driver?.phone || "+256700000000",
-    photo: tripData.driver?.photo || "TS",
-    driverId: tripData.driverId || "driver_001"
+  const activeTrip = ride.activeTrip;
+  const driverData = activeTrip?.driver ?? {
+    id: "driver_unknown",
+    name: "Driver",
+    phone: "",
+    rating: 0,
+    avatar: "DR"
   };
+
+  React.useEffect(() => {
+    actions.setRideStatus("driver_assigned");
+  }, [actions]);
 
   const handleBack = () => {
     navigate(-1);
   };
 
   const handleNotifications = () => {
-    // Navigate to notifications screen
-    navigate("/notifications");
+    navigate("/settings");
   };
 
   const handleCallDriver = () => {
     // In production: Open phone dialer
-    window.location.href = `tel:${driverData.phone}`;
+    if (driverData.phone) {
+      window.location.href = `tel:${driverData.phone}`;
+    }
   };
 
   const handleMessageDriver = () => {
-    // Navigate to chat with driver
-    navigate("/rides/chat", {
-      state: {
-        driverId: driverData.driverId,
-        driverName: driverData.name
-      }
-    });
+    navigate("/help");
   };
 
   const handlePayNow = () => {

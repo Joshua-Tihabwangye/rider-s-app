@@ -25,40 +25,42 @@ import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
 
 function RideDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
+  const { ride, actions } = useAppData();
   
   // Get trip data from navigation state or use defaults
   const tripData = location.state || {};
   
-  // Mock data - would come from API
+  const activeTrip = ride.activeTrip;
   const rideDetails = {
-    dateLabel: tripData.dateLabel || "Today",
+    dateLabel: tripData.dateLabel || (ride.request.schedule === "later" ? "Scheduled" : "Today"),
     origin: {
-      name: tripData.origin?.name || "Mbarara",
-      address: tripData.origin?.address || "Former Horizon Bus Terminal, Mbarara, Uganda",
-      time: tripData.origin?.time || "03:00 pm"
+      name: tripData.origin?.name || ride.request.origin?.label || "Pickup",
+      address: tripData.origin?.address || ride.request.origin?.address || "Pickup location",
+      time: tripData.origin?.time || ride.request.scheduleTime || "Now"
     },
     destination: {
-      name: tripData.destination?.name || "Kampala City",
-      address: tripData.destination?.address || "Kafu Bus Terminal, Kampala, Uganda",
-      time: tripData.destination?.time || "08:15 pm"
+      name: tripData.destination?.name || ride.request.destination?.label || "Destination",
+      address: tripData.destination?.address || ride.request.destination?.address || "Destination address",
+      time: tripData.destination?.time || "—"
     },
-    duration: tripData.duration || "5h 15min",
-    passengers: tripData.passengers || 1,
-    fare: tripData.fare || "UGX 121,400",
+    duration: tripData.duration || `${activeTrip?.etaMinutes ?? 0} mins`,
+    passengers: tripData.passengers || ride.request.passengers || 1,
+    fare: tripData.fare || activeTrip?.fareEstimate || "UGX 121,400",
     driver: {
-      name: tripData.driver?.name || "Tim Smith",
-      vehicle: tripData.driver?.vehicle || "Tesla Model X",
-      licensePlate: tripData.driver?.licensePlate || "UPL 630",
-      rating: tripData.driver?.rating || 4.6,
+      name: tripData.driver?.name || activeTrip?.driver?.name || "Driver",
+      vehicle: tripData.driver?.vehicle || activeTrip?.vehicle?.model || "EV",
+      licensePlate: tripData.driver?.licensePlate || activeTrip?.vehicle?.plate || "—",
+      rating: tripData.driver?.rating || activeTrip?.driver?.rating || 4.6,
       totalRatings: tripData.driver?.totalRatings || 157,
       rides: tripData.driver?.rides || "200+",
       experience: tripData.driver?.experience || "4+ years",
-      photo: tripData.driver?.photo || "TS"
+      photo: tripData.driver?.photo || activeTrip?.driver?.avatar || "DR"
     },
     vehicleImage: tripData.vehicleImage || null // Would be a URL in production
   };
@@ -69,17 +71,13 @@ function RideDetailsScreen(): React.JSX.Element {
 
   const handleCallDriver = () => {
     // In production: Open phone dialer
-    window.location.href = `tel:+256700000000`;
+    if (activeTrip?.driver?.phone) {
+      window.location.href = `tel:${activeTrip.driver.phone}`;
+    }
   };
 
   const handleMessageDriver = () => {
-    // In production: Open in-app chat
-    navigate("/rides/chat", {
-      state: {
-        driverId: tripData.driverId || "driver_001",
-        driverName: rideDetails.driver.name
-      }
-    });
+    navigate("/help");
   };
 
   const handleViewDriverProfile = () => {
@@ -94,6 +92,7 @@ function RideDetailsScreen(): React.JSX.Element {
 
   const handleBookTrip = () => {
     // Navigate to booking confirmation screen (RA49) first
+    actions.setRideStatus("searching");
     navigate("/rides/booking/confirmation", {
       state: {
         ...tripData,
@@ -109,8 +108,7 @@ function RideDetailsScreen(): React.JSX.Element {
   };
 
   const handleNotificationClick = () => {
-    // In production: Open notifications
-    navigate("/notifications");
+    navigate("/settings");
   };
 
   // Calculate star rating display

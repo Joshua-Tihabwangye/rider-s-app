@@ -46,57 +46,37 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
+import type { WalletTransaction } from "../store/types";
 
-
-const TRANSACTIONS = [
-  {
-    id: 1,
-    type: "topup",
-    title: "Wallet top-up",
-    source: "Mobile Money (MTN)",
-    amount: "+ UGX 150,000",
-    time: "Today • 09:32",
-    icon: <ArrowDownwardRoundedIcon />
-  },
-  {
-    id: 2,
-    type: "ride",
-    title: "EV ride to Bugolobi",
-    source: "Trip RIDE-2025-10-01-001",
-    amount: "- UGX 18,500",
-    time: "Yesterday • 20:14",
-    icon: <DirectionsCarFilledRoundedIcon />
-  },
-  {
-    id: 3,
-    type: "delivery",
-    title: "Parcel to Nsambya Hub",
-    source: "Delivery DLV-2025-10-05-002",
-    amount: "- UGX 8,000",
-    time: "Mon • 11:03",
-    icon: <LocalShippingRoundedIcon />
-  }
-];
 
 interface WalletContentProps {
   onBack?: () => void;
 }
 
-interface Transaction {
-  id: number;
-  type: string;
-  title: string;
-  source: string;
-  amount: string;
-  time: string;
-  icon: React.ReactElement;
+type Transaction = WalletTransaction;
+
+function getTransactionIcon(type: Transaction["type"]): React.ReactElement {
+  switch (type) {
+    case "topup":
+      return <ArrowDownwardRoundedIcon />;
+    case "ride":
+      return <DirectionsCarFilledRoundedIcon />;
+    case "delivery":
+      return <LocalShippingRoundedIcon />;
+    case "withdrawal":
+      return <ArrowUpwardRoundedIcon />;
+    default:
+      return <ReceiptLongRoundedIcon />;
+  }
 }
 
 function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
   const navigate = useNavigate();
+  const { walletBalance, walletReserved, transactions } = useAppData();
   
-  const balance = 520000; // demo
-  const reserved = 180000; // e.g. deposits / holds
+  const balance = walletBalance;
+  const reserved = walletReserved;
   const [showAddMoneyDialog, setShowAddMoneyDialog] = useState(false);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
   const [showPaymentMethodsDialog, setShowPaymentMethodsDialog] = useState(false);
@@ -111,7 +91,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
   });
   
   // For demo purposes - can be toggled to show empty states
-  const hasTransactions = TRANSACTIONS.length > 0;
+  const hasTransactions = transactions.length > 0;
   const hasBalance = balance > 0;
 
   const handleAddMoney = () => {
@@ -696,7 +676,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
             </Box>
           ) : hasTransactions ? (
           <List dense sx={{ mt: 0, py: 0 }}>
-            {TRANSACTIONS.map((tx) => (
+            {transactions.map((tx) => (
               <ListItem
                 key={tx.id}
                 disableGutters
@@ -733,7 +713,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                           : "#EA580C"
                     }}
                   >
-                    {tx.icon}
+                    {getTransactionIcon(tx.type)}
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText

@@ -22,14 +22,19 @@ import MapShell from "../components/maps/MapShell";
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
 
 function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [arrivalTime, setArrivalTime] = useState(5); // minutes
-  const otp = "256836"; // Would come from API
+  const { ride, actions } = useAppData();
+  const activeTrip = ride.activeTrip;
+  const driver = activeTrip?.driver;
+  const [arrivalTime, setArrivalTime] = useState(activeTrip?.etaMinutes ?? 5); // minutes
+  const otp = activeTrip?.otp ?? "—";
 
   // Simulate countdown timer
   useEffect(() => {
+    actions.setRideStatus("driver_on_way");
     const interval = setInterval(() => {
       setArrivalTime((prev) => {
         if (prev > 0) {
@@ -44,24 +49,25 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
 
   const handleAccept = () => {
     // Proceed to waiting state / driver arrived screen
+    actions.setRideStatus("driver_arrived");
     navigate("/rides/driver-arrived");
   };
 
   const handleChange = () => {
     // Cancel current driver and restart search
+    actions.setRideStatus("searching");
     navigate("/rides/searching");
   };
 
   const handleCall = () => {
     // Initiate call to driver
-    console.log("Calling driver...");
-    // In production: window.location.href = `tel:+256...`;
+    if (activeTrip?.driver?.phone) {
+      window.location.href = `tel:${activeTrip.driver.phone}`;
+    }
   };
 
   const handleMessage = () => {
-    // Open in-app chat
-    console.log("Opening chat...");
-    // In production: navigate to chat screen
+    navigate("/help");
   };
 
   return (
@@ -86,12 +92,28 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
         }
+        action={
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => navigate("/rides/sos")}
+            sx={{
+              bgcolor: "var(--evz-danger)",
+              color: "#fff",
+              textTransform: "none",
+              px: 2,
+              "&:hover": { bgcolor: "var(--evz-danger-hover)" }
+            }}
+          >
+            SOS
+          </Button>
+        }
       />
 
-      <Box sx={{ position: "relative", minHeight: "45vh", bgcolor: (theme) => theme.palette.background.default, borderRadius: uiTokens.radius.xl, overflow: 'hidden' }}>
+      <Box sx={{ position: "relative", minHeight: "55vh", bgcolor: (theme) => theme.palette.background.default, borderRadius: uiTokens.radius.xl, overflow: 'hidden' }}>
       <MapShell
         preset="compact"
-        height="45vh"
+        height="55vh"
         onBack={() => navigate(-1)}
         showBackButton
         canvasSx={{ background: uiTokens.map.canvasEmphasis }}
@@ -243,20 +265,20 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
               boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
             }}
           >
-            TS
+            {driver?.avatar ?? driver?.name?.split(" ").map((part) => part[0]).join("").slice(0, 2) ?? "DR"}
           </Avatar>
           
           <Typography
             variant="h6"
             sx={{ fontWeight: 600, mb: 0.5, letterSpacing: "-0.01em" }}
           >
-            Tim Smith
+            {driver?.name ?? "Driver"}
           </Typography>
           
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, mb: 2 }}>
             <StarRoundedIcon sx={{ fontSize: 18, color: "#FFC107" }} />
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              4.6
+              {driver?.rating?.toFixed(1) ?? "4.6"}
             </Typography>
             <Typography variant="caption" sx={{ color: (theme) => theme.palette.text.secondary, ml: 0.5 }}>
               157 ratings
