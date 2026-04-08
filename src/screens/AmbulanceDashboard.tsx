@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
+  IconButton,
   Typography,
   Card,
   CardContent,
@@ -20,6 +21,7 @@ import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import NotificationsActiveRoundedIcon from "@mui/icons-material/NotificationsActiveRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 
 
 function AmbulanceDashboardHomeScreen(): React.JSX.Element {
@@ -48,20 +50,38 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
         title="Ambulance & medical transport"
         subtitle="Request urgent help or plan a hospital transfer"
         leadingAction={
-          <Box
-            sx={{
-              width: 40,
-              height: 40,
-              borderRadius: uiTokens.radius.xl,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FEE2E2" : "rgba(15,23,42,0.9)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}
-          >
-            <LocalHospitalRoundedIcon sx={{ fontSize: 22, color: "#DC2626" }} />
-          </Box>
+          <Stack direction="row" spacing={uiTokens.spacing.sm} alignItems="center">
+            <IconButton
+              size="small"
+              aria-label="Back"
+              onClick={() => navigate(-1)}
+              sx={{
+                borderRadius: uiTokens.radius.xl,
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(209,213,219,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)"
+              }}
+            >
+              <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: uiTokens.radius.xl,
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FEE2E2" : "rgba(15,23,42,0.9)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <LocalHospitalRoundedIcon sx={{ fontSize: 22, color: "#DC2626" }} />
+            </Box>
+          </Stack>
         }
       />
 

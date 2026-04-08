@@ -20,107 +20,11 @@ import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceW
 import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
 import SmartphoneRoundedIcon from "@mui/icons-material/SmartphoneRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+import MapShell from "../components/maps/MapShell";
+import ScreenScaffold from "../components/ScreenScaffold";
+import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import type { RideOption } from "../store/types";
-
-interface MapBackgroundProps {
-  onBackClick: () => void;
-}
-
-// Map background component with route visualization
-function MapBackground({ onBackClick }: MapBackgroundProps): React.JSX.Element {
-  const theme = useTheme();
-  
-  return (
-    <Box
-      sx={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        height: "50vh",
-        background: theme.palette.mode === "light"
-          ? "#F5F5DC" // Light beige map background
-          : "linear-gradient(135deg, #0f1e2e 0%, #1a2d3e 50%, #0f1e2e 100%)",
-        zIndex: 0,
-        overflow: "hidden"
-      }}
-    >
-      {/* Water body on the right */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "20%",
-          right: "5%",
-          width: "30%",
-          height: "40%",
-          bgcolor: "rgba(3,205,140,0.15)", // Light blue water
-          borderRadius: "50%",
-          opacity: 0.6
-        }}
-      />
-      
-      {/* Route line - diagonal from bottom-left to top-right */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "60%",
-          left: "15%",
-          width: "70%",
-          height: 3,
-          bgcolor: "#424242", // Dark grey route line
-          borderRadius: 2,
-          transform: "rotate(-25deg)",
-          transformOrigin: "left center",
-          zIndex: 1
-        }}
-      />
-      
-      {/* Start marker (green) - positioned at start of route */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "58%",
-          left: "18%",
-          width: 18,
-          height: 18,
-          borderRadius: "50%",
-          bgcolor: "#4CAF50",
-          border: "3px solid #FFFFFF",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
-          zIndex: 2,
-          transform: "translate(-50%, -50%)"
-        }}
-      />
-      
-      {/* Back arrow button */}
-      <IconButton
-        size="small"
-        aria-label="Back"
-        onClick={onBackClick}
-        sx={{
-          position: "absolute",
-          top: 16,
-          left: 16,
-          bgcolor: theme.palette.mode === "light" 
-            ? "rgba(255,255,255,0.9)" 
-            : "rgba(255,255,255,0.25)",
-          color: theme.palette.mode === "light" ? "#000000" : "#FFFFFF",
-          zIndex: 10,
-          width: 40,
-          height: 40,
-          "&:hover": {
-            bgcolor: theme.palette.mode === "light" 
-              ? "#FFFFFF" 
-              : "rgba(255,255,255,0.35)"
-          }
-        }}
-      >
-        <ArrowBackIosNewRoundedIcon sx={{ fontSize: 20 }} />
-      </IconButton>
-    </Box>
-  );
-}
 
 interface RideOptionCardProps {
   option: RideOption;
@@ -302,6 +206,9 @@ function SelectYourRideScreen(): React.JSX.Element {
       distance: tripData.distance || ride.activeTrip?.distance || "—"
     });
     actions.setRideStatus("searching");
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("evz_has_ordered_ride", "true");
+    }
 
     // Directly continue to driver search after ride confirmation
     navigate("/rides/searching", {
@@ -320,54 +227,123 @@ function SelectYourRideScreen(): React.JSX.Element {
   const contentBg = theme.palette.mode === "light" 
     ? "#FFFFFF" 
     : theme.palette.background.paper || "rgba(15,23,42,0.98)";
+
+  const topMapBleedSx = {
+    position: "relative",
+    width: {
+      xs: "calc(100% + (var(--rider-shell-content-px-xs, 20px) * 2))",
+      md: "calc(100% + (var(--rider-shell-content-px-md, 24px) * 2))"
+    },
+    ml: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    mr: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    overflow: "hidden"
+  } as const;
   
   return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: theme.palette.background.default,
-        overflow: "hidden"
-      }}
-    >
-      {/* Map Background */}
-      <MapBackground onBackClick={() => navigate(-1)} />
-      
-      {/* Content Panel - slides up from bottom */}
-      <Box
+    <ScreenScaffold disableTopPadding>
+      <Box sx={topMapBleedSx}>
+        <MapShell
+          showControls={false}
+          sx={{ height: { xs: "62dvh", md: "55vh" } }}
+          canvasSx={{
+            background: theme.palette.mode === "light"
+              ? "#F5F5DC"
+              : "linear-gradient(135deg, #0f1e2e 0%, #1a2d3e 50%, #0f1e2e 100%)"
+          }}
+        >
+          <IconButton
+            size="small"
+            aria-label="Back"
+            onClick={() => navigate(-1)}
+            sx={{
+              position: "absolute",
+              top: 14,
+              left: 14,
+              zIndex: 12,
+              width: 42,
+              height: 42,
+              borderRadius: "50%",
+              bgcolor: "rgba(255,255,255,0.95)",
+              color: "#111827",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.18)",
+              "&:hover": {
+                bgcolor: "#FFFFFF"
+              }
+            }}
+          >
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 19 }} />
+          </IconButton>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "20%",
+              right: "5%",
+              width: "30%",
+              height: "40%",
+              bgcolor: "rgba(3,205,140,0.15)",
+              borderRadius: "50%",
+              opacity: 0.6
+            }}
+          />
+          <Box
+            sx={{
+              position: "absolute",
+              top: "60%",
+              left: "15%",
+              width: "70%",
+              height: 3,
+              bgcolor: "#424242",
+              borderRadius: 2,
+              transform: "rotate(-25deg)",
+              transformOrigin: "left center",
+              zIndex: 1
+            }}
+          />
+          <Box
+            sx={{
+              position: "absolute",
+              top: "58%",
+              left: "18%",
+              width: 18,
+              height: 18,
+              borderRadius: "50%",
+              bgcolor: "#4CAF50",
+              border: "3px solid #FFFFFF",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+              zIndex: 2,
+              transform: "translate(-50%, -50%)"
+            }}
+          />
+        </MapShell>
+      </Box>
+
+      <Box sx={{ px: 0.5 }}>
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
+        >
+          Select your ride
+        </Typography>
+      </Box>
+
+      <Card
+        elevation={0}
         sx={{
-          position: "absolute",
-          bottom: { xs: "calc(64px + env(safe-area-inset-bottom))", sm: "64px" },
-          left: 0,
-          right: 0,
-          borderTopLeftRadius: 5,
-          borderTopRightRadius: 5,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: contentBg,
-          maxHeight: { xs: 'calc(100vh - 50vh - 64px - env(safe-area-inset-bottom))', sm: 'calc(100vh - 50vh - 64px)' },
-          overflow: "auto",
-          boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
-          zIndex: 1
+          border: theme.palette.mode === "light"
+            ? "1px solid rgba(209,213,219,0.9)"
+            : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-          {/* Header - Ride Summary */}
-          <Box sx={{ mb: 2.5 }}>
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.5 }}
-            >
-              Select your ride
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ fontSize: 13, color: theme.palette.text.secondary }}
-            >
-              {ride.activeTrip?.distance ?? "—"} • {ride.activeTrip?.etaMinutes ?? 0} mins
-            </Typography>
-          </Box>
-          
-          {/* Ride Type Section */}
-          <Box sx={{ mb: 2.5 }}>
+        <CardContent sx={{ px: 2, py: 1.75 }}>
+          <Box>
             <Typography
               variant="subtitle1"
               sx={{ fontWeight: 600, mb: 0.5, fontSize: 15, color: "#03CD8C" }}
@@ -422,133 +398,127 @@ function SelectYourRideScreen(): React.JSX.Element {
               </ToggleButton>
             </ToggleButtonGroup>
           </Box>
-          
-          {/* Ride Options Cards */}
-          <Box sx={{ mb: 2.5 }}>
-            {ride.options.map((option) => (
-              <RideOptionCard
-                key={option.id}
-                option={option}
-                selected={selectedRide}
-                onSelect={handleSelectRide}
-              />
-            ))}
-          </Box>
-          
-          {/* Payment Method Section */}
-          <Card
-            elevation={0}
-            onClick={() => {
-              // Get fare from selected ride
-              const selectedRideOption = ride.options.find((opt) => opt.id === selectedRide);
-              const fare = selectedRideOption?.fare || ride.activeTrip?.fareEstimate || "UGX 40,365";
-              
-              // Navigate to payment method selection
-              navigate("/rides/payment", {
-                state: { 
-                  fromSelectRide: true,
-                  selectedRide,
-                  rideType,
-                  distance: ride.activeTrip?.distance || "—",
-                  estimatedTime: `${ride.activeTrip?.etaMinutes ?? 0} mins`,
-                  fare: fare
-                }
-              });
-            }}
-            sx={{
-              mb: 2.5,
-              borderRadius: 2,
-              cursor: "pointer",
-              bgcolor: theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.5)",
-              border: theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-              transition: "all 0.15s ease",
-              "&:hover": {
-                bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.7)"
-              }
-            }}
-          >
-            <CardContent sx={{ px: 2, py: 1.5 }}>
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                  {paymentMethod === "cash" && (
-                    <PaymentsRoundedIcon 
-                      sx={{ 
-                        fontSize: 24, 
-                        color: "#4CAF50" 
-                      }} 
-                    />
-                  )}
-                  {paymentMethod === "wallet" && (
-                    <AccountBalanceWalletRoundedIcon 
-                      sx={{ 
-                        fontSize: 24, 
-                        color: "#4CAF50" 
-                      }} 
-                    />
-                  )}
-                  {paymentMethod === "card" && (
-                    <CreditCardRoundedIcon 
-                      sx={{ 
-                        fontSize: 24, 
-                        color: "#4CAF50" 
-                      }} 
-                    />
-                  )}
-                  {paymentMethod === "mobile" && (
-                    <SmartphoneRoundedIcon 
-                      sx={{ 
-                        fontSize: 24, 
-                        color: "#4CAF50" 
-                      }} 
-                    />
-                  )}
-                  <Typography
-                    variant="body2"
-                    sx={{ fontWeight: 500, fontSize: 14, textTransform: paymentMethod === "cash" ? "lowercase" : "none" }}
-                  >
-                    {paymentMethodName}
-                  </Typography>
-                </Box>
-                <ChevronRightRoundedIcon 
-                  sx={{ 
-                    fontSize: 20, 
-                    color: theme.palette.text.secondary 
-                  }} 
-                />
-              </Box>
-            </CardContent>
-          </Card>
-          
-          {/* Confirm Button */}
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={handleConfirm}
-            disabled={!selectedRide}
-            sx={{
-              borderRadius: 5,
-              py: 1.4,
-              fontSize: 15,
-              fontWeight: 600,
-              textTransform: "none",
-              bgcolor: selectedRide ? "#424242" : "rgba(66,66,66,0.3)", // Dark grey instead of black
-              color: "#FFFFFF",
-              "&:hover": {
-                bgcolor: selectedRide ? "#525252" : "rgba(66,66,66,0.3)"
-              },
-              "&.Mui-disabled": {
-                bgcolor: "rgba(66,66,66,0.3)",
-                color: "rgba(255,255,255,0.5)"
-              }
-            }}
-          >
-            Confirm your Ride
-          </Button>
-        </Box>
+        </CardContent>
+      </Card>
+
+      <Box>
+        {ride.options.map((option) => (
+          <RideOptionCard
+            key={option.id}
+            option={option}
+            selected={selectedRide}
+            onSelect={handleSelectRide}
+          />
+        ))}
       </Box>
-    </Box>
+
+      <Card
+        elevation={0}
+        onClick={() => {
+          const selectedRideOption = ride.options.find((opt) => opt.id === selectedRide);
+          const fare = selectedRideOption?.fare || ride.activeTrip?.fareEstimate || "UGX 40,365";
+
+          navigate("/rides/payment", {
+            state: {
+              fromSelectRide: true,
+              selectedRide,
+              rideType,
+              distance: ride.activeTrip?.distance || "—",
+              estimatedTime: `${ride.activeTrip?.etaMinutes ?? 0} mins`,
+              fare: fare
+            }
+          });
+        }}
+        sx={{
+          borderRadius: uiTokens.radius.xl,
+          cursor: "pointer",
+          bgcolor: theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.5)",
+          border: theme.palette.mode === "light"
+            ? "1px solid rgba(209,213,219,0.9)"
+            : "1px solid rgba(51,65,85,0.9)",
+          transition: "all 0.15s ease",
+          "&:hover": {
+            bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.7)"
+          }
+        }}
+      >
+        <CardContent sx={{ px: 2, py: 1.5 }}>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              {paymentMethod === "cash" && (
+                <PaymentsRoundedIcon
+                  sx={{
+                    fontSize: 24,
+                    color: "#4CAF50"
+                  }}
+                />
+              )}
+              {paymentMethod === "wallet" && (
+                <AccountBalanceWalletRoundedIcon
+                  sx={{
+                    fontSize: 24,
+                    color: "#4CAF50"
+                  }}
+                />
+              )}
+              {paymentMethod === "card" && (
+                <CreditCardRoundedIcon
+                  sx={{
+                    fontSize: 24,
+                    color: "#4CAF50"
+                  }}
+                />
+              )}
+              {paymentMethod === "mobile" && (
+                <SmartphoneRoundedIcon
+                  sx={{
+                    fontSize: 24,
+                    color: "#4CAF50"
+                  }}
+                />
+              )}
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, textTransform: paymentMethod === "cash" ? "lowercase" : "none" }}
+              >
+                {paymentMethodName}
+              </Typography>
+            </Box>
+            <ChevronRightRoundedIcon
+              sx={{
+                fontSize: 20,
+                color: theme.palette.text.secondary
+              }}
+            />
+          </Box>
+        </CardContent>
+      </Card>
+
+      <Button
+        fullWidth
+        variant="contained"
+        onClick={handleConfirm}
+        disabled={!selectedRide}
+        sx={{
+          borderRadius: 5,
+          py: 1.4,
+          fontSize: 15,
+          fontWeight: 600,
+          textTransform: "none",
+          bgcolor: selectedRide ? "#424242" : "rgba(66,66,66,0.3)",
+          color: "#FFFFFF",
+          "&:hover": {
+            bgcolor: selectedRide ? "#525252" : "rgba(66,66,66,0.3)"
+          },
+          "&.Mui-disabled": {
+            bgcolor: "rgba(66,66,66,0.3)",
+            color: "rgba(255,255,255,0.5)"
+          }
+        }}
+      >
+        Confirm your Ride
+      </Button>
+    </ScreenScaffold>
   );
 }
 

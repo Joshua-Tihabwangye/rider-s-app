@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   Box,
+  IconButton,
   Typography,
   Card,
   CardContent,
@@ -21,6 +22,7 @@ import DirectionsBusFilledRoundedIcon from "@mui/icons-material/DirectionsBusFil
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import NotificationsActiveRoundedIcon from "@mui/icons-material/NotificationsActiveRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 
 
 function SchoolDashboardHomeScreen(): React.JSX.Element {
@@ -31,20 +33,38 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
         title="EVzone School"
         subtitle="Manage school shuttles and student transport"
         leadingAction={
-          <Box
-            sx={{
-              width: 40,
-              height: 40,
-              borderRadius: uiTokens.radius.xl,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}
-          >
-            <SchoolRoundedIcon sx={{ fontSize: 22, color: "#1D4ED8" }} />
-          </Box>
+          <Stack direction="row" spacing={uiTokens.spacing.sm} alignItems="center">
+            <IconButton
+              size="small"
+              aria-label="Back"
+              onClick={() => navigate(-1)}
+              sx={{
+                borderRadius: uiTokens.radius.xl,
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(209,213,219,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)"
+              }}
+            >
+              <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: uiTokens.radius.xl,
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <SchoolRoundedIcon sx={{ fontSize: 22, color: "#1D4ED8" }} />
+            </Box>
+          </Stack>
         }
       />
 

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
+  IconButton,
   Typography,
   Card,
   CardContent,
@@ -19,6 +20,7 @@ import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 
 
 function RentalDashboardHomeScreen(): React.JSX.Element {
@@ -49,20 +51,38 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
         title="EV rentals"
         subtitle="Self-drive and chauffeur EV rentals for your trips"
         leadingAction={
-          <Box
-            sx={{
-              width: 40,
-              height: 40,
-              borderRadius: uiTokens.radius.xl,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#DCFCE7" : "rgba(15,23,42,0.9)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}
-          >
-            <ElectricCarRoundedIcon sx={{ fontSize: 22, color: "#059669" }} />
-          </Box>
+          <Stack direction="row" spacing={uiTokens.spacing.sm} alignItems="center">
+            <IconButton
+              size="small"
+              aria-label="Back"
+              onClick={() => navigate(-1)}
+              sx={{
+                borderRadius: uiTokens.radius.xl,
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(209,213,219,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)"
+              }}
+            >
+              <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: uiTokens.radius.xl,
+                bgcolor: (t) =>
+                  t.palette.mode === "light" ? "#DCFCE7" : "rgba(15,23,42,0.9)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <ElectricCarRoundedIcon sx={{ fontSize: 22, color: "#059669" }} />
+            </Box>
+          </Stack>
         }
       />
 
