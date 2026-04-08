@@ -23,6 +23,7 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import MapShell from "../components/maps/MapShell";
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
+import DriverChatRoom from "../components/DriverChatRoom";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 
@@ -34,6 +35,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
   const vehicle = activeTrip?.vehicle;
   const [sliderPosition, setSliderPosition] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const otp = activeTrip?.otp ?? "—";
 
   useEffect(() => {
@@ -47,7 +49,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
   };
 
   const handleMessage = () => {
-    navigate("/help");
+    setChatOpen(true);
   };
 
   const handleSliderStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>): void => {
@@ -670,6 +672,13 @@ function DriverHasArrivedScreen(): React.JSX.Element {
           </Box>
         </Box>
       </Box>
+
+      <DriverChatRoom
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+        driverName={driver?.name}
+        driverAvatar={driver?.avatar}
+      />
     </ScreenScaffold>
   );
 }
