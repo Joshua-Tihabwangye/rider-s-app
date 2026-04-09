@@ -280,6 +280,41 @@ function PickDestinationMapScreen(): React.JSX.Element {
 	);
 
 	const handleConfirm = () => {
+		if (
+			initialState.returnRoute === "/rides/enter/multi-stops" &&
+			Array.isArray(initialState.stops)
+		) {
+			const mapPickStopId = initialState.mapPickStopId as
+				| string
+				| undefined;
+			const stops = initialState.stops as Array<{
+				id: string;
+				value: string;
+				coordinates?: { lat: number; lng: number };
+				address?: string;
+			}>;
+
+			const updatedStops = stops.map((stop) =>
+				stop.id === mapPickStopId
+					? {
+							...stop,
+							value: destination,
+							address: destination,
+							coordinates,
+					  }
+					: stop,
+			);
+
+			navigate("/rides/enter/multi-stops", {
+				state: {
+					...initialState,
+					stops: updatedStops,
+					fromMap: true,
+				},
+			});
+			return;
+		}
+
 		// Navigate back to Enter Destination screen with selected coordinates
 		navigate("/rides/enter/details", {
 			state: {

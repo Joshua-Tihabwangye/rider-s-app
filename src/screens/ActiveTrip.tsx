@@ -100,8 +100,14 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   };
 
   const handlePayNow = () => {
-    // Navigate to payment screen
-    navigate("/rides/payment");
+    // Navigate to payment method selection for trip payment simulation
+    navigate("/rides/payment", {
+      state: {
+        from: "/rides/trip",
+        fare: totalFare,
+        tripId: activeTrip?.id
+      }
+    });
   };
 
   const topMapBleedSx = {
