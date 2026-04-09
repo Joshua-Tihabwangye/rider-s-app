@@ -794,8 +794,6 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       navigate("/rides/schedule");
     } else if (type === "multi-stop") {
       navigate("/rides/enter/multi-stops");
-    } else if (type === "book-contact") {
-      navigate("/rides/switch-rider");
     } else if (type === "book-someone") {
       navigate("/rides/enter/details", {
         state: {
@@ -812,7 +810,6 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   };
 
   const quickActions = [
-    { key: "book-contact", label: "Book for a contact" },
     { key: "book-someone", label: "Book for someone" },
     { key: "multi-stop", label: "Multi-stop trip", icon: <ArrowForwardIosRoundedIcon sx={{ fontSize: 14 }} /> }
   ];
@@ -1488,8 +1485,6 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                 "Next step: switch to the multi-stop entry screen so you can add A/B/C stops (RA39–RA43)."}
               {helperState === "history" &&
                 "Next step: open ride history with past and upcoming EV rides (RA33/RA34/RA49/RA37)."}
-              {helperState === "book-contact" &&
-                "Next step: open the Switch Rider → Contact flow so you can book a ride for a saved contact (RA10–RA13)."}
               {helperState === "book-someone" &&
                 "Next step: open ride details with one-off rider fields so you can enter the person’s name and phone number."}
               {helperState === "commutes-manage" &&

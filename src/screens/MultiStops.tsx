@@ -28,6 +28,7 @@ import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import PageHeader from "../components/PageHeader";
+import AddStopModal from "../components/AddStopModal";
 import { uiTokens } from "../design/tokens";
 
 const MAX_STOPS = 5; // Maximum for RA39, navigate to RA40 for 6 stops
@@ -41,6 +42,8 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 	interface Stop {
 		id: string;
 		value: string;
+		coordinates?: { lat: number; lng: number };
+		address?: string;
 	}
 
 	const [pickup, setPickup] = useState(
@@ -63,6 +66,7 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 	const [customPassengers, setCustomPassengers] = useState("");
 	const [schedule] = useState(initialState.schedule || "Now");
 	const [showError, setShowError] = useState(false);
+	const [showAddStopModal, setShowAddStopModal] = useState(false);
 
 	// Theme-aware colors
 	const accentGreen = "#03CD8C"; // Green
@@ -107,23 +111,60 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 	const handleStopChange = (stopId: string, value: string): void => {
 		setStops(
 			stops.map((stop: Stop) =>
-				stop.id === stopId ? { ...stop, value } : stop,
+				stop.id === stopId
+					? { ...stop, value, address: value, coordinates: undefined }
+					: stop,
 			),
 		);
 	};
 
-	const handleLocateOnMap = () => {
-		navigate("/rides/enter/preferences", {
+	const handlePickStopOnMap = (stopId: string): void => {
+		const stopToEdit = stops.find((stop) => stop.id === stopId);
+		navigate("/rides/enter/map", {
 			state: {
 				pickup,
+				destination: stopToEdit?.value || "",
+				destinationCoords: stopToEdit?.coordinates,
 				stops,
 				rideType,
 				tripDirection,
 				passengers,
 				schedule,
 				isMultiStop: true,
+				returnRoute: "/rides/enter/multi-stops",
+				mapPickStopId: stopId,
 			},
 		});
+	};
+
+	const handleLocateOnMap = () => {
+		const emptyStop = stops.find((stop: Stop) => !stop.value.trim());
+		if (emptyStop) {
+			handlePickStopOnMap(emptyStop.id);
+			return;
+		}
+
+		if (stops.length < MAX_STOPS) {
+			const nextLetter = String.fromCharCode(65 + stops.length);
+			const expandedStops = [...stops, { id: nextLetter, value: "" }];
+			navigate("/rides/enter/map", {
+				state: {
+					pickup,
+					destination: "",
+					stops: expandedStops,
+					rideType,
+					tripDirection,
+					passengers,
+					schedule,
+					isMultiStop: true,
+					returnRoute: "/rides/enter/multi-stops",
+					mapPickStopId: nextLetter,
+				},
+			});
+			return;
+		}
+
+		handlePickStopOnMap(stops[stops.length - 1]?.id || "A");
 	};
 
 	const handleContinue = () => {
@@ -281,35 +322,64 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 												),
 												endAdornment: (
 													<InputAdornment position="end">
-														<IconButton
-															size="small"
-															onClick={() =>
-																handleRemoveStop(
-																	stop.id,
-																)
-															}
-															sx={{
-																color: theme
-																	.palette
-																	.text
-																	.secondary,
-																"&:hover": {
-																	bgcolor:
-																		theme
-																			.palette
-																			.mode ===
-																		"light"
-																			? "rgba(0,0,0,0.05)"
-																			: "rgba(255,255,255,0.05)",
-																},
-															}}
-														>
-															<CloseRoundedIcon
+														<Stack direction="row" spacing={0.25}>
+															<IconButton
+																size="small"
+																onClick={() =>
+																	handlePickStopOnMap(
+																		stop.id,
+																	)
+																}
 																sx={{
-																	fontSize: 18,
+																	color: theme
+																		.palette
+																		.text
+																		.secondary,
+																	"&:hover": {
+																		bgcolor:
+																			theme
+																				.palette
+																				.mode ===
+																			"light"
+																				? "rgba(0,0,0,0.05)"
+																				: "rgba(255,255,255,0.05)",
+																	},
 																}}
-															/>
-														</IconButton>
+															>
+																<MapRoundedIcon
+																	sx={{ fontSize: 17 }}
+																/>
+															</IconButton>
+															<IconButton
+																size="small"
+																onClick={() =>
+																	handleRemoveStop(
+																		stop.id,
+																	)
+																}
+																sx={{
+																	color: theme
+																		.palette
+																		.text
+																		.secondary,
+																	"&:hover": {
+																		bgcolor:
+																			theme
+																				.palette
+																				.mode ===
+																			"light"
+																				? "rgba(0,0,0,0.05)"
+																				: "rgba(255,255,255,0.05)",
+																	},
+																}}
+															>
+																<CloseRoundedIcon
+																	sx={{
+																		fontSize: 18,
+																	}}
+																/>
+															</IconButton>
+														</Stack>
 													</InputAdornment>
 												),
 											}}
@@ -348,46 +418,77 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 
 							{/* Add Stop Field */}
 							{stops.length < MAX_STOPS && (
-								<TextField
-									fullWidth
-									size="small"
-									variant="outlined"
-									placeholder="Add stop."
-									onClick={handleAddStop}
-									InputProps={{
-										startAdornment: (
-											<InputAdornment position="start">
-												<PlaceRoundedIcon
-													sx={{
-														fontSize: 20,
-														color: "#FF9800",
-													}}
-												/>
-											</InputAdornment>
-										),
-									}}
-									sx={{
-										"& .MuiOutlinedInput-root": {
+								<Stack direction="row" spacing={uiTokens.spacing.sm}>
+									<TextField
+										fullWidth
+										size="small"
+										variant="outlined"
+										placeholder="Add stop."
+										onClick={handleAddStop}
+										InputProps={{
+											startAdornment: (
+												<InputAdornment position="start">
+													<PlaceRoundedIcon
+														sx={{
+															fontSize: 20,
+															color: "#FF9800",
+														}}
+													/>
+												</InputAdornment>
+											),
+										}}
+										sx={{
+											"& .MuiOutlinedInput-root": {
+												borderRadius: uiTokens.radius.xl,
+												bgcolor:
+													theme.palette.mode === "light"
+														? "rgba(0,0,0,0.05)"
+														: "rgba(255,255,255,0.05)",
+												color: theme.palette.text.primary,
+												cursor: "pointer",
+												"& fieldset": {
+													borderColor:
+														theme.palette.mode ===
+														"light"
+															? "rgba(0,0,0,0.15)"
+															: "rgba(255,255,255,0.2)",
+												},
+												"&:hover fieldset": {
+													borderColor: "#FF9800",
+												},
+											},
+										}}
+									/>
+									<Button
+										variant="outlined"
+										onClick={() => setShowAddStopModal(true)}
+										size="small"
+										sx={{
+											minWidth: 112,
 											borderRadius: uiTokens.radius.xl,
-											bgcolor:
-												theme.palette.mode === "light"
-													? "rgba(0,0,0,0.05)"
-													: "rgba(255,255,255,0.05)",
-											color: theme.palette.text.primary,
-											cursor: "pointer",
-											"& fieldset": {
-												borderColor:
-													theme.palette.mode ===
-													"light"
-														? "rgba(0,0,0,0.15)"
-														: "rgba(255,255,255,0.2)",
-											},
-											"&:hover fieldset": {
-												borderColor: "#FF9800",
-											},
-										},
+											textTransform: "none",
+											fontSize: 12,
+										}}
+									>
+										Search stop
+									</Button>
+								</Stack>
+							)}
+
+							{stops.length >= MAX_STOPS && (
+								<Button
+									fullWidth
+									variant="outlined"
+									size="small"
+									onClick={() => setShowAddStopModal(true)}
+									sx={{
+										borderRadius: uiTokens.radius.xl,
+										textTransform: "none",
+										fontSize: 12
 									}}
-								/>
+								>
+									Search and replace a stop
+								</Button>
 							)}
 
 							{/* Date & Time Selector */}
@@ -827,79 +928,81 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 					</CardContent>
 				</Card>
 
-			{/* Fixed Bottom Section */}
+			{/* Page Action Section */}
 			<Box
 				sx={{
-					position: "fixed",
-					bottom: {
-						xs: "calc(64px + env(safe-area-inset-bottom))",
-						sm: 64,
-					},
-					left: 0,
-					right: 0,
 					bgcolor: contentBg,
-					borderTop:
+					border:
 						theme.palette.mode === "light"
 							? "1px solid rgba(0,0,0,0.1)"
 							: "1px solid rgba(255,255,255,0.1)",
-					px: 2.5,
-					py: 2,
-					zIndex: 999,
-					width: "100%",
-					maxWidth: "100%",
-					margin: 0,
+					borderRadius: uiTokens.radius.sm,
+					px: uiTokens.spacing.md,
+					py: uiTokens.spacing.md,
 				}}
 			>
-				{/* Locate on Map Button */}
-				<Button
-					fullWidth
-					onClick={handleLocateOnMap}
-					sx={{
-						mb: 1.5,
-						color: accentGreen,
-						textTransform: "none",
-						fontSize: 14,
-						fontWeight: 500,
-						"&:hover": {
-							bgcolor: "rgba(3,205,140,0.1)",
-						},
-					}}
-					startIcon={<MapRoundedIcon />}
-				>
-					Locate on Map
-				</Button>
-
-				{/* Continue Button */}
-				<Button
-					fullWidth
-					variant="contained"
-					onClick={handleContinue}
-					disabled={!canContinue}
-					sx={{
-						borderRadius: 2,
-						py: 1.5,
-						fontSize: 16,
-						fontWeight: 600,
-						textTransform: "none",
-						bgcolor: canContinue ? "#000000" : "rgba(0,0,0,0.2)",
-						color: "#FFFFFF",
-						boxShadow: "none",
-						"&:hover": {
-							bgcolor: canContinue
-								? "#333333"
-								: "rgba(0,0,0,0.3)",
-							boxShadow: "none",
-						},
-						"&.Mui-disabled": {
-							bgcolor: "rgba(0,0,0,0.2)",
-							color: "#FFFFFF",
-							opacity: 1,
-						},
-					}}
-				>
-					Continue
-				</Button>
+				<Stack direction="row" spacing={uiTokens.spacing.sm}>
+					<Button
+						fullWidth
+						size="small"
+						variant="outlined"
+						onClick={handleLocateOnMap}
+						startIcon={<MapRoundedIcon />}
+						sx={{
+							borderRadius: uiTokens.radius.xl,
+							py: 0.8,
+							fontSize: 12,
+							textTransform: "none"
+						}}
+					>
+						Pick on map
+					</Button>
+					<Button
+						fullWidth
+						size="small"
+						variant="contained"
+						onClick={handleContinue}
+						disabled={!canContinue}
+						sx={{
+							borderRadius: uiTokens.radius.xl,
+							py: 0.8,
+							fontSize: 12,
+							fontWeight: 600,
+							textTransform: "none"
+						}}
+					>
+						Save & continue
+					</Button>
+				</Stack>
 			</Box>
+
+			<AddStopModal
+				open={showAddStopModal}
+				onClose={() => setShowAddStopModal(false)}
+				onSelectStop={(stop) => {
+					if (stops.length >= MAX_STOPS) {
+						const replacement = [...stops];
+						replacement[replacement.length - 1] = {
+							id: replacement[replacement.length - 1]?.id || stop.id,
+							value: stop.value,
+							coordinates: stop.coordinates,
+							address: stop.address,
+						};
+						setStops(reindexStops(replacement));
+						return;
+					}
+					setStops([
+						...stops,
+						{
+							id: String.fromCharCode(65 + stops.length),
+							value: stop.value,
+							coordinates: stop.coordinates,
+							address: stop.address,
+						},
+					]);
+				}}
+				currentStopCount={stops.length}
+			/>
 		</ScreenScaffold>
 	);
 }

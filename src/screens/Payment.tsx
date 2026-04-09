@@ -13,7 +13,8 @@ import {
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
-import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
+import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
+import SmartphoneRoundedIcon from "@mui/icons-material/SmartphoneRounded";
 
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
@@ -140,13 +141,18 @@ function MapBackground({ onBackClick }: MapBackgroundProps): React.JSX.Element {
 const PAYMENT_METHODS = [
   {
     id: "wallet",
-    name: "EVzone Pay",
+    name: "EV wallet",
     icon: <AccountBalanceWalletRoundedIcon sx={{ fontSize: 24 }} />
   },
   {
-    id: "cash",
-    name: "Cash Payment",
-    icon: <PaymentsRoundedIcon sx={{ fontSize: 24 }} />
+    id: "card",
+    name: "Card",
+    icon: <CreditCardRoundedIcon sx={{ fontSize: 24 }} />
+  },
+  {
+    id: "mobile",
+    name: "Mobile money",
+    icon: <SmartphoneRoundedIcon sx={{ fontSize: 24 }} />
   }
 ];
 
@@ -230,22 +236,45 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
   const location = useLocation();
   const theme = useTheme();
   const fromSelectRide = location.state?.fromSelectRide || false;
+  const fromDriverArrived = location.state?.from === "/rides/driver-arrived";
+  const fromTripInProgress = location.state?.from === "/rides/trip";
+  const fromTripCompleted = Boolean(location.state?.tripCompleted);
   const rideData = location.state || {};
   
   // Default to EVzone Pay (wallet) as per spec
   const [selected, setSelected] = useState("wallet");
   
   // Get fare from ride data or use default
-  const fare = rideData.fare || "UGX 40,365";
+  const fare = rideData.fare || rideData.totalFare || "UGX 40,365";
   
   const handleConfirm = () => {
+    const selectedPaymentName =
+      PAYMENT_METHODS.find((pm) => pm.id === selected)?.name || "EV wallet";
+
     if (fromSelectRide) {
       // Navigate back to RA20 with selected payment method
       navigate("/rides/options", {
         state: {
           ...rideData,
           paymentMethod: selected,
-          paymentMethodName: PAYMENT_METHODS.find(pm => pm.id === selected)?.name || "Cash Payment"
+          paymentMethodName: selectedPaymentName
+        }
+      });
+    } else if (fromDriverArrived) {
+      navigate("/rides/driver-arrived", {
+        state: {
+          ...rideData,
+          paymentMethod: selected,
+          paymentMethodName: selectedPaymentName
+        }
+      });
+    } else if (fromTripInProgress || fromTripCompleted) {
+      navigate("/rides/trip/completed", {
+        state: {
+          ...rideData,
+          paymentMethod: selected,
+          paymentMethodName: selectedPaymentName,
+          paymentSimulated: true
         }
       });
     } else {
@@ -361,7 +390,7 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
             }
           }}
         >
-          Confirm
+          {fromTripInProgress || fromTripCompleted ? "Simulate payment" : "Confirm"}
         </Button>
       </Box>
     </ScreenScaffold>

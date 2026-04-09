@@ -58,6 +58,15 @@ interface Stop {
 	address?: string;
 }
 
+const VALID_RIDE_TYPES = ["Personal", "Business", "Group", "Delivery"] as const;
+
+function normalizeRideType(value: unknown): string {
+	const raw = typeof value === "string" ? value.trim() : "";
+	return VALID_RIDE_TYPES.includes(raw as (typeof VALID_RIDE_TYPES)[number])
+		? raw
+		: "Personal";
+}
+
 // Mock service for location search
 const searchLocations = async (query: string): Promise<SearchResult[]> => {
 	if (!query || query.length < 3) return [];
@@ -137,7 +146,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [passengers, setPassengers] = useState(initialState.passengers || ride.request.passengers || 1);
 	const [customPassengers, setCustomPassengers] = useState("");
 	const [rideType, setRideType] = useState(
-		initialState.rideType || ride.request.rideType || "Personal",
+		normalizeRideType(initialState.rideType || ride.request.rideType),
 	);
 	const [tripType, setTripType] = useState(
 		initialState.tripType || ride.request.tripType || "One Way",

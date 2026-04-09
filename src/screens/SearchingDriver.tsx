@@ -1,81 +1,52 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
-  IconButton,
-  Typography,
+  Button,
   Card,
   CardContent,
-  Button,
+  Chip,
+  CircularProgress,
   Dialog,
-  DialogTitle,
+  DialogActions,
   DialogContent,
   DialogContentText,
-  DialogActions,
-  Avatar
+  DialogTitle,
+  Stack,
+  Typography
 } from "@mui/material";
 
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
-import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
-import DirectionsBusRoundedIcon from "@mui/icons-material/DirectionsBusRounded";
-import HotelRoundedIcon from "@mui/icons-material/HotelRounded";
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
+import LocalTaxiRoundedIcon from "@mui/icons-material/LocalTaxiRounded";
 import MapShell from "../components/maps/MapShell";
 import ScreenScaffold from "../components/ScreenScaffold";
-import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 
 function SearchingForDriverScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { actions } = useAppData();
-  const [dots, setDots] = useState("....");
+  const [dots, setDots] = useState(".");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [searchTime, setSearchTime] = useState(0);
-  const [driverFound, setDriverFound] = useState(false);
 
-  // Animate dots
+  useEffect(() => {
+    actions.setRideStatus("searching");
+  }, [actions.setRideStatus]);
+
   useEffect(() => {
     const interval = setInterval(() => {
-      setDots((prev) => {
-        if (prev.length >= 4) return ".";
-        return prev + ".";
-      });
-    }, 500);
+      setDots((prev) => (prev.length >= 4 ? "." : `${prev}.`));
+      setSearchTime((prev) => prev + 1);
+    }, 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // Simulate API polling for driver assignment
   useEffect(() => {
-    actions.setRideStatus("searching");
-    const searchInterval = setInterval(() => {
-      setSearchTime((prev) => prev + 1);
-      
-      // Simulate driver found after 5-10 seconds (for demo purposes)
-      if (searchTime >= 5 && Math.random() > 0.7 && !driverFound) {
-        setDriverFound(true);
-        setTimeout(() => {
-          actions.setRideStatus("driver_on_way");
-          navigate("/rides/driver-on-way");
-        }, 1000);
-      }
-    }, 1000);
-
-    return () => clearInterval(searchInterval);
-  }, [searchTime, driverFound, navigate, actions.setRideStatus]);
-
-  const handleCancelClick = () => {
-    setShowCancelDialog(true);
-  };
-
-  const handleCancelConfirm = () => {
-    setShowCancelDialog(false);
-    navigate("/rides/options");
-  };
-
-  const handleCancelClose = () => {
-    setShowCancelDialog(false);
-  };
+    if (searchTime < 8) return;
+    actions.setRideStatus("driver_on_way");
+    navigate("/rides/driver-on-way");
+  }, [actions.setRideStatus, navigate, searchTime]);
 
   const topMapBleedSx = {
     position: "relative",
@@ -95,381 +66,113 @@ function SearchingForDriverScreen(): React.JSX.Element {
   } as const;
 
   return (
-    <ScreenScaffold>
-      <SectionHeader
-        title="Searching for Driver"
-        subtitle="Finding the best driver for your trip"
-        leadingAction={
-          <IconButton
-            size="small"
-            onClick={() => navigate(-1)}
-            sx={{
-              borderRadius: uiTokens.radius.pill,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-        }
-      />
-
+    <ScreenScaffold disableTopPadding>
       <Box sx={topMapBleedSx}>
         <MapShell
           preset="compact"
-          sx={{ height: { xs: "56dvh", md: "55vh" } }}
+          sx={{ height: { xs: "52dvh", md: "54vh" } }}
           onBack={() => navigate(-1)}
           showBackButton
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
         >
-
-        {/* Lake Victoria label */}
-        <Typography
-          sx={{
-            position: "absolute",
-            top: "15%",
-            left: "50%",
-            transform: "translateX(-50%)",
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#03CD8C",
-            textShadow: "0 1px 2px rgba(255,255,255,0.8)"
-          }}
-        >
-          Lake Victoria
-        </Typography>
-
-        {/* KITORO label */}
-        <Typography
-          sx={{
-            position: "absolute",
-            top: "8%",
-            left: "10%",
-            fontSize: 11,
-            fontWeight: 500,
-            color: "#03CD8C"
-          }}
-        >
-          KITORO
-        </Typography>
-
-        {/* Uganda Hotel Conference label */}
-        <Typography
-          sx={{
-            position: "absolute",
-            top: "12%",
-            right: "8%",
-            fontSize: 10,
-            fontWeight: 500,
-            color: "#03CD8C",
-            maxWidth: "30%",
-            textAlign: "right"
-          }}
-        >
-          Ugan Hotel Con
-        </Typography>
-
-        {/* Bus stop icon (blue circle with bus) */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: "25%",
-            bottom: "35%",
-            width: 36,
-            height: 36,
-            borderRadius: "50%",
-            bgcolor: "#03CD8C",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
-          }}
-        >
-          <DirectionsBusRoundedIcon sx={{ fontSize: 20, color: "#FFFFFF" }} />
-        </Box>
-
-        {/* Hotel icon (pink circle with bed) */}
-        <Box
-          sx={{
-            position: "absolute",
-            right: "20%",
-            top: "25%",
-            width: 40,
-            height: 40,
-            borderRadius: "50%",
-            bgcolor: "#EC4899",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
-          }}
-        >
-          <HotelRoundedIcon sx={{ fontSize: 22, color: "#FFFFFF" }} />
-        </Box>
-
-        {/* Pickup location marker */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: "20%",
-            bottom: "20%",
-            width: 16,
-            height: 16,
-            borderRadius: "50%",
-            bgcolor: "#22c55e",
-            border: "3px solid white",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
-          }}
-        />
+          <Box
+            sx={{
+              position: "absolute",
+              left: "18%",
+              bottom: "22%",
+              width: 14,
+              height: 14,
+              borderRadius: "50%",
+              bgcolor: "#22c55e",
+              border: "2px solid #ffffff"
+            }}
+          />
+          <Box
+            sx={{
+              position: "absolute",
+              left: "44%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              animation: "carPulse 1.8s ease-in-out infinite",
+              "@keyframes carPulse": {
+                "0%, 100%": { transform: "translate(-50%, -50%) scale(1)" },
+                "50%": { transform: "translate(-50%, -50%) scale(1.1)" }
+              }
+            }}
+          >
+            <LocalTaxiRoundedIcon sx={{ fontSize: 28, color: "#F97316" }} />
+          </Box>
+          <Chip
+            size="small"
+            icon={<RefreshRoundedIcon sx={{ fontSize: 14 }} />}
+            label="Searching"
+            sx={{
+              position: "absolute",
+              top: 14,
+              left: 70,
+              borderRadius: 5,
+              fontSize: 11,
+              height: 24,
+              bgcolor: "rgba(15,23,42,0.82)",
+              color: "#F9FAFB"
+            }}
+          />
         </MapShell>
       </Box>
 
-      {/* Content below map */}
-      <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.lg, pb: uiTokens.spacing.xxl }}>
-        {/* Profile placeholder + text placeholders */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.lg, mb: uiTokens.spacing.xl }}>
-          {/* Large circular placeholder */}
-          <Avatar
-            sx={{
-              width: 70,
-              height: 70,
-              bgcolor: (theme) =>
-                theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)"
-            }}
-          >
-            <PersonRoundedIcon sx={{ fontSize: 36, color: (theme) => theme.palette.text.secondary }} />
-          </Avatar>
-          
-          {/* Two horizontal rectangular placeholders (different lengths) */}
-          <Box sx={{ flex: 1 }}>
-            <Box
-              sx={{
-                height: 18,
-                width: "70%",
-                borderRadius: uiTokens.radius.xs,
-                bgcolor: (theme) =>
-                  theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)",
-                mb: uiTokens.spacing.md
-              }}
-            />
-            <Box
-              sx={{
-                height: 14,
-                width: "50%",
-                borderRadius: uiTokens.radius.xs,
-                bgcolor: (theme) =>
-                  theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)"
-              }}
-            />
-          </Box>
-        </Box>
-
-        {/* Dark blue search box */}
-        <Card
-          elevation={0}
-          sx={{
-            mb: uiTokens.spacing.xl,
-            borderRadius: uiTokens.radius.sm,
-            bgcolor: "#1E3A5F", // Dark navy
-            overflow: "hidden"
-          }}
-        >
-          <CardContent sx={{ p: 0 }}>
-            {/* Two filter/search areas at top (separated by white line) */}
-            <Box
-              sx={{
-                display: "flex",
-                borderBottom: "1px solid rgba(255,255,255,0.2)",
-                px: uiTokens.spacing.lg,
-                py: uiTokens.spacing.mdPlus
-              }}
-            >
-              {/* Left filter placeholder */}
-              <Box sx={{ flex: 1, pr: 1 }}>
-                <Box
-                  sx={{
-                    height: 14,
-                    width: "80%",
-                    borderRadius: 1,
-                    bgcolor: "rgba(255,255,255,0.2)",
-                    mb: 0.8
-                  }}
-                />
-                <Box
-                  sx={{
-                    height: 12,
-                    width: "60%",
-                    borderRadius: 1,
-                    bgcolor: "rgba(255,255,255,0.15)"
-                  }}
-                />
-              </Box>
-              
-              {/* White vertical divider */}
-              <Box
-                sx={{
-                  width: 1,
-                  bgcolor: "rgba(255,255,255,0.3)",
-                  mx: 1
-                }}
-              />
-              
-              {/* Right filter placeholder */}
-              <Box sx={{ flex: 1, pl: 1 }}>
-                <Box
-                  sx={{
-                    height: 14,
-                    width: "80%",
-                    borderRadius: 1,
-                    bgcolor: "rgba(255,255,255,0.2)",
-                    mb: 0.8
-                  }}
-                />
-                <Box
-                  sx={{
-                    height: 12,
-                    width: "60%",
-                    borderRadius: 1,
-                    bgcolor: "rgba(255,255,255,0.15)"
-                  }}
-                />
-              </Box>
-            </Box>
-
-            {/* Searching text with refresh icon */}
-            <Box
-              sx={{
-                px: uiTokens.spacing.lg,
-                py: uiTokens.spacing.mdPlus,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between"
-              }}
-            >
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: 500,
-                  color: "#FFFFFF",
-                  fontSize: 13
-                }}
-              >
-                Searching{dots}
-              </Typography>
-              <RefreshRoundedIcon
-                sx={{
-                  fontSize: 20,
-                  color: "#FFFFFF",
-                  animation: "spin 2s linear infinite",
-                  "@keyframes spin": {
-                    "0%": { transform: "rotate(0deg)" },
-                    "100%": { transform: "rotate(360deg)" }
-                  }
-                }}
-              />
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* White content container */}
-        <Card
-          elevation={0}
-          sx={{
-            mb: uiTokens.spacing.lg,
-            borderRadius: uiTokens.radius.sm,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-            border: (theme) =>
-              theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
-          }}
-        >
-          <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
-            {/* Large rectangular placeholder at top */}
-            <Box
-              sx={{
-                height: 120,
-                width: "100%",
-                borderRadius: uiTokens.radius.sm,
-                bgcolor: (theme) =>
-                  theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)",
-                mb: uiTokens.spacing.lg
-              }}
-            />
-
-            {/* Two horizontal rectangular placeholders */}
-            <Box sx={{ mb: uiTokens.spacing.mdPlus }}>
-              <Box
-                sx={{
-                  height: 16,
-                  width: "85%",
-                  borderRadius: uiTokens.radius.xs,
-                  bgcolor: (theme) =>
-                    theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)",
-                  mb: uiTokens.spacing.xs
-                }}
-              />
-              <Box
-                sx={{
-                  height: 16,
-                  width: "75%",
-                  borderRadius: uiTokens.radius.xs,
-                  bgcolor: (theme) =>
-                    theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)"
-                }}
-              />
-            </Box>
-
-            {/* Shorter rounded placeholder (tag/chip) */}
-            <Box
-              sx={{
-                height: 24,
-                width: "40%",
-                borderRadius: uiTokens.radius.pill,
-                bgcolor: (theme) =>
-                  theme.palette.mode === "light" ? "#E5E7EB" : "rgba(51,65,85,0.5)"
-              }}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Cancel button */}
-        <Button
-          fullWidth
-          variant="outlined"
-          onClick={handleCancelClick}
-          sx={{
-            borderRadius: uiTokens.radius.pill,
-            py: uiTokens.spacing.mdPlus,
-            fontSize: 14,
-            fontWeight: 500,
-            textTransform: "none",
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-            border: (theme) =>
-              theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            color: (theme) => theme.palette.text.primary,
-            "&:hover": {
-              bgcolor: (theme) =>
-                theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.8)"
-            }
-          }}
-        >
-          Cancel
-        </Button>
+      <Box sx={{ pt: 0.5 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
+          Searching for driver{dots}
+        </Typography>
+        <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+          Matching you with the nearest available EV driver.
+        </Typography>
       </Box>
 
-      {/* Cancel Confirmation Dialog */}
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: uiTokens.radius.sm,
+          bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
+          border: (t) =>
+            t.palette.mode === "light"
+              ? "1px solid rgba(209,213,219,0.9)"
+              : "1px solid rgba(51,65,85,0.9)"
+        }}
+      >
+        <CardContent sx={{ px: 1.75, py: 2 }}>
+          <Stack direction="row" spacing={1.3} alignItems="center">
+            <CircularProgress size={20} thickness={5} />
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                Searching nearby drivers
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                Hold on while we find the closest available driver.
+              </Typography>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Button
+        fullWidth
+        variant="outlined"
+        size="small"
+        onClick={() => setShowCancelDialog(true)}
+        sx={{
+          borderRadius: uiTokens.radius.xl,
+          py: 0.9,
+          fontSize: 12,
+          textTransform: "none"
+        }}
+      >
+        Cancel request
+      </Button>
+
       <Dialog
         open={showCancelDialog}
-        onClose={handleCancelClose}
+        onClose={() => setShowCancelDialog(false)}
         PaperProps={{
           sx: {
             borderRadius: uiTokens.radius.lg,
@@ -478,39 +181,26 @@ function SearchingForDriverScreen(): React.JSX.Element {
           }
         }}
       >
-        <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>
-          Cancel ride request?
-        </DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>Cancel ride request?</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ color: (theme) => theme.palette.text.secondary }}>
-            Are you sure you want to cancel this ride request? You can request a new ride at any time.
+            You can request another ride any time.
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: uiTokens.spacing.xl, pb: uiTokens.spacing.lg }}>
-          <Button
-            onClick={handleCancelClose}
-            sx={{
-              textTransform: "none",
-              color: (theme) => theme.palette.text.secondary
-            }}
-          >
+          <Button onClick={() => setShowCancelDialog(false)} sx={{ textTransform: "none" }}>
             Keep searching
           </Button>
           <Button
-            onClick={handleCancelConfirm}
+            onClick={() => navigate("/rides/options")}
             variant="contained"
-            sx={{
-              textTransform: "none",
-              bgcolor: "#EF4444",
-              "&:hover": {
-                bgcolor: "#DC2626"
-              }
-            }}
+            sx={{ textTransform: "none", bgcolor: "#EF4444", "&:hover": { bgcolor: "#DC2626" } }}
           >
             Cancel request
           </Button>
         </DialogActions>
       </Dialog>
+
     </ScreenScaffold>
   );
 }
@@ -524,9 +214,7 @@ export default function RiderScreen22SearchingForDriverCanvas_v2() {
         bgcolor: (theme) => theme.palette.background.default
       }}
     >
-
-        <SearchingForDriverScreen />
-      
+      <SearchingForDriverScreen />
     </Box>
   );
 }
