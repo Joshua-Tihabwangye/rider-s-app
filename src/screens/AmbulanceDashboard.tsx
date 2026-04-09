@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -18,7 +18,6 @@ import { uiTokens } from "../design/tokens";
 
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
-import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import NotificationsActiveRoundedIcon from "@mui/icons-material/NotificationsActiveRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
@@ -26,7 +25,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 
 function AmbulanceDashboardHomeScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [forWhom, setForWhom] = useState("me");
 
   const handleRequestNow = () => {
     navigate("/ambulance/location");
@@ -34,10 +32,6 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
 
   const handlePlanTransfer = () => {
     navigate("/ambulance/destination");
-  };
-
-  const handleSetForWhom = (value: string): void => {
-    setForWhom(value);
   };
 
   const handleViewHistory = () => {
@@ -195,119 +189,6 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
             </Button>
           </Stack>
 
-        </CardContent>
-      </Card>
-
-      {/* Who is this for? */}
-      <Card
-        elevation={0}
-        sx={{
-          borderRadius: uiTokens.radius.sm,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{ mb: uiTokens.spacing.smPlus }}
-          >
-            <Stack direction="row" spacing={0.75} alignItems="center">
-              <PeopleAltRoundedIcon
-                sx={{ fontSize: 18, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                This request is for
-              </Typography>
-            </Stack>
-          </Stack>
-
-          <Stack direction="row" spacing={uiTokens.spacing.sm} sx={{ flexWrap: "wrap" }}>
-            <Chip
-              label="Me"
-              size="small"
-              onClick={() => handleSetForWhom("me")}
-              sx={{
-                borderRadius: uiTokens.radius.xl,
-                fontSize: 11,
-                height: 26,
-                bgcolor:
-                  forWhom === "me"
-                    ? "rgba(239,68,68,0.15)"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "#F9FAFB"
-                          : "rgba(15,23,42,0.96)",
-                border:
-                  forWhom === "me"
-                    ? "1px solid #DC2626"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "1px solid rgba(209,213,219,0.9)"
-                          : "1px solid rgba(51,65,85,0.9)",
-                color: (t) => t.palette.text.primary
-              }}
-            />
-            <Chip
-              label="Family / friend"
-              size="small"
-              onClick={() => handleSetForWhom("family")}
-              sx={{
-                borderRadius: uiTokens.radius.xl,
-                fontSize: 11,
-                height: 26,
-                bgcolor:
-                  forWhom === "family"
-                    ? "rgba(239,68,68,0.15)"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "#F9FAFB"
-                          : "rgba(15,23,42,0.96)",
-                border:
-                  forWhom === "family"
-                    ? "1px solid #DC2626"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "1px solid rgba(209,213,219,0.9)"
-                          : "1px solid rgba(51,65,85,0.9)",
-                color: (t) => t.palette.text.primary
-              }}
-            />
-            <Chip
-              label="Clinic / hospital"
-              size="small"
-              onClick={() => handleSetForWhom("facility")}
-              sx={{
-                borderRadius: uiTokens.radius.xl,
-                fontSize: 11,
-                height: 26,
-                bgcolor:
-                  forWhom === "facility"
-                    ? "rgba(239,68,68,0.15)"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "#F9FAFB"
-                          : "rgba(15,23,42,0.96)",
-                border:
-                  forWhom === "facility"
-                    ? "1px solid #DC2626"
-                    : (t) =>
-                        t.palette.mode === "light"
-                          ? "1px solid rgba(209,213,219,0.9)"
-                          : "1px solid rgba(51,65,85,0.9)",
-                color: (t) => t.palette.text.primary
-              }}
-            />
-          </Stack>
         </CardContent>
       </Card>
 

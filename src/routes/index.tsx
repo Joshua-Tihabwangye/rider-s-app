@@ -13,7 +13,6 @@ import ScheduleRide from "../screens/ScheduleRide";
 import ScheduleSummary from "../screens/ScheduleSummary";
 import SwitchRider from "../screens/SwitchRider";
 import SwitchRiderContact from "../screens/SwitchRiderContact";
-import SwitchRiderManual from "../screens/SwitchRiderManual";
 import SwitchRiderSummary from "../screens/SwitchRiderSummary";
 import SelectTripType from "../screens/SelectTripType";
 import RoundTrip from "../screens/RoundTrip";
@@ -85,7 +84,6 @@ import TourHistory from "../screens/TourHistory";
 import AmbulanceLocation from "../screens/AmbulanceLocation";
 import AmbulanceDestination from "../screens/AmbulanceDestination";
 import AmbulanceConfirmation from "../screens/AmbulanceConfirmation";
-import AmbulanceTracking from "../screens/AmbulanceTracking";
 import AmbulanceHistory from "../screens/AmbulanceHistory";
 import SchoolHandoff from "../screens/SchoolHandoff";
 import RentalHistoryDetail from "../screens/RentalHistoryDetail";
@@ -159,10 +157,6 @@ export default function AppRouter(): React.JSX.Element {
 					<Route
 						path="switch-rider/contact"
 						element={<SwitchRiderContact />}
-					/>
-					<Route
-						path="switch-rider/manual"
-						element={<SwitchRiderManual />}
 					/>
 					<Route
 						path="switch-rider/summary"
@@ -323,10 +317,6 @@ export default function AppRouter(): React.JSX.Element {
 					<Route
 						path="confirmation"
 						element={<AmbulanceConfirmation />}
-					/>
-					<Route
-						path="tracking/:requestId"
-						element={<AmbulanceTracking />}
 					/>
 					<Route path="history" element={<AmbulanceHistory />} />
 				</Route>

@@ -67,6 +67,8 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 	// Theme-aware colors
 	const accentGreen = "#03CD8C"; // Green
 	const lightGreen = "rgba(3,205,140,0.1)"; // Light green for active passenger
+	const contentBg =
+		theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
 
 	const passengerOptions = [1, 2, 3, 4, 5, 6];
 

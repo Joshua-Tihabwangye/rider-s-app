@@ -29,6 +29,7 @@ import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import ContactPhoneRoundedIcon from "@mui/icons-material/ContactPhoneRounded";
+import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SwapVertRoundedIcon from "@mui/icons-material/SwapVertRounded";
@@ -125,6 +126,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 
 	// Get initial values from navigation state
 	const initialState = location.state || {};
+	const isBookingForSomeone = Boolean(initialState.bookForSomeone);
 
 	const [pickup, setPickup] = useState(
 		initialState.pickup || ride.request.origin?.label || "Current location",
@@ -169,8 +171,15 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [selectedContact, setSelectedContact] = useState(
 		initialState.selectedContact || ride.request.riderContact || null,
 	);
+	const initialRiderType = initialState.riderType || ride.request.riderType || "personal";
 	const [riderType, setRiderType] = useState(
-		initialState.riderType || ride.request.riderType || "personal",
+		initialRiderType === "contact" ? "personal" : initialRiderType,
+	);
+	const [bookedPersonName, setBookedPersonName] = useState(
+		initialState.bookedPersonName || ride.request.riderContact?.name || "",
+	);
+	const [bookedPersonPhone, setBookedPersonPhone] = useState(
+		initialState.bookedPersonPhone || ride.request.riderContact?.phone || "",
 	);
 	const [stops, setStops] = useState<Stop[]>(
 		initialState.stops ||
@@ -246,6 +255,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 			"";
 		const contactPhone =
 			selectedContact?.phone || selectedContact?.phoneNumber || "";
+		const manualBookedName = bookedPersonName.trim();
+		const manualBookedPhone = bookedPersonPhone.trim();
+		const isContactRide = isBookingForSomeone || riderType === "contact";
 
 		actions.updateRideRequest({
 			origin: originLocation,
@@ -256,11 +268,15 @@ function EnterDestinationScreen(): React.JSX.Element {
 			rideType,
 			schedule: scheduleMode,
 			scheduleTime: scheduleMode === "later" ? scheduleTime : "",
-			riderType: riderType === "contact" ? "contact" : "personal",
+			riderType: isContactRide ? "contact" : "personal",
 			riderContact:
-				riderType === "contact" && contactName
-					? { name: contactName, phone: contactPhone }
-					: null,
+				isBookingForSomeone
+					? manualBookedName || manualBookedPhone
+						? { name: manualBookedName, phone: manualBookedPhone }
+						: null
+					: riderType === "contact" && contactName
+						? { name: contactName, phone: contactPhone }
+						: null,
 		});
 	}, [
 		pickup,
@@ -274,6 +290,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 		scheduleTime,
 		riderType,
 		selectedContact,
+		bookedPersonName,
+		bookedPersonPhone,
+		isBookingForSomeone,
 		actions.updateRideRequest,
 	]);
 
@@ -287,6 +306,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 		: pickup.trim() !== "" &&
 			destination.trim() !== "" &&
 			(tripType !== "Round Trip" || (returnDate && returnTime));
+	const hasBookForSomeoneDetails =
+		bookedPersonName.trim().length > 1 && bookedPersonPhone.trim().length >= 7;
+	const canSubmit = canContinue && (!isBookingForSomeone || hasBookForSomeoneDetails);
 
 	// Load recent searches on mount
 	useEffect(() => {
@@ -412,7 +434,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 			[key: string]: unknown;
 		} | null = null,
 	): void => {
-		if (!canContinue) {
+		if (!canSubmit) {
 			setShowError(true);
 			return;
 		}
@@ -445,6 +467,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 			isScheduled,
 			selectedContact,
 			riderType,
+			bookForSomeone: isBookingForSomeone,
+			bookedPersonName: bookedPersonName.trim(),
+			bookedPersonPhone: bookedPersonPhone.trim(),
 			returnDate,
 			returnTime,
 			returnDateTime,
@@ -478,6 +503,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 				? stops.filter((stop: Stop) => stop.value.trim() !== "")
 				: [],
 			isMultiStopMode: isMultiStopMode,
+			bookForSomeone: isBookingForSomeone,
+			bookedPersonName: bookedPersonName.trim(),
+			bookedPersonPhone: bookedPersonPhone.trim(),
 		};
 
 		navigate("/rides/options", {
@@ -539,6 +567,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 					}
 				: null,
 			riderType,
+			bookForSomeone: isBookingForSomeone,
+			bookedPersonName: bookedPersonName.trim(),
+			bookedPersonPhone: bookedPersonPhone.trim(),
 		};
 	};
 
@@ -1097,6 +1128,89 @@ function EnterDestinationScreen(): React.JSX.Element {
 					</CardContent>
 				</Card>
 
+			{isBookingForSomeone && (
+				<Card
+					elevation={0}
+					sx={{
+						borderRadius: 2,
+						bgcolor: contentBg,
+						border:
+							theme.palette.mode === "light"
+								? "1px solid rgba(0,0,0,0.1)"
+								: "1px solid rgba(255,255,255,0.1)"
+					}}
+				>
+					<CardContent sx={{ px: 2, py: 1.5 }}>
+						<Typography
+							variant="subtitle2"
+							sx={{ fontWeight: 600, mb: 1.2, color: theme.palette.text.primary }}
+						>
+							Person details
+						</Typography>
+						<Stack spacing={1.25}>
+							<TextField
+								fullWidth
+								size="small"
+								label="Person’s name"
+								value={bookedPersonName}
+								onChange={(e) => setBookedPersonName(e.target.value)}
+								InputProps={{
+									startAdornment: (
+										<InputAdornment position="start">
+											<PersonRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+										</InputAdornment>
+									)
+								}}
+								sx={{
+									"& .MuiOutlinedInput-root": {
+										borderRadius: 2,
+										bgcolor:
+											theme.palette.mode === "light"
+												? "rgba(0,0,0,0.02)"
+												: "rgba(255,255,255,0.05)",
+										"& fieldset": {
+											borderColor:
+												theme.palette.mode === "light"
+													? "rgba(0,0,0,0.15)"
+													: "rgba(255,255,255,0.2)"
+										}
+									}
+								}}
+							/>
+							<TextField
+								fullWidth
+								size="small"
+								label="Person’s phone number"
+								value={bookedPersonPhone}
+								onChange={(e) => setBookedPersonPhone(e.target.value)}
+								InputProps={{
+									startAdornment: (
+										<InputAdornment position="start">
+											<PhoneIphoneRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+										</InputAdornment>
+									)
+								}}
+								sx={{
+									"& .MuiOutlinedInput-root": {
+										borderRadius: 2,
+										bgcolor:
+											theme.palette.mode === "light"
+												? "rgba(0,0,0,0.02)"
+												: "rgba(255,255,255,0.05)",
+										"& fieldset": {
+											borderColor:
+												theme.palette.mode === "light"
+													? "rgba(0,0,0,0.15)"
+													: "rgba(255,255,255,0.2)"
+										}
+									}
+								}}
+							/>
+						</Stack>
+					</CardContent>
+				</Card>
+			)}
+
 
 			{/* Lower Section Cards */}
 				{/* Error Alert */}
@@ -1106,7 +1220,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 						sx={{ mb: 2 }}
 						onClose={() => setShowError(false)}
 					>
-						Please select a destination before continuing.
+						{isBookingForSomeone
+							? "Please complete destination plus person name and phone number before continuing."
+							: "Please select a destination before continuing."}
 					</Alert>
 				)}
 
@@ -1925,18 +2041,18 @@ function EnterDestinationScreen(): React.JSX.Element {
 						e.preventDefault();
 						handleContinue();
 					}}
-					disabled={!canContinue}
+					disabled={!canSubmit}
 					sx={{
 						borderRadius: 2,
 						py: 0.9,
 						fontSize: 13.5,
 						fontWeight: 600,
 						textTransform: "none",
-						bgcolor: canContinue ? "#000000" : "rgba(0,0,0,0.2)",
+						bgcolor: canSubmit ? "#000000" : "rgba(0,0,0,0.2)",
 						color: "#FFFFFF",
 						boxShadow: "none",
 						"&:hover": {
-							bgcolor: canContinue
+							bgcolor: canSubmit
 								? "#333333"
 								: "rgba(0,0,0,0.3)",
 							boxShadow: "none",

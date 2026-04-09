@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  
   Box,
-  IconButton,
   Typography,
   Card,
   CardContent,
@@ -14,9 +12,13 @@ import {
   Button
 } from "@mui/material";
 
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import PersonPinCircleRoundedIcon from "@mui/icons-material/PersonPinCircleRounded";
+import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
+import ScreenScaffold from "../components/ScreenScaffold";
+import MapShell from "../components/maps/MapShell";
+import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 
 
@@ -36,49 +38,102 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
   const canContinue =
     destinationMode === "nearest" || (destinationMode === "manual" && selectedHospital.trim().length > 0);
 
+  const topMapBleedSx = {
+    position: "relative",
+    width: {
+      xs: "calc(100% + (var(--rider-shell-content-px-xs, 20px) * 2))",
+      md: "calc(100% + (var(--rider-shell-content-px-md, 24px) * 2))"
+    },
+    ml: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    mr: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    overflow: "hidden"
+  } as const;
+
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
+    <ScreenScaffold disableTopPadding>
+      <Box sx={topMapBleedSx}>
+        <MapShell
+          preset="compact"
+          sx={{ height: { xs: "42dvh", md: "44vh" } }}
+          onBack={() => navigate(-1)}
+          showBackButton
+          canvasSx={{ background: uiTokens.map.canvasEmphasis }}
+        >
+          <Box
             sx={{
-              borderRadius: 5,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
+              position: "absolute",
+              inset: 0,
+              opacity: 0.22,
+              backgroundImage:
+                "linear-gradient(to right, rgba(148,163,184,0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.5) 1px, transparent 1px)",
+              backgroundSize: "30px 30px"
+            }}
+          />
+          <Box
+            sx={{
+              position: "absolute",
+              left: "16%",
+              bottom: "23%",
+              transform: "translate(-50%, -50%)"
             }}
           >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              Choose destination hospital
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              We’ll send your ambulance there or to the nearest option
-            </Typography>
+            <PersonPinCircleRoundedIcon sx={{ fontSize: 30, color: "#DC2626" }} />
           </Box>
-        </Box>
+          <Box
+            sx={{
+              position: "absolute",
+              right: "16%",
+              top: "25%",
+              transform: "translate(50%, -50%)"
+            }}
+          >
+            <LocalHospitalRoundedIcon sx={{ fontSize: 30, color: "#16A34A" }} />
+          </Box>
+          <Box
+            sx={{
+              position: "absolute",
+              left: "43%",
+              top: "53%",
+              transform: "translate(-50%, -50%)"
+            }}
+          >
+            <DirectionsCarFilledRoundedIcon sx={{ fontSize: 28, color: "#F97316" }} />
+          </Box>
+          <Box
+            sx={{
+              position: "absolute",
+              left: "22%",
+              top: "54%",
+              width: "54%",
+              height: 4,
+              borderRadius: 2,
+              bgcolor: "rgba(15,23,42,0.65)",
+              transform: "rotate(-18deg)",
+              transformOrigin: "left center"
+            }}
+          />
+        </MapShell>
+      </Box>
+
+      <Box sx={{ pt: 0.5 }}>
+        <Typography
+          variant="subtitle1"
+          sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
+        >
+          Choose destination hospital
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+        >
+          We’ll send your ambulance there or to the nearest option
+        </Typography>
       </Box>
 
       {/* Mode selection */}
@@ -274,7 +329,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
         In some cases, triage teams may redirect you to a different facility
         based on capacity and the patient’s condition.
       </Typography>
-    </Box>
+    </ScreenScaffold>
   );
 }
 
