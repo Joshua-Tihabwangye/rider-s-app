@@ -797,7 +797,11 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     } else if (type === "book-contact") {
       navigate("/rides/switch-rider");
     } else if (type === "book-someone") {
-      navigate("/rides/switch-rider/manual");
+      navigate("/rides/enter/details", {
+        state: {
+          bookForSomeone: true
+        }
+      });
     } else if (type === "commutes-manage") {
       navigate("/rides/commutes");
     } else if (type === "upcoming-all") {
@@ -1487,7 +1491,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               {helperState === "book-contact" &&
                 "Next step: open the Switch Rider → Contact flow so you can book a ride for a saved contact (RA10–RA13)."}
               {helperState === "book-someone" &&
-                "Next step: open the Switch Rider → Someone else flow to enter name and phone for a one-off rider (RA10–RA13)."}
+                "Next step: open ride details with one-off rider fields so you can enter the person’s name and phone number."}
               {helperState === "commutes-manage" &&
                 "Next step: open the full Daily Commutes management view where you can add, edit or remove commute presets (RA03)."}
               {helperState === "book-commute" &&

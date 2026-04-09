@@ -28,7 +28,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
   const [location, setLocation] = useState(ambulance.request.pickup?.address ?? "Nsambya Road 472, Kampala");
   const [patientName, setPatientName] = useState(ambulance.request.patientName ?? "");
   const [patientPhone, setPatientPhone] = useState(ambulance.request.patientPhone ?? "");
-  const [forWhom, setForWhom] = useState(ambulance.request.forWhom ?? "me");
+  const [requestForWhom, setRequestForWhom] = useState<"family" | "facility">("family");
   const [notes, setNotes] = useState(ambulance.request.notes ?? "");
 
   const canContinue =
@@ -157,6 +157,65 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
         </CardContent>
       </Card>
 
+      {/* Request target */}
+      <Card
+        elevation={0}
+        sx={{
+          mb: 2,
+          borderRadius: 2,
+          bgcolor: (t) =>
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          border: (t) =>
+            t.palette.mode === "light"
+              ? "1px solid rgba(209,213,219,0.9)"
+              : "1px solid rgba(51,65,85,0.9)"
+        }}
+      >
+        <CardContent sx={{ px: 1.75, py: 1.75 }}>
+          <Typography
+            variant="caption"
+            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block" }}
+          >
+            This request is for
+          </Typography>
+          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+            <Chip
+              label="Family / friend"
+              size="small"
+              onClick={() => setRequestForWhom("family")}
+              sx={{
+                borderRadius: 5,
+                fontSize: 11,
+                height: 26,
+                bgcolor:
+                  requestForWhom === "family"
+                    ? "primary.main"
+                    : (t) =>
+                        t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
+                color: requestForWhom === "family" ? "#020617" : (t) => t.palette.text.primary
+              }}
+            />
+            <Chip
+              label="Clinic / hospital"
+              size="small"
+              onClick={() => setRequestForWhom("facility")}
+              sx={{
+                borderRadius: 5,
+                fontSize: 11,
+                height: 26,
+                bgcolor:
+                  requestForWhom === "facility"
+                    ? "primary.main"
+                    : (t) =>
+                        t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
+                color:
+                  requestForWhom === "facility" ? "#020617" : (t) => t.palette.text.primary
+              }}
+            />
+          </Stack>
+        </CardContent>
+      </Card>
+
       {/* Patient details card */}
       <Card
         elevation={0}
@@ -248,64 +307,6 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
             variant="caption"
             sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block" }}
           >
-            This request is for
-          </Typography>
-          <Stack direction="row" spacing={1} sx={{ mb: 1.4, flexWrap: "wrap" }}>
-            <Chip
-              label="Me"
-              size="small"
-              onClick={() => setForWhom("me")}
-              sx={{
-                borderRadius: 5,
-                fontSize: 11,
-                height: 26,
-                bgcolor:
-                  forWhom === "me"
-                    ? "primary.main"
-                    : (t) =>
-                        t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-                color: forWhom === "me" ? "#020617" : (t) => t.palette.text.primary
-              }}
-            />
-            <Chip
-              label="Family / friend"
-              size="small"
-              onClick={() => setForWhom("other")}
-              sx={{
-                borderRadius: 5,
-                fontSize: 11,
-                height: 26,
-                bgcolor:
-                  forWhom === "other"
-                    ? "primary.main"
-                    : (t) =>
-                        t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-                color: forWhom === "other" ? "#020617" : (t) => t.palette.text.primary
-              }}
-            />
-            <Chip
-              label="Clinic / hospital"
-              size="small"
-              onClick={() => setForWhom("facility")}
-              sx={{
-                borderRadius: 5,
-                fontSize: 11,
-                height: 26,
-                bgcolor:
-                  forWhom === "facility"
-                    ? "primary.main"
-                    : (t) =>
-                        t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-                color:
-                  forWhom === "facility" ? "#020617" : (t) => t.palette.text.primary
-              }}
-            />
-          </Stack>
-
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block" }}
-          >
             Brief notes (optional)
           </Typography>
           <TextField
@@ -350,7 +351,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
             pickup: { label: location, address: location },
             patientName,
             patientPhone,
-            forWhom: forWhom === "me" ? "me" : "someone",
+            forWhom: "someone",
             notes
           });
           navigate("/ambulance/destination");

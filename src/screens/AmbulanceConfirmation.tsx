@@ -1,23 +1,24 @@
 import React from "react";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useNavigate } from "react-router-dom";
 import {
-  
   Box,
-  IconButton,
   Typography,
   Card,
   CardContent,
   Stack,
-  Button
+  Button,
+  Chip
 } from "@mui/material";
 
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import PhoneEnabledRoundedIcon from "@mui/icons-material/PhoneEnabledRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
+import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
+import ScreenScaffold from "../components/ScreenScaffold";
+import MapShell from "../components/maps/MapShell";
+import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 
 
@@ -31,49 +32,121 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
     actions.updateAmbulanceRequest({ status: "assigned" });
   }, [actions.updateAmbulanceRequest]);
 
+  const topMapBleedSx = {
+    position: "relative",
+    width: {
+      xs: "calc(100% + (var(--rider-shell-content-px-xs, 20px) * 2))",
+      md: "calc(100% + (var(--rider-shell-content-px-md, 24px) * 2))"
+    },
+    ml: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    mr: {
+      xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+      md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+    },
+    overflow: "hidden"
+  } as const;
+
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
+    <ScreenScaffold disableTopPadding>
+      <Box sx={topMapBleedSx}>
+        <MapShell
+          preset="compact"
+          sx={{ height: { xs: "42dvh", md: "44vh" } }}
+          onBack={() => navigate(-1)}
+          showBackButton
+          canvasSx={{ background: uiTokens.map.canvasEmphasis }}
+        >
+          <Box
             sx={{
-              borderRadius: 5,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
+              position: "absolute",
+              inset: 0,
+              opacity: 0.2,
+              backgroundImage:
+                "linear-gradient(to right, rgba(148,163,184,0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.5) 1px, transparent 1px)",
+              backgroundSize: "32px 32px"
+            }}
+          />
+          <Box
+            sx={{
+              position: "absolute",
+              left: "16%",
+              bottom: "20%",
+              transform: "translate(-50%, -50%)"
             }}
           >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              Ambulance on the way
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              We’ve shared your details with the response team
-            </Typography>
+            <PlaceRoundedIcon sx={{ fontSize: 30, color: "#DC2626" }} />
           </Box>
-        </Box>
+          <Box
+            sx={{
+              position: "absolute",
+              right: "16%",
+              top: "25%",
+              transform: "translate(50%, -50%)"
+            }}
+          >
+            <LocalHospitalRoundedIcon sx={{ fontSize: 30, color: "#16A34A" }} />
+          </Box>
+          <Box
+            sx={{
+              position: "absolute",
+              left: "22%",
+              top: "55%",
+              width: "56%",
+              height: 4,
+              borderRadius: 2,
+              bgcolor: "rgba(15,23,42,0.65)",
+              transform: "rotate(-18deg)",
+              transformOrigin: "left center"
+            }}
+          />
+          <Box
+            sx={{
+              position: "absolute",
+              left: "42%",
+              top: "54%",
+              transform: "translate(-50%, -50%)",
+              animation: "ambulanceMove 2.6s ease-in-out infinite",
+              "@keyframes ambulanceMove": {
+                "0%, 100%": { transform: "translate(-50%, -50%) translateX(-8px)" },
+                "50%": { transform: "translate(-50%, -50%) translateX(10px)" }
+              }
+            }}
+          >
+            <DirectionsCarFilledRoundedIcon sx={{ fontSize: 30, color: "#F97316" }} />
+          </Box>
+          <Box sx={{ position: "absolute", top: 14, left: 70 }}>
+            <Chip
+              size="small"
+              icon={<AccessTimeRoundedIcon sx={{ fontSize: 14 }} />}
+              label={`ETA ${eta}`}
+              sx={{
+                borderRadius: 5,
+                fontSize: 11,
+                height: 24,
+                bgcolor: "rgba(15,23,42,0.82)",
+                color: "#F9FAFB"
+              }}
+            />
+          </Box>
+        </MapShell>
+      </Box>
+
+      <Box sx={{ pt: 0.5 }}>
+        <Typography
+          variant="subtitle1"
+          sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
+        >
+          Ambulance on the way
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+        >
+          We’ve shared your details with the response team
+        </Typography>
       </Box>
 
       {/* Confirmation card */}
@@ -195,7 +268,9 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
               fullWidth
               variant="outlined"
               startIcon={<PhoneIphoneRoundedIcon sx={{ fontSize: 18 }} />}
-              onClick={() => navigate(`/ambulance/tracking/${requestId}`)}
+              onClick={() => {
+                window.location.href = "tel:+256700000000";
+              }}
               sx={{
                 borderRadius: 5,
                 py: 0.9,
@@ -216,7 +291,7 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
         If the patient’s condition changes or you move from this location, use
         these contact options to update the response team immediately.
       </Typography>
-    </Box>
+    </ScreenScaffold>
   );
 }
 
