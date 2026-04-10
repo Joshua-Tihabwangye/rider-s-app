@@ -40,12 +40,13 @@ import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import type { DeliveryOrder } from "../store/types";
+import { getDeliveryStatusLabel } from "../features/delivery/stateMachine";
 
-const DELIVERY_RECEIVED_STATUSES = ["In transit", "Delivered", "Waiting to collect", "Arrived"] as const;
+const DELIVERY_TERMINAL_STATUSES = ["delivered", "cancelled", "failed"] as const;
 
 function DeliveryDashboardHomeScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const { delivery } = useAppData();
+  const { delivery, actions } = useAppData();
   const [viewMode, setViewMode] = useState<string>("sending");
   const [activeTab, setActiveTab] = useState<string>("delivering");
   const [trackingNumber, setTrackingNumber] = useState<string>("");
@@ -65,21 +66,21 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
   });
 
   const deliveringOrders: DeliveryOrder[] = delivery.orders.filter(
-    (order) => !DELIVERY_RECEIVED_STATUSES.includes(order.status as (typeof DELIVERY_RECEIVED_STATUSES)[number])
+    (order) => !DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
   );
   const receivedOrders: DeliveryOrder[] = delivery.orders.filter(
-    (order) => DELIVERY_RECEIVED_STATUSES.includes(order.status as (typeof DELIVERY_RECEIVED_STATUSES)[number])
+    (order) => DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
   );
 
   const pendingDeliveriesCount = deliveringOrders.filter(
-    (order) => order.status === "Waiting to accept"
+    (order) => order.status === "requested"
   ).length;
 
   const recentDeliveries = delivery.orders.slice(0, 3).map((order) => ({
     route: `${order.sender.city} → ${order.receiver.city}`,
-    status: order.status,
+    status: getDeliveryStatusLabel(order.status),
     code: order.id,
-    date: order.time || "Today",
+    date: order.time || order.updatedAt,
     type: "sent"
   }));
   const hasRecentDeliveries = recentDeliveries.length > 0;
@@ -93,6 +94,8 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
   };
 
   const handleAcceptDelivery = (orderId: string): void => {
+    actions.updateDeliveryOrderStatus(orderId, "accepted", "Accepted by rider");
+    actions.setActiveDeliveryById(orderId);
     navigate(`/deliveries/tracking/${orderId}/received`, {
       state: { action: "accept", orderId }
     });
@@ -104,6 +107,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
 
   const handleRejectConfirm = (): void => {
     if (rejectDialog.orderId) {
+      actions.updateDeliveryOrderStatus(rejectDialog.orderId, "cancelled", "Rejected from dashboard");
       navigate(`/deliveries/tracking/${rejectDialog.orderId}/cancel`, {
         state: { action: "reject", orderId: rejectDialog.orderId }
       });
@@ -159,8 +163,11 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
             gap: uiTokens.spacing.sm
           }}
         >
-          <InlineStat label="Active" value="3" />
-          <InlineStat label="Completed" value="5" />
+          <InlineStat label="Active" value={`${deliveringOrders.length}`} />
+          <InlineStat
+            label="Completed"
+            value={`${delivery.orders.filter((order) => order.status === "delivered").length}`}
+          />
           <InlineStat label="Pending" value={`${pendingDeliveriesCount}`} />
           <InlineStat
             label="Date"

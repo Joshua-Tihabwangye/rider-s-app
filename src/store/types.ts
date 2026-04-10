@@ -220,31 +220,109 @@ export interface RideState {
 /** Delivery workflow */
 export type DeliveryStatus =
   | "draft"
-  | "pending"
+  | "requested"
   | "accepted"
-  | "en_route"
+  | "picked_up"
+  | "in_transit"
+  | "out_for_delivery"
   | "delivered"
-  | "cancelled";
+  | "cancelled"
+  | "failed";
+
+export type DeliveryParcelType =
+  | "documents"
+  | "food"
+  | "electronics"
+  | "fashion"
+  | "fragile"
+  | "other";
+
+export type DeliveryParcelSize = "small" | "medium" | "large" | "x_large";
+
+export type DeliveryTiming = "now" | "scheduled";
 
 export interface DeliveryParty {
   name: string;
   phone: string;
   address: string;
+  notes?: string;
+}
+
+export interface DeliveryParcel {
+  type: DeliveryParcelType;
+  size: DeliveryParcelSize;
+  description: string;
+  value: number;
+  weightKg?: number;
+  fragile?: boolean;
+  notes?: string;
+}
+
+export interface DeliveryTrackingSnapshot {
+  etaMinutes: number;
+  distanceKm: number;
+  progress: number;
+  courierPosition: number;
+  updatedAt: string;
+}
+
+export interface DeliveryStatusLog {
+  status: DeliveryStatus;
+  timestamp: string;
+  note?: string;
+  source?: "system" | "driver" | "rider" | "websocket";
 }
 
 export interface DeliveryDraft {
   pickup: RideLocation | null;
   dropoff: RideLocation | null;
-  parcel: { description: string; weight?: string; notes?: string };
-  sender: DeliveryParty | null;
+  parcel: DeliveryParcel;
   recipient: DeliveryParty | null;
-  schedule: "now" | "later";
+  schedule: DeliveryTiming;
   scheduleTime?: string;
+  paymentMethodId?: string;
+  deliveryFee: number;
+  serviceFee: number;
+  insuranceFee: number;
   priceEstimate?: string;
+  notes?: string;
+}
+
+export interface DeliveryCourier {
+  id: string;
+  name: string;
+  phone: string;
+  rating: number;
+  vehicle: string;
+  plate: string;
 }
 
 export interface DeliveryOrder {
   id: string;
+  createdAt: string;
+  updatedAt: string;
+  status: DeliveryStatus;
+  pickup: RideLocation;
+  dropoff: RideLocation;
+  parcel: DeliveryParcel;
+  recipient: DeliveryParty;
+  schedule: DeliveryTiming;
+  scheduleTime?: string;
+  paymentMethodId: string;
+  costBreakdown: {
+    deliveryFee: number;
+    serviceFee: number;
+    insuranceFee: number;
+    total: number;
+    currency: string;
+  };
+  tracking: DeliveryTrackingSnapshot;
+  timeline: DeliveryStatusLog[];
+  courier?: DeliveryCourier;
+  cancelledReason?: string;
+  deliveredAt?: string;
+
+  // Legacy fields still used by existing list cards.
   packageName: string;
   sender: {
     city: string;
@@ -257,7 +335,6 @@ export interface DeliveryOrder {
   receiver: { city: string; code: string };
   date?: Date;
   time?: string;
-  status: string;
   progress: number;
   needsPayment?: boolean;
 }
@@ -266,6 +343,8 @@ export interface DeliveryState {
   draft: DeliveryDraft;
   activeOrder: DeliveryOrder | null;
   orders: DeliveryOrder[];
+  websocketConnected: boolean;
+  lastRealtimeSync?: string;
 }
 
 /** Rentals */
