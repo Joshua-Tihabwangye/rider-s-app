@@ -289,82 +289,182 @@ export const SEED_RIDE_STATE: RideState = {
 };
 
 /** Delivery state */
-const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
-  {
-    id: "WC12564897",
-    packageName: "The Pair of Sneakers",
-    sender: {
-      city: "Atlanta",
-      code: "5243",
-      name: "John Doe",
-      avatar: "JD",
-      address: "123 Main Street, Atlanta, GA 30309, United States"
+function createSeedDeliveryOrder(params: {
+  id: string;
+  packageName: string;
+  pickupLabel: string;
+  pickupAddress: string;
+  dropoffLabel: string;
+  dropoffAddress: string;
+  senderName: string;
+  senderAvatar: string;
+  recipientName: string;
+  recipientPhone: string;
+  recipientAddress: string;
+  status: DeliveryOrder["status"];
+  etaMinutes: number;
+  distanceKm: number;
+  progress: number;
+  scheduled?: boolean;
+}): DeliveryOrder {
+  const now = new Date().toISOString();
+  return {
+    id: params.id,
+    createdAt: now,
+    updatedAt: now,
+    status: params.status,
+    pickup: {
+      label: params.pickupLabel,
+      address: params.pickupAddress,
+      coordinates: { lat: 0.3136, lng: 32.5811 }
     },
-    receiver: { city: "Chicago", code: "6342" },
-    date: new Date(2024, 1, 7),
-    status: "Waiting to accept",
-    progress: 20
-  },
-  {
-    id: "WC12564898",
-    packageName: "Electronics Package",
+    dropoff: {
+      label: params.dropoffLabel,
+      address: params.dropoffAddress,
+      coordinates: { lat: 0.3476, lng: 32.5825 }
+    },
+    parcel: {
+      type: "electronics",
+      size: "medium",
+      description: params.packageName,
+      value: 225000,
+      fragile: true,
+      notes: "Handle with care"
+    },
+    recipient: {
+      name: params.recipientName,
+      phone: params.recipientPhone,
+      address: params.recipientAddress
+    },
+    schedule: params.scheduled ? "scheduled" : "now",
+    scheduleTime: params.scheduled ? "Tomorrow, 09:30" : "",
+    paymentMethodId: "pm_wallet",
+    costBreakdown: {
+      deliveryFee: 6500,
+      serviceFee: 1200,
+      insuranceFee: 900,
+      total: 8600,
+      currency: "UGX"
+    },
+    tracking: {
+      etaMinutes: params.etaMinutes,
+      distanceKm: params.distanceKm,
+      progress: params.progress,
+      courierPosition: Number((params.progress / 100).toFixed(2)),
+      updatedAt: now
+    },
+    timeline: [
+      { status: "requested", timestamp: now, note: "Delivery request submitted", source: "rider" },
+      ...(params.status !== "requested"
+        ? [{ status: params.status, timestamp: now, note: "Current stage", source: "system" as const }]
+        : [])
+    ],
+    courier: {
+      id: "drv_delivery_01",
+      name: "Bwanbale Kato",
+      phone: "+256 700 123 456",
+      rating: 4.9,
+      vehicle: "EV bike",
+      plate: "UBL 630X"
+    },
+    packageName: params.packageName,
     sender: {
       city: "Kampala",
       code: "256",
-      name: "Sarah M.",
-      avatar: "SM",
-      address: "45 Nakasero Road, Kampala, Central Region, Uganda"
-    },
-    receiver: { city: "Entebbe", code: "256" },
-    date: new Date(2024, 1, 8),
-    status: "Request accepted",
-    progress: 60
-  },
-  {
-    id: "WC12564900",
-    packageName: "Gift Box",
-    sender: {
-      city: "Nairobi",
-      code: "254",
-      name: "Michael K.",
-      avatar: "MK",
-      address: "78 Moi Avenue, Nairobi, Kenya"
+      name: params.senderName,
+      avatar: params.senderAvatar,
+      address: params.pickupAddress
     },
     receiver: { city: "Kampala", code: "256" },
-    date: new Date(2024, 1, 9),
-    status: "Waiting to accept",
-    progress: 10
-  },
-  {
-    id: "WC12564899",
-    packageName: "The Pair of Sneakers",
-    sender: {
-      city: "Atlanta",
-      code: "5243",
-      name: "John Doe",
-      avatar: "JD",
-      address: "Atlanta"
-    },
-    receiver: { city: "Chicago", code: "6342" },
-    time: "2 day – 3 days",
-    status: "In transit",
-    progress: 80
-  }
+    date: new Date(),
+    time: `${Math.max(params.etaMinutes, 5)} min`,
+    progress: params.progress,
+    needsPayment: false
+  };
+}
+
+const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
+  createSeedDeliveryOrder({
+    id: "DLV-2026-04-10-101",
+    packageName: "Laptop & charger",
+    pickupLabel: "Nakasero Office",
+    pickupAddress: "Plot 14, Nakasero Rd, Kampala",
+    dropoffLabel: "Bugolobi Residence",
+    dropoffAddress: "12, JJ Apartments, New Street, Kampala",
+    senderName: "Sarah M.",
+    senderAvatar: "SM",
+    recipientName: "John Kato",
+    recipientPhone: "+256 779 111 333",
+    recipientAddress: "12, JJ Apartments, New Street, Kampala",
+    status: "in_transit",
+    etaMinutes: 24,
+    distanceKm: 8.6,
+    progress: 64
+  }),
+  createSeedDeliveryOrder({
+    id: "DLV-2026-04-10-102",
+    packageName: "Business documents",
+    pickupLabel: "Industrial Area",
+    pickupAddress: "5th Street Industrial Area, Kampala",
+    dropoffLabel: "Kololo",
+    dropoffAddress: "Wampewo Ave, Kololo, Kampala",
+    senderName: "Mark O.",
+    senderAvatar: "MO",
+    recipientName: "Brenda A.",
+    recipientPhone: "+256 701 887 221",
+    recipientAddress: "Wampewo Ave, Kololo, Kampala",
+    status: "requested",
+    etaMinutes: 36,
+    distanceKm: 11.2,
+    progress: 12,
+    scheduled: true
+  }),
+  createSeedDeliveryOrder({
+    id: "DLV-2026-04-09-088",
+    packageName: "Food package",
+    pickupLabel: "Kampala Road",
+    pickupAddress: "Kampala Road, Kampala",
+    dropoffLabel: "Muyenga",
+    dropoffAddress: "Tank Hill Rd, Muyenga, Kampala",
+    senderName: "EV Mart",
+    senderAvatar: "EM",
+    recipientName: "Jane L.",
+    recipientPhone: "+256 772 100 909",
+    recipientAddress: "Tank Hill Rd, Muyenga, Kampala",
+    status: "delivered",
+    etaMinutes: 0,
+    distanceKm: 0,
+    progress: 100
+  })
 ];
 
 export const SEED_DELIVERY_STATE: DeliveryState = {
   draft: {
     pickup: null,
     dropoff: null,
-    parcel: { description: "", notes: "" },
-    sender: null,
+    parcel: {
+      type: "documents",
+      size: "small",
+      description: "",
+      value: 0,
+      weightKg: 0.5,
+      fragile: false,
+      notes: ""
+    },
     recipient: null,
     schedule: "now",
     scheduleTime: "",
-    priceEstimate: "UGX 8,000"
+    paymentMethodId: "pm_wallet",
+    deliveryFee: 6500,
+    serviceFee: 1200,
+    insuranceFee: 900,
+    priceEstimate: "UGX 8,600",
+    notes: ""
   },
   activeOrder: SEED_DELIVERY_ORDERS[0] ?? null,
-  orders: SEED_DELIVERY_ORDERS
+  orders: SEED_DELIVERY_ORDERS,
+  websocketConnected: false,
+  lastRealtimeSync: undefined
 };
 
 /** Rentals */

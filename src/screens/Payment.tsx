@@ -7,200 +7,90 @@ import {
   Typography,
   Card,
   CardContent,
-  Button,
-  Radio
+  Chip
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
 import SmartphoneRoundedIcon from "@mui/icons-material/SmartphoneRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
 
-interface MapBackgroundProps {
-  onBackClick?: () => void;
+interface PaymentMethod {
+  id: string;
+  name: string;
+  detail: string;
+  accent: string;
+  icon: React.ReactElement;
 }
 
-// Map background component with route visualization
-function MapBackground({ onBackClick }: MapBackgroundProps): React.JSX.Element {
-  const theme = useTheme();
-  
-  return (
-    <Box
-      sx={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        height: "40vh",
-        background: theme.palette.mode === "light"
-          ? "#F5F5DC" // Light beige map background
-          : "linear-gradient(135deg, #0f1e2e 0%, #1a2d3e 50%, #0f1e2e 100%)",
-        zIndex: 0,
-        overflow: "hidden"
-      }}
-    >
-      {/* Water body on the right */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "20%",
-          right: "5%",
-          width: "30%",
-          height: "40%",
-          bgcolor: "rgba(3,205,140,0.15)", // Light green background
-          borderRadius: "50%",
-          opacity: 0.6
-        }}
-      />
-      
-      {/* Route line - diagonal from bottom-left to top-right */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "60%",
-          left: "15%",
-          width: "70%",
-          height: 3,
-          bgcolor: "#424242", // Dark grey route line
-          borderRadius: 2,
-          transform: "rotate(-25deg)",
-          transformOrigin: "left center",
-          zIndex: 1
-        }}
-      />
-      
-      {/* Start marker (green) - positioned at start of route */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "58%",
-          left: "18%",
-          width: 18,
-          height: 18,
-          borderRadius: "50%",
-          bgcolor: "#4CAF50",
-          border: "3px solid #FFFFFF",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
-          zIndex: 2,
-          transform: "translate(-50%, -50%)"
-        }}
-      />
-      
-      {/* Destination marker (red) - positioned at end of route */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "42%",
-          left: "82%",
-          width: 18,
-          height: 18,
-          borderRadius: "50%",
-          bgcolor: "#F44336",
-          border: "3px solid #FFFFFF",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
-          zIndex: 2,
-          transform: "translate(-50%, -50%)"
-        }}
-      />
-      
-      {/* Route info label */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "22%",
-          bgcolor: "rgba(0,0,0,0.7)",
-          borderRadius: 1.5,
-          px: 1.2,
-          py: 0.6,
-          zIndex: 2,
-          transform: "translateX(-50%)"
-        }}
-      >
-        <Typography
-          variant="caption"
-          sx={{
-            fontSize: 10,
-            fontWeight: 600,
-            color: "#FFFFFF",
-            whiteSpace: "nowrap"
-          }}
-        >
-          41.5 km • 1 hr
-        </Typography>
-      </Box>
-    </Box>
-  );
-}
-
-// Simplified payment methods as per spec
-const PAYMENT_METHODS = [
+const PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: "wallet",
     name: "EV wallet",
-    icon: <AccountBalanceWalletRoundedIcon sx={{ fontSize: 24 }} />
+    detail: "Instant debit from wallet balance",
+    accent: "#10B981",
+    icon: <AccountBalanceWalletRoundedIcon sx={{ fontSize: 22 }} />
   },
   {
     id: "card",
-    name: "Card",
-    icon: <CreditCardRoundedIcon sx={{ fontSize: 24 }} />
+    name: "Bank card",
+    detail: "Visa, Mastercard, and virtual cards",
+    accent: "#2563EB",
+    icon: <CreditCardRoundedIcon sx={{ fontSize: 22 }} />
   },
   {
     id: "mobile",
     name: "Mobile money",
-    icon: <SmartphoneRoundedIcon sx={{ fontSize: 24 }} />
+    detail: "MTN and Airtel secure checkout",
+    accent: "#F59E0B",
+    icon: <SmartphoneRoundedIcon sx={{ fontSize: 22 }} />
   }
 ];
 
-interface PaymentMethod {
-  id: string;
-  name: string;
-  description?: string;
-  icon: React.ReactElement;
-}
-
 interface PaymentMethodCardProps {
   method: PaymentMethod;
-  selected: string;
+  selected: string | null;
   onSelect: (id: string) => void;
 }
 
 function PaymentMethodCard({ method, selected, onSelect }: PaymentMethodCardProps): React.JSX.Element {
   const theme = useTheme();
   const isActive = selected === method.id;
-  
+
   return (
     <Card
       elevation={0}
       onClick={() => onSelect(method.id)}
       sx={{
-        mb: 1.5,
+        mb: 1.25,
         borderRadius: 2,
         cursor: "pointer",
-        transition: "all 0.15s ease",
-        bgcolor: theme.palette.mode === "light"
-          ? "#FFFFFF"
-          : "rgba(15,23,42,0.98)",
+        transition: "all 0.18s ease",
+        bgcolor: theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
         border: isActive
-          ? "1px solid #03CD8C"
+          ? `1.5px solid ${method.accent}`
           : theme.palette.mode === "light"
           ? "1px solid rgba(209,213,219,0.9)"
-          : "1px solid rgba(51,65,85,0.9)"
+          : "1px solid rgba(51,65,85,0.9)",
+        boxShadow: isActive ? "0 8px 20px rgba(15,23,42,0.10)" : "none",
+        transform: isActive ? "translateY(-1px)" : "none"
       }}
     >
       <CardContent sx={{ px: 2, py: 1.5 }}>
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1.25 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
             <Box
               sx={{
-                width: 44,
-                height: 44,
-                borderRadius: 5,
-                bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)",
+                width: 42,
+                height: 42,
+                borderRadius: 2,
+                bgcolor: `${method.accent}1A`,
+                color: method.accent,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center"
@@ -208,23 +98,31 @@ function PaymentMethodCard({ method, selected, onSelect }: PaymentMethodCardProp
             >
               {method.icon}
             </Box>
-            <Typography
-              variant="body2"
-              sx={{ fontWeight: 500, fontSize: 14 }}
-            >
-              {method.name}
-            </Typography>
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 700, fontSize: 14 }}>
+                {method.name}
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11.5, color: theme.palette.text.secondary }}>
+                {method.detail}
+              </Typography>
+            </Box>
           </Box>
-          <Radio
-            checked={isActive}
-            value={method.id}
-            sx={{
-              color: theme.palette.mode === "light" ? "#9E9E9E" : "#616161",
-              "&.Mui-checked": {
-                color: "#03CD8C"
-              }
-            }}
-          />
+
+          {isActive ? (
+            <CheckCircleRoundedIcon sx={{ color: method.accent, fontSize: 22 }} />
+          ) : (
+            <Box
+              sx={{
+                width: 20,
+                height: 20,
+                borderRadius: "50%",
+                border:
+                  theme.palette.mode === "light"
+                    ? "1.5px solid rgba(156,163,175,0.9)"
+                    : "1.5px solid rgba(148,163,184,0.8)"
+              }}
+            />
+          )}
         </Box>
       </CardContent>
     </Card>
@@ -235,79 +133,48 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const fromSelectRide = location.state?.fromSelectRide || false;
-  const fromDriverArrived = location.state?.from === "/rides/driver-arrived";
-  const fromTripInProgress = location.state?.from === "/rides/trip";
-  const fromTripCompleted = Boolean(location.state?.tripCompleted);
   const rideData = location.state || {};
-  
-  // Default to EVzone Pay (wallet) as per spec
-  const [selected, setSelected] = useState("wallet");
-  
-  // Get fare from ride data or use default
-  const fare = rideData.fare || rideData.totalFare || "UGX 40,365";
-  
-  const handleConfirm = () => {
-    const selectedPaymentName =
-      PAYMENT_METHODS.find((pm) => pm.id === selected)?.name || "EV wallet";
 
-    if (fromSelectRide) {
-      // Navigate back to RA20 with selected payment method
-      navigate("/rides/options", {
-        state: {
-          ...rideData,
-          paymentMethod: selected,
-          paymentMethodName: selectedPaymentName
-        }
-      });
-    } else if (fromDriverArrived) {
-      navigate("/rides/driver-arrived", {
-        state: {
-          ...rideData,
-          paymentMethod: selected,
-          paymentMethodName: selectedPaymentName
-        }
-      });
-    } else if (fromTripInProgress || fromTripCompleted) {
-      navigate("/rides/trip/completed", {
-        state: {
-          ...rideData,
-          paymentMethod: selected,
-          paymentMethodName: selectedPaymentName,
-          paymentSimulated: true
-        }
-      });
-    } else {
-      // Normal flow - proceed to driver matching (RA22)
-      navigate("/rides/searching", {
-        state: {
-          ...rideData,
-          paymentMethod: selected
-        }
-      });
-    }
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const fare =
+    rideData.fare ||
+    rideData.totalFare ||
+    rideData.fareEstimate ||
+    "UGX 40,365";
+
+  const handleGatewaySelect = (gatewayId: string): void => {
+    setSelected(gatewayId);
+
+    const selectedPaymentName =
+      PAYMENT_METHODS.find((pm) => pm.id === gatewayId)?.name || "EV wallet";
+
+    navigate("/rides/trip/completed", {
+      state: {
+        ...rideData,
+        paymentMethod: gatewayId,
+        paymentMethodName: selectedPaymentName,
+        paymentSimulated: true,
+        tripCompleted: true,
+        totalFare: fare
+      }
+    });
   };
-  
-  const contentBg = theme.palette.mode === "light" 
-    ? "#FFFFFF" 
-    : theme.palette.background.paper || "rgba(15,23,42,0.98)";
-  
+
   return (
     <ScreenScaffold>
       <SectionHeader
-        title="Payment method"
+        title="Payment"
+        subtitle="Choose gateway to complete"
         action={
           <Box sx={{ textAlign: "right" }}>
             <Typography
               variant="caption"
               sx={{ fontSize: 11, color: theme.palette.text.secondary, display: "block" }}
             >
-              Total Amount
+              Total
             </Typography>
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: 700, letterSpacing: "-0.02em", fontSize: 18 }}
-            >
+            <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: "-0.02em", fontSize: 18 }}>
               {fare}
             </Typography>
           </Box>
@@ -318,8 +185,7 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
             onClick={() => navigate(-1)}
             sx={{
               borderRadius: 5,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+              bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)"),
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
@@ -331,68 +197,54 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
         }
       />
 
-      <Box sx={{ position: "relative", minHeight: "35vh", bgcolor: theme.palette.background.default, borderRadius: uiTokens.radius.xl, overflow: 'hidden', mb: 2 }}>
-        <MapBackground onBackClick={() => navigate(-1)} />
-      </Box>
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: uiTokens.radius.xl,
+          border:
+            theme.palette.mode === "light"
+              ? "1px solid rgba(209,213,219,0.9)"
+              : "1px solid rgba(51,65,85,0.9)",
+          bgcolor: theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          overflow: "hidden"
+        }}
+      >
+        <Box
+          sx={{
+            px: 2,
+            py: 1.35,
+            background:
+              theme.palette.mode === "light"
+                ? "linear-gradient(135deg, #0B1220 0%, #111827 100%)"
+                : "linear-gradient(135deg, #111827 0%, #020617 100%)"
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ color: "#F8FAFC", fontWeight: 700 }}>
+            Secure trip checkout
+          </Typography>
+          <Typography variant="caption" sx={{ color: "rgba(241,245,249,0.85)", fontSize: 11.5 }}>
+            Tap one gateway below to complete payment and finish this trip.
+          </Typography>
+        </Box>
 
-      <Box sx={{ flex: 1 }}>
-        {/* Payment Options */}
-        <Box sx={{ mb: 2.5 }}>
+        <CardContent sx={{ px: 2, py: 1.5 }}>
+          <Box sx={{ mb: 1.5, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <Chip label="Encrypted" size="small" sx={{ height: 24, borderRadius: 1.5 }} />
+            <Typography variant="caption" sx={{ fontSize: 11.5, color: theme.palette.text.secondary }}>
+              {selected ? "Redirecting..." : "No extra confirmation step"}
+            </Typography>
+          </Box>
+
           {PAYMENT_METHODS.map((pm) => (
             <PaymentMethodCard
               key={pm.id}
               method={pm}
               selected={selected}
-              onSelect={setSelected}
+              onSelect={handleGatewaySelect}
             />
           ))}
-        </Box>
-        
-        {/* Manage Payment Methods Link */}
-        <Box sx={{ mb: 2.5, textAlign: "center" }}>
-          <Button
-            variant="text"
-            onClick={() => navigate("/wallet")}
-            sx={{
-              textTransform: "none",
-              fontSize: 13,
-              color: theme.palette.text.secondary,
-              "&:hover": {
-                bgcolor: "transparent",
-                color: theme.palette.text.primary
-              }
-            }}
-          >
-            Manage payment methods
-          </Button>
-        </Box>
-        
-        {/* Confirm Button */}
-        <Button
-          fullWidth
-          variant="contained"
-          onClick={handleConfirm}
-          disabled={!selected}
-          sx={{
-            borderRadius: 5,
-            py: 1.4,
-            fontSize: 15,
-            fontWeight: 600,
-            textTransform: "none",
-            bgcolor: selected ? "#000000" : "rgba(0,0,0,0.3)",
-            color: "#FFFFFF",
-            "&:hover": {
-              bgcolor: selected ? "#1a1a1a" : "rgba(0,0,0,0.3)"
-            },
-            "&.Mui-disabled": {
-              bgcolor: "rgba(0,0,0,0.3)",
-              color: "rgba(255,255,255,0.5)"
-            }
-          }}
-        >
-          {fromTripInProgress || fromTripCompleted ? "Simulate payment" : "Confirm"}
-        </Button>
-      </Box>
+        </CardContent>
+      </Card>
     </ScreenScaffold>
   );
 }
@@ -406,7 +258,7 @@ export default function RiderScreen21PaymentMethodSelectionCanvas_v2() {
         bgcolor: (theme) => theme.palette.background.default
       }}
     >
-        <PaymentMethodSelectionScreen />
+      <PaymentMethodSelectionScreen />
     </Box>
   );
 }

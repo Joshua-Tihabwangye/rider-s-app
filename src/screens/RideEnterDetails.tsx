@@ -667,14 +667,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 				sx={{
 					borderRadius: 3,
 					bgcolor: contentBg,
-					mt: { xs: -7, md: -8 },
-					position: "relative",
-					zIndex: 3,
 					border:
 						theme.palette.mode === "light"
 							? "1px solid rgba(0,0,0,0.1)"
 							: "1px solid rgba(255,255,255,0.1)",
-					boxShadow: "0 14px 28px rgba(0,0,0,0.14)",
+					boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
 				}}
 			>
 					<CardContent sx={{ px: 2, py: 2 }}>

@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, ReactNode, useReducer, useCallback } from "react";
+import { createContext, useContext, useMemo, ReactNode, useReducer, useCallback, useEffect } from "react";
 import type {
   AppData,
   PaymentMethod,
@@ -17,6 +17,7 @@ import type {
   DeliveryState,
   DeliveryDraft,
   DeliveryOrder,
+  DeliveryStatus,
   RentalState,
   RentalBooking,
   ToursState,
@@ -28,6 +29,12 @@ import type {
   SosEvent
 } from "../store/types";
 import { useAuth } from "./AuthContext";
+import type { DeliveryRealtimePatch } from "../features/delivery/realtime";
+import {
+  getDeliveryStatusProgress,
+  getDeliveryStatusLabel
+} from "../features/delivery/stateMachine";
+import { applyRealtimePatch, simulateDeliveryPollTick } from "../features/delivery/realtime";
 import {
   SEED_PAYMENT_METHODS,
   SEED_TRANSACTIONS,
@@ -66,7 +73,12 @@ interface AppActions {
   setRideStatus: (status: RideStatus) => void;
   setActiveTrip: (trip: RideTrip | null) => void;
   updateDeliveryDraft: (patch: Partial<DeliveryDraft>) => void;
+  resetDeliveryDraft: () => void;
+  createDeliveryOrder: () => DeliveryOrder | null;
   setActiveDelivery: (order: DeliveryOrder | null) => void;
+  setActiveDeliveryById: (orderId: string) => void;
+  updateDeliveryOrderStatus: (orderId: string, status: DeliveryStatus, note?: string) => void;
+  applyDeliveryRealtimePatch: (patch: DeliveryRealtimePatch) => void;
   updateRentalBooking: (patch: Partial<RentalBooking>) => void;
   selectRentalVehicle: (vehicleId: string) => void;
   updateTourBooking: (patch: Partial<TourBooking>) => void;
@@ -116,7 +128,14 @@ type AppAction =
   | { type: "ride/status"; payload: RideStatus }
   | { type: "ride/set-active"; payload: RideTrip | null }
   | { type: "delivery/draft"; payload: Partial<DeliveryDraft> }
+  | { type: "delivery/reset-draft" }
+  | { type: "delivery/create-order"; payload: { orderId: string; senderName: string } }
   | { type: "delivery/active"; payload: DeliveryOrder | null }
+  | { type: "delivery/active-by-id"; payload: string }
+  | { type: "delivery/status"; payload: { orderId: string; status: DeliveryStatus; note?: string } }
+  | { type: "delivery/realtime"; payload: DeliveryRealtimePatch }
+  | { type: "delivery/poll" }
+  | { type: "delivery/ws-connected"; payload: boolean }
   | { type: "rental/booking"; payload: Partial<RentalBooking> }
   | { type: "rental/select"; payload: string }
   | { type: "tours/booking"; payload: Partial<TourBooking> }
@@ -134,6 +153,133 @@ function updateEmergencyContactsDefault(contacts: EmergencyContact[], id: string
     ...contact,
     isDefault: contact.id === id
   }));
+}
+
+function formatCurrencyUGX(amount: number): string {
+  return `UGX ${Math.round(amount).toLocaleString()}`;
+}
+
+function createDefaultDeliveryDraft(previous?: DeliveryDraft): DeliveryDraft {
+  const deliveryFee = previous?.deliveryFee ?? 6500;
+  const serviceFee = previous?.serviceFee ?? 1200;
+  const insuranceFee = previous?.insuranceFee ?? 900;
+  return {
+    pickup: null,
+    dropoff: null,
+    parcel: {
+      type: "documents",
+      size: "small",
+      description: "",
+      value: 0,
+      weightKg: 0.5,
+      fragile: false,
+      notes: ""
+    },
+    recipient: null,
+    schedule: "now",
+    scheduleTime: "",
+    paymentMethodId: previous?.paymentMethodId ?? "pm_wallet",
+    deliveryFee,
+    serviceFee,
+    insuranceFee,
+    priceEstimate: formatCurrencyUGX(deliveryFee + serviceFee + insuranceFee),
+    notes: ""
+  };
+}
+
+function getCityLabel(value: string): string {
+  const primary = value.split(",")[0]?.trim();
+  if (primary && primary.length > 0) {
+    return primary;
+  }
+  return "Kampala";
+}
+
+function estimateDistanceKm(pickupAddress: string, dropoffAddress: string): number {
+  const fallback = 8.2;
+  if (pickupAddress === dropoffAddress) {
+    return 1.2;
+  }
+  const pseudo = Math.abs(
+    [...`${pickupAddress}-${dropoffAddress}`].reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  );
+  return Number(((pseudo % 150) / 10 + fallback).toFixed(1));
+}
+
+function createDeliveryOrderFromDraft(
+  state: AppState,
+  payload: { orderId: string; senderName: string }
+): DeliveryOrder | null {
+  const { draft } = state.delivery;
+  if (!draft.pickup || !draft.dropoff || !draft.recipient || !draft.parcel.description.trim()) {
+    return null;
+  }
+
+  const now = new Date().toISOString();
+  const distanceKm = estimateDistanceKm(draft.pickup.address, draft.dropoff.address);
+  const etaMinutes = Math.max(12, Math.round(distanceKm * 2.6));
+  const total = draft.deliveryFee + draft.serviceFee + draft.insuranceFee;
+
+  return {
+    id: payload.orderId,
+    createdAt: now,
+    updatedAt: now,
+    status: "requested",
+    pickup: draft.pickup,
+    dropoff: draft.dropoff,
+    parcel: draft.parcel,
+    recipient: draft.recipient,
+    schedule: draft.schedule,
+    scheduleTime: draft.scheduleTime,
+    paymentMethodId: draft.paymentMethodId ?? state.paymentMethods[0]?.id ?? "pm_wallet",
+    costBreakdown: {
+      deliveryFee: draft.deliveryFee,
+      serviceFee: draft.serviceFee,
+      insuranceFee: draft.insuranceFee,
+      total,
+      currency: "UGX"
+    },
+    tracking: {
+      etaMinutes,
+      distanceKm,
+      progress: getDeliveryStatusProgress("requested"),
+      courierPosition: 0.08,
+      updatedAt: now
+    },
+    timeline: [
+      {
+        status: "requested",
+        timestamp: now,
+        note: "Delivery request submitted",
+        source: "rider"
+      }
+    ],
+    courier: {
+      id: "drv_delivery_01",
+      name: "Bwanbale Kato",
+      phone: "+256 700 123 456",
+      rating: 4.9,
+      vehicle: "EV bike",
+      plate: "UBL 630X"
+    },
+    packageName: draft.parcel.description,
+    sender: {
+      city: getCityLabel(draft.pickup.address),
+      code: "256",
+      name: payload.senderName,
+      avatar: payload.senderName.slice(0, 2).toUpperCase(),
+      address: draft.pickup.address
+    },
+    receiver: {
+      city: getCityLabel(draft.dropoff.address),
+      code: "256"
+    },
+    date: new Date(),
+    time: `${etaMinutes} min`,
+    progress: getDeliveryStatusProgress("requested"),
+    priceEstimate: formatCurrencyUGX(total),
+    needsPayment: false
+  };
 }
 
 function appReducer(state: AppState, action: AppAction): AppState {
@@ -213,8 +359,129 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, ride: { ...state.ride, activeTrip: action.payload } };
     case "delivery/draft":
       return { ...state, delivery: { ...state.delivery, draft: { ...state.delivery.draft, ...action.payload } } };
+    case "delivery/reset-draft":
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          draft: createDefaultDeliveryDraft(state.delivery.draft)
+        }
+      };
+    case "delivery/create-order": {
+      const order = createDeliveryOrderFromDraft(state, action.payload);
+      if (!order) {
+        return state;
+      }
+
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          draft: createDefaultDeliveryDraft(state.delivery.draft),
+          activeOrder: order,
+          orders: [order, ...state.delivery.orders]
+        }
+      };
+    }
     case "delivery/active":
       return { ...state, delivery: { ...state.delivery, activeOrder: action.payload } };
+    case "delivery/active-by-id": {
+      const activeOrder = state.delivery.orders.find((order) => order.id === action.payload) ?? null;
+      return { ...state, delivery: { ...state.delivery, activeOrder } };
+    }
+    case "delivery/status": {
+      const now = new Date().toISOString();
+      const updatedOrders = state.delivery.orders.map((order) => {
+        if (order.id !== action.payload.orderId) {
+          return order;
+        }
+
+        const nextProgress = Math.max(order.tracking.progress, getDeliveryStatusProgress(action.payload.status));
+        return {
+          ...order,
+          status: action.payload.status,
+          updatedAt: now,
+          progress: nextProgress,
+          time: order.tracking.etaMinutes > 0 ? `${order.tracking.etaMinutes} min` : "Arrived",
+          tracking: {
+            ...order.tracking,
+            progress: nextProgress,
+            etaMinutes: action.payload.status === "delivered" ? 0 : order.tracking.etaMinutes,
+            courierPosition:
+              action.payload.status === "delivered" ? 1 : order.tracking.courierPosition,
+            updatedAt: now
+          },
+          timeline: order.timeline.some((entry) => entry.status === action.payload.status)
+            ? order.timeline
+            : [
+                ...order.timeline,
+                {
+                  status: action.payload.status,
+                  timestamp: now,
+                  note: action.payload.note ?? `${getDeliveryStatusLabel(action.payload.status)} stage reached`,
+                  source: "system"
+                }
+              ],
+          deliveredAt:
+            action.payload.status === "delivered" ? order.deliveredAt ?? now : order.deliveredAt,
+          cancelledReason: action.payload.status === "cancelled" ? action.payload.note : order.cancelledReason
+        };
+      });
+
+      const activeOrderId = state.delivery.activeOrder?.id;
+      const activeOrder = activeOrderId
+        ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
+        : null;
+
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: updatedOrders,
+          activeOrder
+        }
+      };
+    }
+    case "delivery/realtime": {
+      const updatedOrders = state.delivery.orders.map((order) => applyRealtimePatch(order, action.payload));
+      const activeOrderId = state.delivery.activeOrder?.id;
+      const activeOrder = activeOrderId
+        ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
+        : state.delivery.activeOrder;
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: updatedOrders,
+          activeOrder,
+          lastRealtimeSync: new Date().toISOString()
+        }
+      };
+    }
+    case "delivery/poll": {
+      const updatedOrders = state.delivery.orders.map((order) => simulateDeliveryPollTick(order));
+      const activeOrderId = state.delivery.activeOrder?.id;
+      const activeOrder = activeOrderId
+        ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
+        : state.delivery.activeOrder;
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: updatedOrders,
+          activeOrder,
+          lastRealtimeSync: new Date().toISOString()
+        }
+      };
+    }
+    case "delivery/ws-connected":
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          websocketConnected: action.payload
+        }
+      };
     case "rental/booking":
       return { ...state, rental: { ...state.rental, booking: { ...state.rental.booking, ...action.payload } } };
     case "rental/select":
@@ -350,8 +617,37 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     dispatch({ type: "delivery/draft", payload: patch });
   }, []);
 
+  const resetDeliveryDraft = useCallback(() => {
+    dispatch({ type: "delivery/reset-draft" });
+  }, []);
+
+  const createDeliveryOrder = useCallback(() => {
+    const orderId = `DLV-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Date.now()
+      .toString()
+      .slice(-4)}`;
+    const senderName = user?.fullName ?? "Rider";
+    const previewOrder = createDeliveryOrderFromDraft(state, { orderId, senderName });
+    if (!previewOrder) {
+      return null;
+    }
+    dispatch({ type: "delivery/create-order", payload: { orderId, senderName } });
+    return previewOrder;
+  }, [state, user?.fullName]);
+
   const setActiveDelivery = useCallback((order: DeliveryOrder | null) => {
     dispatch({ type: "delivery/active", payload: order });
+  }, []);
+
+  const setActiveDeliveryById = useCallback((orderId: string) => {
+    dispatch({ type: "delivery/active-by-id", payload: orderId });
+  }, []);
+
+  const updateDeliveryOrderStatus = useCallback((orderId: string, status: DeliveryStatus, note?: string) => {
+    dispatch({ type: "delivery/status", payload: { orderId, status, note } });
+  }, []);
+
+  const applyDeliveryRealtimePatch = useCallback((patch: DeliveryRealtimePatch) => {
+    dispatch({ type: "delivery/realtime", payload: patch });
   }, []);
 
   const updateRentalBooking = useCallback((patch: Partial<RentalBooking>) => {
@@ -424,6 +720,52 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     dispatch({ type: "sos/status", payload: { id, status: "resolved", note } });
   }, []);
 
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      dispatch({ type: "delivery/poll" });
+    }, 7000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
+    const wsUrl = import.meta.env.VITE_DELIVERY_WS_URL as string | undefined;
+    if (!wsUrl) {
+      dispatch({ type: "delivery/ws-connected", payload: false });
+      return;
+    }
+
+    const ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+      dispatch({ type: "delivery/ws-connected", payload: true });
+    };
+    ws.onclose = () => {
+      dispatch({ type: "delivery/ws-connected", payload: false });
+    };
+    ws.onerror = () => {
+      dispatch({ type: "delivery/ws-connected", payload: false });
+    };
+    ws.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data) as DeliveryRealtimePatch;
+        if (!payload.orderId) {
+          return;
+        }
+        dispatch({ type: "delivery/realtime", payload });
+      } catch {
+        // Ignore malformed websocket payloads.
+      }
+    };
+
+    return () => {
+      ws.close();
+      dispatch({ type: "delivery/ws-connected", payload: false });
+    };
+  }, []);
+
   const actions: AppActions = useMemo(
     () => ({
       updateSettings,
@@ -436,7 +778,12 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       setRideStatus,
       setActiveTrip,
       updateDeliveryDraft,
+      resetDeliveryDraft,
+      createDeliveryOrder,
       setActiveDelivery,
+      setActiveDeliveryById,
+      updateDeliveryOrderStatus,
+      applyDeliveryRealtimePatch,
       updateRentalBooking,
       selectRentalVehicle,
       updateTourBooking,
@@ -461,7 +808,12 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       setRideStatus,
       setActiveTrip,
       updateDeliveryDraft,
+      resetDeliveryDraft,
+      createDeliveryOrder,
       setActiveDelivery,
+      setActiveDeliveryById,
+      updateDeliveryOrderStatus,
+      applyDeliveryRealtimePatch,
       updateRentalBooking,
       selectRentalVehicle,
       updateTourBooking,

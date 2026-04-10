@@ -17,6 +17,8 @@ import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import AppCard from "../primitives/AppCard";
 import { uiTokens } from "../../design/tokens";
 import { formatDeliveryDateParts } from "../../utils/dateUtils";
+import { getDeliveryStatusLabel } from "../../features/delivery/stateMachine";
+import type { DeliveryStatus } from "../../store/types";
 
 interface SenderInfo {
   name?: string;
@@ -56,8 +58,11 @@ interface DeliveryCardProps {
 }
 
 function statusStyles(status: string): { bg: string | ((theme: any) => string); fg: string | ((theme: any) => string) } {
-  if (status === "Request accepted" || status === "Delivered") {
+  if (status === "accepted" || status === "delivered") {
     return { bg: uiTokens.colors.successBg, fg: uiTokens.colors.successText };
+  }
+  if (status === "cancelled" || status === "failed") {
+    return { bg: uiTokens.surfaces.dangerTintSoft, fg: uiTokens.colors.danger };
   }
   return {
     bg: (theme: any) =>
@@ -78,8 +83,10 @@ export default function DeliveryCard({
   onClick
 }: DeliveryCardProps): React.JSX.Element {
   const isReceived = variant === "received";
-  const showAcceptReject = variant === "delivering" && order.status === "Waiting to accept";
+  const showAcceptReject = variant === "delivering" && order.status === "requested";
   const statusTone = statusStyles(order.status);
+  const statusLabel = getDeliveryStatusLabel(order.status as DeliveryStatus);
+  const progressValue = order.progress ?? 0;
 
   return (
     <AppCard onClick={() => onClick?.(order.id)} sx={{ mb: uiTokens.spacing.lg }}>
@@ -214,7 +221,7 @@ export default function DeliveryCard({
 
         <Stack spacing={1}>
           <Chip
-            label={order.status}
+            label={statusLabel}
             size="small"
             sx={{
               width: "fit-content",
@@ -228,7 +235,7 @@ export default function DeliveryCard({
           <Box sx={{ position: "relative" }}>
             <LinearProgress
               variant="determinate"
-              value={order.progress || 0}
+              value={progressValue}
               sx={{
                 height: 4,
                 bgcolor: (t) =>

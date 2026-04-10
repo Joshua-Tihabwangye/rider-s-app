@@ -55,20 +55,13 @@ import DeliveryReceived from "../screens/DeliveryReceived";
 import DeliveringV2 from "../screens/DeliveringV2";
 import DeliveryReceivedV2 from "../screens/DeliveryReceivedV2";
 import DeliveryReceivedV3 from "../screens/DeliveryReceivedV3";
-import DeliveryTrackingReceived from "../screens/DeliveryTrackingReceived";
 import DeliveryTrackingIncoming from "../screens/DeliveryTrackingIncoming";
 import DeliveryInvitations from "../screens/DeliveryInvitations";
 import DeliveryInvitationsV2 from "../screens/DeliveryInvitationsV2";
 import Preferences from "../screens/Preferences";
-import DeliveryEnRoute from "../screens/DeliveryEnRoute";
-import DeliveryCancel from "../screens/DeliveryCancel";
-import DeliveryLiveTracking from "../screens/DeliveryLiveTracking";
-import DeliveryDriver from "../screens/DeliveryDriver";
-import DeliveryTimeline from "../screens/DeliveryTimeline";
-import DeliveryDelivered from "../screens/DeliveryDelivered";
-import DeliveryPickupConfirmed from "../screens/DeliveryPickupConfirmed";
 import DeliveryRating from "../screens/DeliveryRating";
-import DeliveryDetails from "../screens/DeliveryDetails";
+import DeliveryCreate from "../screens/DeliveryCreate";
+import DeliveryTrackingRealtime from "../screens/DeliveryTrackingRealtime";
 import RentalList from "../screens/RentalList";
 import RentalVehicleDetail from "../screens/RentalVehicleDetail";
 import RentalDates from "../screens/RentalDates";
@@ -227,7 +220,7 @@ export default function AppRouter(): React.JSX.Element {
 					<Route path="received" element={<DeliveryReceived />} />
 					<Route path="received-v2" element={<DeliveryReceivedV2 />} />
 					<Route path="received-v3" element={<DeliveryReceivedV3 />} />
-					<Route path="new" element={<Preferences />} />
+					<Route path="new" element={<DeliveryCreate />} />
 					<Route
 						path="tracking/incoming"
 						element={<DeliveryTrackingIncoming />}
@@ -239,35 +232,35 @@ export default function AppRouter(): React.JSX.Element {
 					/>
 					<Route
 						path="tracking/:orderId/received"
-						element={<DeliveryTrackingReceived />}
+						element={<DeliveryTrackingRealtime />}
 					/>
 					<Route
 						path="tracking/:orderId/en-route"
-						element={<DeliveryEnRoute />}
+						element={<DeliveryTrackingRealtime />}
 					/>
 					<Route
 						path="tracking/:orderId/cancel"
-						element={<DeliveryCancel />}
+						element={<DeliveryTrackingRealtime />}
 					/>
 					<Route
 						path="tracking/:orderId/live"
-						element={<DeliveryLiveTracking />}
+						element={<DeliveryTrackingRealtime />}
 					/>
 					<Route
 						path="tracking/:orderId/driver"
-						element={<DeliveryDriver />}
+						element={<DeliveryTrackingRealtime />}
 					/>
 					<Route
 						path="tracking/:orderId/timeline"
-						element={<DeliveryTimeline />}
+						element={<DeliveryTrackingRealtime />}
 					/>
 					<Route
 						path="tracking/:orderId/delivered"
-						element={<DeliveryDelivered />}
+						element={<DeliveryTrackingRealtime />}
 					/>
 					<Route
 						path="tracking/:orderId/pickup-confirmed"
-						element={<DeliveryPickupConfirmed />}
+						element={<DeliveryTrackingRealtime />}
 					/>
 					<Route
 						path="tracking/:orderId/rating"
@@ -275,7 +268,7 @@ export default function AppRouter(): React.JSX.Element {
 					/>
 					<Route
 						path="tracking/:orderId/details"
-						element={<DeliveryDetails />}
+						element={<DeliveryTrackingRealtime />}
 					/>
 				</Route>
 				{/* Rental */}
