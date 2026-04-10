@@ -33,7 +33,13 @@ function DriverHasArrivedScreen(): React.JSX.Element {
 
   useEffect(() => {
     actions.setRideStatus("driver_arrived");
-  }, [actions.setRideStatus]);
+    const verificationTimer = window.setTimeout(() => {
+      actions.setRideStatus("in_progress");
+      navigate("/rides/trip", { replace: true, state: { fromDriverVerification: true } });
+    }, 2200);
+
+    return () => window.clearTimeout(verificationTimer);
+  }, [actions.setRideStatus, navigate]);
 
   const topMapBleedSx = {
     position: "relative",
@@ -249,24 +255,17 @@ function DriverHasArrivedScreen(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      <Button
-        fullWidth
-        variant="contained"
-        size="small"
-        onClick={() => {
-          actions.setRideStatus("in_progress");
-          navigate("/rides/trip");
-        }}
+      <Typography
+        variant="caption"
         sx={{
-          borderRadius: uiTokens.radius.xl,
-          py: 0.9,
-          fontSize: 13,
-          fontWeight: 700,
-          textTransform: "none"
+          textAlign: "center",
+          color: (t) => t.palette.text.secondary,
+          fontSize: 11,
+          display: "block"
         }}
       >
-        Start trip
-      </Button>
+        Trip will start automatically once the driver verifies OTP or QR.
+      </Typography>
 
       <DriverChatRoom
         open={chatOpen}

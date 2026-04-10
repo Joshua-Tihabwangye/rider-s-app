@@ -14,11 +14,6 @@ import {
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
-import NavigationRoundedIcon from "@mui/icons-material/NavigationRounded";
-import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded";
-import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
-import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import LocalFireDepartmentRoundedIcon from "@mui/icons-material/LocalFireDepartmentRounded";
 import HotelRoundedIcon from "@mui/icons-material/HotelRounded";
 import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
 import BeachAccessRoundedIcon from "@mui/icons-material/BeachAccessRounded";
@@ -70,27 +65,6 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     return () => clearInterval(interval);
   }, [actions.setRideStatus]);
 
-  const handleEmergency = () => {
-    navigate("/rides/sos");
-  };
-
-  const handleNavigation = () => {
-    navigate("/rides/trip/route");
-  };
-
-  const handleCamera = () => {
-    console.log("Open camera/dash cam");
-    // In production: Open camera or dash cam view
-  };
-
-  const handleGroup = () => {
-    navigate("/rides/trip/share");
-  };
-
-  const handleSettings = () => {
-    navigate("/settings");
-  };
-
   const handleRating = () => {
     navigate("/rides/rating");
   };
@@ -108,6 +82,11 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         tripId: activeTrip?.id
       }
     });
+  };
+
+  const handleMapRecenter = () => {
+    setProgress(40);
+    setEta({ hours: 1, minutes: 20 });
   };
 
   const topMapBleedSx = {
@@ -172,6 +151,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           preset="full"
           sx={{ height: { xs: "56dvh", md: "60vh" } }}
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
+          onRecenter={handleMapRecenter}
         >
 
         {/* Map Labels - Landmarks */}
@@ -356,110 +336,6 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           />
         </Box>
 
-        {/* Emergency Button - Prominently displayed */}
-        <Button
-          variant="contained"
-          startIcon={<LocalFireDepartmentRoundedIcon />}
-          onClick={handleEmergency}
-          sx={{
-            position: "absolute",
-            bottom: 16,
-            left: "50%",
-            transform: "translateX(-50%)",
-            borderRadius: uiTokens.radius.xl,
-            px: uiTokens.spacing.xl,
-            py: uiTokens.spacing.sm,
-            fontSize: 14,
-            fontWeight: 700,
-            textTransform: "none",
-            bgcolor: "#DC2626",
-            color: "#FFFFFF",
-            boxShadow: "0 4px 12px rgba(220,38,38,0.4)",
-            "&:hover": {
-              bgcolor: "#B91C1C",
-              boxShadow: "0 6px 16px rgba(220,38,38,0.5)"
-            }
-          }}
-        >
-          Emergency
-        </Button>
-
-        {/* Floating Action Buttons (right side) - Light blue */}
-        <Stack
-          spacing={uiTokens.spacing.md}
-          sx={{
-            position: "absolute",
-            right: 16,
-            top: "50%",
-            transform: "translateY(-50%)",
-            zIndex: 10
-          }}
-        >
-          <IconButton
-            onClick={handleNavigation}
-            sx={{
-              bgcolor: "rgba(3,205,140,0.15)",
-              color: "#03CD8C",
-              width: 48,
-              height: 48,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-              "&:hover": {
-                bgcolor: "#93C5FD",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
-              }
-            }}
-          >
-            <NavigationRoundedIcon />
-          </IconButton>
-          <IconButton
-            onClick={handleCamera}
-            sx={{
-              bgcolor: "rgba(3,205,140,0.15)",
-              color: "#03CD8C",
-              width: 48,
-              height: 48,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-              "&:hover": {
-                bgcolor: "#93C5FD",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
-              }
-            }}
-          >
-            <CameraAltRoundedIcon />
-          </IconButton>
-          <IconButton
-            onClick={handleGroup}
-            sx={{
-              bgcolor: "rgba(3,205,140,0.15)",
-              color: "#03CD8C",
-              width: 48,
-              height: 48,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-              "&:hover": {
-                bgcolor: "#93C5FD",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
-              }
-            }}
-          >
-            <GroupRoundedIcon />
-          </IconButton>
-          <IconButton
-            onClick={handleSettings}
-            sx={{
-              bgcolor: "rgba(3,205,140,0.15)",
-              color: "#03CD8C",
-              width: 48,
-              height: 48,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-              "&:hover": {
-                bgcolor: "#93C5FD",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
-              }
-            }}
-          >
-            <SettingsRoundedIcon />
-          </IconButton>
-        </Stack>
         </MapShell>
       </Box>
 
