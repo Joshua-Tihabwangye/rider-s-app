@@ -23,7 +23,6 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
-import MapRoundedIcon from "@mui/icons-material/MapRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
@@ -36,7 +35,7 @@ import SwapVertRoundedIcon from "@mui/icons-material/SwapVertRounded";
 import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
 import Avatar from "@mui/material/Avatar";
 import ScreenScaffold from "../components/ScreenScaffold";
-import PageHeader from "../components/PageHeader";
+import MapShell from "../components/maps/MapShell";
 import SwitchRiderModal from "../components/SwitchRiderModal";
 import TripTypeModal from "../components/TripTypeModal";
 import AddStopModal from "../components/AddStopModal";
@@ -401,33 +400,6 @@ function EnterDestinationScreen(): React.JSX.Element {
 		}
 	};
 
-	const handleLocateOnMap = () => {
-		// Create a clean, serializable state object
-		const mapState = {
-			pickup,
-			destination,
-			passengers,
-			rideType,
-			tripType,
-			schedule,
-			riderType,
-			// Ensure selectedContact is a plain object
-			selectedContact: selectedContact
-				? {
-						id: selectedContact.id,
-						name: selectedContact.name,
-						relation: selectedContact.relation,
-						phone: selectedContact.phone,
-						initials: selectedContact.initials,
-					}
-				: null,
-		};
-
-		navigate("/rides/enter/preferences", {
-			state: mapState,
-		});
-	};
-
 	const handleContinue = (
 		riderData: {
 			riderType?: string;
@@ -583,30 +555,126 @@ function EnterDestinationScreen(): React.JSX.Element {
 	};
 
 	// Theme-aware colors
-	const headerBg = "#03CD8C"; // Green header
-	const headerText = "#FFFFFF";
 	const contentBg =
 		theme.palette.mode === "light"
 			? "#FFFFFF"
 			: theme.palette.background.paper;
 	const accentGreen = "#03CD8C";
 	const lightGreen = "rgba(3,205,140,0.1)"; // Light green for active passenger selection
+	const topMapBleedSx = {
+		position: "relative",
+		width: {
+			xs: "calc(100% + (var(--rider-shell-content-px-xs, 20px) * 2))",
+			md: "calc(100% + (var(--rider-shell-content-px-md, 24px) * 2))",
+		},
+		ml: {
+			xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+			md: "calc(var(--rider-shell-content-px-md, 24px) * -1)",
+		},
+		mr: {
+			xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+			md: "calc(var(--rider-shell-content-px-md, 24px) * -1)",
+		},
+		overflow: "hidden",
+	} as const;
 
 	return (
-		<ScreenScaffold
-			header={<PageHeader title="Enter Destination" />}
-		>
+		<ScreenScaffold disableTopPadding>
+			<Box sx={topMapBleedSx}>
+				<MapShell
+					showControls={false}
+					sx={{ height: { xs: "42dvh", md: "48vh" } }}
+					canvasSx={{
+						background:
+							theme.palette.mode === "light"
+								? "linear-gradient(160deg, #D6E9FF 0%, #E5F3FF 22%, #F5EED9 22%, #F5EED9 100%)"
+								: "linear-gradient(160deg, #1B2D3E 0%, #223A4F 25%, #1A2533 25%, #1A2533 100%)",
+					}}
+				>
+					<IconButton
+						size="small"
+						aria-label="Back"
+						onClick={() => navigate(-1)}
+						sx={{
+							position: "absolute",
+							top: 14,
+							left: 14,
+							zIndex: 12,
+							width: 40,
+							height: 40,
+							borderRadius: "50%",
+							bgcolor: "transparent",
+							color: "rgba(255,255,255,0.92)",
+							border: "1px solid rgba(255,255,255,0.45)",
+							backdropFilter: "blur(7px)",
+							WebkitBackdropFilter: "blur(7px)",
+							"&:hover": {
+								bgcolor: "rgba(255,255,255,0.12)",
+							},
+						}}
+					>
+						<ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+					</IconButton>
+					<Box
+						sx={{
+							position: "absolute",
+							top: "58%",
+							left: "18%",
+							width: "64%",
+							height: 4,
+							borderRadius: 999,
+							bgcolor:
+								theme.palette.mode === "light"
+									? "rgba(15,23,42,0.7)"
+									: "rgba(209,213,219,0.75)",
+							transform: "rotate(-24deg)",
+							transformOrigin: "left center",
+						}}
+					/>
+					<Box
+						sx={{
+							position: "absolute",
+							top: "56.5%",
+							left: "21%",
+							width: 18,
+							height: 18,
+							borderRadius: "50%",
+							bgcolor: "#22C55E",
+							border: "3px solid rgba(255,255,255,0.95)",
+							boxShadow: "0 4px 10px rgba(0,0,0,0.22)",
+							transform: "translate(-50%, -50%)",
+						}}
+					/>
+					<Box
+						sx={{
+							position: "absolute",
+							top: "34%",
+							right: "17%",
+							width: 20,
+							height: 20,
+							borderRadius: "50%",
+							bgcolor: "#F97316",
+							border: "3px solid rgba(255,255,255,0.95)",
+							boxShadow: "0 4px 10px rgba(0,0,0,0.22)",
+							transform: "translate(50%, -50%)",
+						}}
+					/>
+				</MapShell>
+			</Box>
 			{/* Trip Setup Card - Neutral Background */}
 			<Card
 				elevation={0}
 				sx={{
 					borderRadius: 3,
 					bgcolor: contentBg,
+					mt: { xs: -7, md: -8 },
+					position: "relative",
+					zIndex: 3,
 					border:
 						theme.palette.mode === "light"
 							? "1px solid rgba(0,0,0,0.1)"
 							: "1px solid rgba(255,255,255,0.1)",
-					boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
+					boxShadow: "0 14px 28px rgba(0,0,0,0.14)",
 				}}
 			>
 					<CardContent sx={{ px: 2, py: 2 }}>
@@ -696,7 +764,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 										fullWidth
 										size="small"
 										variant="outlined"
-										placeholder="Abayita Ababiri, Lyamu..."
+										placeholder="Destination place"
 										value={destination}
 										onChange={(e) => {
 											setDestination(e.target.value);
