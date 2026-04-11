@@ -51,10 +51,7 @@ import RideDetailsVariant from "../screens/RideDetailsVariant";
 import ConfirmRideDetails from "../screens/ConfirmRideDetails";
 import BookingThankYou from "../screens/BookingThankYou";
 import BookingConfirmation from "../screens/BookingConfirmation";
-import DeliveryReceived from "../screens/DeliveryReceived";
 import DeliveringV2 from "../screens/DeliveringV2";
-import DeliveryReceivedV2 from "../screens/DeliveryReceivedV2";
-import DeliveryReceivedV3 from "../screens/DeliveryReceivedV3";
 import DeliveryTrackingIncoming from "../screens/DeliveryTrackingIncoming";
 import DeliveryInvitations from "../screens/DeliveryInvitations";
 import DeliveryInvitationsV2 from "../screens/DeliveryInvitationsV2";
@@ -62,6 +59,9 @@ import Preferences from "../screens/Preferences";
 import DeliveryRating from "../screens/DeliveryRating";
 import DeliveryCreate from "../screens/DeliveryCreate";
 import DeliveryTrackingRealtime from "../screens/DeliveryTrackingRealtime";
+import DeliveryReceivedUnified from "../screens/DeliveryReceivedUnified";
+import DeliveryNotifications from "../screens/DeliveryNotifications";
+import DeliveryPaymentSettlement from "../screens/DeliveryPaymentSettlement";
 import RentalList from "../screens/RentalList";
 import RentalVehicleDetail from "../screens/RentalVehicleDetail";
 import RentalDates from "../screens/RentalDates";
@@ -217,9 +217,10 @@ export default function AppRouter(): React.JSX.Element {
 				<Route path="deliveries">
 					<Route index element={<DeliveriesDashboard />} />
 					<Route path="delivering-v2" element={<DeliveringV2 />} />
-					<Route path="received" element={<DeliveryReceived />} />
-					<Route path="received-v2" element={<DeliveryReceivedV2 />} />
-					<Route path="received-v3" element={<DeliveryReceivedV3 />} />
+					<Route path="received" element={<DeliveryReceivedUnified />} />
+					<Route path="received-v2" element={<DeliveryReceivedUnified />} />
+					<Route path="received-v3" element={<DeliveryReceivedUnified />} />
+					<Route path="notifications" element={<DeliveryNotifications />} />
 					<Route path="new" element={<DeliveryCreate />} />
 					<Route
 						path="tracking/incoming"
@@ -265,6 +266,18 @@ export default function AppRouter(): React.JSX.Element {
 					<Route
 						path="tracking/:orderId/rating"
 						element={<DeliveryRating />}
+					/>
+					<Route
+						path="tracking/:orderId/proof"
+						element={<DeliveryTrackingRealtime />}
+					/>
+					<Route
+						path="tracking/:orderId/receipt"
+						element={<DeliveryTrackingRealtime />}
+					/>
+					<Route
+						path="tracking/:orderId/payment"
+						element={<DeliveryPaymentSettlement />}
 					/>
 					<Route
 						path="tracking/:orderId/details"

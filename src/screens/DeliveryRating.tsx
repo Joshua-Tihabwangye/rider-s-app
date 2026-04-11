@@ -1,24 +1,26 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-  
   Box,
-  IconButton,
-  Typography,
+  Button,
   Card,
   CardContent,
   Chip,
+  IconButton,
+  Rating,
   Stack,
-  Button,
   TextField,
-  Rating
+  Typography
 } from "@mui/material";
-
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
+import ScreenScaffold from "../components/ScreenScaffold";
+import SectionHeader from "../components/primitives/SectionHeader";
+import { useAppData } from "../contexts/AppDataContext";
+import { uiTokens } from "../design/tokens";
 
 const TAGS = [
   "On-time delivery",
@@ -29,40 +31,73 @@ const TAGS = [
   "Would use again"
 ];
 
-function OrderCompletionRatingPromptScreen(): React.JSX.Element {
+function formatRoute(orderPickup: string, orderDropoff: string): string {
+  return `${orderPickup} -> ${orderDropoff}`;
+}
+
+export default function DeliveryRating(): React.JSX.Element {
   const navigate = useNavigate();
-  const [rating, setRating] = useState(0);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [comment, setComment] = useState("");
+  const { orderId = "" } = useParams<{ orderId: string }>();
+  const { delivery, actions } = useAppData();
+
+  const order = useMemo(() => delivery.orders.find((item) => item.id === orderId) ?? delivery.activeOrder, [delivery.orders, delivery.activeOrder, orderId]);
+
+  const [rating, setRating] = useState(order?.rating?.score ?? 0);
+  const [selectedTags, setSelectedTags] = useState<string[]>(order?.rating?.tags ?? []);
+  const [comment, setComment] = useState(order?.rating?.comment ?? "");
+
+  if (!order) {
+    return (
+      <ScreenScaffold>
+        <SectionHeader
+          title="Rate delivery"
+          subtitle="Order not found"
+          leadingAction={
+            <IconButton size="small" aria-label="Back" onClick={() => navigate(-1)}>
+              <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          }
+        />
+        <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+          We could not find this delivery.
+        </Typography>
+      </ScreenScaffold>
+    );
+  }
 
   const toggleTag = (tag: string): void => {
-    setSelectedTags((prev: string[]) =>
-      prev.includes(tag) ? prev.filter((t: string) => t !== tag) : [...prev, tag]
-    );
+    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag]));
+  };
+
+  const handleSubmit = (): void => {
+    if (rating <= 0) {
+      return;
+    }
+
+    actions.submitDeliveryRating(order.id, {
+      score: rating,
+      tags: selectedTags,
+      comment: comment.trim() || undefined
+    });
+
+    navigate(`/deliveries/tracking/${order.id}/delivered`, { replace: true });
   };
 
   const canSubmit = rating > 0;
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+    <ScreenScaffold>
+      <SectionHeader
+        title="How was your delivery?"
+        subtitle="Rate the courier and delivery experience"
+        leadingAction={
           <IconButton
             size="small"
             aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: 5,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+              borderRadius: uiTokens.radius.xl,
+              bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)"),
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
@@ -71,122 +106,58 @@ function OrderCompletionRatingPromptScreen(): React.JSX.Element {
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              How was your delivery?
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              Rate the courier and delivery experience
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
+        }
+      />
 
-      {/* Parcel summary */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2.5,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.6 }}>
-          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-            <Inventory2RoundedIcon sx={{ fontSize: 20, color: "primary.main" }} />
-            <Box>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Order
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ fontWeight: 500, letterSpacing: "-0.01em" }}
-              >
-                EV accessories • DLV-2025-10-07-001
-              </Typography>
-            </Box>
-          </Stack>
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Chip
-              size="small"
-              icon={<LocalShippingRoundedIcon sx={{ fontSize: 14 }} />}
-              label="EV courier"
-              sx={{
-                borderRadius: 5,
-                fontSize: 11,
-                height: 24,
-                bgcolor: "rgba(34,197,94,0.12)",
-                color: "#16A34A"
-              }}
-            />
-            <Chip
-              size="small"
-              icon={<PlaceRoundedIcon sx={{ fontSize: 14 }} />}
-              label="Nsambya → Bugolobi"
-              sx={{
-                borderRadius: 5,
-                fontSize: 11,
-                height: 24,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-                color: (t) => t.palette.text.primary
-              }}
-            />
+      <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+        <CardContent>
+          <Stack spacing={1}>
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <Inventory2RoundedIcon sx={{ fontSize: 20, color: "primary.main" }} />
+              <Box>
+                <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                  Order
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {order.parcel.description} • {order.id}
+                </Typography>
+              </Box>
+            </Stack>
+            <Stack direction="row" spacing={1}>
+              <Chip
+                size="small"
+                icon={<LocalShippingRoundedIcon sx={{ fontSize: 14 }} />}
+                label="EV courier"
+                sx={{ borderRadius: 5, fontSize: 11, height: 24, bgcolor: "rgba(34,197,94,0.12)", color: "#16A34A" }}
+              />
+              <Chip
+                size="small"
+                icon={<PlaceRoundedIcon sx={{ fontSize: 14 }} />}
+                label={formatRoute(order.pickup.label, order.dropoff.label)}
+                sx={{ borderRadius: 5, fontSize: 11, height: 24 }}
+              />
+            </Stack>
           </Stack>
         </CardContent>
       </Card>
 
-      {/* Rating card */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.8 }}>
+      <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+        <CardContent>
           <Box sx={{ textAlign: "center", mb: 1.6 }}>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
+            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
               Rate your delivery
             </Typography>
             <Rating
               value={rating}
-              onChange={(_e, value) => setRating(value || 0)}
+              onChange={(_event, value) => setRating(value || 0)}
               precision={1}
               size="large"
               sx={{ mt: 0.5 }}
+              aria-label="Delivery rating"
             />
             <Typography
               variant="caption"
-              sx={{
-                mt: 0.5,
-                display: "block",
-                fontSize: 11,
-                color: (t) => t.palette.text.secondary
-              }}
+              sx={{ mt: 0.5, display: "block", fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
               {rating === 0 && "Tap a star to rate"}
               {rating >= 4 && "Great! Tell us what went well"}
@@ -194,15 +165,7 @@ function OrderCompletionRatingPromptScreen(): React.JSX.Element {
             </Typography>
           </Box>
 
-          <Typography
-            variant="caption"
-            sx={{
-              fontSize: 11,
-              color: (t) => t.palette.text.secondary,
-              mb: 1,
-              display: "block"
-            }}
-          >
+          <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 1, display: "block" }}>
             What stood out?
           </Typography>
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
@@ -219,18 +182,9 @@ function OrderCompletionRatingPromptScreen(): React.JSX.Element {
                     borderRadius: 5,
                     fontSize: 11,
                     height: 26,
-                    bgcolor: active
-                      ? "primary.main"
-                      : (t) =>
-                          t.palette.mode === "light"
-                            ? "#F3F4F6"
-                            : "rgba(15,23,42,0.96)",
-                    color: active
-                      ? "#020617"
-                      : (t) => t.palette.text.primary,
-                    "& .MuiChip-icon": {
-                      color: active ? "#020617" : "rgba(148,163,184,1)"
-                    }
+                    bgcolor: active ? "primary.main" : (t) => (t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)"),
+                    color: active ? "#020617" : (t) => t.palette.text.primary,
+                    "& .MuiChip-icon": { color: active ? "#020617" : "rgba(148,163,184,1)" }
                   }}
                 />
               );
@@ -239,47 +193,23 @@ function OrderCompletionRatingPromptScreen(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      {/* Comment card */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.6 }}>
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-          >
-            Anything else you’d like to share? (optional)
+      <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+        <CardContent>
+          <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+            Anything else you'd like to share? (optional)
           </Typography>
           <TextField
             multiline
             minRows={3}
             fullWidth
             value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Tell us about your delivery, good or bad…"
+            onChange={(event) => setComment(event.target.value)}
+            placeholder="Tell us about your delivery, good or bad..."
             sx={{
               mt: 0.75,
               "& .MuiOutlinedInput-root": {
                 borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                "& fieldset": {
-                  borderColor: (t) =>
-                    t.palette.mode === "light"
-                      ? "rgba(209,213,219,0.9)"
-                      : "rgba(51,65,85,0.9)"
-                },
-                "&:hover fieldset": { borderColor: "primary.main" }
+                bgcolor: (t) => (t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)")
               }
             }}
           />
@@ -290,6 +220,7 @@ function OrderCompletionRatingPromptScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         disabled={!canSubmit}
+        onClick={handleSubmit}
         startIcon={<StarRoundedIcon sx={{ fontSize: 18 }} />}
         sx={{
           borderRadius: 5,
@@ -306,25 +237,6 @@ function OrderCompletionRatingPromptScreen(): React.JSX.Element {
       >
         Submit rating
       </Button>
-    </Box>
-  );
-}
-
-export default function RiderScreen67OrderCompletionRatingPromptCanvas_v2() {
-      return (
-    
-      
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: (t) => t.palette.background.default
-        }}
-      >
-
-          <OrderCompletionRatingPromptScreen />
-        
-      </Box>
-    
+    </ScreenScaffold>
   );
 }

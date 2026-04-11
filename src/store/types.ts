@@ -41,7 +41,7 @@ export interface AuthResponse {
 }
 
 /** Payment method types */
-export type PaymentMethodType = "wallet" | "card" | "mobile_money";
+export type PaymentMethodType = "wallet" | "card" | "mobile_money" | "cash";
 
 export interface PaymentMethod {
   id: string;
@@ -241,6 +241,128 @@ export type DeliveryParcelSize = "small" | "medium" | "large" | "x_large";
 
 export type DeliveryTiming = "now" | "scheduled";
 
+export type DeliveryProofMethod = "photo" | "signature" | "pin" | "otp";
+
+export interface DeliveryProofOfDelivery {
+  methods: DeliveryProofMethod[];
+  recipientName: string;
+  deliveredAt: string;
+  location: {
+    label: string;
+    lat?: number;
+    lng?: number;
+  };
+  photoUrl?: string;
+  signatureName?: string;
+  pinCode?: string;
+  otpCode?: string;
+  verifiedBy: "courier" | "recipient" | "system";
+}
+
+export type DeliveryExceptionType =
+  | "missing_item"
+  | "damaged_item"
+  | "delayed_courier"
+  | "failed_handoff"
+  | "return_to_sender"
+  | "dispute_refund";
+
+export interface DeliveryException {
+  id: string;
+  type: DeliveryExceptionType;
+  status: "open" | "resolved";
+  note: string;
+  createdAt: string;
+  resolvedAt?: string;
+  resolution?: string;
+  requestedRefundAmount?: number;
+}
+
+export type DeliveryContactType = "call" | "chat" | "support";
+
+export interface DeliveryContactEvent {
+  type: DeliveryContactType;
+  timestamp: string;
+}
+
+export type DeliverySettlementPolicy = "cashless_pre_auth" | "cash_on_delivery";
+
+export type DeliverySettlementStatus =
+  | "pending_authorization"
+  | "authorized"
+  | "capture_pending"
+  | "captured"
+  | "refund_requested"
+  | "refunded"
+  | "voided"
+  | "cash_due"
+  | "cash_collected";
+
+export interface DeliverySettlement {
+  id: string;
+  policy: DeliverySettlementPolicy;
+  methodType: PaymentMethodType;
+  status: DeliverySettlementStatus;
+  authorizedAmount: number;
+  capturedAmount: number;
+  refundedAmount: number;
+  cancellationFeeCharged: number;
+  authorizedAt?: string;
+  capturedAt?: string;
+  refundedAt?: string;
+  note?: string;
+}
+
+export interface DeliveryReceipt {
+  id: string;
+  orderId: string;
+  issuedAt: string;
+  lineItems: Array<{
+    label: string;
+    amount: number;
+  }>;
+  total: number;
+  currency: string;
+  settlementStatus: DeliverySettlementStatus;
+}
+
+export interface DeliveryRating {
+  score: number;
+  tags: string[];
+  comment?: string;
+  submittedAt: string;
+}
+
+export type DeliverySchedulePolicyStage =
+  | "requested"
+  | "accepted"
+  | "picked_up"
+  | "in_transit"
+  | "out_for_delivery";
+
+export interface DeliverySchedulePolicyRule {
+  stage: DeliverySchedulePolicyStage;
+  feePercent: number;
+  minimumFee: number;
+  description: string;
+}
+
+export interface DeliverySchedulePolicy {
+  currency: string;
+  rescheduleCutoffMinutes: number;
+  rules: DeliverySchedulePolicyRule[];
+}
+
+export interface DeliveryNotification {
+  id: string;
+  orderId: string;
+  title: string;
+  body: string;
+  category: "status" | "proof" | "payment" | "exception" | "schedule" | "system";
+  createdAt: string;
+  read: boolean;
+}
+
 export interface DeliveryParty {
   name: string;
   phone: string;
@@ -321,6 +443,14 @@ export interface DeliveryOrder {
   courier?: DeliveryCourier;
   cancelledReason?: string;
   deliveredAt?: string;
+  proofOfDelivery?: DeliveryProofOfDelivery | null;
+  exceptions?: DeliveryException[];
+  contactEvents?: DeliveryContactEvent[];
+  settlement?: DeliverySettlement;
+  receipt?: DeliveryReceipt | null;
+  rating?: DeliveryRating | null;
+  schedulePolicy?: DeliverySchedulePolicy;
+  estimatedDropoffAt?: string;
 
   // Legacy fields still used by existing list cards.
   packageName: string;
@@ -343,6 +473,7 @@ export interface DeliveryState {
   draft: DeliveryDraft;
   activeOrder: DeliveryOrder | null;
   orders: DeliveryOrder[];
+  notifications: DeliveryNotification[];
   websocketConnected: boolean;
   lastRealtimeSync?: string;
 }
