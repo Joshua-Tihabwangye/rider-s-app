@@ -42,6 +42,7 @@ interface MapShellProps {
   overlaysSx?: SxProps<Theme>;
   canvasRef?: React.Ref<HTMLDivElement>;
   canvasProps?: Omit<BoxProps, "sx" | "children" | "ref">;
+  fullBleed?: boolean;
 }
 
 const LAYER_ORDER: MapLayerMode[] = ["default", "transit", "terrain"];
@@ -71,7 +72,8 @@ export default function MapShell({
   canvasSx,
   overlaysSx,
   canvasRef,
-  canvasProps
+  canvasProps,
+  fullBleed = true
 }: MapShellProps): React.JSX.Element {
   const [zoom, setZoom] = useState<number>(clampZoom(initialZoom));
   const [bearing, setBearing] = useState<number>(initialBearing % 360);
@@ -112,7 +114,18 @@ export default function MapShell({
       sx={[
         {
           position: "relative",
-          width: "100%",
+          width: fullBleed
+            ? {
+                xs: "calc(100% + (var(--rider-shell-content-px-xs, 20px) * 2))",
+                md: "calc(100% + (var(--rider-shell-content-px-md, 24px) * 2))"
+              }
+            : "100%",
+          mx: fullBleed
+            ? {
+                xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+                md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+              }
+            : 0,
           height: resolvedHeight,
           overflow: "hidden",
           borderRadius: rounded ? "var(--evz-radius-xl)" : 0,
@@ -173,17 +186,19 @@ export default function MapShell({
           onClick={onBack}
           sx={{
             position: "absolute",
-            top: 14,
+            top: { xs: "max(12px, env(safe-area-inset-top))", md: 14 },
             left: 14,
             zIndex: 5,
             width: 40,
             height: 40,
-            bgcolor: uiTokens.colors.brand,
-            color: uiTokens.colors.white,
+            bgcolor: (theme) =>
+              theme.palette.mode === "light" ? "rgba(255,255,255,0.92)" : "rgba(15,23,42,0.86)",
+            color: (theme) => theme.palette.text.primary,
             borderRadius: "var(--evz-radius-md)",
+            border: "1px solid var(--evz-map-control-border)",
             boxShadow: uiTokens.elevation.card,
             "&:hover": {
-              bgcolor: uiTokens.colors.brandHover
+              bgcolor: "var(--evz-map-overlay-bg)"
             }
           }}
         >

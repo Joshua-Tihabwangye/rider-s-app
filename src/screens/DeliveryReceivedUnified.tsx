@@ -2,7 +2,6 @@ import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Badge,
-  Box,
   Chip,
   IconButton,
   Stack,
@@ -76,6 +75,8 @@ export default function DeliveryReceivedUnified(): React.JSX.Element {
             etaLabel={`${activeIncoming.tracking.etaMinutes} min`}
             statusLabel={activeIncoming.status.replace(/_/g, " ")}
             height={180}
+            rounded
+            fullBleed={false}
           />
         </AppCard>
       ) : (

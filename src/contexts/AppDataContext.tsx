@@ -478,9 +478,18 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
     }
     case "delivery/active":
+      if (state.delivery.activeOrder === action.payload) {
+        return state;
+      }
       return { ...state, delivery: { ...state.delivery, activeOrder: action.payload } };
     case "delivery/active-by-id": {
+      if (state.delivery.activeOrder?.id === action.payload) {
+        return state;
+      }
       const activeOrder = state.delivery.orders.find((order) => order.id === action.payload) ?? null;
+      if (activeOrder?.id === state.delivery.activeOrder?.id) {
+        return state;
+      }
       return { ...state, delivery: { ...state.delivery, activeOrder } };
     }
     case "delivery/status": {
