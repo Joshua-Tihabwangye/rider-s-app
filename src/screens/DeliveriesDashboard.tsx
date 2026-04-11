@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Alert,
@@ -14,6 +14,7 @@ import {
   InputAdornment,
   Menu,
   MenuItem,
+  Skeleton,
   Snackbar,
   Stack,
   Tab,
@@ -29,6 +30,7 @@ import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import PersonAddRoundedIcon from "@mui/icons-material/PersonAddRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import DeliveryCard from "../components/deliveries/DeliveryCard";
 import ActionGrid from "../components/primitives/ActionGrid";
@@ -41,6 +43,7 @@ import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import type { DeliveryOrder } from "../store/types";
 import { getDeliveryStatusLabel } from "../features/delivery/stateMachine";
+import { calculateDeliveryKpis } from "../features/delivery/analytics";
 
 const DELIVERY_TERMINAL_STATUSES = ["delivered", "cancelled", "failed"] as const;
 
@@ -60,10 +63,12 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
     orderId: null
   });
   const [shareSnackbar, setShareSnackbar] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [rejectDialog, setRejectDialog] = useState<{ open: boolean; orderId: string | null }>({
     open: false,
     orderId: null
   });
+  const unreadNotifications = delivery.notifications.filter((item) => !item.read).length;
 
   const deliveringOrders: DeliveryOrder[] = delivery.orders.filter(
     (order) => !DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
@@ -84,6 +89,13 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
     type: "sent"
   }));
   const hasRecentDeliveries = recentDeliveries.length > 0;
+  const kpis = useMemo(() => calculateDeliveryKpis(delivery.orders), [delivery.orders]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = window.setTimeout(() => setIsLoading(false), 280);
+    return () => window.clearTimeout(timer);
+  }, [delivery.orders.length, activeTab, delivery.lastRealtimeSync]);
 
   const handleTrackShipment = (): void => {
     if (trackingNumber.trim()) {
@@ -116,13 +128,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
   };
 
   const handleMakePayment = (orderId: string): void => {
-    navigate("/rides/payment", {
-      state: {
-        type: "delivery",
-        orderId,
-        fromDelivery: true
-      }
-    });
+    navigate(`/deliveries/tracking/${orderId}/payment`);
   };
 
   return (
@@ -146,6 +152,25 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
             }}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        }
+        action={
+          <IconButton
+            size="small"
+            aria-label="Open delivery notifications"
+            onClick={() => navigate("/deliveries/notifications")}
+            sx={{
+              borderRadius: uiTokens.radius.xl,
+              bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)"),
+              border: (t) =>
+                t.palette.mode === "light"
+                  ? "1px solid rgba(209,213,219,0.9)"
+                  : "1px solid rgba(51,65,85,0.9)"
+            }}
+          >
+            <Badge color="error" badgeContent={unreadNotifications} max={9}>
+              <NotificationsRoundedIcon sx={{ fontSize: 18 }} />
+            </Badge>
           </IconButton>
         }
       />
@@ -176,6 +201,19 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
               day: "numeric"
             })}
           />
+        </Box>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" },
+            gap: uiTokens.spacing.sm
+          }}
+          aria-label="Delivery KPI metrics"
+        >
+          <InlineStat label="On-time %" value={`${kpis.onTimePercent}%`} />
+          <InlineStat label="Cancel %" value={`${kpis.cancelPercent}%`} />
+          <InlineStat label="Failed handoff %" value={`${kpis.failedHandoffPercent}%`} />
+          <InlineStat label="Support contact %" value={`${kpis.supportContactRate}%`} />
         </Box>
         <Box sx={{ display: "grid", gap: uiTokens.spacing.smPlus, gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" } }}>
           <Button
@@ -318,21 +356,36 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
           </Tabs>
 
           <ListSection>
-            {(activeTab === "delivering" ? deliveringOrders : receivedOrders).map((order) => (
-              <DeliveryCard
-                key={order.id}
-                order={order}
-                variant={activeTab === "delivering" ? "delivering" : "received"}
-                onMenuClick={(event, orderId) =>
-                  setMenuAnchor({ open: true, anchorEl: event.currentTarget, orderId })
-                }
-                onClick={(id) => navigate(`/deliveries/tracking/${id}/details`)}
-                onAccept={handleAcceptDelivery}
-                onReject={handleRejectDelivery}
-                onMakePayment={handleMakePayment}
-                showTruckIcon={activeTab === "received"}
-              />
-            ))}
+            {isLoading ? (
+              <Stack spacing={1.2}>
+                <Skeleton variant="rounded" height={132} sx={{ borderRadius: uiTokens.radius.xl }} />
+                <Skeleton variant="rounded" height={132} sx={{ borderRadius: uiTokens.radius.xl }} />
+              </Stack>
+            ) : (activeTab === "delivering" ? deliveringOrders : receivedOrders).length === 0 ? (
+              <AppCard variant="muted">
+                <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                  {activeTab === "delivering"
+                    ? "No active deliveries. Create a delivery or track an incoming shipment."
+                    : "No completed deliveries yet. Delivered parcels will appear here."}
+                </Typography>
+              </AppCard>
+            ) : (
+              (activeTab === "delivering" ? deliveringOrders : receivedOrders).map((order) => (
+                <DeliveryCard
+                  key={order.id}
+                  order={order}
+                  variant={activeTab === "delivering" ? "delivering" : "received"}
+                  onMenuClick={(event, orderId) =>
+                    setMenuAnchor({ open: true, anchorEl: event.currentTarget, orderId })
+                  }
+                  onClick={(id) => navigate(`/deliveries/tracking/${id}/details`)}
+                  onAccept={handleAcceptDelivery}
+                  onReject={handleRejectDelivery}
+                  onMakePayment={handleMakePayment}
+                  showTruckIcon={activeTab === "received"}
+                />
+              ))
+            )}
           </ListSection>
         </Box>
 
@@ -392,7 +445,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
               compact
             />
             <ListSection sx={{ mt: uiTokens.spacing.sm }}>
-              {hasRecentDeliveries &&
+              {hasRecentDeliveries ?
                 recentDeliveries.map((delivery) => (
                   <Box
                     key={delivery.code}
@@ -434,7 +487,11 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
                       {delivery.status}
                     </Typography>
                   </Box>
-                ))}
+                )) : (
+                  <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                    Recent deliveries will appear here after your first completed order.
+                  </Typography>
+                )}
             </ListSection>
           </AppCard>
         </Stack>

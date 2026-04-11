@@ -26,6 +26,7 @@ import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import type { DeliveryDraft, RideLocation } from "../store/types";
+import { DEFAULT_DELIVERY_SCHEDULE_POLICY } from "../features/delivery/schedulePolicy";
 
 const CREATION_STEPS = [
   "Pickup & dropoff",
@@ -80,7 +81,14 @@ function canProceed(step: number, draft: DeliveryDraft): boolean {
     return Boolean(draft.recipient?.name && draft.recipient?.phone && draft.recipient?.address);
   }
   if (step === 3) {
-    return draft.schedule === "now" || Boolean(draft.scheduleTime);
+    if (draft.schedule === "now") {
+      return true;
+    }
+    if (!draft.scheduleTime) {
+      return false;
+    }
+    const scheduleDate = new Date(draft.scheduleTime);
+    return !Number.isNaN(scheduleDate.getTime()) && scheduleDate.getTime() > Date.now();
   }
   if (step === 4) {
     return Boolean(draft.paymentMethodId);
@@ -353,6 +361,12 @@ export default function DeliveryCreate(): React.JSX.Element {
                   InputLabelProps={{ shrink: true }}
                 />
               )}
+              <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                Scheduled orders can be edited until {DEFAULT_DELIVERY_SCHEDULE_POLICY.rescheduleCutoffMinutes} minutes before pickup.
+              </Typography>
+              <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                Cancellation fee is stage-based: accepted (10%), picked up (35%), in transit (45%), near dropoff (60%).
+              </Typography>
               <TextField
                 label="Extra instructions"
                 value={draft.notes ?? ""}

@@ -2,6 +2,7 @@ import { createContext, useContext, useMemo, ReactNode, useReducer, useCallback,
 import type {
   AppData,
   PaymentMethod,
+  PaymentMethodType,
   WalletTransaction,
   Reminder,
   SettingsState,
@@ -18,6 +19,9 @@ import type {
   DeliveryDraft,
   DeliveryOrder,
   DeliveryStatus,
+  DeliveryExceptionType,
+  DeliveryProofOfDelivery,
+  DeliveryContactType,
   RentalState,
   RentalBooking,
   ToursState,
@@ -35,6 +39,22 @@ import {
   getDeliveryStatusLabel
 } from "../features/delivery/stateMachine";
 import { applyRealtimePatch, simulateDeliveryPollTick } from "../features/delivery/realtime";
+import { DEFAULT_DELIVERY_SCHEDULE_POLICY, calculateScheduledCancellationFee } from "../features/delivery/schedulePolicy";
+import {
+  applySettlementForDeliveryStatus,
+  generateDeliveryReceipt,
+  initializeDeliverySettlement,
+  isReceiptEligible,
+  requestSettlementRefund
+} from "../features/delivery/payment";
+import { createAutoProofOfDelivery } from "../features/delivery/proof";
+import {
+  createDeliveryException,
+  DELIVERY_EXCEPTION_LABELS,
+  getStatusFromException,
+  resolveDeliveryException
+} from "../features/delivery/exceptions";
+import { createDeliveryNotification } from "../features/delivery/notifications";
 import {
   SEED_PAYMENT_METHODS,
   SEED_TRANSACTIONS,
@@ -78,6 +98,20 @@ interface AppActions {
   setActiveDelivery: (order: DeliveryOrder | null) => void;
   setActiveDeliveryById: (orderId: string) => void;
   updateDeliveryOrderStatus: (orderId: string, status: DeliveryStatus, note?: string) => void;
+  logDeliveryContactEvent: (orderId: string, contactType: DeliveryContactType) => void;
+  reportDeliveryException: (params: {
+    orderId: string;
+    type: DeliveryExceptionType;
+    note: string;
+    requestedRefundAmount?: number;
+  }) => void;
+  resolveDeliveryException: (orderId: string, exceptionId: string, resolution: string) => void;
+  submitProofOfDelivery: (orderId: string, proof: DeliveryProofOfDelivery) => void;
+  updateScheduledDelivery: (orderId: string, scheduleTime: string) => void;
+  cancelScheduledDelivery: (orderId: string, reason: string) => void;
+  submitDeliveryRating: (orderId: string, payload: { score: number; tags: string[]; comment?: string }) => void;
+  captureDeliverySettlement: (orderId: string) => void;
+  markDeliveryNotificationsRead: () => void;
   applyDeliveryRealtimePatch: (patch: DeliveryRealtimePatch) => void;
   updateRentalBooking: (patch: Partial<RentalBooking>) => void;
   selectRentalVehicle: (vehicleId: string) => void;
@@ -133,6 +167,18 @@ type AppAction =
   | { type: "delivery/active"; payload: DeliveryOrder | null }
   | { type: "delivery/active-by-id"; payload: string }
   | { type: "delivery/status"; payload: { orderId: string; status: DeliveryStatus; note?: string } }
+  | { type: "delivery/contact"; payload: { orderId: string; contactType: DeliveryContactType } }
+  | {
+      type: "delivery/exception";
+      payload: { orderId: string; type: DeliveryExceptionType; note: string; requestedRefundAmount?: number };
+    }
+  | { type: "delivery/exception-resolve"; payload: { orderId: string; exceptionId: string; resolution: string } }
+  | { type: "delivery/proof"; payload: { orderId: string; proof: DeliveryProofOfDelivery } }
+  | { type: "delivery/schedule"; payload: { orderId: string; scheduleTime: string } }
+  | { type: "delivery/cancel-scheduled"; payload: { orderId: string; reason: string } }
+  | { type: "delivery/rating"; payload: { orderId: string; score: number; tags: string[]; comment?: string } }
+  | { type: "delivery/settlement-capture"; payload: { orderId: string } }
+  | { type: "delivery/notifications-read" }
   | { type: "delivery/realtime"; payload: DeliveryRealtimePatch }
   | { type: "delivery/poll" }
   | { type: "delivery/ws-connected"; payload: boolean }
@@ -157,6 +203,24 @@ function updateEmergencyContactsDefault(contacts: EmergencyContact[], id: string
 
 function formatCurrencyUGX(amount: number): string {
   return `UGX ${Math.round(amount).toLocaleString()}`;
+}
+
+function getPaymentMethodType(methods: PaymentMethod[], paymentMethodId: string): PaymentMethodType {
+  return methods.find((method) => method.id === paymentMethodId)?.type ?? "wallet";
+}
+
+function appendDeliveryNotification(
+  notifications: DeliveryState["notifications"],
+  payload: {
+    orderId: string;
+    title: string;
+    body: string;
+    category: "status" | "proof" | "payment" | "exception" | "schedule" | "system";
+    createdAt?: string;
+  }
+): DeliveryState["notifications"] {
+  const next = createDeliveryNotification(payload);
+  return [next, ...notifications].slice(0, 100);
 }
 
 function createDefaultDeliveryDraft(previous?: DeliveryDraft): DeliveryDraft {
@@ -219,8 +283,13 @@ function createDeliveryOrderFromDraft(
   const distanceKm = estimateDistanceKm(draft.pickup.address, draft.dropoff.address);
   const etaMinutes = Math.max(12, Math.round(distanceKm * 2.6));
   const total = draft.deliveryFee + draft.serviceFee + draft.insuranceFee;
+  const paymentMethodId = draft.paymentMethodId ?? state.paymentMethods[0]?.id ?? "pm_wallet";
+  const estimatedDropoffAt =
+    draft.schedule === "scheduled" && draft.scheduleTime
+      ? draft.scheduleTime
+      : new Date(Date.now() + etaMinutes * 60 * 1000).toISOString();
 
-  return {
+  const baseOrder: DeliveryOrder = {
     id: payload.orderId,
     createdAt: now,
     updatedAt: now,
@@ -231,7 +300,7 @@ function createDeliveryOrderFromDraft(
     recipient: draft.recipient,
     schedule: draft.schedule,
     scheduleTime: draft.scheduleTime,
-    paymentMethodId: draft.paymentMethodId ?? state.paymentMethods[0]?.id ?? "pm_wallet",
+    paymentMethodId,
     costBreakdown: {
       deliveryFee: draft.deliveryFee,
       serviceFee: draft.serviceFee,
@@ -278,7 +347,26 @@ function createDeliveryOrderFromDraft(
     time: `${etaMinutes} min`,
     progress: getDeliveryStatusProgress("requested"),
     priceEstimate: formatCurrencyUGX(total),
-    needsPayment: false
+    needsPayment: false,
+    exceptions: [],
+    contactEvents: [],
+    settlement: undefined,
+    receipt: null,
+    rating: null,
+    proofOfDelivery: null,
+    schedulePolicy: DEFAULT_DELIVERY_SCHEDULE_POLICY,
+    estimatedDropoffAt
+  };
+
+  const settlement = initializeDeliverySettlement(
+    baseOrder,
+    getPaymentMethodType(state.paymentMethods, paymentMethodId),
+    now
+  );
+
+  return {
+    ...baseOrder,
+    settlement
   };
 }
 
@@ -379,7 +467,13 @@ function appReducer(state: AppState, action: AppAction): AppState {
           ...state.delivery,
           draft: createDefaultDeliveryDraft(state.delivery.draft),
           activeOrder: order,
-          orders: [order, ...state.delivery.orders]
+          orders: [order, ...state.delivery.orders],
+          notifications: appendDeliveryNotification(state.delivery.notifications, {
+            orderId: order.id,
+            title: "Delivery request created",
+            body: "We are matching your parcel with a courier.",
+            category: "status"
+          })
         }
       };
     }
@@ -391,12 +485,52 @@ function appReducer(state: AppState, action: AppAction): AppState {
     }
     case "delivery/status": {
       const now = new Date().toISOString();
+      let nextNotifications = state.delivery.notifications;
       const updatedOrders = state.delivery.orders.map((order) => {
         if (order.id !== action.payload.orderId) {
           return order;
         }
 
+        const cancellationFee =
+          action.payload.status === "cancelled" && order.schedule === "scheduled"
+            ? calculateScheduledCancellationFee(order).fee
+            : 0;
         const nextProgress = Math.max(order.tracking.progress, getDeliveryStatusProgress(action.payload.status));
+        const paymentMethodType = getPaymentMethodType(state.paymentMethods, order.paymentMethodId);
+        const currentSettlement = order.settlement ?? initializeDeliverySettlement(order, paymentMethodType, now);
+        const nextSettlement = applySettlementForDeliveryStatus(
+          currentSettlement,
+          order,
+          action.payload.status,
+          cancellationFee,
+          now
+        );
+        const deliveredAt = action.payload.status === "delivered" ? order.deliveredAt ?? now : order.deliveredAt;
+        const proofOfDelivery =
+          action.payload.status === "delivered"
+            ? order.proofOfDelivery ?? createAutoProofOfDelivery({ ...order, deliveredAt: deliveredAt ?? now })
+            : order.proofOfDelivery;
+        const candidateOrder = {
+          ...order,
+          updatedAt: now,
+          status: action.payload.status,
+          deliveredAt
+        };
+        const receipt = isReceiptEligible(nextSettlement.status)
+          ? generateDeliveryReceipt(candidateOrder, nextSettlement)
+          : order.receipt ?? null;
+
+        nextNotifications = appendDeliveryNotification(nextNotifications, {
+          orderId: order.id,
+          title: `Delivery ${getDeliveryStatusLabel(action.payload.status)}`,
+          body:
+            action.payload.status === "cancelled" && cancellationFee > 0
+              ? `Cancelled with ${formatCurrencyUGX(cancellationFee)} fee at current stage.`
+              : action.payload.note ?? `${getDeliveryStatusLabel(action.payload.status)} stage reached.`,
+          category: action.payload.status === "cancelled" ? "payment" : "status",
+          createdAt: now
+        });
+
         return {
           ...order,
           status: action.payload.status,
@@ -422,9 +556,17 @@ function appReducer(state: AppState, action: AppAction): AppState {
                   source: "system"
                 }
               ],
-          deliveredAt:
-            action.payload.status === "delivered" ? order.deliveredAt ?? now : order.deliveredAt,
-          cancelledReason: action.payload.status === "cancelled" ? action.payload.note : order.cancelledReason
+          deliveredAt,
+          cancelledReason:
+            action.payload.status === "cancelled"
+              ? action.payload.note ??
+                (cancellationFee > 0
+                  ? `Cancelled by rider. ${formatCurrencyUGX(cancellationFee)} fee applied.`
+                  : "Cancelled by rider.")
+              : order.cancelledReason,
+          settlement: nextSettlement,
+          receipt,
+          proofOfDelivery
         };
       });
 
@@ -438,12 +580,428 @@ function appReducer(state: AppState, action: AppAction): AppState {
         delivery: {
           ...state.delivery,
           orders: updatedOrders,
-          activeOrder
+          activeOrder,
+          notifications: nextNotifications
         }
       };
     }
+    case "delivery/contact": {
+      const now = new Date().toISOString();
+      const updatedOrders = state.delivery.orders.map((order) => {
+        if (order.id !== action.payload.orderId) {
+          return order;
+        }
+
+        return {
+          ...order,
+          contactEvents: [...(order.contactEvents ?? []), { type: action.payload.contactType, timestamp: now }]
+        };
+      });
+
+      const activeOrderId = state.delivery.activeOrder?.id;
+      const activeOrder = activeOrderId
+        ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
+        : state.delivery.activeOrder;
+
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: updatedOrders,
+          activeOrder,
+          notifications: appendDeliveryNotification(state.delivery.notifications, {
+            orderId: action.payload.orderId,
+            title: "Support touchpoint logged",
+            body: `Rider used ${action.payload.contactType} for this delivery.`,
+            category: "system",
+            createdAt: now
+          })
+        }
+      };
+    }
+    case "delivery/exception": {
+      const now = new Date().toISOString();
+      let nextNotifications = state.delivery.notifications;
+      const updatedOrders = state.delivery.orders.map((order) => {
+        if (order.id !== action.payload.orderId) {
+          return order;
+        }
+
+        const exception = createDeliveryException(
+          order.id,
+          action.payload.type,
+          action.payload.note,
+          action.payload.requestedRefundAmount
+        );
+        const nextStatus = getStatusFromException(action.payload.type, order.status);
+        const paymentMethodType = getPaymentMethodType(state.paymentMethods, order.paymentMethodId);
+        const currentSettlement =
+          order.settlement ?? initializeDeliverySettlement(order, paymentMethodType, now);
+        const refundedSettlement =
+          action.payload.type === "dispute_refund" ? requestSettlementRefund(currentSettlement, now) : currentSettlement;
+        const nextSettlement = applySettlementForDeliveryStatus(
+          refundedSettlement,
+          order,
+          nextStatus,
+          0,
+          now
+        );
+
+        nextNotifications = appendDeliveryNotification(nextNotifications, {
+          orderId: order.id,
+          title: DELIVERY_EXCEPTION_LABELS[action.payload.type],
+          body: action.payload.note,
+          category: "exception",
+          createdAt: now
+        });
+
+        return {
+          ...order,
+          status: nextStatus,
+          updatedAt: now,
+          exceptions: [...(order.exceptions ?? []), exception],
+          settlement: nextSettlement,
+          timeline: [
+            ...order.timeline,
+            {
+              status: nextStatus,
+              timestamp: now,
+              note: `${DELIVERY_EXCEPTION_LABELS[action.payload.type]} reported`,
+              source: "rider"
+            }
+          ]
+        };
+      });
+
+      const activeOrderId = state.delivery.activeOrder?.id;
+      const activeOrder = activeOrderId
+        ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
+        : state.delivery.activeOrder;
+
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: updatedOrders,
+          activeOrder,
+          notifications: nextNotifications
+        }
+      };
+    }
+    case "delivery/exception-resolve": {
+      const now = new Date().toISOString();
+      const updatedOrders = state.delivery.orders.map((order) => {
+        if (order.id !== action.payload.orderId) {
+          return order;
+        }
+
+        return {
+          ...order,
+          updatedAt: now,
+          exceptions: (order.exceptions ?? []).map((item) =>
+            item.id === action.payload.exceptionId ? resolveDeliveryException(item, action.payload.resolution) : item
+          )
+        };
+      });
+
+      const activeOrderId = state.delivery.activeOrder?.id;
+      const activeOrder = activeOrderId
+        ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
+        : state.delivery.activeOrder;
+
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: updatedOrders,
+          activeOrder,
+          notifications: appendDeliveryNotification(state.delivery.notifications, {
+            orderId: action.payload.orderId,
+            title: "Exception resolved",
+            body: action.payload.resolution,
+            category: "exception",
+            createdAt: now
+          })
+        }
+      };
+    }
+    case "delivery/proof": {
+      const now = new Date().toISOString();
+      const updatedOrders = state.delivery.orders.map((order) => {
+        if (order.id !== action.payload.orderId) {
+          return order;
+        }
+
+        return {
+          ...order,
+          updatedAt: now,
+          proofOfDelivery: action.payload.proof
+        };
+      });
+
+      const activeOrderId = state.delivery.activeOrder?.id;
+      const activeOrder = activeOrderId
+        ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
+        : state.delivery.activeOrder;
+
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: updatedOrders,
+          activeOrder,
+          notifications: appendDeliveryNotification(state.delivery.notifications, {
+            orderId: action.payload.orderId,
+            title: "Proof of delivery captured",
+            body: "Recipient verification is now available in history.",
+            category: "proof",
+            createdAt: now
+          })
+        }
+      };
+    }
+    case "delivery/schedule": {
+      const now = new Date().toISOString();
+      const updatedOrders = state.delivery.orders.map((order) => {
+        if (order.id !== action.payload.orderId) {
+          return order;
+        }
+
+        return {
+          ...order,
+          schedule: "scheduled",
+          scheduleTime: action.payload.scheduleTime,
+          estimatedDropoffAt: action.payload.scheduleTime,
+          updatedAt: now
+        };
+      });
+
+      const activeOrderId = state.delivery.activeOrder?.id;
+      const activeOrder = activeOrderId
+        ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
+        : state.delivery.activeOrder;
+
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: updatedOrders,
+          activeOrder,
+          notifications: appendDeliveryNotification(state.delivery.notifications, {
+            orderId: action.payload.orderId,
+            title: "Delivery schedule updated",
+            body: `New schedule set for ${new Date(action.payload.scheduleTime).toLocaleString("en-UG")}.`,
+            category: "schedule",
+            createdAt: now
+          })
+        }
+      };
+    }
+    case "delivery/cancel-scheduled": {
+      const now = new Date().toISOString();
+      let nextNotifications = state.delivery.notifications;
+      const updatedOrders = state.delivery.orders.map((order) => {
+        if (order.id !== action.payload.orderId) {
+          return order;
+        }
+        const cancellation = calculateScheduledCancellationFee(order);
+        const paymentMethodType = getPaymentMethodType(state.paymentMethods, order.paymentMethodId);
+        const currentSettlement =
+          order.settlement ?? initializeDeliverySettlement(order, paymentMethodType, now);
+        const nextSettlement = applySettlementForDeliveryStatus(
+          currentSettlement,
+          order,
+          "cancelled",
+          cancellation.fee,
+          now
+        );
+        const receipt = isReceiptEligible(nextSettlement.status)
+          ? generateDeliveryReceipt({ ...order, status: "cancelled", updatedAt: now }, nextSettlement)
+          : order.receipt ?? null;
+
+        nextNotifications = appendDeliveryNotification(nextNotifications, {
+          orderId: order.id,
+          title: "Scheduled delivery cancelled",
+          body: `${action.payload.reason}. Fee: ${formatCurrencyUGX(cancellation.fee)} (${cancellation.feePercent}%).`,
+          category: "payment",
+          createdAt: now
+        });
+
+        return {
+          ...order,
+          status: "cancelled",
+          updatedAt: now,
+          cancelledReason: `${action.payload.reason}. ${formatCurrencyUGX(cancellation.fee)} fee applied.`,
+          settlement: nextSettlement,
+          receipt
+        };
+      });
+
+      const activeOrderId = state.delivery.activeOrder?.id;
+      const activeOrder = activeOrderId
+        ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
+        : state.delivery.activeOrder;
+
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: updatedOrders,
+          activeOrder,
+          notifications: nextNotifications
+        }
+      };
+    }
+    case "delivery/rating": {
+      const now = new Date().toISOString();
+      const updatedOrders = state.delivery.orders.map((order) => {
+        if (order.id !== action.payload.orderId) {
+          return order;
+        }
+
+        return {
+          ...order,
+          rating: {
+            score: action.payload.score,
+            tags: action.payload.tags,
+            comment: action.payload.comment,
+            submittedAt: now
+          }
+        };
+      });
+
+      const activeOrderId = state.delivery.activeOrder?.id;
+      const activeOrder = activeOrderId
+        ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
+        : state.delivery.activeOrder;
+
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: updatedOrders,
+          activeOrder,
+          notifications: appendDeliveryNotification(state.delivery.notifications, {
+            orderId: action.payload.orderId,
+            title: "Thanks for your rating",
+            body: "Your delivery feedback has been recorded.",
+            category: "system",
+            createdAt: now
+          })
+        }
+      };
+    }
+    case "delivery/settlement-capture": {
+      const now = new Date().toISOString();
+      const updatedOrders = state.delivery.orders.map((order) => {
+        if (order.id !== action.payload.orderId) {
+          return order;
+        }
+
+        const paymentMethodType = getPaymentMethodType(state.paymentMethods, order.paymentMethodId);
+        const currentSettlement =
+          order.settlement ?? initializeDeliverySettlement(order, paymentMethodType, now);
+        const nextSettlement =
+          currentSettlement.policy === "cash_on_delivery"
+            ? {
+                ...currentSettlement,
+                status: "cash_collected",
+                capturedAmount: order.costBreakdown.total,
+                capturedAt: now,
+                note: "Cash collected and settled manually."
+              }
+            : {
+                ...currentSettlement,
+                status: "captured",
+                capturedAmount: order.costBreakdown.total,
+                capturedAt: now,
+                note: "Captured from delivery settlement console."
+              };
+        const receipt = generateDeliveryReceipt(order, nextSettlement);
+
+        return {
+          ...order,
+          updatedAt: now,
+          settlement: nextSettlement,
+          receipt
+        };
+      });
+
+      const activeOrderId = state.delivery.activeOrder?.id;
+      const activeOrder = activeOrderId
+        ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
+        : state.delivery.activeOrder;
+
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: updatedOrders,
+          activeOrder,
+          notifications: appendDeliveryNotification(state.delivery.notifications, {
+            orderId: action.payload.orderId,
+            title: "Settlement captured",
+            body: "Delivery payment has been captured and receipt generated.",
+            category: "payment",
+            createdAt: now
+          })
+        }
+      };
+    }
+    case "delivery/notifications-read":
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          notifications: state.delivery.notifications.map((item) => ({ ...item, read: true }))
+        }
+      };
     case "delivery/realtime": {
-      const updatedOrders = state.delivery.orders.map((order) => applyRealtimePatch(order, action.payload));
+      const now = new Date().toISOString();
+      let nextNotifications = state.delivery.notifications;
+      const updatedOrders = state.delivery.orders.map((order) => {
+        const patchedOrder = applyRealtimePatch(order, action.payload);
+        if (patchedOrder.id !== action.payload.orderId) {
+          return patchedOrder;
+        }
+
+        if (patchedOrder.status === order.status) {
+          return patchedOrder;
+        }
+
+        const paymentMethodType = getPaymentMethodType(state.paymentMethods, patchedOrder.paymentMethodId);
+        const currentSettlement =
+          patchedOrder.settlement ?? initializeDeliverySettlement(patchedOrder, paymentMethodType, now);
+        const nextSettlement = applySettlementForDeliveryStatus(
+          currentSettlement,
+          patchedOrder,
+          patchedOrder.status,
+          0,
+          now
+        );
+        const proofOfDelivery =
+          patchedOrder.status === "delivered"
+            ? patchedOrder.proofOfDelivery ?? createAutoProofOfDelivery(patchedOrder)
+            : patchedOrder.proofOfDelivery;
+        const receipt = isReceiptEligible(nextSettlement.status)
+          ? generateDeliveryReceipt(patchedOrder, nextSettlement)
+          : patchedOrder.receipt ?? null;
+
+        nextNotifications = appendDeliveryNotification(nextNotifications, {
+          orderId: patchedOrder.id,
+          title: `Realtime update: ${getDeliveryStatusLabel(patchedOrder.status)}`,
+          body: action.payload.note ?? "Delivery state changed from live tracking updates.",
+          category: "status",
+          createdAt: now
+        });
+
+        return {
+          ...patchedOrder,
+          settlement: nextSettlement,
+          proofOfDelivery,
+          receipt
+        };
+      });
       const activeOrderId = state.delivery.activeOrder?.id;
       const activeOrder = activeOrderId
         ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
@@ -454,12 +1012,53 @@ function appReducer(state: AppState, action: AppAction): AppState {
           ...state.delivery,
           orders: updatedOrders,
           activeOrder,
+          notifications: nextNotifications,
           lastRealtimeSync: new Date().toISOString()
         }
       };
     }
     case "delivery/poll": {
-      const updatedOrders = state.delivery.orders.map((order) => simulateDeliveryPollTick(order));
+      const now = new Date().toISOString();
+      let nextNotifications = state.delivery.notifications;
+      const updatedOrders = state.delivery.orders.map((order) => {
+        const updatedOrder = simulateDeliveryPollTick(order);
+        if (updatedOrder.status === order.status) {
+          return updatedOrder;
+        }
+
+        const paymentMethodType = getPaymentMethodType(state.paymentMethods, updatedOrder.paymentMethodId);
+        const currentSettlement =
+          updatedOrder.settlement ?? initializeDeliverySettlement(updatedOrder, paymentMethodType, now);
+        const nextSettlement = applySettlementForDeliveryStatus(
+          currentSettlement,
+          updatedOrder,
+          updatedOrder.status,
+          0,
+          now
+        );
+        const proofOfDelivery =
+          updatedOrder.status === "delivered"
+            ? updatedOrder.proofOfDelivery ?? createAutoProofOfDelivery(updatedOrder)
+            : updatedOrder.proofOfDelivery;
+        const receipt = isReceiptEligible(nextSettlement.status)
+          ? generateDeliveryReceipt(updatedOrder, nextSettlement)
+          : updatedOrder.receipt ?? null;
+
+        nextNotifications = appendDeliveryNotification(nextNotifications, {
+          orderId: updatedOrder.id,
+          title: `Tracking update: ${getDeliveryStatusLabel(updatedOrder.status)}`,
+          body: "Delivery timeline progressed from polling updates.",
+          category: "status",
+          createdAt: now
+        });
+
+        return {
+          ...updatedOrder,
+          settlement: nextSettlement,
+          proofOfDelivery,
+          receipt
+        };
+      });
       const activeOrderId = state.delivery.activeOrder?.id;
       const activeOrder = activeOrderId
         ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
@@ -470,6 +1069,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           ...state.delivery,
           orders: updatedOrders,
           activeOrder,
+          notifications: nextNotifications,
           lastRealtimeSync: new Date().toISOString()
         }
       };
@@ -646,6 +1246,51 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     dispatch({ type: "delivery/status", payload: { orderId, status, note } });
   }, []);
 
+  const logDeliveryContactEvent = useCallback((orderId: string, contactType: DeliveryContactType) => {
+    dispatch({ type: "delivery/contact", payload: { orderId, contactType } });
+  }, []);
+
+  const reportDeliveryException = useCallback(
+    (params: { orderId: string; type: DeliveryExceptionType; note: string; requestedRefundAmount?: number }) => {
+      dispatch({ type: "delivery/exception", payload: params });
+    },
+    []
+  );
+
+  const resolveDeliveryExceptionById = useCallback(
+    (orderId: string, exceptionId: string, resolution: string) => {
+      dispatch({ type: "delivery/exception-resolve", payload: { orderId, exceptionId, resolution } });
+    },
+    []
+  );
+
+  const submitProofOfDelivery = useCallback((orderId: string, proof: DeliveryProofOfDelivery) => {
+    dispatch({ type: "delivery/proof", payload: { orderId, proof } });
+  }, []);
+
+  const updateScheduledDelivery = useCallback((orderId: string, scheduleTime: string) => {
+    dispatch({ type: "delivery/schedule", payload: { orderId, scheduleTime } });
+  }, []);
+
+  const cancelScheduledDelivery = useCallback((orderId: string, reason: string) => {
+    dispatch({ type: "delivery/cancel-scheduled", payload: { orderId, reason } });
+  }, []);
+
+  const submitDeliveryRating = useCallback(
+    (orderId: string, payload: { score: number; tags: string[]; comment?: string }) => {
+      dispatch({ type: "delivery/rating", payload: { orderId, ...payload } });
+    },
+    []
+  );
+
+  const captureDeliverySettlement = useCallback((orderId: string) => {
+    dispatch({ type: "delivery/settlement-capture", payload: { orderId } });
+  }, []);
+
+  const markDeliveryNotificationsRead = useCallback(() => {
+    dispatch({ type: "delivery/notifications-read" });
+  }, []);
+
   const applyDeliveryRealtimePatch = useCallback((patch: DeliveryRealtimePatch) => {
     dispatch({ type: "delivery/realtime", payload: patch });
   }, []);
@@ -783,6 +1428,15 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       setActiveDelivery,
       setActiveDeliveryById,
       updateDeliveryOrderStatus,
+      logDeliveryContactEvent,
+      reportDeliveryException,
+      resolveDeliveryException: resolveDeliveryExceptionById,
+      submitProofOfDelivery,
+      updateScheduledDelivery,
+      cancelScheduledDelivery,
+      submitDeliveryRating,
+      captureDeliverySettlement,
+      markDeliveryNotificationsRead,
       applyDeliveryRealtimePatch,
       updateRentalBooking,
       selectRentalVehicle,
@@ -813,6 +1467,15 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       setActiveDelivery,
       setActiveDeliveryById,
       updateDeliveryOrderStatus,
+      logDeliveryContactEvent,
+      reportDeliveryException,
+      resolveDeliveryExceptionById,
+      submitProofOfDelivery,
+      updateScheduledDelivery,
+      cancelScheduledDelivery,
+      submitDeliveryRating,
+      captureDeliverySettlement,
+      markDeliveryNotificationsRead,
       applyDeliveryRealtimePatch,
       updateRentalBooking,
       selectRentalVehicle,

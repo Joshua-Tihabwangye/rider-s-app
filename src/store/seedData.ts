@@ -19,6 +19,15 @@ import type {
   SosState,
   RideOption
 } from "./types";
+import {
+  applySettlementForDeliveryStatus,
+  generateDeliveryReceipt,
+  initializeDeliverySettlement,
+  isReceiptEligible
+} from "../features/delivery/payment";
+import { createAutoProofOfDelivery } from "../features/delivery/proof";
+import { DEFAULT_DELIVERY_SCHEDULE_POLICY } from "../features/delivery/schedulePolicy";
+import { createDeliveryNotification } from "../features/delivery/notifications";
 
 /**
  * Default mock user returned after successful authentication.
@@ -60,6 +69,13 @@ export const SEED_PAYMENT_METHODS: PaymentMethod[] = [
     type: "mobile_money",
     label: "MTN Mobile Money",
     detail: "", // phone is derived from user profile
+    isDefault: false
+  },
+  {
+    id: "pm_cash",
+    type: "cash",
+    label: "Cash on delivery",
+    detail: "Recipient pays courier at handoff",
     isDefault: false
   }
 ];
@@ -289,6 +305,26 @@ export const SEED_RIDE_STATE: RideState = {
 };
 
 /** Delivery state */
+function getPaymentType(paymentMethodId: string): PaymentMethod["type"] {
+  if (paymentMethodId === "pm_cash") {
+    return "cash";
+  }
+  if (paymentMethodId === "pm_card_1") {
+    return "card";
+  }
+  if (paymentMethodId === "pm_momo_1") {
+    return "mobile_money";
+  }
+  return "wallet";
+}
+
+function getSeedScheduleTime(daysFromNow: number, hour: number, minute: number): string {
+  const timestamp = new Date();
+  timestamp.setDate(timestamp.getDate() + daysFromNow);
+  timestamp.setHours(hour, minute, 0, 0);
+  return timestamp.toISOString();
+}
+
 function createSeedDeliveryOrder(params: {
   id: string;
   packageName: string;
@@ -306,9 +342,14 @@ function createSeedDeliveryOrder(params: {
   distanceKm: number;
   progress: number;
   scheduled?: boolean;
+  paymentMethodId?: string;
 }): DeliveryOrder {
   const now = new Date().toISOString();
-  return {
+  const paymentMethodId = params.paymentMethodId ?? "pm_wallet";
+  const scheduleTime = params.scheduled ? getSeedScheduleTime(1, 9, 30) : "";
+  const deliveredAt = params.status === "delivered" ? now : undefined;
+
+  const baseOrder: DeliveryOrder = {
     id: params.id,
     createdAt: now,
     updatedAt: now,
@@ -337,8 +378,8 @@ function createSeedDeliveryOrder(params: {
       address: params.recipientAddress
     },
     schedule: params.scheduled ? "scheduled" : "now",
-    scheduleTime: params.scheduled ? "Tomorrow, 09:30" : "",
-    paymentMethodId: "pm_wallet",
+    scheduleTime,
+    paymentMethodId,
     costBreakdown: {
       deliveryFee: 6500,
       serviceFee: 1200,
@@ -379,7 +420,33 @@ function createSeedDeliveryOrder(params: {
     date: new Date(),
     time: `${Math.max(params.etaMinutes, 5)} min`,
     progress: params.progress,
-    needsPayment: false
+    needsPayment: false,
+    exceptions: [],
+    contactEvents: [],
+    schedulePolicy: DEFAULT_DELIVERY_SCHEDULE_POLICY,
+    estimatedDropoffAt: params.scheduled ? scheduleTime : undefined,
+    deliveredAt
+  };
+
+  const initializedSettlement = initializeDeliverySettlement(
+    baseOrder,
+    getPaymentType(paymentMethodId),
+    now
+  );
+  const settlement = applySettlementForDeliveryStatus(
+    initializedSettlement,
+    baseOrder,
+    params.status,
+    0,
+    now
+  );
+  const receipt = isReceiptEligible(settlement.status) ? generateDeliveryReceipt(baseOrder, settlement) : null;
+
+  return {
+    ...baseOrder,
+    settlement,
+    receipt,
+    proofOfDelivery: params.status === "delivered" ? createAutoProofOfDelivery(baseOrder) : null
   };
 }
 
@@ -399,7 +466,8 @@ const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
     status: "in_transit",
     etaMinutes: 24,
     distanceKm: 8.6,
-    progress: 64
+    progress: 64,
+    paymentMethodId: "pm_card_1"
   }),
   createSeedDeliveryOrder({
     id: "DLV-2026-04-10-102",
@@ -417,7 +485,8 @@ const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
     etaMinutes: 36,
     distanceKm: 11.2,
     progress: 12,
-    scheduled: true
+    scheduled: true,
+    paymentMethodId: "pm_cash"
   }),
   createSeedDeliveryOrder({
     id: "DLV-2026-04-09-088",
@@ -434,7 +503,8 @@ const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
     status: "delivered",
     etaMinutes: 0,
     distanceKm: 0,
-    progress: 100
+    progress: 100,
+    paymentMethodId: "pm_momo_1"
   })
 ];
 
@@ -463,6 +533,20 @@ export const SEED_DELIVERY_STATE: DeliveryState = {
   },
   activeOrder: SEED_DELIVERY_ORDERS[0] ?? null,
   orders: SEED_DELIVERY_ORDERS,
+  notifications: [
+    createDeliveryNotification({
+      orderId: "DLV-2026-04-10-101",
+      title: "Courier in transit",
+      body: "Your parcel is on the way and arriving soon.",
+      category: "status"
+    }),
+    createDeliveryNotification({
+      orderId: "DLV-2026-04-09-088",
+      title: "Proof of delivery available",
+      body: "View recipient confirmation, timestamp, and dropoff location.",
+      category: "proof"
+    })
+  ],
   websocketConnected: false,
   lastRealtimeSync: undefined
 };
