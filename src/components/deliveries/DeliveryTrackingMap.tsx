@@ -4,6 +4,7 @@ import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import MapShell from "../maps/MapShell";
 
 interface DeliveryTrackingMapProps {
   pickupLabel: string;
@@ -11,7 +12,12 @@ interface DeliveryTrackingMapProps {
   courierPosition: number;
   etaLabel: string;
   statusLabel: string;
-  height?: number;
+  height?: number | string;
+  rounded?: boolean;
+  fullBleed?: boolean;
+  showBackButton?: boolean;
+  onBack?: () => void;
+  showControls?: boolean;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -24,7 +30,12 @@ export default function DeliveryTrackingMap({
   courierPosition,
   etaLabel,
   statusLabel,
-  height = 240
+  height = 240,
+  rounded = false,
+  fullBleed = true,
+  showBackButton = false,
+  onBack,
+  showControls = false
 }: DeliveryTrackingMapProps): React.JSX.Element {
   const start = { x: 16, y: 78 };
   const end = { x: 84, y: 24 };
@@ -40,12 +51,14 @@ export default function DeliveryTrackingMap({
   const length = Math.sqrt(dx * dx + dy * dy);
 
   return (
-    <Box
-      sx={{
-        position: "relative",
-        borderRadius: 3,
-        overflow: "hidden",
-        height,
+    <MapShell
+      height={height}
+      rounded={rounded}
+      fullBleed={fullBleed}
+      showControls={showControls}
+      showBackButton={showBackButton}
+      onBack={onBack}
+      canvasSx={{
         background:
           "radial-gradient(circle at 25% 15%, rgba(3,205,140,0.2), rgba(236,253,245,0.95) 40%, rgba(226,232,240,0.9) 100%)"
       }}
@@ -130,6 +143,6 @@ export default function DeliveryTrackingMap({
           {dropoffLabel}
         </Typography>
       </Box>
-    </Box>
+    </MapShell>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  Box,
   Button,
   Card,
   CardContent,
@@ -13,8 +14,10 @@ import {
   StepLabel,
   Stepper,
   TextField,
-  Typography
+  Typography,
+  useMediaQuery
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded";
@@ -98,6 +101,8 @@ function canProceed(step: number, draft: DeliveryDraft): boolean {
 
 export default function DeliveryCreate(): React.JSX.Element {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isPhone = useMediaQuery(theme.breakpoints.down("sm"));
   const { delivery, paymentMethods, actions } = useAppData();
   const [activeStep, setActiveStep] = useState<number>(0);
   const [submitError, setSubmitError] = useState<string>("");
@@ -169,13 +174,37 @@ export default function DeliveryCreate(): React.JSX.Element {
 
       <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
         <CardContent>
-          <Stepper activeStep={activeStep} alternativeLabel>
-            {CREATION_STEPS.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+          <Stack spacing={isPhone ? uiTokens.spacing.sm : 0}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                Progress
+              </Typography>
+              <Chip
+                size="small"
+                label={`Step ${activeStep + 1} of ${CREATION_STEPS.length}`}
+                sx={{ borderRadius: uiTokens.radius.xl }}
+              />
+            </Stack>
+            <Box sx={{ overflowX: "auto" }}>
+              <Stepper
+                activeStep={activeStep}
+                alternativeLabel={!isPhone}
+                orientation={isPhone ? "vertical" : "horizontal"}
+                sx={{
+                  minWidth: isPhone ? "auto" : 560,
+                  "& .MuiStepLabel-label": {
+                    fontSize: isPhone ? 12 : undefined
+                  }
+                }}
+              >
+                {CREATION_STEPS.map((label) => (
+                  <Step key={label}>
+                    <StepLabel>{label}</StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+            </Box>
+          </Stack>
         </CardContent>
       </Card>
 

@@ -134,6 +134,16 @@ export function getTimelineView(status: DeliveryStatus): Array<{
     ];
   }
 
+  if (status === "delivered") {
+    return DELIVERY_STATE_FLOW
+      .filter((item) => item !== "draft")
+      .map((item) => ({
+        status: item,
+        label: getDeliveryStatusLabel(item),
+        state: "done" as const
+      }));
+  }
+
   const maxIndex = Math.max(DELIVERY_STATE_FLOW.indexOf(status), 0);
 
   return DELIVERY_STATE_FLOW

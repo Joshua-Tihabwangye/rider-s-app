@@ -103,11 +103,25 @@ function modeFromPath(pathname: string): string {
   return mode ?? "details";
 }
 
+const DELIVERED_ALLOWED_MODES = new Set([
+  "delivered",
+  "proof",
+  "receipt",
+  "rating",
+  "driver",
+  "timeline",
+  "live",
+  "details",
+  "received",
+  "payment"
+]);
+
 export default function DeliveryTrackingRealtime(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const { orderId = "" } = useParams<{ orderId: string }>();
   const { delivery, actions } = useAppData();
+  const setActiveDeliveryById = actions.setActiveDeliveryById;
 
   const mode = modeFromPath(location.pathname);
   const [isRefreshing, setIsRefreshing] = useState(true);
@@ -133,21 +147,21 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
     if (!orderId) {
       return;
     }
-    actions.setActiveDeliveryById(orderId);
-  }, [actions, orderId]);
+    setActiveDeliveryById(orderId);
+  }, [setActiveDeliveryById, orderId]);
 
   useEffect(() => {
     setIsRefreshing(true);
     const timer = window.setTimeout(() => setIsRefreshing(false), 280);
     return () => window.clearTimeout(timer);
-  }, [orderId, mode, delivery.lastRealtimeSync]);
+  }, [orderId, mode]);
 
   useEffect(() => {
     if (!order || !orderId) {
       return;
     }
 
-    if (order.status === "delivered" && mode !== "delivered" && mode !== "proof" && mode !== "receipt" && mode !== "rating") {
+    if (order.status === "delivered" && !DELIVERED_ALLOWED_MODES.has(mode)) {
       navigate(`/deliveries/tracking/${orderId}/delivered`, { replace: true });
     }
     if (order.status === "cancelled" && mode !== "cancel") {
@@ -236,48 +250,30 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
   };
 
   return (
-    <ScreenScaffold>
-      <SectionHeader
-        title={`Tracking ${order.id}`}
-        subtitle={getDeliveryStatusDescription(order.status)}
-        leadingAction={
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
-            sx={{
-              borderRadius: uiTokens.radius.xl,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-        }
-        action={
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Chip
-              size="small"
-              label={delivery.websocketConnected ? "Live" : "Polling"}
-              sx={{
-                height: 22,
-                borderRadius: 5,
-                fontSize: 10,
-                bgcolor: delivery.websocketConnected ? "rgba(34,197,94,0.14)" : "rgba(59,130,246,0.14)",
-                color: delivery.websocketConnected ? "#16A34A" : "#1D4ED8"
-              }}
-            />
-          </Stack>
-        }
-      />
-
+    <ScreenScaffold disableTopPadding>
       {isRefreshing ? (
         <>
-          <Skeleton variant="rounded" height={220} sx={{ borderRadius: uiTokens.radius.xl }} />
+          <Box
+            sx={{
+              width: {
+                xs: "calc(100% + (var(--rider-shell-content-px-xs, 20px) * 2))",
+                md: "calc(100% + (var(--rider-shell-content-px-md, 24px) * 2))"
+              },
+              mx: {
+                xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
+                md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
+              },
+              height: "clamp(252px, 42vh, 360px)",
+              overflow: "hidden"
+            }}
+          >
+            <Skeleton variant="rectangular" height="100%" />
+          </Box>
+          <Box sx={{ pt: 1.5 }}>
+            <Skeleton variant="text" width={120} height={28} />
+            <Skeleton variant="text" width={220} height={24} />
+            <Skeleton variant="text" width={280} height={20} />
+          </Box>
           <Skeleton variant="rounded" height={98} sx={{ borderRadius: uiTokens.radius.xl }} />
         </>
       ) : (
@@ -288,7 +284,37 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
             courierPosition={order.tracking.courierPosition}
             etaLabel={etaLabel}
             statusLabel={statusLabel}
+            height="clamp(252px, 42vh, 360px)"
+            showBackButton
+            onBack={() => navigate(-1)}
+            fullBleed
           />
+
+          <Stack direction="row" spacing={1} alignItems="flex-start" justifyContent="space-between" sx={{ mt: 1.5 }}>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                Tracking
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: (t) => t.palette.text.primary }}>
+                Order ID: {order.id}
+              </Typography>
+              <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                {getDeliveryStatusDescription(order.status)}
+              </Typography>
+            </Box>
+            <Chip
+              size="small"
+              label={delivery.websocketConnected ? "Live" : "Polling"}
+              sx={{
+                height: 22,
+                borderRadius: 5,
+                fontSize: 10,
+                bgcolor: delivery.websocketConnected ? "rgba(34,197,94,0.14)" : "rgba(59,130,246,0.14)",
+                color: delivery.websocketConnected ? "#16A34A" : "#1D4ED8",
+                mt: 0.2
+              }}
+            />
+          </Stack>
 
           <DeliveryStatusSummary
             pickupLabel={order.pickup.label}
@@ -353,6 +379,36 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
           </Stack>
         </CardContent>
       </Card>
+
+      {mode === "delivered" && (
+        <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl, border: "1px solid rgba(34,197,94,0.28)" }}>
+          <CardContent>
+            <Stack direction="row" spacing={1.2} alignItems="center" justifyContent="space-between">
+              <Stack direction="row" spacing={1.2} alignItems="center">
+                <CheckCircleRoundedIcon sx={{ fontSize: 24, color: "#16A34A" }} />
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#16A34A" }}>
+                    Delivered
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                    Completed at {formatDateTime(order.deliveredAt ?? order.updatedAt)}
+                  </Typography>
+                </Box>
+              </Stack>
+              <Chip
+                size="small"
+                label="Closed"
+                sx={{
+                  borderRadius: 5,
+                  fontWeight: 700,
+                  bgcolor: "rgba(34,197,94,0.14)",
+                  color: "#15803D"
+                }}
+              />
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
 
       {(mode === "driver" || mode === "live" || mode === "details" || mode === "received") && order.courier && (
         <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
@@ -508,9 +564,10 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
             </Typography>
             <Button
               size="small"
+              color="error"
               startIcon={<ReportProblemRoundedIcon sx={{ fontSize: 14 }} />}
               onClick={() => setExceptionDialogOpen(true)}
-              sx={{ textTransform: "none" }}
+              sx={{ textTransform: "none", fontWeight: 600 }}
             >
               Report issue
             </Button>

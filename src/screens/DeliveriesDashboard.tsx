@@ -6,10 +6,11 @@ import {
   Box,
   Button,
   Dialog,
-  DialogTitle,
+  DialogActions,
   DialogContent,
   DialogContentText,
-  DialogActions,
+  DialogTitle,
+  Divider,
   IconButton,
   InputAdornment,
   Menu,
@@ -25,15 +26,13 @@ import {
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import TrackChangesRoundedIcon from "@mui/icons-material/TrackChangesRounded";
-import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
-import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import PersonAddRoundedIcon from "@mui/icons-material/PersonAddRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
+import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import DeliveryCard from "../components/deliveries/DeliveryCard";
-import ActionGrid from "../components/primitives/ActionGrid";
 import AppCard from "../components/primitives/AppCard";
 import InlineStat from "../components/primitives/InlineStat";
 import ListSection from "../components/primitives/ListSection";
@@ -47,10 +46,33 @@ import { calculateDeliveryKpis } from "../features/delivery/analytics";
 
 const DELIVERY_TERMINAL_STATUSES = ["delivered", "cancelled", "failed"] as const;
 
+function formatDateLabel(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString("en-UG", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function statusTone(status: DeliveryOrder["status"]): { bg: string; fg: string } {
+  if (status === "delivered") {
+    return { bg: "rgba(34,197,94,0.14)", fg: "#15803D" };
+  }
+  if (status === "cancelled" || status === "failed") {
+    return { bg: "rgba(248,113,113,0.16)", fg: "#B91C1C" };
+  }
+  return { bg: "rgba(148,163,184,0.18)", fg: "#475569" };
+}
+
 function DeliveryDashboardHomeScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { delivery, actions } = useAppData();
-  const [viewMode, setViewMode] = useState<string>("sending");
   const [activeTab, setActiveTab] = useState<string>("delivering");
   const [trackingNumber, setTrackingNumber] = useState<string>("");
   const [menuAnchor, setMenuAnchor] = useState<{
@@ -68,34 +90,33 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
     open: false,
     orderId: null
   });
-  const unreadNotifications = delivery.notifications.filter((item) => !item.read).length;
 
+  const unreadNotifications = delivery.notifications.filter((item) => !item.read).length;
   const deliveringOrders: DeliveryOrder[] = delivery.orders.filter(
     (order) => !DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
   );
   const receivedOrders: DeliveryOrder[] = delivery.orders.filter(
     (order) => DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
   );
+  const pendingDeliveriesCount = deliveringOrders.filter((order) => order.status === "requested").length;
+  const completedDeliveriesCount = delivery.orders.filter((order) => order.status === "delivered").length;
 
-  const pendingDeliveriesCount = deliveringOrders.filter(
-    (order) => order.status === "requested"
-  ).length;
-
-  const recentDeliveries = delivery.orders.slice(0, 3).map((order) => ({
-    route: `${order.sender.city} → ${order.receiver.city}`,
-    status: getDeliveryStatusLabel(order.status),
-    code: order.id,
-    date: order.time || order.updatedAt,
-    type: "sent"
-  }));
-  const hasRecentDeliveries = recentDeliveries.length > 0;
   const kpis = useMemo(() => calculateDeliveryKpis(delivery.orders), [delivery.orders]);
+
+  const historyRows = useMemo(
+    () =>
+      [...delivery.orders]
+        .filter((order) => order.status === "delivered")
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+        .slice(0, 3),
+    [delivery.orders]
+  );
 
   useEffect(() => {
     setIsLoading(true);
-    const timer = window.setTimeout(() => setIsLoading(false), 280);
+    const timer = window.setTimeout(() => setIsLoading(false), 220);
     return () => window.clearTimeout(timer);
-  }, [delivery.orders.length, activeTab, delivery.lastRealtimeSync]);
+  }, [delivery.orders.length, activeTab]);
 
   const handleTrackShipment = (): void => {
     if (trackingNumber.trim()) {
@@ -131,11 +152,13 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
     navigate(`/deliveries/tracking/${orderId}/payment`);
   };
 
+  const listOrders = activeTab === "delivering" ? deliveringOrders : receivedOrders;
+
   return (
     <ScreenScaffold>
       <SectionHeader
         title="Deliveries"
-        subtitle="Send parcels, track EV riders, and see incoming packages"
+        subtitle="Command center for sending, receiving, and history"
         leadingAction={
           <IconButton
             size="small"
@@ -143,8 +166,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
             onClick={() => navigate(-1)}
             sx={{
               borderRadius: uiTokens.radius.xl,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+              bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)"),
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
@@ -177,10 +199,11 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
 
       <PrimarySection variant="warning">
         <SectionHeader
-          eyebrow="Delivery control"
-          title="We deliver happiness"
-          subtitle="Track active operations and create new shipments quickly."
+          eyebrow="Operations"
+          title="Delivery command"
+          subtitle="Monitor live workload, switch sending or receiving, and dispatch quickly."
         />
+
         <Box
           sx={{
             display: "grid",
@@ -189,19 +212,11 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
           }}
         >
           <InlineStat label="Active" value={`${deliveringOrders.length}`} />
-          <InlineStat
-            label="Completed"
-            value={`${delivery.orders.filter((order) => order.status === "delivered").length}`}
-          />
+          <InlineStat label="Completed" value={`${completedDeliveriesCount}`} />
           <InlineStat label="Pending" value={`${pendingDeliveriesCount}`} />
-          <InlineStat
-            label="Date"
-            value={new Date().toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric"
-            })}
-          />
+          <InlineStat label="Unread" value={`${unreadNotifications}`} />
         </Box>
+
         <Box
           sx={{
             display: "grid",
@@ -215,6 +230,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
           <InlineStat label="Failed handoff %" value={`${kpis.failedHandoffPercent}%`} />
           <InlineStat label="Support contact %" value={`${kpis.supportContactRate}%`} />
         </Box>
+
         <Box sx={{ display: "grid", gap: uiTokens.spacing.smPlus, gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" } }}>
           <Button
             variant="contained"
@@ -255,20 +271,16 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
       </PrimarySection>
 
       <AppCard variant="muted">
-        <SectionHeader
-          eyebrow="Track shipment"
-          title="Find your order by ID"
-          compact
-        />
+        <SectionHeader eyebrow="Quick lookup" title="Track by order ID" compact />
         <TextField
           fullWidth
           id="tracking-field"
           size="small"
           placeholder="Order ID"
           value={trackingNumber}
-          onChange={(e) => setTrackingNumber(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
+          onChange={(event) => setTrackingNumber(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
               handleTrackShipment();
             }
           }}
@@ -310,11 +322,11 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
         sx={{
           display: "grid",
           gap: uiTokens.spacing.lg,
-          gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1.35fr) minmax(0, 1fr)" },
+          gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1.3fr) minmax(0, 0.9fr)" },
           alignItems: "start"
         }}
       >
-        <Box>
+        <AppCard>
           <Tabs
             value={activeTab}
             onChange={(_event: React.SyntheticEvent, newValue: string) => setActiveTab(newValue)}
@@ -361,16 +373,16 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
                 <Skeleton variant="rounded" height={132} sx={{ borderRadius: uiTokens.radius.xl }} />
                 <Skeleton variant="rounded" height={132} sx={{ borderRadius: uiTokens.radius.xl }} />
               </Stack>
-            ) : (activeTab === "delivering" ? deliveringOrders : receivedOrders).length === 0 ? (
+            ) : listOrders.length === 0 ? (
               <AppCard variant="muted">
                 <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
                   {activeTab === "delivering"
-                    ? "No active deliveries. Create a delivery or track an incoming shipment."
-                    : "No completed deliveries yet. Delivered parcels will appear here."}
+                    ? "No active deliveries right now. Create a delivery to get started."
+                    : "No closed deliveries yet. Completed, cancelled, or failed orders appear here."}
                 </Typography>
               </AppCard>
             ) : (
-              (activeTab === "delivering" ? deliveringOrders : receivedOrders).map((order) => (
+              listOrders.map((order) => (
                 <DeliveryCard
                   key={order.id}
                   order={order}
@@ -387,116 +399,121 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
               ))
             )}
           </ListSection>
-        </Box>
+        </AppCard>
 
-        <Stack spacing={2}>
-          <ActionGrid>
-            <AppCard
-              variant={viewMode === "sending" ? "warning" : "muted"}
-              onClick={() => setViewMode("sending")}
-            >
-              <Stack direction="row" spacing={1} alignItems="center">
-                <ArrowUpwardRoundedIcon sx={{ fontSize: 16, color: uiTokens.colors.warning }} />
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="caption" sx={{ ...uiTokens.text.eyebrow, color: (t) => t.palette.text.secondary }}>
-                    Sending
-                  </Typography>
-                  <Typography variant="body2" sx={{ ...uiTokens.text.itemTitle, mt: uiTokens.spacing.xxs }}>
-                    Next: Bugolobi → Makerere
-                  </Typography>
-                </Box>
-              </Stack>
-            </AppCard>
+        <AppCard>
+          <SectionHeader
+            eyebrow="History"
+            title="Recent closed orders"
+            action={
+              <Button
+                size="small"
+                onClick={() => navigate("/history/all")}
+                sx={{ fontSize: 11, textTransform: "none", color: (t) => t.palette.text.secondary }}
+              >
+                View all
+              </Button>
+            }
+            compact
+          />
 
-            <AppCard
-              variant={viewMode === "receiving" ? "brand" : "muted"}
-              onClick={() => {
-                setViewMode("receiving");
-                navigate("/deliveries/tracking/incoming");
-              }}
-            >
-              <Stack direction="row" spacing={1} alignItems="center">
-                <ArrowDownwardRoundedIcon sx={{ fontSize: 16, color: uiTokens.colors.brand }} />
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="caption" sx={{ ...uiTokens.text.eyebrow, color: (t) => t.palette.text.secondary }}>
-                    Receiving
-                  </Typography>
-                  <Typography variant="body2" sx={{ ...uiTokens.text.itemTitle, mt: uiTokens.spacing.xxs }}>
-                    Arriving: Kansanga → City Centre
-                  </Typography>
-                </Box>
-              </Stack>
-            </AppCard>
-          </ActionGrid>
-
-          <AppCard>
-            <SectionHeader
-              eyebrow="Recent"
-              title="Recent deliveries"
-              action={
-                <Button
-                  size="small"
-                  onClick={() => navigate("/history/all")}
-                  sx={{ fontSize: 11, textTransform: "none", color: (t) => t.palette.text.secondary }}
-                >
-                  View history
-                </Button>
-              }
-              compact
-            />
-            <ListSection sx={{ mt: uiTokens.spacing.sm }}>
-              {hasRecentDeliveries ?
-                recentDeliveries.map((delivery) => (
-                  <Box
-                    key={delivery.code}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: uiTokens.spacing.sm,
-                      py: uiTokens.spacing.xs,
-                      borderBottom: (t) => `1px dashed ${t.palette.divider}`
-                    }}
-                  >
-                    <Stack direction="row" spacing={0.85} alignItems="center" sx={{ flex: 1 }}>
-                      {delivery.type === "sent" ? (
-                        <ArrowUpwardRoundedIcon sx={{ fontSize: 15, color: uiTokens.colors.warning }} />
-                      ) : (
-                        <ArrowDownwardRoundedIcon sx={{ fontSize: 15, color: uiTokens.colors.brand }} />
-                      )}
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography variant="body2" sx={{ fontSize: 12.5, fontWeight: 600 }}>
-                          {delivery.route}
-                        </Typography>
-                        <Typography variant="caption" sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary }}>
-                          {delivery.code} • {delivery.date}
-                        </Typography>
+          <ListSection sx={{ mt: uiTokens.spacing.sm }}>
+            {historyRows.length === 0 ? (
+              <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                Completed and cancelled deliveries will appear here once available.
+              </Typography>
+            ) : (
+              historyRows.map((order, index) => {
+                const tone = statusTone(order.status);
+                return (
+                  <Box key={order.id}>
+                    <Box sx={{ display: "grid", gridTemplateColumns: "16px 1fr auto", gap: 1, alignItems: "start", py: 0.6 }}>
+                      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", pt: 0.25 }}>
+                        <Box
+                          sx={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: "50%",
+                            bgcolor: tone.fg
+                          }}
+                        />
+                        {index < historyRows.length - 1 && (
+                          <Box sx={{ width: 2, flex: 1, minHeight: 24, bgcolor: "rgba(148,163,184,0.35)", mt: 0.4 }} />
+                        )}
                       </Box>
-                    </Stack>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        fontSize: 9.5,
-                        fontWeight: 700,
-                        color:
-                          delivery.status === "Delivered"
-                            ? uiTokens.colors.successText
-                            : uiTokens.colors.amber900
-                      }}
-                    >
-                      {delivery.status}
-                    </Typography>
-                  </Box>
-                )) : (
-                  <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
-                    Recent deliveries will appear here after your first completed order.
-                  </Typography>
-                )}
-            </ListSection>
-          </AppCard>
-        </Stack>
-      </Box>
 
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          {order.sender.city} to {order.receiver.city}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                          {order.id} • {formatDateLabel(order.updatedAt)}
+                        </Typography>
+                        <Stack direction="row" spacing={0.6} sx={{ mt: 0.35 }}>
+                          {order.proofOfDelivery && (
+                            <Typography variant="caption" sx={{ color: "#15803D", fontWeight: 600 }}>
+                              Proof ready
+                            </Typography>
+                          )}
+                          {order.receipt && (
+                            <Typography variant="caption" sx={{ color: "#1D4ED8", fontWeight: 600 }}>
+                              Receipt ready
+                            </Typography>
+                          )}
+                        </Stack>
+                      </Box>
+
+                      <Box sx={{ textAlign: "right" }}>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            px: 1,
+                            py: 0.3,
+                            borderRadius: 4,
+                            bgcolor: tone.bg,
+                            color: tone.fg,
+                            fontWeight: 700,
+                            display: "inline-block"
+                          }}
+                        >
+                          {getDeliveryStatusLabel(order.status)}
+                        </Typography>
+                        <Box sx={{ mt: 0.4 }}>
+                          <Button
+                            size="small"
+                            onClick={() => navigate(`/deliveries/tracking/${order.id}/details`)}
+                            sx={{ textTransform: "none", fontSize: 11, minWidth: 0, px: 0 }}
+                          >
+                            Open
+                          </Button>
+                        </Box>
+                      </Box>
+                    </Box>
+                    {index < historyRows.length - 1 && <Divider sx={{ my: 0.6 }} />}
+                  </Box>
+                );
+              })
+            )}
+          </ListSection>
+
+          <Box
+            sx={{
+              mt: uiTokens.spacing.sm,
+              px: uiTokens.spacing.sm,
+              py: uiTokens.spacing.xs,
+              borderRadius: uiTokens.radius.md,
+              bgcolor: (t) => (t.palette.mode === "light" ? "rgba(15,23,42,0.03)" : "rgba(148,163,184,0.08)")
+            }}
+          >
+            <Stack direction="row" spacing={1} alignItems="center">
+              <LocalShippingRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
+              <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                History quality: on-time {kpis.onTimePercent}% • support contact {kpis.supportContactRate}%
+              </Typography>
+            </Stack>
+          </Box>
+        </AppCard>
+      </Box>
 
       <Menu
         anchorEl={menuAnchor.anchorEl}
@@ -528,9 +545,12 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
             if (navigator.share) {
               navigator.share(shareData).catch(() => {});
             } else if (navigator.clipboard) {
-              navigator.clipboard.writeText(shareUrl).then(() => {
-                setShareSnackbar(true);
-              }).catch(() => {});
+              navigator.clipboard
+                .writeText(shareUrl)
+                .then(() => {
+                  setShareSnackbar(true);
+                })
+                .catch(() => {});
             }
             setMenuAnchor({ open: false, anchorEl: null, orderId: null });
           }}
@@ -543,7 +563,6 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
         </MenuItem>
       </Menu>
 
-      {/* Reject Delivery Confirmation Dialog */}
       <Dialog
         open={rejectDialog.open}
         onClose={() => setRejectDialog({ open: false, orderId: null })}
@@ -576,7 +595,6 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
         </DialogActions>
       </Dialog>
 
-      {/* Share Link Copied Snackbar */}
       <Snackbar
         open={shareSnackbar}
         autoHideDuration={3000}
