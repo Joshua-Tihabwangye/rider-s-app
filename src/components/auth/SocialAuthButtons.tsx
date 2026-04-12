@@ -40,7 +40,7 @@ function AppleIcon(): React.JSX.Element {
 }
 
 const SOCIAL_BUTTONS: { provider: AuthProvider; label: string; icon: React.JSX.Element }[] = [
-  { provider: "evzone", label: "Continue with EV Zone", icon: <EvzoneIcon /> },
+  { provider: "evzone", label: "Continue with EVzone", icon: <EvzoneIcon /> },
   { provider: "google", label: "Continue with Google", icon: <GoogleIcon /> },
   { provider: "apple", label: "Continue with Apple", icon: <AppleIcon /> }
 ];
@@ -51,11 +51,11 @@ export default function SocialAuthButtons({
   disabledProvider = null
 }: SocialAuthButtonsProps): React.JSX.Element {
   return (
-    <Stack spacing={1.5}>
-      <Divider sx={{ my: 0.5 }}>
+    <Stack spacing={{ xs: 1.1, sm: 1.5 }}>
+      <Divider sx={{ my: { xs: 0.25, sm: 0.5 } }}>
         <Typography
           variant="caption"
-          sx={{ color: (t) => t.palette.text.secondary, fontSize: 11, px: 1 }}
+          sx={{ color: (t) => t.palette.text.secondary, fontSize: 11, px: 1, lineHeight: 1 }}
         >
           or
         </Typography>
@@ -72,9 +72,12 @@ export default function SocialAuthButtons({
             onClick={() => onProvider(provider)}
             startIcon={isLoading ? <CircularProgress size={18} /> : icon}
             sx={{
-              py: 1.15,
-              fontSize: 13,
+              py: { xs: 1, sm: 1.15 },
+              minHeight: 44,
+              fontSize: { xs: 12.5, sm: 13 },
               fontWeight: 600,
+              lineHeight: 1.2,
+              whiteSpace: "normal",
               textTransform: "none",
               borderRadius: "var(--evz-radius-md)",
               borderColor: (t) =>

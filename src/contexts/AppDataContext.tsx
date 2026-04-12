@@ -163,7 +163,7 @@ type AppAction =
   | { type: "ride/set-active"; payload: RideTrip | null }
   | { type: "delivery/draft"; payload: Partial<DeliveryDraft> }
   | { type: "delivery/reset-draft" }
-  | { type: "delivery/create-order"; payload: { orderId: string; senderName: string } }
+  | { type: "delivery/create-order"; payload: { orderId: string; senderName: string; senderPhone: string } }
   | { type: "delivery/active"; payload: DeliveryOrder | null }
   | { type: "delivery/active-by-id"; payload: string }
   | { type: "delivery/status"; payload: { orderId: string; status: DeliveryStatus; note?: string } }
@@ -288,7 +288,7 @@ function estimateDistanceKm(pickupAddress: string, dropoffAddress: string): numb
 
 function createDeliveryOrderFromDraft(
   state: AppState,
-  payload: { orderId: string; senderName: string }
+  payload: { orderId: string; senderName: string; senderPhone: string }
 ): DeliveryOrder | null {
   const { draft } = state.delivery;
   if (!draft.pickup || !draft.dropoff || !draft.recipient || !draft.parcel.description.trim()) {
@@ -309,10 +309,16 @@ function createDeliveryOrderFromDraft(
     id: payload.orderId,
     createdAt: now,
     updatedAt: now,
+    participantRole: "sender",
     status: "requested",
     pickup: draft.pickup,
     dropoff: draft.dropoff,
     parcel: draft.parcel,
+    senderContact: {
+      name: payload.senderName,
+      phone: payload.senderPhone,
+      address: draft.pickup.address
+    },
     recipient: draft.recipient,
     orderMode: draft.orderMode,
     orderModeConfig: draft.orderModeConfig,
@@ -562,6 +568,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
           ...order,
           status: action.payload.status,
           updatedAt: now,
+          needsPayment:
+            action.payload.status === "delivered" ||
+            action.payload.status === "cancelled" ||
+            action.payload.status === "failed"
+              ? false
+              : order.needsPayment,
           progress: nextProgress,
           time: order.tracking.etaMinutes > 0 ? `${order.tracking.etaMinutes} min` : "Arrived",
           tracking: {
@@ -949,6 +961,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         return {
           ...order,
           updatedAt: now,
+          needsPayment: false,
           settlement: nextSettlement,
           receipt
         };
@@ -1253,13 +1266,14 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       .toString()
       .slice(-4)}`;
     const senderName = user?.fullName ?? "Rider";
-    const previewOrder = createDeliveryOrderFromDraft(state, { orderId, senderName });
+    const senderPhone = user?.phone ?? "+256 700 000 000";
+    const previewOrder = createDeliveryOrderFromDraft(state, { orderId, senderName, senderPhone });
     if (!previewOrder) {
       return null;
     }
-    dispatch({ type: "delivery/create-order", payload: { orderId, senderName } });
+    dispatch({ type: "delivery/create-order", payload: { orderId, senderName, senderPhone } });
     return previewOrder;
-  }, [state, user?.fullName]);
+  }, [state, user?.fullName, user?.phone]);
 
   const setActiveDelivery = useCallback((order: DeliveryOrder | null) => {
     dispatch({ type: "delivery/active", payload: order });
