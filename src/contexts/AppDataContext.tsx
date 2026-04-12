@@ -531,13 +531,26 @@ function appReducer(state: AppState, action: AppAction): AppState {
         const nextProgress = Math.max(order.tracking.progress, getDeliveryStatusProgress(action.payload.status));
         const paymentMethodType = getPaymentMethodType(state.paymentMethods, order.paymentMethodId);
         const currentSettlement = order.settlement ?? initializeDeliverySettlement(order, paymentMethodType, now);
-        const nextSettlement = applySettlementForDeliveryStatus(
+        let nextSettlement = applySettlementForDeliveryStatus(
           currentSettlement,
           order,
           action.payload.status,
           cancellationFee,
           now
         );
+        if (
+          order.participantRole === "receiver" &&
+          nextSettlement.policy === "cash_on_delivery" &&
+          action.payload.status === "delivered"
+        ) {
+          nextSettlement = {
+            ...nextSettlement,
+            status: "cash_due",
+            capturedAmount: 0,
+            capturedAt: undefined,
+            note: "Awaiting recipient payment confirmation."
+          };
+        }
         const deliveredAt = action.payload.status === "delivered" ? order.deliveredAt ?? now : order.deliveredAt;
         const proofOfDelivery =
           action.payload.status === "delivered"
@@ -564,16 +577,16 @@ function appReducer(state: AppState, action: AppAction): AppState {
           createdAt: now
         });
 
+        const needsPayment =
+          order.participantRole === "receiver" &&
+          nextSettlement.policy === "cash_on_delivery" &&
+          nextSettlement.status === "cash_due";
+
         return {
           ...order,
           status: action.payload.status,
           updatedAt: now,
-          needsPayment:
-            action.payload.status === "delivered" ||
-            action.payload.status === "cancelled" ||
-            action.payload.status === "failed"
-              ? false
-              : order.needsPayment,
+          needsPayment,
           progress: nextProgress,
           time: order.tracking.etaMinutes > 0 ? `${order.tracking.etaMinutes} min` : "Arrived",
           tracking: {
@@ -1012,13 +1025,26 @@ function appReducer(state: AppState, action: AppAction): AppState {
         const paymentMethodType = getPaymentMethodType(state.paymentMethods, patchedOrder.paymentMethodId);
         const currentSettlement =
           patchedOrder.settlement ?? initializeDeliverySettlement(patchedOrder, paymentMethodType, now);
-        const nextSettlement = applySettlementForDeliveryStatus(
+        let nextSettlement = applySettlementForDeliveryStatus(
           currentSettlement,
           patchedOrder,
           patchedOrder.status,
           0,
           now
         );
+        if (
+          patchedOrder.participantRole === "receiver" &&
+          nextSettlement.policy === "cash_on_delivery" &&
+          patchedOrder.status === "delivered"
+        ) {
+          nextSettlement = {
+            ...nextSettlement,
+            status: "cash_due",
+            capturedAmount: 0,
+            capturedAt: undefined,
+            note: "Awaiting recipient payment confirmation."
+          };
+        }
         const proofOfDelivery =
           patchedOrder.status === "delivered"
             ? patchedOrder.proofOfDelivery ?? createAutoProofOfDelivery(patchedOrder)
@@ -1026,6 +1052,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
         const receipt = isReceiptEligible(nextSettlement.status)
           ? generateDeliveryReceipt(patchedOrder, nextSettlement)
           : patchedOrder.receipt ?? null;
+        const needsPayment =
+          patchedOrder.participantRole === "receiver" &&
+          nextSettlement.policy === "cash_on_delivery" &&
+          nextSettlement.status === "cash_due";
 
         nextNotifications = appendDeliveryNotification(nextNotifications, {
           orderId: patchedOrder.id,
@@ -1037,6 +1067,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
         return {
           ...patchedOrder,
+          needsPayment,
           settlement: nextSettlement,
           proofOfDelivery,
           receipt
@@ -1069,13 +1100,26 @@ function appReducer(state: AppState, action: AppAction): AppState {
         const paymentMethodType = getPaymentMethodType(state.paymentMethods, updatedOrder.paymentMethodId);
         const currentSettlement =
           updatedOrder.settlement ?? initializeDeliverySettlement(updatedOrder, paymentMethodType, now);
-        const nextSettlement = applySettlementForDeliveryStatus(
+        let nextSettlement = applySettlementForDeliveryStatus(
           currentSettlement,
           updatedOrder,
           updatedOrder.status,
           0,
           now
         );
+        if (
+          updatedOrder.participantRole === "receiver" &&
+          nextSettlement.policy === "cash_on_delivery" &&
+          updatedOrder.status === "delivered"
+        ) {
+          nextSettlement = {
+            ...nextSettlement,
+            status: "cash_due",
+            capturedAmount: 0,
+            capturedAt: undefined,
+            note: "Awaiting recipient payment confirmation."
+          };
+        }
         const proofOfDelivery =
           updatedOrder.status === "delivered"
             ? updatedOrder.proofOfDelivery ?? createAutoProofOfDelivery(updatedOrder)
@@ -1083,6 +1127,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
         const receipt = isReceiptEligible(nextSettlement.status)
           ? generateDeliveryReceipt(updatedOrder, nextSettlement)
           : updatedOrder.receipt ?? null;
+        const needsPayment =
+          updatedOrder.participantRole === "receiver" &&
+          nextSettlement.policy === "cash_on_delivery" &&
+          nextSettlement.status === "cash_due";
 
         nextNotifications = appendDeliveryNotification(nextNotifications, {
           orderId: updatedOrder.id,
@@ -1094,6 +1142,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
         return {
           ...updatedOrder,
+          needsPayment,
           settlement: nextSettlement,
           proofOfDelivery,
           receipt

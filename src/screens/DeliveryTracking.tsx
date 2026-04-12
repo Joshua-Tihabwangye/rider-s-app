@@ -719,14 +719,14 @@ export default function DeliveryTracking(): React.JSX.Element {
               >
                 Confirm receipt
               </Button>
-              {order.needsPayment && (
+              {order.needsPayment && order.status === "delivered" && (
                 <Button
                   variant="outlined"
                   onClick={() => navigate(`/deliveries/settlement/${order.id}`)}
                   sx={{ textTransform: "none" }}
-                  aria-label="Pay for incoming delivery"
+                  aria-label="Make payment for incoming delivery"
                 >
-                  Pay on delivery
+                  Make payment
                 </Button>
               )}
             </Stack>

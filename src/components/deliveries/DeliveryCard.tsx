@@ -330,7 +330,7 @@ export default function DeliveryCard({
           </Stack>
         )}
 
-        {order.needsPayment && isReceived && (
+        {order.needsPayment && isReceived && order.status === "delivered" && (
           <Button
             fullWidth
             variant="contained"
@@ -345,7 +345,7 @@ export default function DeliveryCard({
               "&:hover": { bgcolor: uiTokens.colors.brandHover }
             }}
           >
-            Make Payment
+            Make payment
           </Button>
         )}
       </Stack>
