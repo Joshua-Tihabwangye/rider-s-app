@@ -18,7 +18,11 @@ import AppCard from "../primitives/AppCard";
 import { uiTokens } from "../../design/tokens";
 import { formatDeliveryDateParts } from "../../utils/dateUtils";
 import { getDeliveryStatusLabel } from "../../features/delivery/stateMachine";
-import type { DeliveryStatus } from "../../store/types";
+import {
+  getDeliveryOrderModeLabel,
+  getDeliveryOrderModeTone
+} from "../../features/delivery/orderMode";
+import type { DeliveryOrderMode, DeliveryStatus } from "../../store/types";
 
 interface SenderInfo {
   name?: string;
@@ -38,6 +42,7 @@ interface DeliveryOrder {
   id: string;
   packageName: string;
   status: string;
+  orderMode?: DeliveryOrderMode;
   progress?: number;
   date?: Date;
   time?: string;
@@ -111,13 +116,34 @@ export default function DeliveryCard({
             <Typography variant="subtitle2" sx={{ ...uiTokens.text.itemTitle, mb: 0.2 }}>
               {order.packageName}
             </Typography>
-            <Typography variant="caption" sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary }}>
-              Tracking ID: {order.id}
-            </Typography>
+            <Stack direction="row" spacing={0.7} alignItems="center" useFlexGap flexWrap="wrap">
+              <Typography variant="caption" sx={{ ...uiTokens.text.itemBody, color: (t) => t.palette.text.secondary }}>
+                Tracking ID: {order.id}
+              </Typography>
+              {order.orderMode && (
+                <Chip
+                  size="small"
+                  label={getDeliveryOrderModeLabel(order.orderMode)}
+                  sx={{
+                    height: 20,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    bgcolor: getDeliveryOrderModeTone(order.orderMode).bg,
+                    color: getDeliveryOrderModeTone(order.orderMode).fg,
+                    border: `1px solid ${getDeliveryOrderModeTone(order.orderMode).border}`
+                  }}
+                />
+              )}
+            </Stack>
           </Box>
 
           {onMenuClick && (
-            <IconButton size="small" onClick={(e) => onMenuClick(e, order.id)} sx={{ color: (t) => t.palette.text.secondary }}>
+            <IconButton
+              size="small"
+              onClick={(e) => onMenuClick(e, order.id)}
+              aria-label={`Open actions for ${order.id}`}
+              sx={{ color: (t) => t.palette.text.secondary }}
+            >
               <MoreVertRoundedIcon sx={{ fontSize: 18 }} />
             </IconButton>
           )}

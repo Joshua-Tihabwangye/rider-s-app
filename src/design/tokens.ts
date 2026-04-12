@@ -98,6 +98,33 @@ export const uiTokens = {
     cardHover: "var(--evz-shadow-raised)",
     raised: "var(--evz-shadow-raised)"
   },
+  focus: {
+    ring: "0 0 0 3px rgba(3,205,140,0.35)"
+  },
+  delivery: {
+    spacing: {
+      section: 1.5,
+      block: 1.1,
+      compact: 0.8
+    },
+    radius: {
+      card: 5,
+      control: 3,
+      chip: 5
+    },
+    typography: {
+      header: 16,
+      sectionTitle: 14,
+      body: 13,
+      caption: 11
+    },
+    button: {
+      mdHeight: 40,
+      smHeight: 34,
+      mdFontSize: 13,
+      smFontSize: 12
+    }
+  },
   map: {
     canvas: "var(--evz-map-canvas)",
     canvasEmphasis: "var(--evz-map-canvas-emphasis)",

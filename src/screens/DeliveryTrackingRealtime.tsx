@@ -18,7 +18,8 @@ import {
   Tab,
   Tabs,
   TextField,
-  Typography
+  Typography,
+  useMediaQuery
 } from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
@@ -52,6 +53,11 @@ import {
   canEditScheduledOrder
 } from "../features/delivery/schedulePolicy";
 import { formatProofMethodLabel } from "../features/delivery/proof";
+import {
+  getDeliveryOrderModeLabel,
+  getDeliveryOrderModeSummary,
+  getDeliveryOrderModeTone
+} from "../features/delivery/orderMode";
 import type { DeliveryExceptionType } from "../store/types";
 
 const EXCEPTION_TYPES: DeliveryExceptionType[] = [
@@ -121,6 +127,7 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
   const [searchParams, setSearchParams] = useSearchParams();
   const { orderId = "" } = useParams<{ orderId: string }>();
   const { delivery, actions } = useAppData();
+  const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const setActiveDeliveryById = actions.setActiveDeliveryById;
 
   const activeTab = parseTrackingTab(searchParams.get("tab"));
@@ -220,9 +227,9 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
     setSearchParams(nextParams, { replace: true });
   };
 
-  const scrollToRef = (target: React.RefObject<HTMLDivElement>, tab: TrackingTab): void => {
+  const scrollToRef = (target: React.RefObject<HTMLDivElement | null>, tab: TrackingTab): void => {
     setTrackingTab(tab);
-    target.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    target.current?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
   };
 
   const handleSectionTabChange = (nextTab: TrackingTab): void => {
@@ -322,7 +329,7 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
         </>
       ) : (
         <>
-          <Box ref={mapRef}>
+          <Box ref={mapRef} id="tracking-section-overview">
             <DeliveryTrackingMap
               pickupLabel={order.pickup.label}
               dropoffLabel={order.dropoff.label}
@@ -350,18 +357,32 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
                 Parcel: {order.parcel.description} • Recipient: {order.recipient.name}
               </Typography>
             </Box>
-            <Chip
-              size="small"
-              label={delivery.websocketConnected ? "Live" : "Polling"}
-              sx={{
-                height: 22,
-                borderRadius: 5,
-                fontSize: 10,
-                bgcolor: delivery.websocketConnected ? "rgba(34,197,94,0.14)" : "rgba(59,130,246,0.14)",
-                color: delivery.websocketConnected ? "#16A34A" : "#1D4ED8",
-                mt: 0.2
-              }}
-            />
+            <Stack spacing={0.6} alignItems="flex-end" sx={{ mt: 0.2 }}>
+              <Chip
+                size="small"
+                label={getDeliveryOrderModeLabel(order.orderMode)}
+                sx={{
+                  height: 22,
+                  borderRadius: uiTokens.delivery.radius.chip,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  bgcolor: getDeliveryOrderModeTone(order.orderMode).bg,
+                  color: getDeliveryOrderModeTone(order.orderMode).fg,
+                  border: `1px solid ${getDeliveryOrderModeTone(order.orderMode).border}`
+                }}
+              />
+              <Chip
+                size="small"
+                label={delivery.websocketConnected ? "Live" : "Polling"}
+                sx={{
+                  height: 22,
+                  borderRadius: 5,
+                  fontSize: 10,
+                  bgcolor: delivery.websocketConnected ? "rgba(34,197,94,0.14)" : "rgba(59,130,246,0.14)",
+                  color: delivery.websocketConnected ? "#166534" : "#1E40AF"
+                }}
+              />
+            </Stack>
           </Stack>
 
           <DeliveryStatusSummary
@@ -392,13 +413,37 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
                 }}
               >
                 {TRACKING_TAB_OPTIONS.map((tab) => (
-                  <Tab key={tab.value} value={tab.value} label={tab.label} />
+                  <Tab
+                    key={tab.value}
+                    value={tab.value}
+                    label={tab.label}
+                    id={`tracking-tab-${tab.value}`}
+                    aria-controls={`tracking-section-${tab.value}`}
+                  />
                 ))}
               </Tabs>
             </CardContent>
           </Card>
         </>
       )}
+
+      <Box
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        sx={{
+          position: "absolute",
+          width: 1,
+          height: 1,
+          p: 0,
+          m: -1,
+          overflow: "hidden",
+          clip: "rect(0, 0, 0, 0)",
+          border: 0
+        }}
+      >
+        {`Order ${order.id} is ${statusLabel}. ETA ${etaLabel}.`}
+      </Box>
 
       <Card ref={timelineRef} elevation={0} sx={{ borderRadius: uiTokens.radius.xl }} aria-live="polite">
         <CardContent>
@@ -484,7 +529,7 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
         </Card>
       )}
 
-      <Card ref={courierRef} elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+      <Card ref={courierRef} id="tracking-section-courier" elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
         <CardContent>
           {order.courier ? (
             <>
@@ -544,7 +589,7 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      <Card ref={proofRef} elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+      <Card ref={proofRef} id="tracking-section-proof" elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
         <CardContent>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#16A34A", mb: 1 }}>
             Proof of delivery
@@ -569,10 +614,31 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      <Card ref={receiptRef} elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+      <Card ref={receiptRef} id="tracking-section-receipt" elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
         <CardContent>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-            Receipt
+          <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+              Receipt
+            </Typography>
+            <Chip
+              size="small"
+              label={getDeliveryOrderModeLabel(order.orderMode)}
+              sx={{
+                height: 22,
+                borderRadius: uiTokens.delivery.radius.chip,
+                fontSize: 10,
+                fontWeight: 700,
+                bgcolor: getDeliveryOrderModeTone(order.orderMode).bg,
+                color: getDeliveryOrderModeTone(order.orderMode).fg,
+                border: `1px solid ${getDeliveryOrderModeTone(order.orderMode).border}`
+              }}
+            />
+          </Stack>
+          <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary, display: "block", mb: 1 }}>
+            {getDeliveryOrderModeSummary({
+              orderMode: order.orderMode,
+              orderModeConfig: order.orderModeConfig
+            })}
           </Typography>
           {order.receipt ? (
             <Stack spacing={0.8}>
@@ -615,7 +681,7 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
         </Card>
       )}
 
-      <Card ref={supportRef} elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+      <Card ref={supportRef} id="tracking-section-support" elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
           <CardContent>
             <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
@@ -684,6 +750,7 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
               href={order.courier ? `tel:${order.courier.phone}` : undefined}
               onClick={handleCallCourier}
               disabled={!order.courier}
+              aria-label="Call courier now"
               sx={{ textTransform: "none" }}
             >
               Call
@@ -693,6 +760,7 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
               startIcon={<MessageRoundedIcon sx={{ fontSize: 16 }} />}
               onClick={handleChatCourier}
               disabled={!order.courier}
+              aria-label="Open courier chat"
               sx={{ textTransform: "none" }}
             >
               Chat
@@ -702,6 +770,7 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
               color="error"
               startIcon={<ReportProblemRoundedIcon sx={{ fontSize: 16 }} />}
               onClick={() => setExceptionDialogOpen(true)}
+              aria-label="Report delivery issue"
               sx={{ textTransform: "none" }}
             >
               Report issue
@@ -713,6 +782,7 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
               variant="outlined"
               onClick={() => scrollToRef(proofRef, "proof")}
               startIcon={<FactCheckRoundedIcon sx={{ fontSize: 16 }} />}
+              aria-label="View proof of delivery"
               sx={{ textTransform: "none" }}
             >
               View proof
@@ -721,6 +791,7 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
               variant="outlined"
               onClick={() => scrollToRef(receiptRef, "receipt")}
               startIcon={<ReceiptLongRoundedIcon sx={{ fontSize: 16 }} />}
+              aria-label="View receipt section"
               sx={{ textTransform: "none" }}
             >
               View receipt
@@ -729,6 +800,7 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
               variant="outlined"
               onClick={() => navigate(`/deliveries/rating/${order.id}`)}
               startIcon={<StarRoundedIcon sx={{ fontSize: 16 }} />}
+              aria-label="Rate this delivery"
               sx={{ textTransform: "none" }}
             >
               Rate delivery
@@ -736,11 +808,17 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
             <Button
               variant="outlined"
               onClick={() => scrollToRef(timelineRef, "overview")}
+              aria-label="Open status timeline"
               sx={{ textTransform: "none" }}
             >
               Timeline
             </Button>
-            <Button variant="outlined" onClick={() => scrollToRef(mapRef, "overview")} sx={{ textTransform: "none" }}>
+            <Button
+              variant="outlined"
+              onClick={() => scrollToRef(mapRef, "overview")}
+              aria-label="Open live map"
+              sx={{ textTransform: "none" }}
+            >
               Live map
             </Button>
           </Stack>
@@ -776,9 +854,18 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
         </Stack>
       </DeliveryBottomSheet>
 
-      <Dialog open={exceptionDialogOpen} onClose={() => setExceptionDialogOpen(false)} fullWidth>
-        <DialogTitle>Report delivery issue</DialogTitle>
+      <Dialog
+        open={exceptionDialogOpen}
+        onClose={() => setExceptionDialogOpen(false)}
+        fullWidth
+        aria-labelledby="delivery-exception-dialog-title"
+        aria-describedby="delivery-exception-dialog-desc"
+      >
+        <DialogTitle id="delivery-exception-dialog-title">Report delivery issue</DialogTitle>
         <DialogContent>
+          <Typography id="delivery-exception-dialog-desc" variant="body2" sx={{ color: (t) => t.palette.text.secondary, mb: 1 }}>
+            Choose an issue type and include clear details so support can resolve quickly.
+          </Typography>
           <Stack spacing={1.2} sx={{ mt: 0.5 }}>
             <TextField
               select
@@ -822,10 +909,16 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={scheduleDialogOpen} onClose={() => setScheduleDialogOpen(false)} fullWidth>
-        <DialogTitle>Edit scheduled delivery</DialogTitle>
+      <Dialog
+        open={scheduleDialogOpen}
+        onClose={() => setScheduleDialogOpen(false)}
+        fullWidth
+        aria-labelledby="delivery-schedule-dialog-title"
+        aria-describedby="delivery-schedule-dialog-desc"
+      >
+        <DialogTitle id="delivery-schedule-dialog-title">Edit scheduled delivery</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary, mb: 1.2 }}>
+          <Typography id="delivery-schedule-dialog-desc" variant="body2" sx={{ color: (t) => t.palette.text.secondary, mb: 1.2 }}>
             You can update schedule until {order.schedulePolicy?.rescheduleCutoffMinutes ?? 30} minutes before pickup.
           </Typography>
           <TextField
@@ -847,10 +940,19 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={cancelDialogOpen} onClose={() => setCancelDialogOpen(false)} fullWidth>
-        <DialogTitle>Cancel delivery</DialogTitle>
+      <Dialog
+        open={cancelDialogOpen}
+        onClose={() => setCancelDialogOpen(false)}
+        fullWidth
+        aria-labelledby="delivery-cancel-dialog-title"
+        aria-describedby="delivery-cancel-dialog-desc"
+      >
+        <DialogTitle id="delivery-cancel-dialog-title">Cancel delivery</DialogTitle>
         <DialogContent>
           <Stack spacing={1.2} sx={{ mt: 0.5 }}>
+            <Typography id="delivery-cancel-dialog-desc" variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+              Confirm cancellation reason. Any applicable fee is shown before final confirmation.
+            </Typography>
             <TextField
               label="Reason"
               size="small"

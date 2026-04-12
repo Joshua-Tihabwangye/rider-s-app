@@ -15,6 +15,11 @@ import SectionHeader from "../components/primitives/SectionHeader";
 import AppCard from "../components/primitives/AppCard";
 import { useAppData } from "../contexts/AppDataContext";
 import { uiTokens } from "../design/tokens";
+import {
+  getDeliveryOrderModeLabel,
+  getDeliveryOrderModeSummary,
+  getDeliveryOrderModeTone
+} from "../features/delivery/orderMode";
 
 function formatAmount(value: number): string {
   return `UGX ${Math.round(value).toLocaleString()}`;
@@ -91,8 +96,28 @@ export default function DeliveryPaymentSettlement(): React.JSX.Element {
             <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
               Settlement state
             </Typography>
-            <Chip size="small" label={order.settlement?.status ?? "pending_authorization"} />
+            <Stack direction="row" spacing={0.7}>
+              <Chip
+                size="small"
+                label={getDeliveryOrderModeLabel(order.orderMode)}
+                sx={{
+                  height: 22,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  bgcolor: getDeliveryOrderModeTone(order.orderMode).bg,
+                  color: getDeliveryOrderModeTone(order.orderMode).fg,
+                  border: `1px solid ${getDeliveryOrderModeTone(order.orderMode).border}`
+                }}
+              />
+              <Chip size="small" label={order.settlement?.status ?? "pending_authorization"} />
+            </Stack>
           </Stack>
+          <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+            {getDeliveryOrderModeSummary({
+              orderMode: order.orderMode,
+              orderModeConfig: order.orderModeConfig
+            })}
+          </Typography>
           <Typography variant="body2">Policy: {order.settlement?.policy ?? "cashless_pre_auth"}</Typography>
           <Typography variant="body2">Method: {order.settlement?.methodType ?? "wallet"}</Typography>
           <Typography variant="body2">

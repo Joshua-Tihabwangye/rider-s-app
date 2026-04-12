@@ -1,14 +1,15 @@
 import React from "react";
-import { Box, SxProps, Theme } from "@mui/material";
+import { Box, BoxProps, SxProps, Theme } from "@mui/material";
 
-interface ListSectionProps {
+interface ListSectionProps extends Omit<BoxProps, "children" | "sx"> {
   children: React.ReactNode;
   sx?: SxProps<Theme>;
 }
 
-export default function ListSection({ children, sx }: ListSectionProps): React.JSX.Element {
+export default function ListSection({ children, sx, ...rest }: ListSectionProps): React.JSX.Element {
   return (
     <Box
+      {...rest}
       sx={[
         {
           display: "flex",
@@ -22,4 +23,3 @@ export default function ListSection({ children, sx }: ListSectionProps): React.J
     </Box>
   );
 }
-

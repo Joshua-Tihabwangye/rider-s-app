@@ -67,7 +67,12 @@ export default function DeliveryNotifications(): React.JSX.Element {
           </IconButton>
         }
         action={
-          <Button onClick={actions.markDeliveryNotificationsRead} size="small" sx={{ textTransform: "none" }}>
+          <Button
+            onClick={actions.markDeliveryNotificationsRead}
+            size="small"
+            aria-label="Mark all delivery notifications as read"
+            sx={{ textTransform: "none" }}
+          >
             Mark all read
           </Button>
         }
@@ -76,13 +81,13 @@ export default function DeliveryNotifications(): React.JSX.Element {
       <AppCard variant="muted">
         <Stack direction="row" spacing={1.2} alignItems="center">
           <NotificationsActiveRoundedIcon sx={{ color: uiTokens.colors.brand }} />
-          <Typography variant="body2">
+          <Typography variant="body2" aria-live="polite">
             {unreadCount > 0 ? `${unreadCount} unread notifications` : "All notifications are read"}
           </Typography>
         </Stack>
       </AppCard>
 
-      <ListSection>
+      <ListSection aria-live="polite">
         {isLoading ? (
           <Stack spacing={1}>
             <Skeleton variant="rounded" height={72} sx={{ borderRadius: uiTokens.radius.xl }} />

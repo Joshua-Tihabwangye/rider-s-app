@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
-  Card,
-  CardContent,
   Chip,
   Divider,
   IconButton,
@@ -14,6 +12,8 @@ import {
   StepLabel,
   Stepper,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
   useMediaQuery
 } from "@mui/material";
@@ -24,17 +24,26 @@ import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
+import AppCard from "../components/primitives/AppCard";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
-import type { DeliveryDraft, RideLocation } from "../store/types";
+import type { DeliveryDraft, DeliveryOrderMode, RideLocation } from "../store/types";
 import { DEFAULT_DELIVERY_SCHEDULE_POLICY } from "../features/delivery/schedulePolicy";
+import {
+  DELIVERY_ORDER_MODE_OPTIONS,
+  getDeliveryOrderModeLabel,
+  getDeliveryOrderModeSummary,
+  getDeliveryOrderModeTone
+} from "../features/delivery/orderMode";
 
 const CREATION_STEPS = [
   "Pickup & dropoff",
   "Parcel",
   "Recipient",
+  "Order mode",
   "Timing",
   "Payment preview",
   "Confirm"
@@ -84,6 +93,28 @@ function canProceed(step: number, draft: DeliveryDraft): boolean {
     return Boolean(draft.recipient?.name && draft.recipient?.phone && draft.recipient?.address);
   }
   if (step === 3) {
+    if (draft.orderMode === "individual") {
+      return true;
+    }
+    if (draft.orderMode === "family") {
+      const payer = draft.orderModeConfig.family?.payer ?? "sender";
+      if (payer === "member") {
+        return Boolean(draft.orderModeConfig.family?.memberName?.trim());
+      }
+      return true;
+    }
+    if (draft.orderMode === "business") {
+      return Boolean(draft.orderModeConfig.business?.costCenter?.trim());
+    }
+    if (draft.orderMode === "company") {
+      return Boolean(
+        draft.orderModeConfig.company?.requesterName?.trim() &&
+          draft.orderModeConfig.company?.delegateName?.trim()
+      );
+    }
+    return true;
+  }
+  if (step === 4) {
     if (draft.schedule === "now") {
       return true;
     }
@@ -93,7 +124,7 @@ function canProceed(step: number, draft: DeliveryDraft): boolean {
     const scheduleDate = new Date(draft.scheduleTime);
     return !Number.isNaN(scheduleDate.getTime()) && scheduleDate.getTime() > Date.now();
   }
-  if (step === 4) {
+  if (step === 5) {
     return Boolean(draft.paymentMethodId);
   }
   return true;
@@ -114,6 +145,20 @@ function getStepValidationHint(step: number, draft: DeliveryDraft, paymentMethod
     if (!draft.recipient?.address?.trim()) return "Recipient address is required.";
   }
   if (step === 3) {
+    if (draft.orderMode === "family" && draft.orderModeConfig.family?.payer === "member" && !draft.orderModeConfig.family?.memberName?.trim()) {
+      return "Family member name is required when payer is member.";
+    }
+    if (draft.orderMode === "business" && !draft.orderModeConfig.business?.costCenter?.trim()) {
+      return "Cost center is required for business orders.";
+    }
+    if (draft.orderMode === "company" && !draft.orderModeConfig.company?.requesterName?.trim()) {
+      return "Requester name is required for company orders.";
+    }
+    if (draft.orderMode === "company" && !draft.orderModeConfig.company?.delegateName?.trim()) {
+      return "Delegate name is required for company orders.";
+    }
+  }
+  if (step === 4) {
     if (draft.schedule === "scheduled" && !draft.scheduleTime) return "Scheduled date & time is required.";
     if (draft.schedule === "scheduled" && draft.scheduleTime) {
       const scheduleDate = new Date(draft.scheduleTime);
@@ -122,12 +167,18 @@ function getStepValidationHint(step: number, draft: DeliveryDraft, paymentMethod
       }
     }
   }
-  if (step === 4) {
+  if (step === 5) {
     if (paymentMethodCount === 0) return "Add a payment method in Wallet before continuing.";
     if (!draft.paymentMethodId) return "Payment method is required.";
   }
   return "Complete required fields before continuing.";
 }
+
+type OrderModeConfigPatch = {
+  family?: Partial<NonNullable<DeliveryDraft["orderModeConfig"]["family"]>>;
+  business?: Partial<NonNullable<DeliveryDraft["orderModeConfig"]["business"]>>;
+  company?: Partial<NonNullable<DeliveryDraft["orderModeConfig"]["company"]>>;
+};
 
 export default function DeliveryCreate(): React.JSX.Element {
   const navigate = useNavigate();
@@ -153,20 +204,65 @@ export default function DeliveryCreate(): React.JSX.Element {
   const recipientNameMissing = showStepValidation && activeStep === 2 && !draft.recipient?.name?.trim();
   const recipientPhoneMissing = showStepValidation && activeStep === 2 && !draft.recipient?.phone?.trim();
   const recipientAddressMissing = showStepValidation && activeStep === 2 && !draft.recipient?.address?.trim();
-  const scheduleMissing = showStepValidation && activeStep === 3 && draft.schedule === "scheduled" && !draft.scheduleTime;
-  const scheduleInvalid =
+  const familyMemberNameMissing =
     showStepValidation &&
     activeStep === 3 &&
+    draft.orderMode === "family" &&
+    draft.orderModeConfig.family?.payer === "member" &&
+    !draft.orderModeConfig.family?.memberName?.trim();
+  const businessCostCenterMissing =
+    showStepValidation &&
+    activeStep === 3 &&
+    draft.orderMode === "business" &&
+    !draft.orderModeConfig.business?.costCenter?.trim();
+  const companyRequesterMissing =
+    showStepValidation &&
+    activeStep === 3 &&
+    draft.orderMode === "company" &&
+    !draft.orderModeConfig.company?.requesterName?.trim();
+  const companyDelegateMissing =
+    showStepValidation &&
+    activeStep === 3 &&
+    draft.orderMode === "company" &&
+    !draft.orderModeConfig.company?.delegateName?.trim();
+  const scheduleMissing = showStepValidation && activeStep === 4 && draft.schedule === "scheduled" && !draft.scheduleTime;
+  const scheduleInvalid =
+    showStepValidation &&
+    activeStep === 4 &&
     draft.schedule === "scheduled" &&
     Boolean(draft.scheduleTime) &&
     new Date(draft.scheduleTime ?? "").getTime() <= Date.now();
-  const paymentMethodMissing = showStepValidation && activeStep === 4 && !draft.paymentMethodId;
+  const paymentMethodMissing = showStepValidation && activeStep === 5 && !draft.paymentMethodId;
 
   const updateDraft = (patch: Partial<DeliveryDraft>): void => {
     actions.updateDeliveryDraft({
       ...patch,
       priceEstimate: formatCurrency(subtotal)
     });
+  };
+
+  const updateOrderModeConfig = (patch: OrderModeConfigPatch): void => {
+    updateDraft({
+      orderModeConfig: {
+        family: {
+          payer: patch.family?.payer ?? draft.orderModeConfig.family?.payer ?? "sender",
+          memberName: patch.family?.memberName ?? draft.orderModeConfig.family?.memberName ?? ""
+        },
+        business: {
+          costCenter: patch.business?.costCenter ?? draft.orderModeConfig.business?.costCenter ?? "",
+          note: patch.business?.note ?? draft.orderModeConfig.business?.note ?? ""
+        },
+        company: {
+          requesterName: patch.company?.requesterName ?? draft.orderModeConfig.company?.requesterName ?? "",
+          delegateName: patch.company?.delegateName ?? draft.orderModeConfig.company?.delegateName ?? "",
+          approvalRequired: patch.company?.approvalRequired ?? draft.orderModeConfig.company?.approvalRequired ?? true
+        }
+      }
+    });
+  };
+
+  const handleModeChange = (value: DeliveryOrderMode): void => {
+    updateDraft({ orderMode: value });
   };
 
   const handleNext = (): void => {
@@ -222,16 +318,14 @@ export default function DeliveryCreate(): React.JSX.Element {
         }
       />
 
-      <Card
-        elevation={0}
+      <AppCard
         sx={{
-          borderRadius: uiTokens.radius.xl,
           position: { xs: "sticky", sm: "static" },
           top: { xs: "calc(env(safe-area-inset-top) + 8px)", sm: "auto" },
           zIndex: { xs: 6, sm: 1 }
         }}
+        contentSx={{ display: "block" }}
       >
-        <CardContent>
           <Stack spacing={isPhone ? uiTokens.spacing.sm : 0}>
             <Stack direction="row" justifyContent="space-between" alignItems="center">
               <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
@@ -271,11 +365,9 @@ export default function DeliveryCreate(): React.JSX.Element {
               </Stepper>
             </Box>
           </Stack>
-        </CardContent>
-      </Card>
+      </AppCard>
 
-      <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
-        <CardContent sx={{ display: "grid", gap: uiTokens.spacing.md }}>
+      <AppCard contentSx={{ display: "grid", gap: uiTokens.spacing.md }}>
           {activeStep === 0 && (
             <>
               <Stack direction="row" spacing={1} alignItems="center">
@@ -450,6 +542,172 @@ export default function DeliveryCreate(): React.JSX.Element {
           {activeStep === 3 && (
             <>
               <Stack direction="row" spacing={1} alignItems="center">
+                <PersonRoundedIcon sx={{ fontSize: 18, color: uiTokens.colors.brand }} />
+                <Typography variant="subtitle2">Order mode</Typography>
+              </Stack>
+
+              <ToggleButtonGroup
+                color="primary"
+                exclusive
+                value={draft.orderMode}
+                onChange={(_event, value: DeliveryOrderMode | null) => {
+                  if (value) {
+                    handleModeChange(value);
+                  }
+                }}
+                fullWidth
+                aria-label="Order mode selector"
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr 1fr", sm: "repeat(4, 1fr)" },
+                  gap: 1,
+                  "& .MuiToggleButtonGroup-grouped": {
+                    borderRadius: `${uiTokens.delivery.radius.control}px !important`,
+                    border: (t) =>
+                      t.palette.mode === "light"
+                        ? "1px solid rgba(209,213,219,0.9)"
+                        : "1px solid rgba(51,65,85,0.9)",
+                    textTransform: "none",
+                    fontWeight: 700,
+                    py: 0.75
+                  }
+                }}
+              >
+                {DELIVERY_ORDER_MODE_OPTIONS.map((modeOption) => (
+                  <ToggleButton key={modeOption.value} value={modeOption.value} aria-label={modeOption.label}>
+                    {modeOption.label}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+
+              <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                {
+                  DELIVERY_ORDER_MODE_OPTIONS.find((option) => option.value === draft.orderMode)
+                    ?.description
+                }
+              </Typography>
+
+              {draft.orderMode === "family" && (
+                <>
+                  <TextField
+                    select
+                    label="Who pays?"
+                    size="small"
+                    value={draft.orderModeConfig.family?.payer ?? "sender"}
+                    onChange={(event) =>
+                      updateOrderModeConfig({
+                        family: {
+                          payer: event.target.value as "sender" | "member"
+                        }
+                      })
+                    }
+                    fullWidth
+                  >
+                    <MenuItem value="sender">Sender pays</MenuItem>
+                    <MenuItem value="member">Family member pays</MenuItem>
+                  </TextField>
+                  {draft.orderModeConfig.family?.payer === "member" && (
+                    <TextField
+                      label="Family member name"
+                      size="small"
+                      value={draft.orderModeConfig.family?.memberName ?? ""}
+                      onChange={(event) =>
+                        updateOrderModeConfig({
+                          family: {
+                            memberName: event.target.value
+                          }
+                        })
+                      }
+                      required
+                      error={familyMemberNameMissing}
+                      helperText={familyMemberNameMissing ? "Family member name is required." : " "}
+                      fullWidth
+                    />
+                  )}
+                </>
+              )}
+
+              {draft.orderMode === "business" && (
+                <>
+                  <TextField
+                    label="Cost center"
+                    size="small"
+                    value={draft.orderModeConfig.business?.costCenter ?? ""}
+                    onChange={(event) =>
+                      updateOrderModeConfig({
+                        business: { costCenter: event.target.value }
+                      })
+                    }
+                    required
+                    error={businessCostCenterMissing}
+                    helperText={businessCostCenterMissing ? "Cost center is required." : " "}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Business note"
+                    size="small"
+                    value={draft.orderModeConfig.business?.note ?? ""}
+                    onChange={(event) =>
+                      updateOrderModeConfig({
+                        business: { note: event.target.value }
+                      })
+                    }
+                    multiline
+                    minRows={2}
+                    fullWidth
+                  />
+                </>
+              )}
+
+              {draft.orderMode === "company" && (
+                <>
+                  <TextField
+                    label="Requester name"
+                    size="small"
+                    value={draft.orderModeConfig.company?.requesterName ?? ""}
+                    onChange={(event) =>
+                      updateOrderModeConfig({
+                        company: { requesterName: event.target.value }
+                      })
+                    }
+                    required
+                    error={companyRequesterMissing}
+                    helperText={companyRequesterMissing ? "Requester name is required." : " "}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Delegate name"
+                    size="small"
+                    value={draft.orderModeConfig.company?.delegateName ?? ""}
+                    onChange={(event) =>
+                      updateOrderModeConfig({
+                        company: { delegateName: event.target.value }
+                      })
+                    }
+                    required
+                    error={companyDelegateMissing}
+                    helperText={companyDelegateMissing ? "Delegate name is required." : " "}
+                    fullWidth
+                  />
+                  <Chip
+                    icon={<VerifiedRoundedIcon sx={{ fontSize: 14 }} />}
+                    label={draft.orderModeConfig.company?.approvalRequired ? "Approval required" : "Approval optional"}
+                    size="small"
+                    sx={{
+                      width: "fit-content",
+                      bgcolor: "rgba(59,130,246,0.14)",
+                      color: "#1E3A8A",
+                      border: "1px solid rgba(59,130,246,0.28)"
+                    }}
+                  />
+                </>
+              )}
+            </>
+          )}
+
+          {activeStep === 4 && (
+            <>
+              <Stack direction="row" spacing={1} alignItems="center">
                 <ScheduleRoundedIcon sx={{ fontSize: 18, color: uiTokens.colors.brand }} />
                 <Typography variant="subtitle2">Delivery timing</Typography>
               </Stack>
@@ -504,7 +762,7 @@ export default function DeliveryCreate(): React.JSX.Element {
             </>
           )}
 
-          {activeStep === 4 && (
+          {activeStep === 5 && (
             <>
               <Stack direction="row" spacing={1} alignItems="center">
                 <PaymentsRoundedIcon sx={{ fontSize: 18, color: uiTokens.colors.brand }} />
@@ -561,7 +819,7 @@ export default function DeliveryCreate(): React.JSX.Element {
             </>
           )}
 
-          {activeStep === 5 && (
+          {activeStep === 6 && (
             <>
               <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                 Confirm delivery request
@@ -570,6 +828,15 @@ export default function DeliveryCreate(): React.JSX.Element {
                 <Chip label={draft.parcel.type.replace("_", " ")} size="small" />
                 <Chip label={draft.parcel.size.replace("_", " ")} size="small" />
                 <Chip label={draft.schedule === "now" ? "Immediate" : "Scheduled"} size="small" />
+                <Chip
+                  label={getDeliveryOrderModeLabel(draft.orderMode)}
+                  size="small"
+                  sx={{
+                    bgcolor: getDeliveryOrderModeTone(draft.orderMode).bg,
+                    color: getDeliveryOrderModeTone(draft.orderMode).fg,
+                    border: `1px solid ${getDeliveryOrderModeTone(draft.orderMode).border}`
+                  }}
+                />
               </Stack>
               <Typography variant="body2">
                 <strong>Route:</strong> {draft.pickup?.address} to {draft.dropoff?.address}
@@ -582,6 +849,13 @@ export default function DeliveryCreate(): React.JSX.Element {
               </Typography>
               <Typography variant="body2">
                 <strong>Timing:</strong> {draft.schedule === "now" ? "Now" : draft.scheduleTime}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Order mode:</strong>{" "}
+                {getDeliveryOrderModeSummary({
+                  orderMode: draft.orderMode,
+                  orderModeConfig: draft.orderModeConfig
+                })}
               </Typography>
               <Typography variant="body2">
                 <strong>Payment:</strong> {selectedPaymentMethod?.label} • {formatCurrency(subtotal)}
@@ -602,9 +876,12 @@ export default function DeliveryCreate(): React.JSX.Element {
                     Edit recipient
                   </Button>
                   <Button size="small" variant="outlined" onClick={() => setActiveStep(3)} sx={{ textTransform: "none" }}>
-                    Edit timing
+                    Edit mode
                   </Button>
                   <Button size="small" variant="outlined" onClick={() => setActiveStep(4)} sx={{ textTransform: "none" }}>
+                    Edit timing
+                  </Button>
+                  <Button size="small" variant="outlined" onClick={() => setActiveStep(5)} sx={{ textTransform: "none" }}>
                     Edit payment
                   </Button>
                 </Stack>
@@ -631,7 +908,7 @@ export default function DeliveryCreate(): React.JSX.Element {
               <Button
                 variant="contained"
                 onClick={handleNext}
-                sx={{ textTransform: "none", fontWeight: 700 }}
+                sx={{ textTransform: "none", fontWeight: 700, minHeight: uiTokens.delivery.button.mdHeight }}
               >
                 Continue
               </Button>
@@ -639,14 +916,13 @@ export default function DeliveryCreate(): React.JSX.Element {
               <Button
                 variant="contained"
                 onClick={handleConfirm}
-                sx={{ textTransform: "none", fontWeight: 700 }}
+                sx={{ textTransform: "none", fontWeight: 700, minHeight: uiTokens.delivery.button.mdHeight }}
               >
                 Confirm delivery
               </Button>
             )}
           </Stack>
-        </CardContent>
-      </Card>
+      </AppCard>
     </ScreenScaffold>
   );
 }
