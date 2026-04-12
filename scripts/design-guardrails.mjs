@@ -6,21 +6,21 @@ const ROOT = process.cwd();
 const CORE_TAB_SCREENS = [
   "src/screens/Home.tsx",
   "src/screens/RidesDashboard.tsx",
-  "src/screens/DeliveriesDashboard.tsx",
+  "src/screens/DeliveryDashboard.tsx",
   "src/screens/Wallet.tsx",
   "src/screens/MoreMenu.tsx"
 ];
 
 const TOKEN_STRICT_FILES = [
   "src/screens/Home.tsx",
-  "src/screens/DeliveriesDashboard.tsx",
+  "src/screens/DeliveryDashboard.tsx",
   "src/screens/MoreMenu.tsx",
   "src/components/deliveries/DeliveryCard.tsx"
 ];
 
 const CARD_PRIMITIVE_STRICT_SCREENS = [
   "src/screens/Home.tsx",
-  "src/screens/DeliveriesDashboard.tsx",
+  "src/screens/DeliveryDashboard.tsx",
   "src/screens/MoreMenu.tsx"
 ];
 

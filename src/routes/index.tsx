@@ -53,10 +53,10 @@ import BookingThankYou from "../screens/BookingThankYou";
 import BookingConfirmation from "../screens/BookingConfirmation";
 import Preferences from "../screens/Preferences";
 import DeliveryRating from "../screens/DeliveryRating";
-import DeliveryCreate from "../screens/DeliveryCreate";
-import DeliveryTrackingRealtime from "../screens/DeliveryTrackingRealtime";
+import DeliveryNew from "../screens/DeliveryNew";
+import DeliveryTracking from "../screens/DeliveryTracking";
 import DeliveryNotifications from "../screens/DeliveryNotifications";
-import DeliveryPaymentSettlement from "../screens/DeliveryPaymentSettlement";
+import DeliverySettlement from "../screens/DeliverySettlement";
 import RentalList from "../screens/RentalList";
 import RentalVehicleDetail from "../screens/RentalVehicleDetail";
 import RentalDates from "../screens/RentalDates";
@@ -85,7 +85,7 @@ import PrivacySettings from "../screens/PrivacySettings";
 import Help from "../screens/Help";
 import About from "../screens/About";
 import RidesDashboard from "../screens/RidesDashboard";
-import DeliveriesDashboard from "../screens/DeliveriesDashboard";
+import DeliveryDashboard from "../screens/DeliveryDashboard";
 import RentalDashboard from "../screens/RentalDashboard";
 import ToursDashboard from "../screens/ToursDashboard";
 import AmbulanceDashboard from "../screens/AmbulanceDashboard";
@@ -210,12 +210,12 @@ export default function AppRouter(): React.JSX.Element {
 				</Route>
 					{/* Deliveries */}
 					<Route path="deliveries">
-						<Route index element={<DeliveriesDashboard />} />
+						<Route index element={<DeliveryDashboard />} />
 						<Route path="notifications" element={<DeliveryNotifications />} />
-						<Route path="new" element={<DeliveryCreate />} />
-						<Route path="tracking/:orderId" element={<DeliveryTrackingRealtime />} />
+						<Route path="new" element={<DeliveryNew />} />
+						<Route path="tracking/:orderId" element={<DeliveryTracking />} />
 						<Route path="rating/:orderId" element={<DeliveryRating />} />
-						<Route path="settlement/:orderId" element={<DeliveryPaymentSettlement />} />
+						<Route path="settlement/:orderId" element={<DeliverySettlement />} />
 					</Route>
 				{/* Rental */}
 				<Route path="rental">

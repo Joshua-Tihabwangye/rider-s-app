@@ -38,7 +38,10 @@
     "visual:install": "playwright install chromium",
     "visual:baseline": "playwright test tests/visual/parity.visual.spec.ts --update-snapshots",
     "visual:regress": "playwright test tests/visual/parity.visual.spec.ts",
-    "qa:parity": "npm run design:check && npm run build && npm run visual:regress"
+    "qa:parity": "npm run design:check && npm run build && npm run visual:regress",
+    "qa:delivery:static": "node scripts/delivery-static-gate.mjs",
+    "qa:delivery:e2e": "playwright test -c playwright.delivery.config.ts",
+    "qa:delivery": "npm run build && npm run qa:delivery:static && npm run qa:delivery:e2e"
   },
   "eslintConfig": {
     "extends": [

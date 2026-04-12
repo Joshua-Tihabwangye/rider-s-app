@@ -494,6 +494,6 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
   );
 }
 
-export default function DeliveriesDashboard(): React.JSX.Element {
+export default function DeliveryDashboard(): React.JSX.Element {
   return <DeliveryDashboardHomeScreen />;
 }

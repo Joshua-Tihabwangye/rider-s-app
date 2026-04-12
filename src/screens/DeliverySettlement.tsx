@@ -37,7 +37,7 @@ function formatDateTime(value?: string): string {
   });
 }
 
-export default function DeliveryPaymentSettlement(): React.JSX.Element {
+export default function DeliverySettlement(): React.JSX.Element {
   const navigate = useNavigate();
   const { orderId = "" } = useParams<{ orderId: string }>();
   const { delivery, actions } = useAppData();
