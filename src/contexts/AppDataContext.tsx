@@ -240,6 +240,22 @@ function createDefaultDeliveryDraft(previous?: DeliveryDraft): DeliveryDraft {
       notes: ""
     },
     recipient: null,
+    orderMode: "individual",
+    orderModeConfig: {
+      family: {
+        payer: "sender",
+        memberName: ""
+      },
+      business: {
+        costCenter: "",
+        note: ""
+      },
+      company: {
+        requesterName: "",
+        delegateName: "",
+        approvalRequired: true
+      }
+    },
     schedule: "now",
     scheduleTime: "",
     paymentMethodId: previous?.paymentMethodId ?? "pm_wallet",
@@ -298,6 +314,8 @@ function createDeliveryOrderFromDraft(
     dropoff: draft.dropoff,
     parcel: draft.parcel,
     recipient: draft.recipient,
+    orderMode: draft.orderMode,
+    orderModeConfig: draft.orderModeConfig,
     schedule: draft.schedule,
     scheduleTime: draft.scheduleTime,
     paymentMethodId,

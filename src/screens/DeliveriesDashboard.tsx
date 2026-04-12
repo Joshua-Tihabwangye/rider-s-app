@@ -20,7 +20,6 @@ import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import TrackChangesRoundedIcon from "@mui/icons-material/TrackChangesRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
-import PersonAddRoundedIcon from "@mui/icons-material/PersonAddRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
@@ -107,7 +106,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
 
   const handleTrackShipment = (): void => {
     if (trackingNumber.trim()) {
-      navigate(`/deliveries/tracking/${trackingNumber.trim()}/details`, {
+      navigate(`/deliveries/tracking/${trackingNumber.trim()}`, {
         state: { trackingNumber: trackingNumber.trim() }
       });
     }
@@ -320,7 +319,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
                   onMenuClick={(event, orderId) =>
                     setMenuAnchor({ open: true, anchorEl: event.currentTarget, orderId })
                   }
-                  onClick={(id) => navigate(`/deliveries/tracking/${id}/details`)}
+                  onClick={(id) => navigate(`/deliveries/tracking/${id}`)}
                 />
               ))
             )}
@@ -407,7 +406,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
                         <Box sx={{ mt: 0.4 }}>
                           <Button
                             size="small"
-                            onClick={() => navigate(`/deliveries/tracking/${order.id}/details`)}
+                            onClick={() => navigate(`/deliveries/tracking/${order.id}`)}
                             sx={{ textTransform: "none", fontSize: 11, minWidth: 0, px: 0 }}
                           >
                             Open
@@ -449,20 +448,8 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
       >
         <MenuItem
           onClick={() => {
-            setMenuAnchor({ open: false, anchorEl: null, orderId: null });
-            navigate("/deliveries/invitations");
-          }}
-          sx={{ py: uiTokens.spacing.smPlus }}
-        >
-          <PersonAddRoundedIcon sx={{ fontSize: 18, mr: uiTokens.spacing.md, color: uiTokens.colors.brand }} />
-          <Typography variant="body2" sx={{ fontSize: 13 }}>
-            Invite
-          </Typography>
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
             const orderId = menuAnchor.orderId;
-            const shareUrl = `${window.location.origin}/deliveries/tracking/${orderId}/details`;
+            const shareUrl = `${window.location.origin}/deliveries/tracking/${orderId}`;
             const shareData = {
               title: "EVzone Delivery Tracking",
               text: `Track delivery ${orderId}`,

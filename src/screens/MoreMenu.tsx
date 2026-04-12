@@ -41,9 +41,9 @@ const ACCOUNT_ITEMS: MenuItem[] = [
   },
   {
     icon: <MailRoundedIcon />,
-    label: "Invitations",
-    description: "Manage sent and received invitations",
-    route: "/deliveries/invitations"
+    label: "Delivery Notifications",
+    description: "Track delivery alerts and updates",
+    route: "/deliveries/notifications"
   },
   {
     icon: <SchoolRoundedIcon />,

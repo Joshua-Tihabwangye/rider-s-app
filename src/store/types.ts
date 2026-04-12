@@ -241,6 +241,24 @@ export type DeliveryParcelSize = "small" | "medium" | "large" | "x_large";
 
 export type DeliveryTiming = "now" | "scheduled";
 
+export type DeliveryOrderMode = "individual" | "family" | "business" | "company";
+
+export interface DeliveryOrderModeConfig {
+  family?: {
+    payer: "sender" | "member";
+    memberName?: string;
+  };
+  business?: {
+    costCenter: string;
+    note?: string;
+  };
+  company?: {
+    requesterName: string;
+    delegateName: string;
+    approvalRequired: boolean;
+  };
+}
+
 export type DeliveryProofMethod = "photo" | "signature" | "pin" | "otp";
 
 export interface DeliveryProofOfDelivery {
@@ -400,6 +418,8 @@ export interface DeliveryDraft {
   dropoff: RideLocation | null;
   parcel: DeliveryParcel;
   recipient: DeliveryParty | null;
+  orderMode: DeliveryOrderMode;
+  orderModeConfig: DeliveryOrderModeConfig;
   schedule: DeliveryTiming;
   scheduleTime?: string;
   paymentMethodId?: string;
@@ -428,6 +448,8 @@ export interface DeliveryOrder {
   dropoff: RideLocation;
   parcel: DeliveryParcel;
   recipient: DeliveryParty;
+  orderMode: DeliveryOrderMode;
+  orderModeConfig: DeliveryOrderModeConfig;
   schedule: DeliveryTiming;
   scheduleTime?: string;
   paymentMethodId: string;

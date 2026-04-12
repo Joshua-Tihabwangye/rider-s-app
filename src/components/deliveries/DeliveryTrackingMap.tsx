@@ -20,6 +20,8 @@ interface DeliveryTrackingMapProps {
   showControls?: boolean;
 }
 
+const STANDARD_DELIVERY_MAP_HEIGHT = "clamp(252px, 42vh, 360px)";
+
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -30,7 +32,7 @@ export default function DeliveryTrackingMap({
   courierPosition,
   etaLabel,
   statusLabel,
-  height = 240,
+  height = STANDARD_DELIVERY_MAP_HEIGHT,
   rounded = false,
   fullBleed = true,
   showBackButton = false,
@@ -109,7 +111,7 @@ export default function DeliveryTrackingMap({
             borderRadius: 5,
             fontSize: 11,
             height: 24,
-            bgcolor: "rgba(15,23,42,0.75)",
+            bgcolor: "rgba(15,23,42,0.74)",
             color: "#F8FAFC"
           }}
         />

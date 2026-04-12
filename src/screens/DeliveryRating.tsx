@@ -80,7 +80,7 @@ export default function DeliveryRating(): React.JSX.Element {
       comment: comment.trim() || undefined
     });
 
-    navigate(`/deliveries/tracking/${order.id}/delivered`, { replace: true });
+    navigate(`/deliveries/tracking/${order.id}?tab=overview`, { replace: true });
   };
 
   const canSubmit = rating > 0;

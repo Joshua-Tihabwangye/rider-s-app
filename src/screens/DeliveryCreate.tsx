@@ -99,6 +99,36 @@ function canProceed(step: number, draft: DeliveryDraft): boolean {
   return true;
 }
 
+function getStepValidationHint(step: number, draft: DeliveryDraft, paymentMethodCount: number): string {
+  if (step === 0) {
+    if (!draft.pickup?.address?.trim()) return "Pickup location is required.";
+    if (!draft.dropoff?.address?.trim()) return "Dropoff location is required.";
+  }
+  if (step === 1) {
+    if (!draft.parcel.description.trim()) return "Parcel description is required.";
+    if (draft.parcel.value <= 0) return "Declared value must be greater than zero.";
+  }
+  if (step === 2) {
+    if (!draft.recipient?.name?.trim()) return "Recipient name is required.";
+    if (!draft.recipient?.phone?.trim()) return "Recipient phone is required.";
+    if (!draft.recipient?.address?.trim()) return "Recipient address is required.";
+  }
+  if (step === 3) {
+    if (draft.schedule === "scheduled" && !draft.scheduleTime) return "Scheduled date & time is required.";
+    if (draft.schedule === "scheduled" && draft.scheduleTime) {
+      const scheduleDate = new Date(draft.scheduleTime);
+      if (Number.isNaN(scheduleDate.getTime()) || scheduleDate.getTime() <= Date.now()) {
+        return "Choose a future schedule date & time.";
+      }
+    }
+  }
+  if (step === 4) {
+    if (paymentMethodCount === 0) return "Add a payment method in Wallet before continuing.";
+    if (!draft.paymentMethodId) return "Payment method is required.";
+  }
+  return "Complete required fields before continuing.";
+}
+
 export default function DeliveryCreate(): React.JSX.Element {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -106,6 +136,7 @@ export default function DeliveryCreate(): React.JSX.Element {
   const { delivery, paymentMethods, actions } = useAppData();
   const [activeStep, setActiveStep] = useState<number>(0);
   const [submitError, setSubmitError] = useState<string>("");
+  const [showStepValidation, setShowStepValidation] = useState(false);
 
   const draft = delivery.draft;
   const subtotal = draft.deliveryFee + draft.serviceFee + draft.insuranceFee;
@@ -114,6 +145,22 @@ export default function DeliveryCreate(): React.JSX.Element {
     () => paymentMethods.find((method) => method.id === draft.paymentMethodId) ?? paymentMethods[0] ?? null,
     [paymentMethods, draft.paymentMethodId]
   );
+
+  const pickupMissing = showStepValidation && activeStep === 0 && !draft.pickup?.address?.trim();
+  const dropoffMissing = showStepValidation && activeStep === 0 && !draft.dropoff?.address?.trim();
+  const parcelDescriptionMissing = showStepValidation && activeStep === 1 && !draft.parcel.description.trim();
+  const parcelValueInvalid = showStepValidation && activeStep === 1 && draft.parcel.value <= 0;
+  const recipientNameMissing = showStepValidation && activeStep === 2 && !draft.recipient?.name?.trim();
+  const recipientPhoneMissing = showStepValidation && activeStep === 2 && !draft.recipient?.phone?.trim();
+  const recipientAddressMissing = showStepValidation && activeStep === 2 && !draft.recipient?.address?.trim();
+  const scheduleMissing = showStepValidation && activeStep === 3 && draft.schedule === "scheduled" && !draft.scheduleTime;
+  const scheduleInvalid =
+    showStepValidation &&
+    activeStep === 3 &&
+    draft.schedule === "scheduled" &&
+    Boolean(draft.scheduleTime) &&
+    new Date(draft.scheduleTime ?? "").getTime() <= Date.now();
+  const paymentMethodMissing = showStepValidation && activeStep === 4 && !draft.paymentMethodId;
 
   const updateDraft = (patch: Partial<DeliveryDraft>): void => {
     actions.updateDeliveryDraft({
@@ -124,14 +171,17 @@ export default function DeliveryCreate(): React.JSX.Element {
 
   const handleNext = (): void => {
     if (!canProceed(activeStep, draft)) {
-      setSubmitError("Complete required fields before continuing.");
+      setShowStepValidation(true);
+      setSubmitError(getStepValidationHint(activeStep, draft, paymentMethods.length));
       return;
     }
+    setShowStepValidation(false);
     setSubmitError("");
     setActiveStep((prev) => Math.min(prev + 1, CREATION_STEPS.length - 1));
   };
 
   const handleBack = (): void => {
+    setShowStepValidation(false);
     setSubmitError("");
     setActiveStep((prev) => Math.max(prev - 1, 0));
   };
@@ -144,7 +194,7 @@ export default function DeliveryCreate(): React.JSX.Element {
       return;
     }
     actions.setActiveDeliveryById(order.id);
-    navigate(`/deliveries/tracking/${order.id}/details`);
+    navigate(`/deliveries/tracking/${order.id}`);
   };
 
   return (
@@ -172,7 +222,15 @@ export default function DeliveryCreate(): React.JSX.Element {
         }
       />
 
-      <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: uiTokens.radius.xl,
+          position: { xs: "sticky", sm: "static" },
+          top: { xs: "calc(env(safe-area-inset-top) + 8px)", sm: "auto" },
+          zIndex: { xs: 6, sm: 1 }
+        }}
+      >
         <CardContent>
           <Stack spacing={isPhone ? uiTokens.spacing.sm : 0}>
             <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -193,7 +251,15 @@ export default function DeliveryCreate(): React.JSX.Element {
                 sx={{
                   minWidth: isPhone ? "auto" : 560,
                   "& .MuiStepLabel-label": {
-                    fontSize: isPhone ? 12 : undefined
+                    fontSize: isPhone ? 12 : undefined,
+                    whiteSpace: "normal",
+                    lineHeight: 1.25
+                  },
+                  "& .MuiStepLabel-labelContainer": {
+                    overflow: "visible"
+                  },
+                  "& .MuiStep-root": {
+                    pr: isPhone ? 0 : undefined
                   }
                 }}
               >
@@ -223,6 +289,9 @@ export default function DeliveryCreate(): React.JSX.Element {
                 placeholder="e.g. Plot 14, Nakasero Rd, Kampala"
                 size="small"
                 fullWidth
+                required
+                error={pickupMissing}
+                helperText={pickupMissing ? "Pickup location is required." : " "}
               />
               <TextField
                 label="Dropoff location"
@@ -231,6 +300,9 @@ export default function DeliveryCreate(): React.JSX.Element {
                 placeholder="e.g. 12, JJ Apartments, New Street, Kampala"
                 size="small"
                 fullWidth
+                required
+                error={dropoffMissing}
+                helperText={dropoffMissing ? "Dropoff location is required." : " "}
               />
             </>
           )}
@@ -280,6 +352,9 @@ export default function DeliveryCreate(): React.JSX.Element {
                 placeholder="e.g. Laptop & charger"
                 size="small"
                 fullWidth
+                required
+                error={parcelDescriptionMissing}
+                helperText={parcelDescriptionMissing ? "Parcel description is required." : " "}
               />
               <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
                 <TextField
@@ -291,6 +366,9 @@ export default function DeliveryCreate(): React.JSX.Element {
                   }
                   size="small"
                   fullWidth
+                  required
+                  error={parcelValueInvalid}
+                  helperText={parcelValueInvalid ? "Declared value must be greater than zero." : " "}
                 />
                 <TextField
                   label="Weight (kg)"
@@ -326,6 +404,9 @@ export default function DeliveryCreate(): React.JSX.Element {
                 }
                 size="small"
                 fullWidth
+                required
+                error={recipientNameMissing}
+                helperText={recipientNameMissing ? "Recipient name is required." : " "}
               />
               <TextField
                 label="Recipient phone"
@@ -341,6 +422,9 @@ export default function DeliveryCreate(): React.JSX.Element {
                 }
                 size="small"
                 fullWidth
+                required
+                error={recipientPhoneMissing}
+                helperText={recipientPhoneMissing ? "Recipient phone is required." : " "}
               />
               <TextField
                 label="Recipient address"
@@ -356,6 +440,9 @@ export default function DeliveryCreate(): React.JSX.Element {
                 }
                 size="small"
                 fullWidth
+                required
+                error={recipientAddressMissing}
+                helperText={recipientAddressMissing ? "Recipient address is required." : " "}
               />
             </>
           )}
@@ -388,6 +475,15 @@ export default function DeliveryCreate(): React.JSX.Element {
                   onChange={(event) => updateDraft({ scheduleTime: event.target.value })}
                   fullWidth
                   InputLabelProps={{ shrink: true }}
+                  required
+                  error={scheduleMissing || scheduleInvalid}
+                  helperText={
+                    scheduleMissing
+                      ? "Scheduled date & time is required."
+                      : scheduleInvalid
+                        ? "Choose a future schedule date & time."
+                        : " "
+                  }
                 />
               )}
               <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
@@ -422,6 +518,15 @@ export default function DeliveryCreate(): React.JSX.Element {
                 value={draft.paymentMethodId ?? selectedPaymentMethod?.id ?? ""}
                 onChange={(event) => updateDraft({ paymentMethodId: event.target.value })}
                 fullWidth
+                required
+                error={paymentMethodMissing || paymentMethods.length === 0}
+                helperText={
+                  paymentMethods.length === 0
+                    ? "No payment methods found. Add one in Wallet."
+                    : paymentMethodMissing
+                      ? "Payment method is required."
+                      : " "
+                }
               >
                 {paymentMethods.map((method) => (
                   <MenuItem key={method.id} value={method.id}>
@@ -481,6 +586,29 @@ export default function DeliveryCreate(): React.JSX.Element {
               <Typography variant="body2">
                 <strong>Payment:</strong> {selectedPaymentMethod?.label} • {formatCurrency(subtotal)}
               </Typography>
+              <Divider />
+              <Stack spacing={0.6}>
+                <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                  Need to update something before confirming?
+                </Typography>
+                <Stack direction="row" spacing={0.8} flexWrap="wrap" useFlexGap>
+                  <Button size="small" variant="outlined" onClick={() => setActiveStep(0)} sx={{ textTransform: "none" }}>
+                    Edit route
+                  </Button>
+                  <Button size="small" variant="outlined" onClick={() => setActiveStep(1)} sx={{ textTransform: "none" }}>
+                    Edit parcel
+                  </Button>
+                  <Button size="small" variant="outlined" onClick={() => setActiveStep(2)} sx={{ textTransform: "none" }}>
+                    Edit recipient
+                  </Button>
+                  <Button size="small" variant="outlined" onClick={() => setActiveStep(3)} sx={{ textTransform: "none" }}>
+                    Edit timing
+                  </Button>
+                  <Button size="small" variant="outlined" onClick={() => setActiveStep(4)} sx={{ textTransform: "none" }}>
+                    Edit payment
+                  </Button>
+                </Stack>
+              </Stack>
             </>
           )}
 

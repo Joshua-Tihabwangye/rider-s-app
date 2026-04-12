@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
   Chip,
   IconButton,
+  Skeleton,
   Stack,
   Typography
 } from "@mui/material";
@@ -34,7 +35,14 @@ function formatDateTime(value: string): string {
 export default function DeliveryNotifications(): React.JSX.Element {
   const navigate = useNavigate();
   const { delivery, actions } = useAppData();
+  const [isLoading, setIsLoading] = useState(true);
   const unreadCount = delivery.notifications.filter((item) => !item.read).length;
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = window.setTimeout(() => setIsLoading(false), 220);
+    return () => window.clearTimeout(timer);
+  }, [delivery.notifications.length]);
 
   return (
     <ScreenScaffold>
@@ -75,7 +83,12 @@ export default function DeliveryNotifications(): React.JSX.Element {
       </AppCard>
 
       <ListSection>
-        {delivery.notifications.length === 0 ? (
+        {isLoading ? (
+          <Stack spacing={1}>
+            <Skeleton variant="rounded" height={72} sx={{ borderRadius: uiTokens.radius.xl }} />
+            <Skeleton variant="rounded" height={72} sx={{ borderRadius: uiTokens.radius.xl }} />
+          </Stack>
+        ) : delivery.notifications.length === 0 ? (
           <AppCard variant="muted">
             <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
               No delivery notifications yet.

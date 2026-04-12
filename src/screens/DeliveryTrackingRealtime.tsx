@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   Avatar,
   Box,
@@ -15,12 +15,13 @@ import {
   MenuItem,
   Skeleton,
   Stack,
+  Tab,
+  Tabs,
   TextField,
   Typography
 } from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
@@ -98,32 +99,31 @@ function toDateTimeLocalValue(value?: string): string {
   return `${year}-${month}-${day}T${hour}:${minute}`;
 }
 
-function modeFromPath(pathname: string): string {
-  const mode = pathname.split("/").pop();
-  return mode ?? "details";
-}
+type TrackingTab = "overview" | "courier" | "proof" | "receipt" | "support";
 
-const DELIVERED_ALLOWED_MODES = new Set([
-  "delivered",
-  "proof",
-  "receipt",
-  "rating",
-  "driver",
-  "timeline",
-  "live",
-  "details",
-  "received",
-  "payment"
-]);
+const TRACKING_TAB_OPTIONS: Array<{ value: TrackingTab; label: string }> = [
+  { value: "overview", label: "Overview" },
+  { value: "courier", label: "Courier" },
+  { value: "proof", label: "Proof" },
+  { value: "receipt", label: "Receipt" },
+  { value: "support", label: "Support" }
+];
+
+const DEFAULT_TRACKING_TAB: TrackingTab = "overview";
+
+function parseTrackingTab(value: string | null): TrackingTab {
+  const validTabs = new Set<TrackingTab>(["overview", "courier", "proof", "receipt", "support"]);
+  return value && validTabs.has(value as TrackingTab) ? (value as TrackingTab) : DEFAULT_TRACKING_TAB;
+}
 
 export default function DeliveryTrackingRealtime(): React.JSX.Element {
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { orderId = "" } = useParams<{ orderId: string }>();
   const { delivery, actions } = useAppData();
   const setActiveDeliveryById = actions.setActiveDeliveryById;
 
-  const mode = modeFromPath(location.pathname);
+  const activeTab = parseTrackingTab(searchParams.get("tab"));
   const [isRefreshing, setIsRefreshing] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
   const [exceptionDialogOpen, setExceptionDialogOpen] = useState(false);
@@ -134,9 +134,17 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
   const [scheduleDraft, setScheduleDraft] = useState("");
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("Plan changed");
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const timelineRef = useRef<HTMLDivElement | null>(null);
+  const courierRef = useRef<HTMLDivElement | null>(null);
+  const proofRef = useRef<HTMLDivElement | null>(null);
+  const receiptRef = useRef<HTMLDivElement | null>(null);
+  const supportRef = useRef<HTMLDivElement | null>(null);
 
   const order = useMemo(
-    () => delivery.orders.find((item) => item.id === orderId) ?? delivery.activeOrder,
+    () =>
+      delivery.orders.find((item) => item.id === orderId) ??
+      (delivery.activeOrder?.id === orderId ? delivery.activeOrder : null),
     [delivery.orders, delivery.activeOrder, orderId]
   );
 
@@ -154,20 +162,7 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
     setIsRefreshing(true);
     const timer = window.setTimeout(() => setIsRefreshing(false), 280);
     return () => window.clearTimeout(timer);
-  }, [orderId, mode]);
-
-  useEffect(() => {
-    if (!order || !orderId) {
-      return;
-    }
-
-    if (order.status === "delivered" && !DELIVERED_ALLOWED_MODES.has(mode)) {
-      navigate(`/deliveries/tracking/${orderId}/delivered`, { replace: true });
-    }
-    if (order.status === "cancelled" && mode !== "cancel") {
-      navigate(`/deliveries/tracking/${orderId}/cancel`, { replace: true });
-    }
-  }, [navigate, order, mode, orderId]);
+  }, [orderId, activeTab]);
 
   useEffect(() => {
     if (!order) {
@@ -181,16 +176,30 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
       <ScreenScaffold>
         <SectionHeader
           title="Tracking"
-          subtitle="Order not found"
+          subtitle="Order unavailable"
           leadingAction={
             <IconButton size="small" aria-label="Back" onClick={() => navigate(-1)}>
               <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
             </IconButton>
           }
         />
-        <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
-          We could not find this delivery order. Check the tracking code and try again.
-        </Typography>
+        <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+          <CardContent>
+            <Stack spacing={1.2}>
+              <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                We could not find this delivery order. It may be invalid, closed, or unavailable right now.
+              </Typography>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                <Button variant="contained" onClick={() => navigate("/deliveries")} sx={{ textTransform: "none" }}>
+                  Back to deliveries
+                </Button>
+                <Button variant="outlined" onClick={() => navigate(-1)} sx={{ textTransform: "none" }}>
+                  Go back
+                </Button>
+              </Stack>
+            </Stack>
+          </CardContent>
+        </Card>
       </ScreenScaffold>
     );
   }
@@ -200,6 +209,41 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
   const scheduleCancellation = calculateScheduledCancellationFee(order);
   const canEditSchedule = canEditScheduledOrder(order);
   const canCancelSchedule = canCancelScheduledOrder(order);
+
+  const setTrackingTab = (nextTab: TrackingTab): void => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextTab === DEFAULT_TRACKING_TAB) {
+      nextParams.delete("tab");
+    } else {
+      nextParams.set("tab", nextTab);
+    }
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const scrollToRef = (target: React.RefObject<HTMLDivElement>, tab: TrackingTab): void => {
+    setTrackingTab(tab);
+    target.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleSectionTabChange = (nextTab: TrackingTab): void => {
+    if (nextTab === "overview") {
+      scrollToRef(mapRef, "overview");
+      return;
+    }
+    if (nextTab === "courier") {
+      scrollToRef(courierRef, "courier");
+      return;
+    }
+    if (nextTab === "proof") {
+      scrollToRef(proofRef, "proof");
+      return;
+    }
+    if (nextTab === "receipt") {
+      scrollToRef(receiptRef, "receipt");
+      return;
+    }
+    scrollToRef(supportRef, "support");
+  };
 
   const handleCallCourier = (): void => {
     actions.logDeliveryContactEvent(order.id, "call");
@@ -278,17 +322,18 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
         </>
       ) : (
         <>
-          <DeliveryTrackingMap
-            pickupLabel={order.pickup.label}
-            dropoffLabel={order.dropoff.label}
-            courierPosition={order.tracking.courierPosition}
-            etaLabel={etaLabel}
-            statusLabel={statusLabel}
-            height="clamp(252px, 42vh, 360px)"
-            showBackButton
-            onBack={() => navigate(-1)}
-            fullBleed
-          />
+          <Box ref={mapRef}>
+            <DeliveryTrackingMap
+              pickupLabel={order.pickup.label}
+              dropoffLabel={order.dropoff.label}
+              courierPosition={order.tracking.courierPosition}
+              etaLabel={etaLabel}
+              statusLabel={statusLabel}
+              showBackButton
+              onBack={() => navigate(-1)}
+              fullBleed
+            />
+          </Box>
 
           <Stack direction="row" spacing={1} alignItems="flex-start" justifyContent="space-between" sx={{ mt: 1.5 }}>
             <Box sx={{ minWidth: 0 }}>
@@ -300,6 +345,9 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
               </Typography>
               <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
                 {getDeliveryStatusDescription(order.status)}
+              </Typography>
+              <Typography variant="caption" sx={{ display: "block", color: (t) => t.palette.text.secondary }}>
+                Parcel: {order.parcel.description} • Recipient: {order.recipient.name}
               </Typography>
             </Box>
             <Chip
@@ -323,10 +371,36 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
             distanceKm={order.tracking.distanceKm}
             lastSyncLabel={formatDateTime(delivery.lastRealtimeSync ?? order.tracking.updatedAt)}
           />
+
+          <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+            <CardContent sx={{ pb: "12px !important" }}>
+              <Tabs
+                value={activeTab}
+                onChange={(_event, value) => handleSectionTabChange(value as TrackingTab)}
+                variant="scrollable"
+                allowScrollButtonsMobile
+                aria-label="Tracking sections"
+                sx={{
+                  minHeight: 40,
+                  "& .MuiTab-root": {
+                    minHeight: 40,
+                    textTransform: "none",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    px: 1.5
+                  }
+                }}
+              >
+                {TRACKING_TAB_OPTIONS.map((tab) => (
+                  <Tab key={tab.value} value={tab.value} label={tab.label} />
+                ))}
+              </Tabs>
+            </CardContent>
+          </Card>
         </>
       )}
 
-      <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }} aria-live="polite">
+      <Card ref={timelineRef} elevation={0} sx={{ borderRadius: uiTokens.radius.xl }} aria-live="polite">
         <CardContent>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: uiTokens.spacing.smPlus }}>
             Status timeline
@@ -380,7 +454,7 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      {mode === "delivered" && (
+      {order.status === "delivered" && (
         <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl, border: "1px solid rgba(34,197,94,0.28)" }}>
           <CardContent>
             <Stack direction="row" spacing={1.2} alignItems="center" justifyContent="space-between">
@@ -410,140 +484,125 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
         </Card>
       )}
 
-      {(mode === "driver" || mode === "live" || mode === "details" || mode === "received") && order.courier && (
-        <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
-          <CardContent>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5}>
-              <Stack direction="row" spacing={1.2} alignItems="center">
-                <Avatar sx={{ bgcolor: uiTokens.colors.brand, color: "#0f172a", fontWeight: 700 }}>
-                  {order.courier.name.slice(0, 2).toUpperCase()}
-                </Avatar>
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    {order.courier.name}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
-                    {order.courier.vehicle} • {order.courier.plate} • {order.courier.rating.toFixed(1)}★
-                  </Typography>
-                </Box>
-              </Stack>
-              <Chip size="small" label="Courier" icon={<LocalShippingRoundedIcon sx={{ fontSize: 14 }} />} />
-            </Stack>
-
-            <Stack direction="row" spacing={1} sx={{ mt: uiTokens.spacing.smPlus }}>
-              <Button
-                fullWidth
-                size="small"
-                variant="outlined"
-                startIcon={<PhoneRoundedIcon sx={{ fontSize: 16 }} />}
-                href={`tel:${order.courier.phone}`}
-                onClick={handleCallCourier}
-                aria-label="Call courier"
-                sx={{ textTransform: "none" }}
-              >
-                Call
-              </Button>
-              <Button
-                fullWidth
-                size="small"
-                variant="outlined"
-                startIcon={<MessageRoundedIcon sx={{ fontSize: 16 }} />}
-                onClick={handleChatCourier}
-                aria-label="Chat with courier"
-                sx={{ textTransform: "none" }}
-              >
-                Chat
-              </Button>
-            </Stack>
-          </CardContent>
-        </Card>
-      )}
-
-      {(mode === "details" || mode === "received" || mode === "delivered") && (
-        <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
-          <CardContent>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: uiTokens.spacing.xs }}>
-              Parcel and recipient details
-            </Typography>
-            <Stack spacing={0.6}>
-              <Typography variant="body2">Parcel: {order.parcel.description}</Typography>
-              <Typography variant="body2">
-                Type: {order.parcel.type.replace("_", " ")} • Size: {order.parcel.size.replace("_", " ")}
-              </Typography>
-              <Typography variant="body2">Declared value: {formatCurrency(order.parcel.value)}</Typography>
-              <Typography variant="body2">Recipient: {order.recipient.name} • {order.recipient.phone}</Typography>
-              <Typography variant="body2">Address: {order.recipient.address}</Typography>
-              <Typography variant="body2">
-                Payment estimate: {order.priceEstimate ?? formatCurrency(order.costBreakdown.total)}
-              </Typography>
-            </Stack>
-          </CardContent>
-        </Card>
-      )}
-
-      {(mode === "proof" || (mode === "delivered" && order.proofOfDelivery)) && (
-        <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
-          <CardContent>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#16A34A", mb: 1 }}>
-              Proof of delivery
-            </Typography>
-            {order.proofOfDelivery ? (
-              <Stack spacing={0.7}>
-                <Typography variant="body2">Recipient: {order.proofOfDelivery.recipientName}</Typography>
-                <Typography variant="body2">Delivered: {formatDateTime(order.proofOfDelivery.deliveredAt)}</Typography>
-                <Typography variant="body2">Location: {order.proofOfDelivery.location.label}</Typography>
-                <Typography variant="body2">
-                  Verification: {order.proofOfDelivery.methods.map((method) => formatProofMethodLabel(method)).join(", ")}
-                </Typography>
-                {order.proofOfDelivery.otpCode && (
-                  <Typography variant="body2">OTP: {order.proofOfDelivery.otpCode}</Typography>
-                )}
-              </Stack>
-            ) : (
-              <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
-                Proof is not available yet.
-              </Typography>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {(mode === "receipt" || (mode === "delivered" && order.receipt)) && (
-        <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
-          <CardContent>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-              Receipt
-            </Typography>
-            {order.receipt ? (
-              <Stack spacing={0.8}>
-                {order.receipt.lineItems.map((line) => (
-                  <Stack key={line.label} direction="row" justifyContent="space-between">
-                    <Typography variant="body2">{line.label}</Typography>
-                    <Typography variant="body2">{formatCurrency(line.amount)}</Typography>
-                  </Stack>
-                ))}
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                    Total
-                  </Typography>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                    {formatCurrency(order.receipt.total)}
-                  </Typography>
+      <Card ref={courierRef} elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+        <CardContent>
+          {order.courier ? (
+            <>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5}>
+                <Stack direction="row" spacing={1.2} alignItems="center">
+                  <Avatar sx={{ bgcolor: uiTokens.colors.brand, color: "#0f172a", fontWeight: 700 }}>
+                    {order.courier.name.slice(0, 2).toUpperCase()}
+                  </Avatar>
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                      {order.courier.name}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                      {order.courier.vehicle} • {order.courier.plate} • {order.courier.rating.toFixed(1)}★
+                    </Typography>
+                  </Box>
                 </Stack>
-                <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
-                  Issued {formatDateTime(order.receipt.issuedAt)} • {order.receipt.settlementStatus}
+                <Chip size="small" label="Courier" icon={<LocalShippingRoundedIcon sx={{ fontSize: 14 }} />} />
+              </Stack>
+
+              <Stack direction="row" spacing={1} sx={{ mt: uiTokens.spacing.smPlus }}>
+                <Button
+                  fullWidth
+                  size="small"
+                  variant="outlined"
+                  startIcon={<PhoneRoundedIcon sx={{ fontSize: 16 }} />}
+                  href={`tel:${order.courier.phone}`}
+                  onClick={handleCallCourier}
+                  aria-label="Call courier"
+                  sx={{ textTransform: "none" }}
+                >
+                  Call
+                </Button>
+                <Button
+                  fullWidth
+                  size="small"
+                  variant="outlined"
+                  startIcon={<MessageRoundedIcon sx={{ fontSize: 16 }} />}
+                  onClick={handleChatCourier}
+                  aria-label="Chat with courier"
+                  sx={{ textTransform: "none" }}
+                >
+                  Chat
+                </Button>
+              </Stack>
+            </>
+          ) : (
+            <Stack spacing={0.7}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                Courier assignment
+              </Typography>
+              <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                We are still assigning a courier for this order. Call and chat will unlock once assigned.
+              </Typography>
+            </Stack>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card ref={proofRef} elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+        <CardContent>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#16A34A", mb: 1 }}>
+            Proof of delivery
+          </Typography>
+          {order.proofOfDelivery ? (
+            <Stack spacing={0.7}>
+              <Typography variant="body2">Recipient: {order.proofOfDelivery.recipientName}</Typography>
+              <Typography variant="body2">Delivered: {formatDateTime(order.proofOfDelivery.deliveredAt)}</Typography>
+              <Typography variant="body2">Location: {order.proofOfDelivery.location.label}</Typography>
+              <Typography variant="body2">
+                Verification: {order.proofOfDelivery.methods.map((method) => formatProofMethodLabel(method)).join(", ")}
+              </Typography>
+              {order.proofOfDelivery.otpCode && (
+                <Typography variant="body2">OTP: {order.proofOfDelivery.otpCode}</Typography>
+              )}
+            </Stack>
+          ) : (
+            <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+              Proof is pending. It will appear here after successful handoff verification.
+            </Typography>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card ref={receiptRef} elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+        <CardContent>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+            Receipt
+          </Typography>
+          {order.receipt ? (
+            <Stack spacing={0.8}>
+              {order.receipt.lineItems.map((line) => (
+                <Stack key={line.label} direction="row" justifyContent="space-between">
+                  <Typography variant="body2">{line.label}</Typography>
+                  <Typography variant="body2">{formatCurrency(line.amount)}</Typography>
+                </Stack>
+              ))}
+              <Stack direction="row" justifyContent="space-between">
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  Total
+                </Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  {formatCurrency(order.receipt.total)}
                 </Typography>
               </Stack>
-            ) : (
-              <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
-                Receipt is not available yet.
+              <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                Issued {formatDateTime(order.receipt.issuedAt)} • {order.receipt.settlementStatus}
               </Typography>
-            )}
-          </CardContent>
-        </Card>
-      )}
+            </Stack>
+          ) : (
+            <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+              Receipt is pending until settlement is captured or finalized.
+            </Typography>
+          )}
+        </CardContent>
+      </Card>
 
-      {mode === "cancel" && (
+      {order.status === "cancelled" && (
         <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
           <CardContent>
             <Stack spacing={0.8}>
@@ -556,53 +615,53 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
         </Card>
       )}
 
-      <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
-        <CardContent>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-              Exceptions and support
-            </Typography>
-            <Button
-              size="small"
-              color="error"
-              startIcon={<ReportProblemRoundedIcon sx={{ fontSize: 14 }} />}
-              onClick={() => setExceptionDialogOpen(true)}
-              sx={{ textTransform: "none", fontWeight: 600 }}
-            >
-              Report issue
-            </Button>
-          </Stack>
-
-          {(order.exceptions ?? []).length === 0 ? (
-            <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
-              No active exceptions for this order.
-            </Typography>
-          ) : (
-            <Stack spacing={0.8}>
-              {(order.exceptions ?? []).map((item) => (
-                <Box key={item.id}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {DELIVERY_EXCEPTION_LABELS[item.type]}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
-                    {item.note} • {item.status}
-                  </Typography>
-                  {item.status === "open" && (
-                    <Box sx={{ mt: 0.5 }}>
-                      <Button
-                        size="small"
-                        onClick={() => actions.resolveDeliveryException(order.id, item.id, "Resolved by support")}
-                        sx={{ textTransform: "none" }}
-                      >
-                        Mark resolved
-                      </Button>
-                    </Box>
-                  )}
-                </Box>
-              ))}
+      <Card ref={supportRef} elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+          <CardContent>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                Exceptions and support
+              </Typography>
+              <Button
+                size="small"
+                color="error"
+                startIcon={<ReportProblemRoundedIcon sx={{ fontSize: 14 }} />}
+                onClick={() => setExceptionDialogOpen(true)}
+                sx={{ textTransform: "none", fontWeight: 600 }}
+              >
+                Report issue
+              </Button>
             </Stack>
-          )}
-        </CardContent>
+
+            {(order.exceptions ?? []).length === 0 ? (
+              <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                No active exceptions for this order.
+              </Typography>
+            ) : (
+              <Stack spacing={0.8}>
+                {(order.exceptions ?? []).map((item) => (
+                  <Box key={item.id}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {DELIVERY_EXCEPTION_LABELS[item.type]}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                      {item.note} • {item.status}
+                    </Typography>
+                    {item.status === "open" && (
+                      <Box sx={{ mt: 0.5 }}>
+                        <Button
+                          size="small"
+                          onClick={() => actions.resolveDeliveryException(order.id, item.id, "Resolved by support")}
+                          sx={{ textTransform: "none" }}
+                        >
+                          Mark resolved
+                        </Button>
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+              </Stack>
+            )}
+          </CardContent>
       </Card>
 
       <DeliveryBottomSheet>
@@ -621,7 +680,38 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
             <Button
               variant="outlined"
-              onClick={() => navigate(`/deliveries/tracking/${order.id}/proof`)}
+              startIcon={<PhoneRoundedIcon sx={{ fontSize: 16 }} />}
+              href={order.courier ? `tel:${order.courier.phone}` : undefined}
+              onClick={handleCallCourier}
+              disabled={!order.courier}
+              sx={{ textTransform: "none" }}
+            >
+              Call
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<MessageRoundedIcon sx={{ fontSize: 16 }} />}
+              onClick={handleChatCourier}
+              disabled={!order.courier}
+              sx={{ textTransform: "none" }}
+            >
+              Chat
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<ReportProblemRoundedIcon sx={{ fontSize: 16 }} />}
+              onClick={() => setExceptionDialogOpen(true)}
+              sx={{ textTransform: "none" }}
+            >
+              Report issue
+            </Button>
+          </Stack>
+
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+            <Button
+              variant="outlined"
+              onClick={() => scrollToRef(proofRef, "proof")}
               startIcon={<FactCheckRoundedIcon sx={{ fontSize: 16 }} />}
               sx={{ textTransform: "none" }}
             >
@@ -629,7 +719,7 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
             </Button>
             <Button
               variant="outlined"
-              onClick={() => navigate(`/deliveries/tracking/${order.id}/receipt`)}
+              onClick={() => scrollToRef(receiptRef, "receipt")}
               startIcon={<ReceiptLongRoundedIcon sx={{ fontSize: 16 }} />}
               sx={{ textTransform: "none" }}
             >
@@ -637,27 +727,20 @@ export default function DeliveryTrackingRealtime(): React.JSX.Element {
             </Button>
             <Button
               variant="outlined"
-              onClick={() => navigate(`/deliveries/tracking/${order.id}/rating`)}
+              onClick={() => navigate(`/deliveries/rating/${order.id}`)}
               startIcon={<StarRoundedIcon sx={{ fontSize: 16 }} />}
               sx={{ textTransform: "none" }}
             >
               Rate delivery
             </Button>
-          </Stack>
-
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
             <Button
               variant="outlined"
-              onClick={() => navigate(`/deliveries/tracking/${order.id}/driver`)}
-              startIcon={<PersonRoundedIcon sx={{ fontSize: 16 }} />}
+              onClick={() => scrollToRef(timelineRef, "overview")}
               sx={{ textTransform: "none" }}
             >
-              Courier
-            </Button>
-            <Button variant="outlined" onClick={() => navigate(`/deliveries/tracking/${order.id}/timeline`)} sx={{ textTransform: "none" }}>
               Timeline
             </Button>
-            <Button variant="outlined" onClick={() => navigate(`/deliveries/tracking/${order.id}/live`)} sx={{ textTransform: "none" }}>
+            <Button variant="outlined" onClick={() => scrollToRef(mapRef, "overview")} sx={{ textTransform: "none" }}>
               Live map
             </Button>
           </Stack>
