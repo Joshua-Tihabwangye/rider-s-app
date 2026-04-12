@@ -180,7 +180,7 @@ type OrderModeConfigPatch = {
   company?: Partial<NonNullable<DeliveryDraft["orderModeConfig"]["company"]>>;
 };
 
-export default function DeliveryCreate(): React.JSX.Element {
+export default function DeliveryNew(): React.JSX.Element {
   const navigate = useNavigate();
   const theme = useTheme();
   const isPhone = useMediaQuery(theme.breakpoints.down("sm"));

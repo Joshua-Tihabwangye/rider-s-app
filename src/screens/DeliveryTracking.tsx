@@ -122,7 +122,7 @@ function parseTrackingTab(value: string | null): TrackingTab {
   return value && validTabs.has(value as TrackingTab) ? (value as TrackingTab) : DEFAULT_TRACKING_TAB;
 }
 
-export default function DeliveryTrackingRealtime(): React.JSX.Element {
+export default function DeliveryTracking(): React.JSX.Element {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { orderId = "" } = useParams<{ orderId: string }>();
