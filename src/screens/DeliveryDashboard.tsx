@@ -86,11 +86,13 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
     (order) => !DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
   );
   const incomingOrders: DeliveryOrder[] = receivingOrders.filter(
-    (order) => !DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
+    (order) =>
+      !DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number]) ||
+      Boolean(order.needsPayment)
   );
 
   const pendingDeliveriesCount = deliveringOrders.filter((order) => order.status === "requested").length;
-  const incomingPendingCount = incomingOrders.filter((order) => order.status === "requested").length;
+  const incomingPendingCount = incomingOrders.filter((order) => order.status === "requested" || order.needsPayment).length;
   const completedDeliveriesCount = delivery.orders.filter((order) =>
     DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
   ).length;
@@ -234,27 +236,6 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
             }}
           >
             Track shipment
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Inventory2RoundedIcon sx={{ fontSize: 18 }} />}
-            onClick={() => {
-              const el = document.getElementById("incoming-deliveries-section");
-              if (el) {
-                el.scrollIntoView({ behavior: "smooth", block: "start" });
-              }
-            }}
-            sx={{
-              py: uiTokens.spacing.sm,
-              fontSize: 13,
-              fontWeight: 600,
-              textTransform: "none",
-              borderColor: uiTokens.borders.warning,
-              color: (t) =>
-                t.palette.mode === "light" ? uiTokens.colors.warningTextLight : uiTokens.colors.warningTextDark
-            }}
-          >
-            Incoming workflow
           </Button>
         </Box>
       </PrimarySection>
