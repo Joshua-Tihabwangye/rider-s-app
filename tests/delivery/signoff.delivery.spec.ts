@@ -116,32 +116,27 @@ test.describe("Delivery Sign-off • Functional checks", () => {
     expect(orderMatch).not.toBeNull();
     const orderId = orderMatch?.[1] ?? "";
 
-    const callButton = page.getByLabel("Call courier now");
-    await expect(callButton).toBeVisible();
-    expect(await callButton.getAttribute("href")).toMatch(/^tel:/);
-
-    await page.getByLabel("Open courier chat").click();
-    await expect(page.getByRole("dialog")).toBeVisible();
-    await page.getByLabel("Close chat").click();
-
-    await page.getByLabel("Report delivery issue").first().click();
-    const issueDialog = page.getByRole("dialog", { name: "Report delivery issue" });
-    await expect(issueDialog).toBeVisible();
-    await issueDialog.getByLabel("Details").fill("Testing issue button wiring");
-    await issueDialog.getByRole("button", { name: "Submit" }).click();
-    await expect(issueDialog).not.toBeVisible();
+    await expect(page.getByLabel("Call courier now")).toHaveCount(0);
+    await expect(page.getByLabel("Open courier chat")).toHaveCount(0);
+    await expect(page.getByLabel("Report delivery issue")).toHaveCount(0);
 
     await page.getByLabel("View proof of delivery").click();
     await expect(page).toHaveURL(new RegExp(`/deliveries/tracking/${orderId}\\?tab=proof`));
+    await expect(page.locator("#tracking-section-proof")).toBeVisible();
+    await expect(page.locator("#tracking-section-receipt")).toHaveCount(0);
 
     await page.getByLabel("View receipt section").click();
     await expect(page).toHaveURL(new RegExp(`/deliveries/tracking/${orderId}\\?tab=receipt`));
+    await expect(page.locator("#tracking-section-receipt")).toBeVisible();
+    await expect(page.locator("#tracking-section-proof")).toHaveCount(0);
 
     await page.getByLabel("Open status timeline").click();
-    await expect(page).toHaveURL(new RegExp(`/deliveries/tracking/${orderId}`));
+    await expect(page).toHaveURL(new RegExp(`/deliveries/tracking/${orderId}$`));
+    await expect(page.getByText("Status timeline")).toBeVisible();
 
     await page.getByLabel("Open live map").click();
-    await expect(page).toHaveURL(new RegExp(`/deliveries/tracking/${orderId}`));
+    await expect(page).toHaveURL(new RegExp(`/deliveries/tracking/${orderId}\\?panel=map$`));
+    await expect(page.getByText("Status timeline")).toHaveCount(0);
 
     await page.getByLabel("Rate this delivery").click();
     await expect(page).toHaveURL(new RegExp(`/deliveries/rating/${orderId}`));

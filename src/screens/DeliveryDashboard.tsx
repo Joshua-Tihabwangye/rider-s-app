@@ -79,10 +79,18 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
   const [isLoading, setIsLoading] = useState(true);
 
   const unreadNotifications = delivery.notifications.filter((item) => !item.read).length;
-  const deliveringOrders: DeliveryOrder[] = delivery.orders.filter(
+  const sendingOrders = delivery.orders.filter((order) => order.participantRole === "sender");
+  const receivingOrders = delivery.orders.filter((order) => order.participantRole === "receiver");
+
+  const deliveringOrders: DeliveryOrder[] = sendingOrders.filter(
     (order) => !DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
   );
+  const incomingOrders: DeliveryOrder[] = receivingOrders.filter(
+    (order) => !DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
+  );
+
   const pendingDeliveriesCount = deliveringOrders.filter((order) => order.status === "requested").length;
+  const incomingPendingCount = incomingOrders.filter((order) => order.status === "requested").length;
   const completedDeliveriesCount = delivery.orders.filter((order) =>
     DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
   ).length;
@@ -116,7 +124,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
     <ScreenScaffold>
       <SectionHeader
         title="Deliveries"
-        subtitle="Command center for sending and delivery history"
+        subtitle="Command center for sending, receiving, and delivery history"
         leadingAction={
           <IconButton
             size="small"
@@ -170,8 +178,10 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
           }}
         >
           <InlineStat label="Active" value={`${deliveringOrders.length}`} />
+          <InlineStat label="Incoming" value={`${incomingOrders.length}`} />
           <InlineStat label="Completed" value={`${completedDeliveriesCount}`} />
           <InlineStat label="Pending" value={`${pendingDeliveriesCount}`} />
+          <InlineStat label="Awaiting me" value={`${incomingPendingCount}`} />
           <InlineStat label="Unread" value={`${unreadNotifications}`} />
         </Box>
 
@@ -224,6 +234,27 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
             }}
           >
             Track shipment
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<Inventory2RoundedIcon sx={{ fontSize: 18 }} />}
+            onClick={() => {
+              const el = document.getElementById("incoming-deliveries-section");
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            }}
+            sx={{
+              py: uiTokens.spacing.sm,
+              fontSize: 13,
+              fontWeight: 600,
+              textTransform: "none",
+              borderColor: uiTokens.borders.warning,
+              color: (t) =>
+                t.palette.mode === "light" ? uiTokens.colors.warningTextLight : uiTokens.colors.warningTextDark
+            }}
+          >
+            Incoming workflow
           </Button>
         </Box>
       </PrimarySection>
@@ -284,6 +315,53 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
           alignItems: "start"
         }}
       >
+        <AppCard id="incoming-deliveries-section">
+          <SectionHeader
+            eyebrow="Receiving"
+            title="Incoming deliveries to me"
+            subtitle="Track parcels where you are the recipient."
+            action={
+              <Badge badgeContent={incomingOrders.length} color="warning">
+                <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, color: (t) => t.palette.text.secondary }}>
+                  Incoming
+                </Typography>
+              </Badge>
+            }
+            compact
+          />
+
+          <ListSection>
+            {isLoading ? (
+              <Stack spacing={1.2}>
+                <Skeleton variant="rounded" height={132} sx={{ borderRadius: uiTokens.radius.xl }} />
+                <Skeleton variant="rounded" height={132} sx={{ borderRadius: uiTokens.radius.xl }} />
+              </Stack>
+            ) : incomingOrders.length === 0 ? (
+              <AppCard variant="muted">
+                <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                  No incoming deliveries yet. Shared and gifted parcels will appear here automatically.
+                </Typography>
+              </AppCard>
+            ) : (
+              incomingOrders.map((order) => (
+                <DeliveryCard
+                  key={order.id}
+                  order={order}
+                  variant="received"
+                  onAccept={(orderId) =>
+                    actions.updateDeliveryOrderStatus(orderId, "accepted", "Recipient confirmed incoming delivery")
+                  }
+                  onReject={(orderId) =>
+                    actions.updateDeliveryOrderStatus(orderId, "cancelled", "Recipient declined incoming delivery")
+                  }
+                  onMakePayment={(orderId) => navigate(`/deliveries/settlement/${orderId}`)}
+                  onClick={(id) => navigate(`/deliveries/tracking/${id}`)}
+                />
+              ))
+            )}
+          </ListSection>
+        </AppCard>
+
         <AppCard>
           <SectionHeader
             eyebrow="Sending"

@@ -59,7 +59,7 @@ export default function SignUp(): React.JSX.Element {
   return (
     <AuthLayout title="Create an account" subtitle="Join EVzone and ride electric">
       <Box component="form" onSubmit={handleSubmit} noValidate>
-        <Stack spacing={2}>
+        <Stack spacing={{ xs: 1.5, sm: 2 }}>
           {error && (
             <Alert severity="error" sx={{ borderRadius: "var(--evz-radius-md)", fontSize: 13 }}>
               {error}
@@ -133,13 +133,15 @@ export default function SignUp(): React.JSX.Element {
           </Button>
         </Stack>
 
-        <SocialAuthButtons
-          onProvider={handleSocial}
-          loading={loading}
-          disabledProvider={socialProvider}
-        />
+        <Box sx={{ mt: { xs: 1.5, sm: 2 } }}>
+          <SocialAuthButtons
+            onProvider={handleSocial}
+            loading={loading}
+            disabledProvider={socialProvider}
+          />
+        </Box>
 
-        <Box sx={{ mt: 3, textAlign: "center" }}>
+        <Box sx={{ mt: { xs: 2.1, sm: 3 }, textAlign: "center" }}>
           <Typography variant="body2" sx={{ fontSize: 13, color: (t) => t.palette.text.secondary }}>
             Already have an account?{" "}
             <Typography

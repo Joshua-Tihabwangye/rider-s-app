@@ -333,6 +333,7 @@ function createSeedDeliveryOrder(params: {
   dropoffLabel: string;
   dropoffAddress: string;
   senderName: string;
+  senderPhone?: string;
   senderAvatar: string;
   recipientName: string;
   recipientPhone: string;
@@ -341,6 +342,7 @@ function createSeedDeliveryOrder(params: {
   etaMinutes: number;
   distanceKm: number;
   progress: number;
+  participantRole?: DeliveryOrder["participantRole"];
   scheduled?: boolean;
   paymentMethodId?: string;
   orderMode?: DeliveryOrder["orderMode"];
@@ -348,13 +350,20 @@ function createSeedDeliveryOrder(params: {
 }): DeliveryOrder {
   const now = new Date().toISOString();
   const paymentMethodId = params.paymentMethodId ?? "pm_wallet";
+  const participantRole = params.participantRole ?? "sender";
+  const senderPhone = params.senderPhone ?? "+256 700 111 222";
   const scheduleTime = params.scheduled ? getSeedScheduleTime(1, 9, 30) : "";
   const deliveredAt = params.status === "delivered" ? now : undefined;
+  const needsPayment =
+    participantRole === "receiver" &&
+    paymentMethodId === "pm_cash" &&
+    !["delivered", "cancelled", "failed"].includes(params.status);
 
   const baseOrder: DeliveryOrder = {
     id: params.id,
     createdAt: now,
     updatedAt: now,
+    participantRole,
     status: params.status,
     pickup: {
       label: params.pickupLabel,
@@ -373,6 +382,11 @@ function createSeedDeliveryOrder(params: {
       value: 225000,
       fragile: true,
       notes: "Handle with care"
+    },
+    senderContact: {
+      name: params.senderName,
+      phone: senderPhone,
+      address: params.pickupAddress
     },
     recipient: {
       name: params.recipientName,
@@ -440,7 +454,7 @@ function createSeedDeliveryOrder(params: {
     date: new Date(),
     time: `${Math.max(params.etaMinutes, 5)} min`,
     progress: params.progress,
-    needsPayment: false,
+    needsPayment,
     exceptions: [],
     contactEvents: [],
     schedulePolicy: DEFAULT_DELIVERY_SCHEDULE_POLICY,
@@ -479,6 +493,7 @@ const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
     dropoffLabel: "Bugolobi Residence",
     dropoffAddress: "12, JJ Apartments, New Street, Kampala",
     senderName: "Sarah M.",
+    senderPhone: "+256 709 332 112",
     senderAvatar: "SM",
     recipientName: "John Kato",
     recipientPhone: "+256 779 111 333",
@@ -487,7 +502,8 @@ const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
     etaMinutes: 24,
     distanceKm: 8.6,
     progress: 64,
-    paymentMethodId: "pm_card_1"
+    paymentMethodId: "pm_card_1",
+    participantRole: "sender"
   }),
   createSeedDeliveryOrder({
     id: "DLV-2026-04-10-102",
@@ -497,6 +513,7 @@ const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
     dropoffLabel: "Kololo",
     dropoffAddress: "Wampewo Ave, Kololo, Kampala",
     senderName: "Mark O.",
+    senderPhone: "+256 701 420 901",
     senderAvatar: "MO",
     recipientName: "Brenda A.",
     recipientPhone: "+256 701 887 221",
@@ -507,6 +524,7 @@ const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
     progress: 12,
     scheduled: true,
     paymentMethodId: "pm_cash",
+    participantRole: "sender",
     orderMode: "business",
     orderModeConfig: {
       business: {
@@ -523,6 +541,7 @@ const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
     dropoffLabel: "Muyenga",
     dropoffAddress: "Tank Hill Rd, Muyenga, Kampala",
     senderName: "EV Mart",
+    senderPhone: "+256 700 888 444",
     senderAvatar: "EM",
     recipientName: "Jane L.",
     recipientPhone: "+256 772 100 909",
@@ -531,7 +550,48 @@ const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
     etaMinutes: 0,
     distanceKm: 0,
     progress: 100,
-    paymentMethodId: "pm_momo_1"
+    paymentMethodId: "pm_momo_1",
+    participantRole: "sender"
+  }),
+  createSeedDeliveryOrder({
+    id: "DLV-2026-04-11-203",
+    packageName: "Medical supplies",
+    pickupLabel: "Makerere Distribution Hub",
+    pickupAddress: "Makerere Hill Rd, Kampala",
+    dropoffLabel: "Ntinda Home",
+    dropoffAddress: "Ntinda Kigoowa Rd, Kampala",
+    senderName: "Dr. Peter N.",
+    senderPhone: "+256 777 244 889",
+    senderAvatar: "PN",
+    recipientName: "Rachel Zoe",
+    recipientPhone: "+256 777 777 777",
+    recipientAddress: "Ntinda Kigoowa Rd, Kampala",
+    status: "out_for_delivery",
+    etaMinutes: 18,
+    distanceKm: 6.4,
+    progress: 82,
+    paymentMethodId: "pm_cash",
+    participantRole: "receiver"
+  }),
+  createSeedDeliveryOrder({
+    id: "DLV-2026-04-11-204",
+    packageName: "Birthday gift box",
+    pickupLabel: "Acacia Mall",
+    pickupAddress: "14-18 Cooper Rd, Kampala",
+    dropoffLabel: "Bukoto Apartment",
+    dropoffAddress: "Bukoto Kisasi Rd, Kampala",
+    senderName: "Martha L.",
+    senderPhone: "+256 703 112 665",
+    senderAvatar: "ML",
+    recipientName: "Rachel Zoe",
+    recipientPhone: "+256 777 777 777",
+    recipientAddress: "Bukoto Kisasi Rd, Kampala",
+    status: "requested",
+    etaMinutes: 34,
+    distanceKm: 10.2,
+    progress: 14,
+    paymentMethodId: "pm_wallet",
+    participantRole: "receiver"
   })
 ];
 
@@ -588,6 +648,12 @@ export const SEED_DELIVERY_STATE: DeliveryState = {
       title: "Proof of delivery available",
       body: "View recipient confirmation, timestamp, and dropoff location.",
       category: "proof"
+    }),
+    createDeliveryNotification({
+      orderId: "DLV-2026-04-11-203",
+      title: "Incoming parcel arriving soon",
+      body: "Medical supplies are out for delivery to your address.",
+      category: "status"
     })
   ],
   websocketConnected: false,

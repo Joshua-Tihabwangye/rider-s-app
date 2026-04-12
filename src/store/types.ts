@@ -439,14 +439,18 @@ export interface DeliveryCourier {
   plate: string;
 }
 
+export type DeliveryParticipantRole = "sender" | "receiver";
+
 export interface DeliveryOrder {
   id: string;
   createdAt: string;
   updatedAt: string;
+  participantRole: DeliveryParticipantRole;
   status: DeliveryStatus;
   pickup: RideLocation;
   dropoff: RideLocation;
   parcel: DeliveryParcel;
+  senderContact: DeliveryParty;
   recipient: DeliveryParty;
   orderMode: DeliveryOrderMode;
   orderModeConfig: DeliveryOrderModeConfig;
