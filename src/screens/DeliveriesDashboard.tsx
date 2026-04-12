@@ -5,11 +5,6 @@ import {
   Badge,
   Box,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Divider,
   IconButton,
   InputAdornment,
@@ -18,8 +13,6 @@ import {
   Skeleton,
   Snackbar,
   Stack,
-  Tab,
-  Tabs,
   TextField,
   Typography
 } from "@mui/material";
@@ -27,7 +20,6 @@ import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import TrackChangesRoundedIcon from "@mui/icons-material/TrackChangesRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
-import PersonAddRoundedIcon from "@mui/icons-material/PersonAddRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
@@ -72,8 +64,7 @@ function statusTone(status: DeliveryOrder["status"]): { bg: string; fg: string }
 
 function DeliveryDashboardHomeScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const { delivery, actions } = useAppData();
-  const [activeTab, setActiveTab] = useState<string>("delivering");
+  const { delivery } = useAppData();
   const [trackingNumber, setTrackingNumber] = useState<string>("");
   const [menuAnchor, setMenuAnchor] = useState<{
     open: boolean;
@@ -86,27 +77,22 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
   });
   const [shareSnackbar, setShareSnackbar] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [rejectDialog, setRejectDialog] = useState<{ open: boolean; orderId: string | null }>({
-    open: false,
-    orderId: null
-  });
 
   const unreadNotifications = delivery.notifications.filter((item) => !item.read).length;
   const deliveringOrders: DeliveryOrder[] = delivery.orders.filter(
     (order) => !DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
   );
-  const receivedOrders: DeliveryOrder[] = delivery.orders.filter(
-    (order) => DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
-  );
   const pendingDeliveriesCount = deliveringOrders.filter((order) => order.status === "requested").length;
-  const completedDeliveriesCount = delivery.orders.filter((order) => order.status === "delivered").length;
+  const completedDeliveriesCount = delivery.orders.filter((order) =>
+    DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
+  ).length;
 
   const kpis = useMemo(() => calculateDeliveryKpis(delivery.orders), [delivery.orders]);
 
   const historyRows = useMemo(
     () =>
       [...delivery.orders]
-        .filter((order) => order.status === "delivered")
+        .filter((order) => DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number]))
         .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
         .slice(0, 3),
     [delivery.orders]
@@ -116,49 +102,21 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
     setIsLoading(true);
     const timer = window.setTimeout(() => setIsLoading(false), 220);
     return () => window.clearTimeout(timer);
-  }, [delivery.orders.length, activeTab]);
+  }, [delivery.orders.length]);
 
   const handleTrackShipment = (): void => {
     if (trackingNumber.trim()) {
-      navigate(`/deliveries/tracking/${trackingNumber.trim()}/details`, {
+      navigate(`/deliveries/tracking/${trackingNumber.trim()}`, {
         state: { trackingNumber: trackingNumber.trim() }
       });
     }
   };
 
-  const handleAcceptDelivery = (orderId: string): void => {
-    actions.updateDeliveryOrderStatus(orderId, "accepted", "Accepted by rider");
-    actions.setActiveDeliveryById(orderId);
-    navigate(`/deliveries/tracking/${orderId}/received`, {
-      state: { action: "accept", orderId }
-    });
-  };
-
-  const handleRejectDelivery = (orderId: string): void => {
-    setRejectDialog({ open: true, orderId });
-  };
-
-  const handleRejectConfirm = (): void => {
-    if (rejectDialog.orderId) {
-      actions.updateDeliveryOrderStatus(rejectDialog.orderId, "cancelled", "Rejected from dashboard");
-      navigate(`/deliveries/tracking/${rejectDialog.orderId}/cancel`, {
-        state: { action: "reject", orderId: rejectDialog.orderId }
-      });
-    }
-    setRejectDialog({ open: false, orderId: null });
-  };
-
-  const handleMakePayment = (orderId: string): void => {
-    navigate(`/deliveries/tracking/${orderId}/payment`);
-  };
-
-  const listOrders = activeTab === "delivering" ? deliveringOrders : receivedOrders;
-
   return (
     <ScreenScaffold>
       <SectionHeader
         title="Deliveries"
-        subtitle="Command center for sending, receiving, and history"
+        subtitle="Command center for sending and delivery history"
         leadingAction={
           <IconButton
             size="small"
@@ -201,7 +159,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
         <SectionHeader
           eyebrow="Operations"
           title="Delivery command"
-          subtitle="Monitor live workload, switch sending or receiving, and dispatch quickly."
+          subtitle="Monitor live sending workload and dispatch quickly."
         />
 
         <Box
@@ -327,45 +285,18 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
         }}
       >
         <AppCard>
-          <Tabs
-            value={activeTab}
-            onChange={(_event: React.SyntheticEvent, newValue: string) => setActiveTab(newValue)}
-            variant="fullWidth"
-            sx={{
-              mb: uiTokens.spacing.md,
-              "& .MuiTab-root": {
-                textTransform: "none",
-                fontSize: 13,
-                fontWeight: 600,
-                minHeight: 44,
-                color: (t) => t.palette.text.secondary
-              },
-              "& .Mui-selected": {
-                color: uiTokens.colors.brand
-              },
-              "& .MuiTabs-indicator": {
-                bgcolor: uiTokens.colors.brand,
-                height: 3
-              }
-            }}
-          >
-            <Tab
-              value="delivering"
-              label={
-                <Badge badgeContent={pendingDeliveriesCount} color="error">
-                  Delivering
-                </Badge>
-              }
-            />
-            <Tab
-              value="received"
-              label={
-                <Badge badgeContent={receivedOrders.length} color="error">
-                  Received
-                </Badge>
-              }
-            />
-          </Tabs>
+          <SectionHeader
+            eyebrow="Sending"
+            title="Active sending orders"
+            action={
+              <Badge badgeContent={deliveringOrders.length} color="error">
+                <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, color: (t) => t.palette.text.secondary }}>
+                  Active
+                </Typography>
+              </Badge>
+            }
+            compact
+          />
 
           <ListSection>
             {isLoading ? (
@@ -373,28 +304,22 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
                 <Skeleton variant="rounded" height={132} sx={{ borderRadius: uiTokens.radius.xl }} />
                 <Skeleton variant="rounded" height={132} sx={{ borderRadius: uiTokens.radius.xl }} />
               </Stack>
-            ) : listOrders.length === 0 ? (
+            ) : deliveringOrders.length === 0 ? (
               <AppCard variant="muted">
                 <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
-                  {activeTab === "delivering"
-                    ? "No active deliveries right now. Create a delivery to get started."
-                    : "No closed deliveries yet. Completed, cancelled, or failed orders appear here."}
+                  No active sending deliveries right now. Closed deliveries automatically move to history.
                 </Typography>
               </AppCard>
             ) : (
-              listOrders.map((order) => (
+              deliveringOrders.map((order) => (
                 <DeliveryCard
                   key={order.id}
                   order={order}
-                  variant={activeTab === "delivering" ? "delivering" : "received"}
+                  variant="delivering"
                   onMenuClick={(event, orderId) =>
                     setMenuAnchor({ open: true, anchorEl: event.currentTarget, orderId })
                   }
-                  onClick={(id) => navigate(`/deliveries/tracking/${id}/details`)}
-                  onAccept={handleAcceptDelivery}
-                  onReject={handleRejectDelivery}
-                  onMakePayment={handleMakePayment}
-                  showTruckIcon={activeTab === "received"}
+                  onClick={(id) => navigate(`/deliveries/tracking/${id}`)}
                 />
               ))
             )}
@@ -481,7 +406,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
                         <Box sx={{ mt: 0.4 }}>
                           <Button
                             size="small"
-                            onClick={() => navigate(`/deliveries/tracking/${order.id}/details`)}
+                            onClick={() => navigate(`/deliveries/tracking/${order.id}`)}
                             sx={{ textTransform: "none", fontSize: 11, minWidth: 0, px: 0 }}
                           >
                             Open
@@ -523,20 +448,8 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
       >
         <MenuItem
           onClick={() => {
-            setMenuAnchor({ open: false, anchorEl: null, orderId: null });
-            navigate("/deliveries/invitations");
-          }}
-          sx={{ py: uiTokens.spacing.smPlus }}
-        >
-          <PersonAddRoundedIcon sx={{ fontSize: 18, mr: uiTokens.spacing.md, color: uiTokens.colors.brand }} />
-          <Typography variant="body2" sx={{ fontSize: 13 }}>
-            Invite
-          </Typography>
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
             const orderId = menuAnchor.orderId;
-            const shareUrl = `${window.location.origin}/deliveries/tracking/${orderId}/details`;
+            const shareUrl = `${window.location.origin}/deliveries/tracking/${orderId}`;
             const shareData = {
               title: "EVzone Delivery Tracking",
               text: `Track delivery ${orderId}`,
@@ -562,38 +475,6 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
           </Typography>
         </MenuItem>
       </Menu>
-
-      <Dialog
-        open={rejectDialog.open}
-        onClose={() => setRejectDialog({ open: false, orderId: null })}
-        PaperProps={{ sx: { borderRadius: uiTokens.radius.xl, minWidth: 280 } }}
-      >
-        <DialogTitle sx={{ fontSize: 16, fontWeight: 600 }}>Reject Delivery?</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ fontSize: 13, color: "text.secondary" }}>
-            Are you sure you want to reject this delivery? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions sx={{ px: 2, pb: 2 }}>
-          <Button
-            onClick={() => setRejectDialog({ open: false, orderId: null })}
-            sx={{ textTransform: "none", color: "text.secondary" }}
-          >
-            Keep
-          </Button>
-          <Button
-            onClick={handleRejectConfirm}
-            sx={{
-              textTransform: "none",
-              bgcolor: uiTokens.colors.danger,
-              color: "white",
-              "&:hover": { bgcolor: uiTokens.colors.dangerHover }
-            }}
-          >
-            Reject
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       <Snackbar
         open={shareSnackbar}

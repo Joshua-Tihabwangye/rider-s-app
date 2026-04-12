@@ -51,15 +51,10 @@ import RideDetailsVariant from "../screens/RideDetailsVariant";
 import ConfirmRideDetails from "../screens/ConfirmRideDetails";
 import BookingThankYou from "../screens/BookingThankYou";
 import BookingConfirmation from "../screens/BookingConfirmation";
-import DeliveringV2 from "../screens/DeliveringV2";
-import DeliveryTrackingIncoming from "../screens/DeliveryTrackingIncoming";
-import DeliveryInvitations from "../screens/DeliveryInvitations";
-import DeliveryInvitationsV2 from "../screens/DeliveryInvitationsV2";
 import Preferences from "../screens/Preferences";
 import DeliveryRating from "../screens/DeliveryRating";
 import DeliveryCreate from "../screens/DeliveryCreate";
 import DeliveryTrackingRealtime from "../screens/DeliveryTrackingRealtime";
-import DeliveryReceivedUnified from "../screens/DeliveryReceivedUnified";
 import DeliveryNotifications from "../screens/DeliveryNotifications";
 import DeliveryPaymentSettlement from "../screens/DeliveryPaymentSettlement";
 import RentalList from "../screens/RentalList";
@@ -213,77 +208,15 @@ export default function AppRouter(): React.JSX.Element {
 					/>
 					<Route path="booking/thank-you" element={<BookingThankYou />} />
 				</Route>
-				{/* Deliveries */}
-				<Route path="deliveries">
-					<Route index element={<DeliveriesDashboard />} />
-					<Route path="delivering-v2" element={<DeliveringV2 />} />
-					<Route path="received" element={<DeliveryReceivedUnified />} />
-					<Route path="received-v2" element={<DeliveryReceivedUnified />} />
-					<Route path="received-v3" element={<DeliveryReceivedUnified />} />
-					<Route path="notifications" element={<DeliveryNotifications />} />
-					<Route path="new" element={<DeliveryCreate />} />
-					<Route
-						path="tracking/incoming"
-						element={<DeliveryTrackingIncoming />}
-					/>
-					<Route path="invitations" element={<DeliveryInvitations />} />
-					<Route
-						path="invitations/v2"
-						element={<DeliveryInvitationsV2 />}
-					/>
-					<Route
-						path="tracking/:orderId/received"
-						element={<DeliveryTrackingRealtime />}
-					/>
-					<Route
-						path="tracking/:orderId/en-route"
-						element={<DeliveryTrackingRealtime />}
-					/>
-					<Route
-						path="tracking/:orderId/cancel"
-						element={<DeliveryTrackingRealtime />}
-					/>
-					<Route
-						path="tracking/:orderId/live"
-						element={<DeliveryTrackingRealtime />}
-					/>
-					<Route
-						path="tracking/:orderId/driver"
-						element={<DeliveryTrackingRealtime />}
-					/>
-					<Route
-						path="tracking/:orderId/timeline"
-						element={<DeliveryTrackingRealtime />}
-					/>
-					<Route
-						path="tracking/:orderId/delivered"
-						element={<DeliveryTrackingRealtime />}
-					/>
-					<Route
-						path="tracking/:orderId/pickup-confirmed"
-						element={<DeliveryTrackingRealtime />}
-					/>
-					<Route
-						path="tracking/:orderId/rating"
-						element={<DeliveryRating />}
-					/>
-					<Route
-						path="tracking/:orderId/proof"
-						element={<DeliveryTrackingRealtime />}
-					/>
-					<Route
-						path="tracking/:orderId/receipt"
-						element={<DeliveryTrackingRealtime />}
-					/>
-					<Route
-						path="tracking/:orderId/payment"
-						element={<DeliveryPaymentSettlement />}
-					/>
-					<Route
-						path="tracking/:orderId/details"
-						element={<DeliveryTrackingRealtime />}
-					/>
-				</Route>
+					{/* Deliveries */}
+					<Route path="deliveries">
+						<Route index element={<DeliveriesDashboard />} />
+						<Route path="notifications" element={<DeliveryNotifications />} />
+						<Route path="new" element={<DeliveryCreate />} />
+						<Route path="tracking/:orderId" element={<DeliveryTrackingRealtime />} />
+						<Route path="rating/:orderId" element={<DeliveryRating />} />
+						<Route path="settlement/:orderId" element={<DeliveryPaymentSettlement />} />
+					</Route>
 				{/* Rental */}
 				<Route path="rental">
 					<Route index element={<RentalDashboard />} />

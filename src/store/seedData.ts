@@ -343,6 +343,8 @@ function createSeedDeliveryOrder(params: {
   progress: number;
   scheduled?: boolean;
   paymentMethodId?: string;
+  orderMode?: DeliveryOrder["orderMode"];
+  orderModeConfig?: DeliveryOrder["orderModeConfig"];
 }): DeliveryOrder {
   const now = new Date().toISOString();
   const paymentMethodId = params.paymentMethodId ?? "pm_wallet";
@@ -377,6 +379,24 @@ function createSeedDeliveryOrder(params: {
       phone: params.recipientPhone,
       address: params.recipientAddress
     },
+    orderMode: params.orderMode ?? "individual",
+    orderModeConfig:
+      params.orderModeConfig ??
+      {
+        family: {
+          payer: "sender",
+          memberName: ""
+        },
+        business: {
+          costCenter: "",
+          note: ""
+        },
+        company: {
+          requesterName: "",
+          delegateName: "",
+          approvalRequired: true
+        }
+      },
     schedule: params.scheduled ? "scheduled" : "now",
     scheduleTime,
     paymentMethodId,
@@ -486,7 +506,14 @@ const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
     distanceKm: 11.2,
     progress: 12,
     scheduled: true,
-    paymentMethodId: "pm_cash"
+    paymentMethodId: "pm_cash",
+    orderMode: "business",
+    orderModeConfig: {
+      business: {
+        costCenter: "Operations",
+        note: "Urgent legal package"
+      }
+    }
   }),
   createSeedDeliveryOrder({
     id: "DLV-2026-04-09-088",
@@ -522,6 +549,22 @@ export const SEED_DELIVERY_STATE: DeliveryState = {
       notes: ""
     },
     recipient: null,
+    orderMode: "individual",
+    orderModeConfig: {
+      family: {
+        payer: "sender",
+        memberName: ""
+      },
+      business: {
+        costCenter: "",
+        note: ""
+      },
+      company: {
+        requesterName: "",
+        delegateName: "",
+        approvalRequired: true
+      }
+    },
     schedule: "now",
     scheduleTime: "",
     paymentMethodId: "pm_wallet",

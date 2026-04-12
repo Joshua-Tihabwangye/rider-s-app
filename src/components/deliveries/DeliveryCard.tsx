@@ -83,7 +83,7 @@ export default function DeliveryCard({
   onClick
 }: DeliveryCardProps): React.JSX.Element {
   const isReceived = variant === "received";
-  const showAcceptReject = variant === "delivering" && order.status === "requested";
+  const showAcceptReject = Boolean(onAccept && onReject) && variant === "delivering" && order.status === "requested";
   const statusTone = statusStyles(order.status);
   const statusLabel = getDeliveryStatusLabel(order.status as DeliveryStatus);
   const progressValue = order.progress ?? 0;

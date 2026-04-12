@@ -130,7 +130,7 @@ export default function DeliveryPaymentSettlement(): React.JSX.Element {
         <Button
           variant="outlined"
           startIcon={<ReceiptLongRoundedIcon sx={{ fontSize: 16 }} />}
-          onClick={() => navigate(`/deliveries/tracking/${order.id}/receipt`)}
+          onClick={() => navigate(`/deliveries/tracking/${order.id}?tab=receipt`)}
           sx={{ textTransform: "none" }}
         >
           View receipt

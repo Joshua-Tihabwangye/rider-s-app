@@ -116,8 +116,8 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
       // Ride → /rides/history/:rideId (RA37)
       navigate(`/rides/history/${order.id}`);
     } else if (order.type === "Delivery") {
-      // Delivery → /deliveries/tracking/:orderId/details (RA68)
-      navigate(`/deliveries/tracking/${order.id}/details`);
+      // Delivery → /deliveries/tracking/:orderId
+      navigate(`/deliveries/tracking/${order.id}`);
     } else if (order.type === "Rental") {
       // Rental → /rental/history/:rentalId (RA90)
       navigate(`/rental/history/${order.id}`);

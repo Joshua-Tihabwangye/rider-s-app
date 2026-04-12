@@ -103,7 +103,7 @@ export default function DeliveryReceivedUnified(): React.JSX.Element {
               key={order.id}
               order={order}
               variant="received"
-              onClick={(id) => navigate(`/deliveries/tracking/${id}/details`)}
+              onClick={(id) => navigate(`/deliveries/tracking/${id}`)}
               showTruckIcon
             />
           ))
