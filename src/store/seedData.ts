@@ -354,10 +354,6 @@ function createSeedDeliveryOrder(params: {
   const senderPhone = params.senderPhone ?? "+256 700 111 222";
   const scheduleTime = params.scheduled ? getSeedScheduleTime(1, 9, 30) : "";
   const deliveredAt = params.status === "delivered" ? now : undefined;
-  const needsPayment =
-    participantRole === "receiver" &&
-    paymentMethodId === "pm_cash" &&
-    !["delivered", "cancelled", "failed"].includes(params.status);
 
   const baseOrder: DeliveryOrder = {
     id: params.id,
@@ -454,7 +450,7 @@ function createSeedDeliveryOrder(params: {
     date: new Date(),
     time: `${Math.max(params.etaMinutes, 5)} min`,
     progress: params.progress,
-    needsPayment,
+    needsPayment: false,
     exceptions: [],
     contactEvents: [],
     schedulePolicy: DEFAULT_DELIVERY_SCHEDULE_POLICY,
@@ -467,17 +463,42 @@ function createSeedDeliveryOrder(params: {
     getPaymentType(paymentMethodId),
     now
   );
-  const settlement = applySettlementForDeliveryStatus(
+  let settlement = applySettlementForDeliveryStatus(
     initializedSettlement,
     baseOrder,
     params.status,
     0,
     now
   );
+  if (participantRole === "receiver" && params.status === "delivered") {
+    settlement =
+      settlement.policy === "cash_on_delivery"
+        ? {
+            ...settlement,
+            status: "cash_due",
+            capturedAmount: 0,
+            capturedAt: undefined,
+            note: "Awaiting recipient payment confirmation."
+          }
+        : {
+            ...settlement,
+            status: "authorized",
+            authorizedAmount: baseOrder.costBreakdown.total,
+            authorizedAt: settlement.authorizedAt ?? now,
+            capturedAmount: 0,
+            capturedAt: undefined,
+            note: "Awaiting recipient payment confirmation."
+          };
+  }
+  const needsPayment =
+    participantRole === "receiver" &&
+    params.status === "delivered" &&
+    !["captured", "cash_collected", "refunded", "voided"].includes(settlement.status);
   const receipt = isReceiptEligible(settlement.status) ? generateDeliveryReceipt(baseOrder, settlement) : null;
 
   return {
     ...baseOrder,
+    needsPayment,
     settlement,
     receipt,
     proofOfDelivery: params.status === "delivered" ? createAutoProofOfDelivery(baseOrder) : null
@@ -756,27 +777,142 @@ export const SEED_TOURS_STATE: ToursState = {
 
 /** Ambulance */
 const SEED_AMBULANCE_REQUEST: AmbulanceRequest = {
-  id: "amb_001",
+  id: "AMB-REQ-2026-04-13-019",
   pickup: {
-    label: "Kololo",
-    address: "Kololo, Kampala"
+    label: "Makerere Hill Road",
+    address: "Makerere Hill Road, Kampala"
   },
   destination: {
-    label: "Case Hospital",
-    address: "Case Hospital, Kampala"
+    label: "Mulago National Referral Hospital",
+    address: "Mulago National Referral Hospital, Kampala"
   },
   urgency: "high",
-  status: "requested",
-  patientName: "Rachel Zoe",
-  patientPhone: "+256 777 777 777",
+  status: "assigned",
+  requestedAt: "2026-04-13T08:12:00.000Z",
+  dispatchedAt: "2026-04-13T08:17:00.000Z",
+  patientName: "Grace Namirembe",
+  patientPhone: "+256 777 771 112",
+  patientAge: 44,
+  patientGender: "female",
+  patientCondition: "Shortness of breath and dizziness",
+  patientIdNumber: "CM960413778",
   forWhom: "me",
-  notes: "Chest discomfort, patient needs urgent transport",
-  assignedUnit: "EV-AMB-3"
+  callerName: "Grace Namirembe",
+  callerPhone: "+256 777 771 112",
+  notes: "Patient is conscious but weak. Carry oxygen support.",
+  assignedUnit: "EV-AMB-7",
+  ambulancePlateNumber: "UBQ 918K",
+  driverName: "Moses Kintu",
+  driverPhone: "+256 700 442 189",
+  driverLicenseNumber: "UG-DL-3845129",
+  hospitalContactName: "Nurse Sarah",
+  hospitalContactPhone: "+256 414 554 201"
 };
 
 export const SEED_AMBULANCE_STATE: AmbulanceState = {
   request: SEED_AMBULANCE_REQUEST,
-  history: []
+  history: [
+    {
+      id: "AMB-REQ-2026-04-11-101",
+      pickup: {
+        label: "Kansanga Market",
+        address: "Kansanga Market, Kampala"
+      },
+      destination: {
+        label: "Case Hospital",
+        address: "Case Hospital, Kampala"
+      },
+      urgency: "medium",
+      status: "completed",
+      requestedAt: "2026-04-11T10:06:00.000Z",
+      dispatchedAt: "2026-04-11T10:11:00.000Z",
+      arrivedAt: "2026-04-11T10:24:00.000Z",
+      completedAt: "2026-04-11T10:58:00.000Z",
+      patientName: "Daniel Ssemanda",
+      patientPhone: "+256 701 335 209",
+      patientAge: 67,
+      patientGender: "male",
+      patientCondition: "High fever with chest pain",
+      patientIdNumber: "CM590211003",
+      forWhom: "someone",
+      callerName: "Brian Ssemanda",
+      callerPhone: "+256 772 006 904",
+      notes: "Transferred to emergency triage and handed over to hospital team.",
+      assignedUnit: "EV-AMB-2",
+      ambulancePlateNumber: "UAZ 409C",
+      driverName: "Ruth Akena",
+      driverPhone: "+256 700 551 002",
+      driverLicenseNumber: "UG-DL-2190076",
+      hospitalContactName: "Dr. Lule",
+      hospitalContactPhone: "+256 414 345 109"
+    },
+    {
+      id: "AMB-REQ-2026-04-05-078",
+      pickup: {
+        label: "Ntinda Stage",
+        address: "Ntinda Stage, Kampala"
+      },
+      destination: {
+        label: "Nakasero Hospital",
+        address: "Nakasero Hospital, Kampala"
+      },
+      urgency: "high",
+      status: "cancelled",
+      requestedAt: "2026-04-05T21:44:00.000Z",
+      cancelledAt: "2026-04-05T21:49:00.000Z",
+      patientName: "Patricia Nankya",
+      patientPhone: "+256 753 004 614",
+      patientAge: 31,
+      patientGender: "female",
+      patientCondition: "Pregnancy-related severe abdominal pain",
+      patientIdNumber: "CF950824089",
+      forWhom: "someone",
+      callerName: "Michael Nsubuga",
+      callerPhone: "+256 781 701 400",
+      notes: "Request cancelled by caller after a nearby clinic accepted the patient.",
+      assignedUnit: "EV-AMB-5",
+      ambulancePlateNumber: "UAT 665V",
+      driverName: "Paul Ochan",
+      driverPhone: "+256 774 881 238",
+      driverLicenseNumber: "UG-DL-9981054",
+      hospitalContactName: "Reception Desk",
+      hospitalContactPhone: "+256 414 346 000"
+    },
+    {
+      id: "AMB-REQ-2026-03-28-041",
+      pickup: {
+        label: "Kisaasi Junction",
+        address: "Kisaasi Junction, Kampala"
+      },
+      destination: {
+        label: "International Hospital Kampala (IHK)",
+        address: "IHK, Kampala"
+      },
+      urgency: "low",
+      status: "completed",
+      requestedAt: "2026-03-28T14:02:00.000Z",
+      dispatchedAt: "2026-03-28T14:09:00.000Z",
+      arrivedAt: "2026-03-28T14:23:00.000Z",
+      completedAt: "2026-03-28T15:01:00.000Z",
+      patientName: "Christine Nakimera",
+      patientPhone: "+256 778 220 011",
+      patientAge: 52,
+      patientGender: "female",
+      patientCondition: "Mobility support for non-emergency transfer",
+      patientIdNumber: "CF740112220",
+      forWhom: "someone",
+      callerName: "James Mukasa",
+      callerPhone: "+256 782 614 173",
+      notes: "Scheduled transfer completed successfully.",
+      assignedUnit: "EV-AMB-1",
+      ambulancePlateNumber: "UBB 114X",
+      driverName: "Harriet Namayanja",
+      driverPhone: "+256 709 420 533",
+      driverLicenseNumber: "UG-DL-1124098",
+      hospitalContactName: "Ward Admin",
+      hospitalContactPhone: "+256 414 333 786"
+    }
+  ]
 };
 
 /** SOS */

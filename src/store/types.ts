@@ -579,11 +579,28 @@ export interface AmbulanceRequest {
   destination?: RideLocation | null;
   urgency: "low" | "medium" | "high";
   status: AmbulanceStatus;
+  requestedAt?: string;
+  dispatchedAt?: string;
+  arrivedAt?: string;
+  completedAt?: string;
+  cancelledAt?: string;
   patientName?: string;
   patientPhone?: string;
+  patientAge?: number;
+  patientGender?: "male" | "female" | "other";
+  patientCondition?: string;
+  patientIdNumber?: string;
   forWhom?: "me" | "someone";
+  callerName?: string;
+  callerPhone?: string;
   notes?: string;
   assignedUnit?: string;
+  ambulancePlateNumber?: string;
+  driverName?: string;
+  driverPhone?: string;
+  driverLicenseNumber?: string;
+  hospitalContactName?: string;
+  hospitalContactPhone?: string;
 }
 
 export interface AmbulanceState {

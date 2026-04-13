@@ -1,21 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  
   Box,
-  IconButton,
-  Typography,
+  Button,
   Card,
   CardContent,
-  Stack,
   Chip,
-  Button,
   FormControl,
+  IconButton,
   InputLabel,
+  MenuItem,
   Select,
-  MenuItem
+  Stack,
+  Typography
 } from "@mui/material";
-
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
@@ -24,59 +22,31 @@ import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
+import { getDeliveryStatusLabel } from "../features/delivery/stateMachine";
 
+type OrderType = "Ride" | "Delivery" | "Rental" | "Tour" | "Ambulance";
 
-const ALL_ORDERS = [
-  {
-    id: "RIDE-2025-10-01-001",
-    type: "Ride",
-    title: "EV ride to Bugolobi",
-    date: "01 Oct 2025 • 09:20",
-    from: "Nsambya",
-    to: "Bugolobi",
-    status: "Completed"
-  },
-  {
-    id: "DLV-2025-10-05-002",
-    type: "Delivery",
-    title: "Parcel to EVzone Hub",
-    date: "05 Oct 2025 • 16:05",
-    from: "Kansanga",
-    to: "Nsambya EV Hub",
-    status: "Completed"
-  },
-  {
-    id: "RENT-2025-10-07-001",
-    type: "Rental",
-    title: "Nissan Leaf – 3 days",
-    date: "07 Oct 2025 • 10:00",
-    from: "Nsambya EV Hub",
-    to: "Bugolobi EV Hub",
-    status: "Upcoming"
-  },
-  {
-    id: "TOUR-BOOK-2025-10-12-001",
-    type: "Tour",
-    title: "Kampala City EV Highlights",
-    date: "12 Oct 2025 • 14:00",
-    from: "Central Kampala",
-    to: "City loop",
-    status: "Upcoming"
-  },
-  {
-    id: "AMB-REQ-2025-10-07-001",
-    type: "Ambulance",
-    title: "Ambulance request",
-    date: "07 Oct 2025 • 14:32",
-    from: "Nsambya Road 472",
-    to: "Nsambya Hospital",
-    status: "Completed"
-  }
-];
+type PeriodFilter = "Today" | "Week" | "Month" | "Quarter" | "Year";
 
-function getTypeIcon(type: string): React.ReactElement {
+type QuarterFilter = "Q1" | "Q2" | "Q3" | "Q4";
+
+type TypeFilter = "all" | OrderType;
+
+interface Order {
+  id: string;
+  type: OrderType;
+  title: string;
+  date: string;
+  from: string;
+  to: string;
+  status: string;
+  rawDate: string;
+  detailsPath: string;
+}
+
+function getTypeIcon(type: OrderType): React.ReactElement {
   switch (type) {
     case "Ride":
       return <DirectionsCarFilledRoundedIcon sx={{ fontSize: 20 }} />;
@@ -93,14 +63,70 @@ function getTypeIcon(type: string): React.ReactElement {
   }
 }
 
-interface Order {
-  id: string;
-  type: string;
-  title: string;
-  date: string;
-  from: string;
-  to: string;
-  status: string;
+function formatDateLabel(value?: string): string {
+  if (!value) return "Recent";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Recent";
+
+  return date.toLocaleString("en-UG", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function toStatusLabel(value: string): string {
+  return value
+    .replace(/_/g, " ")
+    .split(" ")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function getQuarter(value: Date): QuarterFilter {
+  const month = value.getMonth();
+  if (month < 3) return "Q1";
+  if (month < 6) return "Q2";
+  if (month < 9) return "Q3";
+  return "Q4";
+}
+
+function isSameDate(lhs: Date, rhs: Date): boolean {
+  return (
+    lhs.getFullYear() === rhs.getFullYear() &&
+    lhs.getMonth() === rhs.getMonth() &&
+    lhs.getDate() === rhs.getDate()
+  );
+}
+
+function matchesPeriod(date: Date, period: PeriodFilter, selectedYear: number, selectedQuarter: QuarterFilter): boolean {
+  const now = new Date();
+
+  if (period === "Today") {
+    return isSameDate(date, now);
+  }
+
+  if (period === "Week") {
+    const diffMs = Math.abs(now.getTime() - date.getTime());
+    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+    return diffMs <= sevenDaysMs;
+  }
+
+  if (period === "Month") {
+    return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+  }
+
+  if (period === "Quarter") {
+    return date.getFullYear() === selectedYear && getQuarter(date) === selectedQuarter;
+  }
+
+  if (period === "Year") {
+    return date.getFullYear() === selectedYear;
+  }
+
+  return true;
 }
 
 interface AllOrdersCardProps {
@@ -109,31 +135,11 @@ interface AllOrdersCardProps {
 
 function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
   const navigate = useNavigate();
-  
-  const handleViewDetails = () => {
-    // Navigate based on order type according to routing guide
-    if (order.type === "Ride") {
-      // Ride → /rides/history/:rideId (RA37)
-      navigate(`/rides/history/${order.id}`);
-    } else if (order.type === "Delivery") {
-      // Delivery → /deliveries/tracking/:orderId
-      navigate(`/deliveries/tracking/${order.id}`);
-    } else if (order.type === "Rental") {
-      // Rental → /rental/history/:rentalId (RA90)
-      navigate(`/rental/history/${order.id}`);
-    } else if (order.type === "Tour") {
-      // Tour → /tours/history (RA82) then specific tour
-      navigate("/tours/history");
-    } else if (order.type === "Ambulance") {
-      // Ambulance → /ambulance/history (RA88) and tracking
-      navigate("/ambulance/history");
-    }
-  };
-  
+
   return (
     <Card
       elevation={0}
-      onClick={handleViewDetails}
+      onClick={() => navigate(order.detailsPath)}
       sx={{
         mb: uiTokens.spacing.mdPlus,
         borderRadius: uiTokens.radius.sm,
@@ -168,10 +174,7 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
             {getTypeIcon(order.type)}
           </Box>
           <Box sx={{ flex: 1 }}>
-            <Typography
-              variant="body2"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
+            <Typography variant="body2" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
               {order.title}
             </Typography>
             <Typography
@@ -181,13 +184,8 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
               {order.type} • {order.date}
             </Typography>
             <Stack direction="row" spacing={uiTokens.spacing.xs} alignItems="center" sx={{ mt: uiTokens.spacing.xxs }}>
-              <PlaceRoundedIcon
-                sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
+              <PlaceRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
+              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
                 {order.from} → {order.to}
               </Typography>
             </Stack>
@@ -219,9 +217,9 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
           <Button
             size="small"
             variant="outlined"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleViewDetails();
+            onClick={(event) => {
+              event.stopPropagation();
+              navigate(order.detailsPath);
             }}
             sx={{
               borderRadius: uiTokens.radius.xl,
@@ -241,50 +239,162 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
 
 function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [filter, setFilter] = useState("all");
-  const [period, setPeriod] = useState("Month");
-  const [selectedYear, setSelectedYear] = useState(2025);
-  const [selectedQuarter, setSelectedQuarter] = useState("Q4");
+  const { ride, delivery, rental, tours, ambulance } = useAppData();
 
-  const periods = ["Today", "Week", "Month", "Quarter", "Year"];
-  const years = [2023, 2024, 2025];
-  const quarters = ["Q1", "Q2", "Q3", "Q4"];
+  const [filter, setFilter] = useState<TypeFilter>("all");
+  const [period, setPeriod] = useState<PeriodFilter>("Month");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedQuarter, setSelectedQuarter] = useState<QuarterFilter>(getQuarter(new Date()));
 
-  const filtered = ALL_ORDERS.filter((order) => {
-    // Type Filter
-    const matchesType = filter === "all" || order.type === filter;
-    
-    // Period Filter logic
-    let matchesPeriod = true;
-    if (period === "Today") {
-      matchesPeriod = order.date.includes("01 Oct 2025");
-    } else if (period === "Week") {
-      matchesPeriod = ["01", "05", "07"].some(d => order.date.includes(`${d} Oct`));
-    } else if (period === "Month") {
-      matchesPeriod = order.date.includes("Oct 2025");
-    } else if (period === "Quarter") {
-      const isYearMatch = order.date.includes(selectedYear.toString());
-      let isQuarterMatch = false;
-      if (selectedQuarter === "Q4") {
-        isQuarterMatch = ["Oct", "Nov", "Dec"].some(m => order.date.includes(m));
-      } else if (selectedQuarter === "Q3") {
-        isQuarterMatch = ["Jul", "Aug", "Sep"].some(m => order.date.includes(m));
-      } else if (selectedQuarter === "Q2") {
-        isQuarterMatch = ["Apr", "May", "Jun"].some(m => order.date.includes(m));
-      } else if (selectedQuarter === "Q1") {
-        isQuarterMatch = ["Jan", "Feb", "Mar"].some(m => order.date.includes(m));
-      }
-      matchesPeriod = isYearMatch && isQuarterMatch;
-    } else if (period === "Year") {
-      matchesPeriod = order.date.includes(selectedYear.toString());
+  const periods: PeriodFilter[] = ["Today", "Week", "Month", "Quarter", "Year"];
+  const quarters: QuarterFilter[] = ["Q1", "Q2", "Q3", "Q4"];
+
+  const allOrders = useMemo<Order[]>(() => {
+    const nowIso = new Date().toISOString();
+
+    const rideTripCandidates = [ride.activeTrip, ...ride.history].filter(
+      (trip): trip is NonNullable<typeof ride.activeTrip> => Boolean(trip?.id)
+    );
+    const rideTripSeen = new Set<string>();
+    const rideOrders: Order[] = rideTripCandidates
+      .filter((trip) => {
+        if (rideTripSeen.has(trip.id)) return false;
+        rideTripSeen.add(trip.id);
+        return true;
+      })
+      .map((trip) => {
+        const rawDate = trip.completedAt ?? trip.startedAt ?? nowIso;
+        return {
+          id: trip.id,
+          type: "Ride",
+          title: trip.routeSummary ? `Ride • ${trip.routeSummary}` : "Ride trip",
+          date: formatDateLabel(rawDate),
+          from: trip.pickup?.label ?? trip.pickup?.address ?? "Pickup not set",
+          to: trip.dropoff?.label ?? trip.dropoff?.address ?? "Dropoff not set",
+          status: toStatusLabel(trip.status),
+          rawDate,
+          detailsPath: `/rides/history/${trip.id}`
+        };
+      });
+
+    const deliveryOrders: Order[] = delivery.orders.map((order) => {
+      const rawDate = order.updatedAt ?? order.createdAt ?? nowIso;
+      return {
+        id: order.id,
+        type: "Delivery",
+        title: order.parcel.description || order.packageName || "Delivery order",
+        date: formatDateLabel(rawDate),
+        from: order.pickup.label,
+        to: order.dropoff.label,
+        status: getDeliveryStatusLabel(order.status),
+        rawDate,
+        detailsPath: `/deliveries/tracking/${order.id}`
+      };
+    });
+
+    const rentalVehicle = rental.vehicles.find((vehicle) => vehicle.id === rental.booking.vehicleId);
+    const rentalRawDate = rental.booking.startDate ?? nowIso;
+    const rentalOrders: Order[] = rental.booking.id
+      ? [
+          {
+            id: rental.booking.id,
+            type: "Rental",
+            title: rentalVehicle ? `${rentalVehicle.name} booking` : "EV rental booking",
+            date: formatDateLabel(rentalRawDate),
+            from: rental.booking.pickupBranch ?? "Pickup branch not set",
+            to: rental.booking.dropoffBranch ?? "Return branch not set",
+            status: toStatusLabel(rental.booking.status),
+            rawDate: rentalRawDate,
+            detailsPath: `/rental/history/${rental.booking.id}`
+          }
+        ]
+      : [];
+
+    const bookedTour = tours.tours.find((tour) => tour.id === tours.booking.tourId) ?? tours.tours[0];
+    const tourRawDate = tours.booking.date ?? nowIso;
+    const tourOrders: Order[] = tours.booking.id
+      ? [
+          {
+            id: tours.booking.id,
+            type: "Tour",
+            title: bookedTour?.title ?? "Tour booking",
+            date: tours.booking.date ? formatDateLabel(tours.booking.date) : bookedTour?.scheduleLabel ?? "Schedule pending",
+            from: bookedTour?.location ?? "Tour location",
+            to: bookedTour?.duration ?? "Tour itinerary",
+            status: toStatusLabel(tours.booking.status),
+            rawDate: tourRawDate,
+            detailsPath: bookedTour ? `/tours/${bookedTour.id}` : "/tours/history"
+          }
+        ]
+      : [];
+
+    const ambulanceCandidates = [ambulance.request, ...ambulance.history].filter(
+      (request): request is NonNullable<typeof ambulance.request> => Boolean(request?.id)
+    );
+    const ambulanceSeen = new Set<string>();
+    const ambulanceOrders: Order[] = ambulanceCandidates
+      .filter((request) => {
+        if (ambulanceSeen.has(request.id)) return false;
+        ambulanceSeen.add(request.id);
+        return true;
+      })
+      .map((request) => ({
+        id: request.id,
+        type: "Ambulance",
+        title: "Ambulance request",
+        date: formatDateLabel(
+          request.completedAt ??
+          request.cancelledAt ??
+          request.arrivedAt ??
+          request.dispatchedAt ??
+          request.requestedAt ??
+          nowIso
+        ),
+        from: request.pickup?.label ?? request.pickup?.address ?? "Pickup not set",
+        to: request.destination?.label ?? request.destination?.address ?? "Destination not set",
+        status: toStatusLabel(request.status),
+        rawDate:
+          request.completedAt ??
+          request.cancelledAt ??
+          request.arrivedAt ??
+          request.dispatchedAt ??
+          request.requestedAt ??
+          nowIso,
+        detailsPath: `/ambulance/history/${request.id}`
+      }));
+
+    return [...rideOrders, ...deliveryOrders, ...rentalOrders, ...tourOrders, ...ambulanceOrders].sort(
+      (left, right) => new Date(right.rawDate).getTime() - new Date(left.rawDate).getTime()
+    );
+  }, [ambulance.history, ambulance.request, delivery.orders, rental.booking, rental.vehicles, ride.activeTrip, ride.history, tours.booking, tours.tours]);
+
+  const years = useMemo(() => {
+    const allYears = allOrders
+      .map((order) => new Date(order.rawDate).getFullYear())
+      .filter((year) => Number.isFinite(year));
+    const uniqueYears = Array.from(new Set(allYears)).sort((left, right) => right - left);
+    return uniqueYears.length > 0 ? uniqueYears : [new Date().getFullYear()];
+  }, [allOrders]);
+
+  useEffect(() => {
+    if (!years.includes(selectedYear)) {
+      setSelectedYear(years[0]);
     }
+  }, [selectedYear, years]);
 
-    return matchesType && matchesPeriod;
-  });
+  const filtered = useMemo(() => {
+    return allOrders.filter((order) => {
+      const matchesType = filter === "all" || order.type === filter;
+      const orderDate = new Date(order.rawDate);
+      const matchesTime = Number.isNaN(orderDate.getTime())
+        ? true
+        : matchesPeriod(orderDate, period, selectedYear, selectedQuarter);
+      return matchesType && matchesTime;
+    });
+  }, [allOrders, filter, period, selectedYear, selectedQuarter]);
 
   return (
     <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.xl, pb: uiTokens.spacing.xxl }}>
-      {/* Header */}
       <Box
         sx={{
           mb: 2,
@@ -311,48 +421,40 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
           <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
               All orders
             </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
+            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
               Rides, deliveries, rentals, tours & ambulance
             </Typography>
           </Box>
         </Box>
       </Box>
 
-      {/* Period Selection */}
-      <Box sx={{ mb: uiTokens.spacing.lg, overflowX: "auto", pb: uiTokens.spacing.sm, display: 'flex' }}>
+      <Box sx={{ mb: uiTokens.spacing.lg, overflowX: "auto", pb: uiTokens.spacing.sm, display: "flex" }}>
         <Stack direction="row" spacing={1}>
-          {periods.map((p) => (
+          {periods.map((value) => (
             <Chip
-              key={p}
-              label={p}
-              onClick={() => setPeriod(p)}
+              key={value}
+              label={value}
+              onClick={() => setPeriod(value)}
               size="small"
               sx={{
                 borderRadius: uiTokens.radius.xl,
                 fontSize: 10,
                 height: 24,
-                bgcolor: period === p ? "primary.main" : "transparent",
-                color: period === p ? "#020617" : "text.secondary",
-                border: '1px solid',
-                borderColor: period === p ? 'primary.main' : 'divider',
-                fontWeight: period === p ? 600 : 400,
-                transition: 'all 0.2s ease'
+                bgcolor: period === value ? "primary.main" : "transparent",
+                color: period === value ? "#020617" : "text.secondary",
+                border: "1px solid",
+                borderColor: period === value ? "primary.main" : "divider",
+                fontWeight: period === value ? 600 : 400,
+                transition: "all 0.2s ease"
               }}
             />
           ))}
         </Stack>
       </Box>
 
-      {/* Granular Period Selectors */}
       {period === "Quarter" && (
         <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
           <FormControl size="small" sx={{ minWidth: 100 }}>
@@ -361,10 +463,14 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
               labelId="quarter-select-label"
               value={selectedQuarter}
               label="Quarter"
-              onChange={(e) => setSelectedQuarter(e.target.value as string)}
+              onChange={(event) => setSelectedQuarter(event.target.value as QuarterFilter)}
               sx={{ borderRadius: uiTokens.radius.sm, fontSize: 13 }}
             >
-              {quarters.map(q => <MenuItem key={q} value={q} sx={{ fontSize: 13 }}>{q}</MenuItem>)}
+              {quarters.map((value) => (
+                <MenuItem key={value} value={value} sx={{ fontSize: 13 }}>
+                  {value}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 100 }}>
@@ -373,10 +479,14 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
               labelId="year-select-label"
               value={selectedYear}
               label="Year"
-              onChange={(e) => setSelectedYear(e.target.value as number)}
+              onChange={(event) => setSelectedYear(Number(event.target.value))}
               sx={{ borderRadius: uiTokens.radius.sm, fontSize: 13 }}
             >
-              {years.map(y => <MenuItem key={y} value={y} sx={{ fontSize: 13 }}>{y}</MenuItem>)}
+              {years.map((value) => (
+                <MenuItem key={value} value={value} sx={{ fontSize: 13 }}>
+                  {value}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
         </Stack>
@@ -390,119 +500,51 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
               labelId="year-only-select-label"
               value={selectedYear}
               label="Select Year"
-              onChange={(e) => setSelectedYear(e.target.value as number)}
+              onChange={(event) => setSelectedYear(Number(event.target.value))}
               sx={{ borderRadius: uiTokens.radius.sm, fontSize: 13 }}
             >
-              {years.map(y => <MenuItem key={y} value={y} sx={{ fontSize: 13 }}>{y}</MenuItem>)}
+              {years.map((value) => (
+                <MenuItem key={value} value={value} sx={{ fontSize: 13 }}>
+                  {value}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
         </Box>
       )}
 
-      {/* Filters */}
       <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: "wrap", rowGap: 1 }}>
-        <Chip
-          label="All"
-          onClick={() => setFilter("all")}
-          size="small"
-          sx={{
-            borderRadius: uiTokens.radius.xl,
-            fontSize: 11,
-            height: 26,
-            bgcolor: filter === "all" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            color: filter === "all" ? "#020617" : (t) => t.palette.text.primary
-          }}
-        />
-        <Chip
-          label="Rides"
-          onClick={() => setFilter("Ride")}
-          size="small"
-          sx={{
-            borderRadius: uiTokens.radius.xl,
-            fontSize: 11,
-            height: 26,
-            bgcolor: filter === "Ride" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            color: filter === "Ride" ? "#020617" : (t) => t.palette.text.primary
-          }}
-        />
-        <Chip
-          label="Deliveries"
-          onClick={() => setFilter("Delivery")}
-          size="small"
-          sx={{
-            borderRadius: uiTokens.radius.xl,
-            fontSize: 11,
-            height: 26,
-            bgcolor: filter === "Delivery" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            color: filter === "Delivery" ? "#020617" : (t) => t.palette.text.primary
-          }}
-        />
-        <Chip
-          label="Rentals"
-          onClick={() => setFilter("Rental")}
-          size="small"
-          sx={{
-            borderRadius: uiTokens.radius.xl,
-            fontSize: 11,
-            height: 26,
-            bgcolor: filter === "Rental" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            color: filter === "Rental" ? "#020617" : (t) => t.palette.text.primary
-          }}
-        />
-        <Chip
-          label="Tours"
-          onClick={() => setFilter("Tour")}
-          size="small"
-          sx={{
-            borderRadius: uiTokens.radius.xl,
-            fontSize: 11,
-            height: 26,
-            bgcolor: filter === "Tour" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            color: filter === "Tour" ? "#020617" : (t) => t.palette.text.primary
-          }}
-        />
-        <Chip
-          label="Ambulance"
-          onClick={() => setFilter("Ambulance")}
-          size="small"
-          sx={{
-            borderRadius: uiTokens.radius.xl,
-            fontSize: 11,
-            height: 26,
-            bgcolor: filter === "Ambulance" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            color: filter === "Ambulance" ? "#020617" : (t) => t.palette.text.primary
-          }}
-        />
+        {(["all", "Ride", "Delivery", "Rental", "Tour", "Ambulance"] as const).map((value) => {
+          const labelMap: Record<TypeFilter, string> = {
+            all: "All",
+            Ride: "Rides",
+            Delivery: "Deliveries",
+            Rental: "Rentals",
+            Tour: "Tours",
+            Ambulance: "Ambulance"
+          };
+          const selected = filter === value;
+          return (
+            <Chip
+              key={value}
+              label={labelMap[value]}
+              onClick={() => setFilter(value)}
+              size="small"
+              sx={{
+                borderRadius: uiTokens.radius.xl,
+                fontSize: 11,
+                height: 26,
+                bgcolor: selected ? "primary.main" : (t) =>
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(209,213,219,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)",
+                color: selected ? "#020617" : (t) => t.palette.text.primary
+              }}
+            />
+          );
+        })}
       </Stack>
 
       {filtered.length === 0 ? (
@@ -513,27 +555,22 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           No orders in this view yet.
         </Typography>
       ) : (
-        filtered.map((order) => <AllOrdersCard key={order.id} order={order} />)
+        filtered.map((order) => <AllOrdersCard key={`${order.type}-${order.id}`} order={order} />)
       )}
     </Box>
   );
 }
 
-export default function RiderScreen91AllOrdersCombinedHistoryCanvas_v2() {
-      return (
-    
-      
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: (t) => t.palette.background.default
-        }}
-      >
-
-          <AllOrdersCombinedHistoryScreen />
-        
-      </Box>
-    
+export default function AllHistory(): React.JSX.Element {
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        minHeight: "100vh",
+        bgcolor: (t) => t.palette.background.default
+      }}
+    >
+      <AllOrdersCombinedHistoryScreen />
+    </Box>
   );
 }
