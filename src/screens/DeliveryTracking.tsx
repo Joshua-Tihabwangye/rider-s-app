@@ -24,7 +24,6 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
-import FactCheckRoundedIcon from "@mui/icons-material/FactCheckRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
@@ -47,7 +46,6 @@ import {
   canCancelScheduledOrder,
   canEditScheduledOrder
 } from "../features/delivery/schedulePolicy";
-import { formatProofMethodLabel } from "../features/delivery/proof";
 import {
   getDeliveryOrderModeLabel,
   getDeliveryOrderModeSummary,
@@ -90,14 +88,13 @@ function toDateTimeLocalValue(value?: string): string {
   return `${year}-${month}-${day}T${hour}:${minute}`;
 }
 
-type TrackingTab = "overview" | "courier" | "proof" | "receipt" | "support";
+type TrackingTab = "overview" | "courier" | "receipt" | "support";
+type TopTrackingTab = Exclude<TrackingTab, "receipt">;
 type OverviewPanel = "timeline" | "map";
 
-const TRACKING_TAB_OPTIONS: Array<{ value: TrackingTab; label: string }> = [
+const TRACKING_TAB_OPTIONS: Array<{ value: TopTrackingTab; label: string }> = [
   { value: "overview", label: "Overview" },
   { value: "courier", label: "Courier" },
-  { value: "proof", label: "Proof" },
-  { value: "receipt", label: "Receipt" },
   { value: "support", label: "Support" }
 ];
 
@@ -105,7 +102,7 @@ const DEFAULT_TRACKING_TAB: TrackingTab = "overview";
 const DEFAULT_OVERVIEW_PANEL: OverviewPanel = "timeline";
 
 function parseTrackingTab(value: string | null): TrackingTab {
-  const validTabs = new Set<TrackingTab>(["overview", "courier", "proof", "receipt", "support"]);
+  const validTabs = new Set<TrackingTab>(["overview", "courier", "receipt", "support"]);
   return value && validTabs.has(value as TrackingTab) ? (value as TrackingTab) : DEFAULT_TRACKING_TAB;
 }
 
@@ -201,6 +198,11 @@ export default function DeliveryTracking(): React.JSX.Element {
   const canDeclineIncoming = isReceiverView && (order.status === "requested" || order.status === "accepted");
   const canConfirmReceipt = isReceiverView && !["delivered", "cancelled", "failed"].includes(order.status);
   const canRateDelivery = order.status === "delivered";
+  const requiresSenderConfirmation =
+    !isReceiverView && order.status === "delivered" && order.dropoffMethod !== "leave_at_door";
+  const senderConfirmationImage = order.proofOfDelivery?.signatureImageUrl ?? order.proofOfDelivery?.photoUrl ?? "";
+  const senderConfirmationReady = Boolean(senderConfirmationImage);
+  const senderDeliveryClosed = Boolean(order.senderClosedAt);
   const scheduleCancellation = calculateScheduledCancellationFee(order);
   const canEditSchedule = canEditScheduledOrder(order);
   const canCancelSchedule = canCancelScheduledOrder(order);
@@ -231,7 +233,7 @@ export default function DeliveryTracking(): React.JSX.Element {
     target.current?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
   };
 
-  const handleSectionTabChange = (nextTab: TrackingTab): void => {
+  const handleSectionTabChange = (nextTab: TopTrackingTab): void => {
     if (nextTab === "overview") {
       setTrackingTab("overview", "timeline");
       scrollToRef(mapRef);
@@ -265,9 +267,9 @@ export default function DeliveryTracking(): React.JSX.Element {
 
   const showTimelineSection = activeTab === "overview" && activeOverviewPanel === "timeline";
   const showCourierSection = activeTab === "courier";
-  const showProofSection = activeTab === "proof";
   const showReceiptSection = activeTab === "receipt";
   const showSupportSection = activeTab === "support";
+  const tabsValue: TopTrackingTab | false = activeTab === "receipt" ? false : activeTab;
 
   return (
     <ScreenScaffold disableTopPadding>
@@ -367,8 +369,8 @@ export default function DeliveryTracking(): React.JSX.Element {
           <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
             <CardContent sx={{ pb: "12px !important" }}>
               <Tabs
-                value={activeTab}
-                onChange={(_event, value) => handleSectionTabChange(value as TrackingTab)}
+                value={tabsValue}
+                onChange={(_event, value) => handleSectionTabChange(value as TopTrackingTab)}
                 variant="scrollable"
                 allowScrollButtonsMobile
                 aria-label="Tracking sections"
@@ -489,7 +491,13 @@ export default function DeliveryTracking(): React.JSX.Element {
               </Stack>
               <Chip
                 size="small"
-                label="Closed"
+                label={
+                  requiresSenderConfirmation && !senderDeliveryClosed
+                    ? senderConfirmationReady
+                      ? "Delivery received"
+                      : "Awaiting signature"
+                    : "Closed"
+                }
                 sx={{
                   borderRadius: 5,
                   fontWeight: 700,
@@ -497,6 +505,64 @@ export default function DeliveryTracking(): React.JSX.Element {
                   color: "#15803D"
                 }}
               />
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {showTimelineSection && requiresSenderConfirmation && (
+        <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+          <CardContent>
+            <Stack spacing={1}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  Recipient confirmation
+                </Typography>
+                <Chip
+                  size="small"
+                  label={
+                    senderConfirmationReady
+                      ? senderDeliveryClosed
+                        ? "Closed"
+                        : "Delivery received"
+                      : "Awaiting signature image"
+                  }
+                  sx={{
+                    borderRadius: 5,
+                    fontWeight: 700,
+                    bgcolor: senderConfirmationReady ? "rgba(34,197,94,0.14)" : "rgba(251,191,36,0.2)",
+                    color: senderConfirmationReady ? "#15803D" : "#92400E"
+                  }}
+                />
+              </Stack>
+
+              {senderConfirmationReady ? (
+                <Box
+                  component="img"
+                  src={senderConfirmationImage}
+                  alt={`Recipient signature image for ${order.id}`}
+                  sx={{
+                    width: "100%",
+                    borderRadius: uiTokens.radius.md,
+                    border: (t) =>
+                      t.palette.mode === "light"
+                        ? "1px solid rgba(209,213,219,0.9)"
+                        : "1px solid rgba(51,65,85,0.9)",
+                    objectFit: "cover",
+                    maxHeight: 170
+                  }}
+                />
+              ) : (
+                <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                  Driver has not uploaded recipient signature image yet.
+                </Typography>
+              )}
+
+              {senderDeliveryClosed && (
+                <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                  Closed by sender at {formatDateTime(order.senderClosedAt)}
+                </Typography>
+              )}
             </Stack>
           </CardContent>
         </Card>
@@ -541,33 +607,6 @@ export default function DeliveryTracking(): React.JSX.Element {
                   We are still assigning a courier for this order.
                 </Typography>
               </Stack>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {showProofSection && (
-        <Card id="tracking-section-proof" elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
-          <CardContent>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#16A34A", mb: 1 }}>
-              Proof of delivery
-            </Typography>
-            {order.proofOfDelivery ? (
-              <Stack spacing={0.7}>
-                <Typography variant="body2">Recipient: {order.proofOfDelivery.recipientName}</Typography>
-                <Typography variant="body2">Delivered: {formatDateTime(order.proofOfDelivery.deliveredAt)}</Typography>
-                <Typography variant="body2">Location: {order.proofOfDelivery.location.label}</Typography>
-                <Typography variant="body2">
-                  Verification: {order.proofOfDelivery.methods.map((method) => formatProofMethodLabel(method)).join(", ")}
-                </Typography>
-                {order.proofOfDelivery.otpCode && (
-                  <Typography variant="body2">OTP: {order.proofOfDelivery.otpCode}</Typography>
-                )}
-              </Stack>
-            ) : (
-              <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
-                Proof is pending. It will appear here after successful handoff verification.
-              </Typography>
             )}
           </CardContent>
         </Card>
@@ -733,6 +772,21 @@ export default function DeliveryTracking(): React.JSX.Element {
             </Stack>
           )}
 
+          {!isReceiverView && requiresSenderConfirmation && !senderDeliveryClosed && (
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+              {senderConfirmationReady && (
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={() => actions.closeSenderDelivery(order.id)}
+                  sx={{ textTransform: "none", fontWeight: 700 }}
+                >
+                  Close delivery
+                </Button>
+              )}
+            </Stack>
+          )}
+
           {!isReceiverView && nextStatus && order.status !== "cancelled" && order.status !== "failed" && (
             <Button
               variant="contained"
@@ -745,15 +799,6 @@ export default function DeliveryTracking(): React.JSX.Element {
           )}
 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-            <Button
-              variant={showProofSection ? "contained" : "outlined"}
-              onClick={() => setTrackingTab("proof")}
-              startIcon={<FactCheckRoundedIcon sx={{ fontSize: 16 }} />}
-              aria-label="View proof of delivery"
-              sx={{ textTransform: "none" }}
-            >
-              View proof
-            </Button>
             <Button
               variant={showReceiptSection ? "contained" : "outlined"}
               onClick={() => setTrackingTab("receipt")}

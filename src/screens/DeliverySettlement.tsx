@@ -87,7 +87,7 @@ export default function DeliverySettlement(): React.JSX.Element {
   const canCaptureSettlement = !settlementFinalized && paymentMethods.length > 0;
   const handleCaptureSettlement = (): void => {
     actions.captureDeliverySettlement(order.id);
-    navigate("/home");
+    navigate("/deliveries");
   };
 
   return (
