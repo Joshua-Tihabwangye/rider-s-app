@@ -20,6 +20,7 @@ import {
   getDeliveryOrderModeSummary,
   getDeliveryOrderModeTone
 } from "../features/delivery/orderMode";
+import type { PaymentMethodType } from "../store/types";
 
 function formatAmount(value: number): string {
   return `UGX ${Math.round(value).toLocaleString()}`;
@@ -37,14 +38,27 @@ function formatDateTime(value?: string): string {
   });
 }
 
+const FINALIZED_SETTLEMENT_STATUSES = new Set(["captured", "cash_collected", "refunded", "voided"]);
+
+function formatPaymentMethodType(value: PaymentMethodType): string {
+  if (value === "mobile_money") return "Mobile money";
+  if (value === "card") return "Card";
+  if (value === "cash") return "Cash";
+  return "Wallet";
+}
+
 export default function DeliverySettlement(): React.JSX.Element {
   const navigate = useNavigate();
   const { orderId = "" } = useParams<{ orderId: string }>();
-  const { delivery, actions } = useAppData();
+  const { delivery, paymentMethods, actions } = useAppData();
 
   const order = useMemo(
     () => delivery.orders.find((item) => item.id === orderId) ?? delivery.activeOrder,
     [delivery.orders, delivery.activeOrder, orderId]
+  );
+  const selectedMethod = useMemo(
+    () => paymentMethods.find((method) => method.id === order?.paymentMethodId) ?? null,
+    [paymentMethods, order?.paymentMethodId]
   );
 
   if (!order) {
@@ -65,6 +79,16 @@ export default function DeliverySettlement(): React.JSX.Element {
       </ScreenScaffold>
     );
   }
+
+  const settlementStatus = order.settlement?.status ?? "pending_authorization";
+  const settlementFinalized = FINALIZED_SETTLEMENT_STATUSES.has(settlementStatus);
+  const isReceiverOrder = order.participantRole === "receiver";
+  const isPendingReceiverPayment = isReceiverOrder && order.status === "delivered";
+  const canCaptureSettlement = !settlementFinalized && paymentMethods.length > 0;
+  const handleCaptureSettlement = (): void => {
+    actions.captureDeliverySettlement(order.id);
+    navigate("/home");
+  };
 
   return (
     <ScreenScaffold>
@@ -119,7 +143,12 @@ export default function DeliverySettlement(): React.JSX.Element {
             })}
           </Typography>
           <Typography variant="body2">Policy: {order.settlement?.policy ?? "cashless_pre_auth"}</Typography>
-          <Typography variant="body2">Method: {order.settlement?.methodType ?? "wallet"}</Typography>
+          <Typography variant="body2">
+            Method:{" "}
+            {selectedMethod
+              ? `${selectedMethod.label} (${formatPaymentMethodType(selectedMethod.type)})`
+              : formatPaymentMethodType(order.settlement?.methodType ?? "wallet")}
+          </Typography>
           <Typography variant="body2">
             Authorized amount: {formatAmount(order.settlement?.authorizedAmount ?? order.costBreakdown.total)}
           </Typography>
@@ -131,6 +160,63 @@ export default function DeliverySettlement(): React.JSX.Element {
           </Typography>
         </Stack>
       </AppCard>
+
+      {isPendingReceiverPayment ? (
+        <AppCard>
+          <Stack spacing={1}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+              Choose payment option
+            </Typography>
+            {paymentMethods.length === 0 ? (
+              <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                No payment methods found. Add one in Wallet.
+              </Typography>
+            ) : (
+              <Stack spacing={0.8}>
+                {paymentMethods.map((method) => {
+                  const isSelected = method.id === order.paymentMethodId;
+                  return (
+                    <Button
+                      key={method.id}
+                      variant={isSelected ? "contained" : "outlined"}
+                      color={isSelected ? "primary" : "inherit"}
+                      onClick={() => actions.selectDeliverySettlementMethod(order.id, method.id)}
+                      disabled={settlementFinalized}
+                      sx={{ textTransform: "none", justifyContent: "space-between", py: 0.8 }}
+                      aria-pressed={isSelected}
+                    >
+                      <Stack spacing={0.1} alignItems="flex-start" sx={{ textAlign: "left" }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          {method.label}
+                        </Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.86 }}>
+                          {method.detail || formatPaymentMethodType(method.type)}
+                        </Typography>
+                      </Stack>
+                      <Chip
+                        size="small"
+                        label={formatPaymentMethodType(method.type)}
+                        sx={{ ml: 1, pointerEvents: "none" }}
+                      />
+                    </Button>
+                  );
+                })}
+              </Stack>
+            )}
+            {settlementFinalized && (
+              <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                Settlement is finalized. Payment option can no longer be changed.
+              </Typography>
+            )}
+          </Stack>
+        </AppCard>
+      ) : (
+        <AppCard>
+          <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+            Recipient payment options are selected by the recipient at payment time.
+          </Typography>
+        </AppCard>
+      )}
 
       <AppCard variant="muted">
         <Stack spacing={1}>
@@ -147,10 +233,11 @@ export default function DeliverySettlement(): React.JSX.Element {
         <Button
           variant="contained"
           startIcon={<PaymentsRoundedIcon sx={{ fontSize: 16 }} />}
-          onClick={() => actions.captureDeliverySettlement(order.id)}
+          onClick={handleCaptureSettlement}
+          disabled={!canCaptureSettlement}
           sx={{ textTransform: "none" }}
         >
-          Capture settlement
+          {settlementFinalized ? "Settlement finalized" : "Capture settlement"}
         </Button>
         <Button
           variant="outlined"

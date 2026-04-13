@@ -19,6 +19,7 @@ import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 const UPCOMING_TOURS = [
   {
     id: "TOUR-BOOK-2025-10-12-001",
+    tourId: "tour_002",
     title: "Kampala City EV Highlights",
     date: "Sat, 12 Oct 2025",
     time: "Afternoon (14:00)",
@@ -31,6 +32,7 @@ const UPCOMING_TOURS = [
 const PAST_TOURS = [
   {
     id: "TOUR-BOOK-2025-09-01-002",
+    tourId: "tour_001",
     title: "EV Day Trip – Jinja Source of the Nile",
     date: "Sat, 01 Sep 2025",
     time: "Full day",
@@ -42,6 +44,7 @@ const PAST_TOURS = [
 
 interface Booking {
   id: string;
+  tourId: string;
   title: string;
   date: string;
   time: string;
@@ -52,9 +55,10 @@ interface Booking {
 
 interface TourBookingCardProps {
   booking: Booking;
+  onViewDetails: (tourId: string) => void;
 }
 
-function TourBookingCard({ booking }: TourBookingCardProps): React.JSX.Element {
+function TourBookingCard({ booking, onViewDetails }: TourBookingCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -137,6 +141,7 @@ function TourBookingCard({ booking }: TourBookingCardProps): React.JSX.Element {
           <Button
             size="small"
             variant="outlined"
+            onClick={() => onViewDetails(booking.tourId)}
             sx={{
               borderRadius: 5,
               px: 2,
@@ -246,7 +251,11 @@ function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
         </Typography>
       ) : (
         bookings.map((booking) => (
-          <TourBookingCard key={booking.id} booking={booking} />
+          <TourBookingCard
+            key={booking.id}
+            booking={booking}
+            onViewDetails={(tourId) => navigate(`/tours/${tourId}`)}
+          />
         ))
       )}
     </Box>

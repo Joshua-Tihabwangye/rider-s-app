@@ -63,9 +63,10 @@ interface Booking {
 
 interface RentalBookingCardProps {
   booking: Booking;
+  onViewDetails: (bookingId: string) => void;
 }
 
-function RentalBookingCard({ booking }: RentalBookingCardProps): React.JSX.Element {
+function RentalBookingCard({ booking, onViewDetails }: RentalBookingCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -173,6 +174,7 @@ function RentalBookingCard({ booking }: RentalBookingCardProps): React.JSX.Eleme
           <Button
             size="small"
             variant="outlined"
+            onClick={() => onViewDetails(booking.id)}
             sx={{
               borderRadius: 5,
               px: 2,
@@ -283,7 +285,11 @@ function RentalBookingsUpcomingHistoryScreen(): React.JSX.Element {
         </Typography>
       ) : (
         bookings.map((booking) => (
-          <RentalBookingCard key={booking.id} booking={booking} />
+          <RentalBookingCard
+            key={booking.id}
+            booking={booking}
+            onViewDetails={(bookingId) => navigate(`/rental/history/${bookingId}`)}
+          />
         ))
       )}
     </Box>

@@ -19,6 +19,8 @@ import type {
   DeliveryDraft,
   DeliveryOrder,
   DeliveryStatus,
+  DeliverySettlement,
+  DeliverySettlementStatus,
   DeliveryExceptionType,
   DeliveryProofOfDelivery,
   DeliveryContactType,
@@ -110,6 +112,7 @@ interface AppActions {
   updateScheduledDelivery: (orderId: string, scheduleTime: string) => void;
   cancelScheduledDelivery: (orderId: string, reason: string) => void;
   submitDeliveryRating: (orderId: string, payload: { score: number; tags: string[]; comment?: string }) => void;
+  selectDeliverySettlementMethod: (orderId: string, paymentMethodId: string) => void;
   captureDeliverySettlement: (orderId: string) => void;
   markDeliveryNotificationsRead: () => void;
   applyDeliveryRealtimePatch: (patch: DeliveryRealtimePatch) => void;
@@ -177,6 +180,7 @@ type AppAction =
   | { type: "delivery/schedule"; payload: { orderId: string; scheduleTime: string } }
   | { type: "delivery/cancel-scheduled"; payload: { orderId: string; reason: string } }
   | { type: "delivery/rating"; payload: { orderId: string; score: number; tags: string[]; comment?: string } }
+  | { type: "delivery/settlement-method"; payload: { orderId: string; paymentMethodId: string } }
   | { type: "delivery/settlement-capture"; payload: { orderId: string } }
   | { type: "delivery/notifications-read" }
   | { type: "delivery/realtime"; payload: DeliveryRealtimePatch }
@@ -207,6 +211,64 @@ function formatCurrencyUGX(amount: number): string {
 
 function getPaymentMethodType(methods: PaymentMethod[], paymentMethodId: string): PaymentMethodType {
   return methods.find((method) => method.id === paymentMethodId)?.type ?? "wallet";
+}
+
+function getDefaultPaymentMethodId(methods: PaymentMethod[]): string {
+  return methods.find((method) => method.isDefault)?.id ?? methods[0]?.id ?? "pm_wallet";
+}
+
+const FINALIZED_DELIVERY_SETTLEMENT_STATUSES: DeliverySettlementStatus[] = [
+  "captured",
+  "cash_collected",
+  "refunded",
+  "voided"
+];
+
+function isDeliverySettlementFinalized(status?: DeliverySettlementStatus): boolean {
+  return Boolean(status && FINALIZED_DELIVERY_SETTLEMENT_STATUSES.includes(status));
+}
+
+function requiresIncomingDeliveryPayment(
+  participantRole: DeliveryOrder["participantRole"],
+  orderStatus: DeliveryStatus,
+  settlementStatus?: DeliverySettlementStatus
+): boolean {
+  if (participantRole !== "receiver" || orderStatus !== "delivered" || !settlementStatus) {
+    return false;
+  }
+  return !isDeliverySettlementFinalized(settlementStatus);
+}
+
+function enforceIncomingDeliveryPendingPayment(
+  settlement: DeliverySettlement,
+  participantRole: DeliveryOrder["participantRole"],
+  orderStatus: DeliveryStatus,
+  totalAmount: number,
+  nowIso: string
+): DeliverySettlement {
+  if (participantRole !== "receiver" || orderStatus !== "delivered") {
+    return settlement;
+  }
+
+  if (settlement.policy === "cash_on_delivery") {
+    return {
+      ...settlement,
+      status: "cash_due",
+      capturedAmount: 0,
+      capturedAt: undefined,
+      note: "Awaiting recipient payment confirmation."
+    };
+  }
+
+  return {
+    ...settlement,
+    status: "authorized",
+    authorizedAmount: totalAmount,
+    authorizedAt: settlement.authorizedAt ?? nowIso,
+    capturedAmount: 0,
+    capturedAt: undefined,
+    note: "Awaiting recipient payment confirmation."
+  };
 }
 
 function appendDeliveryNotification(
@@ -529,28 +591,32 @@ function appReducer(state: AppState, action: AppAction): AppState {
             ? calculateScheduledCancellationFee(order).fee
             : 0;
         const nextProgress = Math.max(order.tracking.progress, getDeliveryStatusProgress(action.payload.status));
-        const paymentMethodType = getPaymentMethodType(state.paymentMethods, order.paymentMethodId);
-        const currentSettlement = order.settlement ?? initializeDeliverySettlement(order, paymentMethodType, now);
+        const effectivePaymentMethodId =
+          order.participantRole === "receiver" && action.payload.status === "delivered"
+            ? getDefaultPaymentMethodId(state.paymentMethods)
+            : order.paymentMethodId;
+        const settlementOrder =
+          effectivePaymentMethodId === order.paymentMethodId
+            ? order
+            : { ...order, paymentMethodId: effectivePaymentMethodId };
+        const paymentMethodType = getPaymentMethodType(state.paymentMethods, effectivePaymentMethodId);
+        const currentSettlement =
+          (effectivePaymentMethodId === order.paymentMethodId ? order.settlement : undefined) ??
+          initializeDeliverySettlement(settlementOrder, paymentMethodType, now);
         let nextSettlement = applySettlementForDeliveryStatus(
           currentSettlement,
-          order,
+          settlementOrder,
           action.payload.status,
           cancellationFee,
           now
         );
-        if (
-          order.participantRole === "receiver" &&
-          nextSettlement.policy === "cash_on_delivery" &&
-          action.payload.status === "delivered"
-        ) {
-          nextSettlement = {
-            ...nextSettlement,
-            status: "cash_due",
-            capturedAmount: 0,
-            capturedAt: undefined,
-            note: "Awaiting recipient payment confirmation."
-          };
-        }
+        nextSettlement = enforceIncomingDeliveryPendingPayment(
+          nextSettlement,
+          order.participantRole,
+          action.payload.status,
+          order.costBreakdown.total,
+          now
+        );
         const deliveredAt = action.payload.status === "delivered" ? order.deliveredAt ?? now : order.deliveredAt;
         const proofOfDelivery =
           action.payload.status === "delivered"
@@ -577,13 +643,15 @@ function appReducer(state: AppState, action: AppAction): AppState {
           createdAt: now
         });
 
-        const needsPayment =
-          order.participantRole === "receiver" &&
-          nextSettlement.policy === "cash_on_delivery" &&
-          nextSettlement.status === "cash_due";
+        const needsPayment = requiresIncomingDeliveryPayment(
+          order.participantRole,
+          action.payload.status,
+          nextSettlement.status
+        );
 
         return {
           ...order,
+          paymentMethodId: effectivePaymentMethodId,
           status: action.payload.status,
           updatedAt: now,
           needsPayment,
@@ -943,6 +1011,75 @@ function appReducer(state: AppState, action: AppAction): AppState {
         }
       };
     }
+    case "delivery/settlement-method": {
+      const now = new Date().toISOString();
+      const selectedMethod = state.paymentMethods.find((method) => method.id === action.payload.paymentMethodId);
+      if (!selectedMethod) {
+        return state;
+      }
+
+      const updatedOrders = state.delivery.orders.map((order) => {
+        if (order.id !== action.payload.orderId) {
+          return order;
+        }
+        if (
+          order.participantRole !== "receiver" ||
+          order.status !== "delivered" ||
+          isDeliverySettlementFinalized(order.settlement?.status)
+        ) {
+          return order;
+        }
+
+        const nextOrder = {
+          ...order,
+          paymentMethodId: selectedMethod.id
+        };
+        let nextSettlement = initializeDeliverySettlement(nextOrder, selectedMethod.type, now);
+        if (nextOrder.status === "delivered" && nextSettlement.policy !== "cash_on_delivery") {
+          nextSettlement = {
+            ...nextSettlement,
+            status: "authorized",
+            capturedAmount: 0,
+            capturedAt: undefined,
+            note: "Payment method selected. Ready to capture recipient payment."
+          };
+        }
+        const needsPayment = requiresIncomingDeliveryPayment(
+          nextOrder.participantRole,
+          nextOrder.status,
+          nextSettlement.status
+        );
+
+        return {
+          ...nextOrder,
+          updatedAt: now,
+          needsPayment,
+          settlement: nextSettlement,
+          receipt: needsPayment ? null : order.receipt
+        };
+      });
+
+      const activeOrderId = state.delivery.activeOrder?.id;
+      const activeOrder = activeOrderId
+        ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
+        : state.delivery.activeOrder;
+
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: updatedOrders,
+          activeOrder,
+          notifications: appendDeliveryNotification(state.delivery.notifications, {
+            orderId: action.payload.orderId,
+            title: "Payment option updated",
+            body: `Settlement will use ${selectedMethod.label}.`,
+            category: "payment",
+            createdAt: now
+          })
+        }
+      };
+    }
     case "delivery/settlement-capture": {
       const now = new Date().toISOString();
       const updatedOrders = state.delivery.orders.map((order) => {
@@ -1022,40 +1159,44 @@ function appReducer(state: AppState, action: AppAction): AppState {
           return patchedOrder;
         }
 
-        const paymentMethodType = getPaymentMethodType(state.paymentMethods, patchedOrder.paymentMethodId);
+        const effectivePaymentMethodId =
+          patchedOrder.participantRole === "receiver" && patchedOrder.status === "delivered"
+            ? getDefaultPaymentMethodId(state.paymentMethods)
+            : patchedOrder.paymentMethodId;
+        const settlementOrder =
+          effectivePaymentMethodId === patchedOrder.paymentMethodId
+            ? patchedOrder
+            : { ...patchedOrder, paymentMethodId: effectivePaymentMethodId };
+        const paymentMethodType = getPaymentMethodType(state.paymentMethods, effectivePaymentMethodId);
         const currentSettlement =
-          patchedOrder.settlement ?? initializeDeliverySettlement(patchedOrder, paymentMethodType, now);
+          (effectivePaymentMethodId === patchedOrder.paymentMethodId ? patchedOrder.settlement : undefined) ??
+          initializeDeliverySettlement(settlementOrder, paymentMethodType, now);
         let nextSettlement = applySettlementForDeliveryStatus(
           currentSettlement,
-          patchedOrder,
-          patchedOrder.status,
+          settlementOrder,
+          settlementOrder.status,
           0,
           now
         );
-        if (
-          patchedOrder.participantRole === "receiver" &&
-          nextSettlement.policy === "cash_on_delivery" &&
-          patchedOrder.status === "delivered"
-        ) {
-          nextSettlement = {
-            ...nextSettlement,
-            status: "cash_due",
-            capturedAmount: 0,
-            capturedAt: undefined,
-            note: "Awaiting recipient payment confirmation."
-          };
-        }
+        nextSettlement = enforceIncomingDeliveryPendingPayment(
+          nextSettlement,
+          settlementOrder.participantRole,
+          settlementOrder.status,
+          settlementOrder.costBreakdown.total,
+          now
+        );
         const proofOfDelivery =
-          patchedOrder.status === "delivered"
-            ? patchedOrder.proofOfDelivery ?? createAutoProofOfDelivery(patchedOrder)
-            : patchedOrder.proofOfDelivery;
+          settlementOrder.status === "delivered"
+            ? settlementOrder.proofOfDelivery ?? createAutoProofOfDelivery(settlementOrder)
+            : settlementOrder.proofOfDelivery;
         const receipt = isReceiptEligible(nextSettlement.status)
-          ? generateDeliveryReceipt(patchedOrder, nextSettlement)
-          : patchedOrder.receipt ?? null;
-        const needsPayment =
-          patchedOrder.participantRole === "receiver" &&
-          nextSettlement.policy === "cash_on_delivery" &&
-          nextSettlement.status === "cash_due";
+          ? generateDeliveryReceipt(settlementOrder, nextSettlement)
+          : settlementOrder.receipt ?? null;
+        const needsPayment = requiresIncomingDeliveryPayment(
+          settlementOrder.participantRole,
+          settlementOrder.status,
+          nextSettlement.status
+        );
 
         nextNotifications = appendDeliveryNotification(nextNotifications, {
           orderId: patchedOrder.id,
@@ -1066,7 +1207,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         });
 
         return {
-          ...patchedOrder,
+          ...settlementOrder,
           needsPayment,
           settlement: nextSettlement,
           proofOfDelivery,
@@ -1097,40 +1238,44 @@ function appReducer(state: AppState, action: AppAction): AppState {
           return updatedOrder;
         }
 
-        const paymentMethodType = getPaymentMethodType(state.paymentMethods, updatedOrder.paymentMethodId);
+        const effectivePaymentMethodId =
+          updatedOrder.participantRole === "receiver" && updatedOrder.status === "delivered"
+            ? getDefaultPaymentMethodId(state.paymentMethods)
+            : updatedOrder.paymentMethodId;
+        const settlementOrder =
+          effectivePaymentMethodId === updatedOrder.paymentMethodId
+            ? updatedOrder
+            : { ...updatedOrder, paymentMethodId: effectivePaymentMethodId };
+        const paymentMethodType = getPaymentMethodType(state.paymentMethods, effectivePaymentMethodId);
         const currentSettlement =
-          updatedOrder.settlement ?? initializeDeliverySettlement(updatedOrder, paymentMethodType, now);
+          (effectivePaymentMethodId === updatedOrder.paymentMethodId ? updatedOrder.settlement : undefined) ??
+          initializeDeliverySettlement(settlementOrder, paymentMethodType, now);
         let nextSettlement = applySettlementForDeliveryStatus(
           currentSettlement,
-          updatedOrder,
-          updatedOrder.status,
+          settlementOrder,
+          settlementOrder.status,
           0,
           now
         );
-        if (
-          updatedOrder.participantRole === "receiver" &&
-          nextSettlement.policy === "cash_on_delivery" &&
-          updatedOrder.status === "delivered"
-        ) {
-          nextSettlement = {
-            ...nextSettlement,
-            status: "cash_due",
-            capturedAmount: 0,
-            capturedAt: undefined,
-            note: "Awaiting recipient payment confirmation."
-          };
-        }
+        nextSettlement = enforceIncomingDeliveryPendingPayment(
+          nextSettlement,
+          settlementOrder.participantRole,
+          settlementOrder.status,
+          settlementOrder.costBreakdown.total,
+          now
+        );
         const proofOfDelivery =
-          updatedOrder.status === "delivered"
-            ? updatedOrder.proofOfDelivery ?? createAutoProofOfDelivery(updatedOrder)
-            : updatedOrder.proofOfDelivery;
+          settlementOrder.status === "delivered"
+            ? settlementOrder.proofOfDelivery ?? createAutoProofOfDelivery(settlementOrder)
+            : settlementOrder.proofOfDelivery;
         const receipt = isReceiptEligible(nextSettlement.status)
-          ? generateDeliveryReceipt(updatedOrder, nextSettlement)
-          : updatedOrder.receipt ?? null;
-        const needsPayment =
-          updatedOrder.participantRole === "receiver" &&
-          nextSettlement.policy === "cash_on_delivery" &&
-          nextSettlement.status === "cash_due";
+          ? generateDeliveryReceipt(settlementOrder, nextSettlement)
+          : settlementOrder.receipt ?? null;
+        const needsPayment = requiresIncomingDeliveryPayment(
+          settlementOrder.participantRole,
+          settlementOrder.status,
+          nextSettlement.status
+        );
 
         nextNotifications = appendDeliveryNotification(nextNotifications, {
           orderId: updatedOrder.id,
@@ -1141,7 +1286,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         });
 
         return {
-          ...updatedOrder,
+          ...settlementOrder,
           needsPayment,
           settlement: nextSettlement,
           proofOfDelivery,
@@ -1373,6 +1518,10 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     []
   );
 
+  const selectDeliverySettlementMethod = useCallback((orderId: string, paymentMethodId: string) => {
+    dispatch({ type: "delivery/settlement-method", payload: { orderId, paymentMethodId } });
+  }, []);
+
   const captureDeliverySettlement = useCallback((orderId: string) => {
     dispatch({ type: "delivery/settlement-capture", payload: { orderId } });
   }, []);
@@ -1525,6 +1674,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       updateScheduledDelivery,
       cancelScheduledDelivery,
       submitDeliveryRating,
+      selectDeliverySettlementMethod,
       captureDeliverySettlement,
       markDeliveryNotificationsRead,
       applyDeliveryRealtimePatch,
@@ -1564,6 +1714,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       updateScheduledDelivery,
       cancelScheduledDelivery,
       submitDeliveryRating,
+      selectDeliverySettlementMethod,
       captureDeliverySettlement,
       markDeliveryNotificationsRead,
       applyDeliveryRealtimePatch,

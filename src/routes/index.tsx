@@ -73,6 +73,7 @@ import AmbulanceLocation from "../screens/AmbulanceLocation";
 import AmbulanceDestination from "../screens/AmbulanceDestination";
 import AmbulanceConfirmation from "../screens/AmbulanceConfirmation";
 import AmbulanceHistory from "../screens/AmbulanceHistory";
+import AmbulanceHistoryDetail from "../screens/AmbulanceHistoryDetail";
 import SchoolHandoff from "../screens/SchoolHandoff";
 import RentalHistoryDetail from "../screens/RentalHistoryDetail";
 import AllHistory from "../screens/AllHistory";
@@ -258,6 +259,7 @@ export default function AppRouter(): React.JSX.Element {
 						element={<AmbulanceConfirmation />}
 					/>
 					<Route path="history" element={<AmbulanceHistory />} />
+					<Route path="history/:requestId" element={<AmbulanceHistoryDetail />} />
 				</Route>
 				{/* Wallet, Profile, More, Settings */}
 				<Route path="wallet" element={<Wallet />} />

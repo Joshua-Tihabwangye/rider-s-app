@@ -334,15 +334,13 @@ export default function DeliveryCard({
           <Button
             fullWidth
             variant="contained"
+            color="success"
             onClick={() => onMakePayment?.(order.id)}
             sx={{
-              bgcolor: uiTokens.colors.brand,
-              color: uiTokens.colors.white,
               py: uiTokens.spacing.smPlus,
               fontSize: 13,
               fontWeight: 700,
-              textTransform: "none",
-              "&:hover": { bgcolor: uiTokens.colors.brandHover }
+              textTransform: "none"
             }}
           >
             Make payment
