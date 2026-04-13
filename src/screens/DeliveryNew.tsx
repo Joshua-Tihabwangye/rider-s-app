@@ -318,14 +318,7 @@ export default function DeliveryNew(): React.JSX.Element {
         }
       />
 
-      <AppCard
-        sx={{
-          position: { xs: "sticky", sm: "static" },
-          top: { xs: "calc(env(safe-area-inset-top) + 8px)", sm: "auto" },
-          zIndex: { xs: 6, sm: 1 }
-        }}
-        contentSx={{ display: "block" }}
-      >
+      <AppCard contentSx={{ display: "block" }}>
           <Stack spacing={isPhone ? uiTokens.spacing.sm : 0}>
             <Stack direction="row" justifyContent="space-between" alignItems="center">
               <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
