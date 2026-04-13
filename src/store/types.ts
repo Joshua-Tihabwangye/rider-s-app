@@ -240,6 +240,7 @@ export type DeliveryParcelType =
 export type DeliveryParcelSize = "small" | "medium" | "large" | "x_large";
 
 export type DeliveryTiming = "now" | "scheduled";
+export type DeliveryDropoffMethod = "hand_to_recipient" | "leave_at_door";
 
 export type DeliveryOrderMode = "individual" | "family" | "business" | "company";
 
@@ -271,6 +272,7 @@ export interface DeliveryProofOfDelivery {
     lng?: number;
   };
   photoUrl?: string;
+  signatureImageUrl?: string;
   signatureName?: string;
   pinCode?: string;
   otpCode?: string;
@@ -454,6 +456,7 @@ export interface DeliveryOrder {
   recipient: DeliveryParty;
   orderMode: DeliveryOrderMode;
   orderModeConfig: DeliveryOrderModeConfig;
+  dropoffMethod: DeliveryDropoffMethod;
   schedule: DeliveryTiming;
   scheduleTime?: string;
   paymentMethodId: string;
@@ -477,6 +480,7 @@ export interface DeliveryOrder {
   rating?: DeliveryRating | null;
   schedulePolicy?: DeliverySchedulePolicy;
   estimatedDropoffAt?: string;
+  senderClosedAt?: string;
 
   // Legacy fields still used by existing list cards.
   packageName: string;

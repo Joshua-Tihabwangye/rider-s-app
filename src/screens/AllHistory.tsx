@@ -37,6 +37,7 @@ type TypeFilter = "all" | OrderType;
 interface Order {
   id: string;
   type: OrderType;
+  historyLabel: string;
   title: string;
   date: string;
   from: string;
@@ -83,6 +84,38 @@ function toStatusLabel(value: string): string {
     .split(" ")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+function inferRideHistoryLabel(routeSummary?: string): string {
+  const summary = routeSummary?.toLowerCase() ?? "";
+  if (summary.includes("shared") || summary.includes("pool") || summary.includes("split")) {
+    return "Shared ride";
+  }
+  return "Private ride";
+}
+
+function getHistoryLabelTone(order: Order): { bg: string; fg: string; border: string } {
+  if (order.type === "Delivery") {
+    return order.historyLabel === "Incoming delivery"
+      ? { bg: "rgba(34,197,94,0.14)", fg: "#166534", border: "rgba(22,163,74,0.36)" }
+      : { bg: "rgba(59,130,246,0.14)", fg: "#1D4ED8", border: "rgba(59,130,246,0.36)" };
+  }
+
+  if (order.type === "Ride") {
+    return order.historyLabel === "Shared ride"
+      ? { bg: "rgba(168,85,247,0.14)", fg: "#7E22CE", border: "rgba(147,51,234,0.34)" }
+      : { bg: "rgba(148,163,184,0.16)", fg: "#334155", border: "rgba(100,116,139,0.35)" };
+  }
+
+  if (order.type === "Ambulance") {
+    return { bg: "rgba(248,113,113,0.14)", fg: "#B91C1C", border: "rgba(239,68,68,0.35)" };
+  }
+
+  if (order.type === "Rental") {
+    return { bg: "rgba(251,191,36,0.18)", fg: "#92400E", border: "rgba(245,158,11,0.35)" };
+  }
+
+  return { bg: "rgba(16,185,129,0.14)", fg: "#047857", border: "rgba(16,185,129,0.34)" };
 }
 
 function getQuarter(value: Date): QuarterFilter {
@@ -135,6 +168,7 @@ interface AllOrdersCardProps {
 
 function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
   const navigate = useNavigate();
+  const labelTone = getHistoryLabelTone(order);
 
   return (
     <Card
@@ -177,12 +211,27 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
             <Typography variant="body2" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
               {order.title}
             </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              {order.type} • {order.date}
-            </Typography>
+            <Stack direction="row" spacing={0.8} alignItems="center" sx={{ mt: 0.45 }}>
+              <Chip
+                size="small"
+                label={order.historyLabel}
+                sx={{
+                  height: 20,
+                  borderRadius: uiTokens.radius.xl,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  bgcolor: labelTone.bg,
+                  color: labelTone.fg,
+                  border: `1px solid ${labelTone.border}`
+                }}
+              />
+              <Typography
+                variant="caption"
+                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+              >
+                {order.type} • {order.date}
+              </Typography>
+            </Stack>
             <Stack direction="row" spacing={uiTokens.spacing.xs} alignItems="center" sx={{ mt: uiTokens.spacing.xxs }}>
               <PlaceRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
               <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
@@ -267,6 +316,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
         return {
           id: trip.id,
           type: "Ride",
+          historyLabel: inferRideHistoryLabel(trip.routeSummary),
           title: trip.routeSummary ? `Ride • ${trip.routeSummary}` : "Ride trip",
           date: formatDateLabel(rawDate),
           from: trip.pickup?.label ?? trip.pickup?.address ?? "Pickup not set",
@@ -282,6 +332,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
       return {
         id: order.id,
         type: "Delivery",
+        historyLabel: order.participantRole === "receiver" ? "Incoming delivery" : "Sent delivery",
         title: order.parcel.description || order.packageName || "Delivery order",
         date: formatDateLabel(rawDate),
         from: order.pickup.label,
@@ -299,6 +350,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           {
             id: rental.booking.id,
             type: "Rental",
+            historyLabel: "Rental booking",
             title: rentalVehicle ? `${rentalVehicle.name} booking` : "EV rental booking",
             date: formatDateLabel(rentalRawDate),
             from: rental.booking.pickupBranch ?? "Pickup branch not set",
@@ -317,6 +369,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
           {
             id: tours.booking.id,
             type: "Tour",
+            historyLabel: "Tour booking",
             title: bookedTour?.title ?? "Tour booking",
             date: tours.booking.date ? formatDateLabel(tours.booking.date) : bookedTour?.scheduleLabel ?? "Schedule pending",
             from: bookedTour?.location ?? "Tour location",
@@ -341,6 +394,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
       .map((request) => ({
         id: request.id,
         type: "Ambulance",
+        historyLabel: "Ambulance request",
         title: "Ambulance request",
         date: formatDateLabel(
           request.completedAt ??

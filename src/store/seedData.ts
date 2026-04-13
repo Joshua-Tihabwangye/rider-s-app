@@ -10,6 +10,7 @@ import type {
   RideRequest,
   DeliveryState,
   DeliveryOrder,
+  DeliveryProofMethod,
   RentalState,
   RentalVehicle,
   ToursState,
@@ -343,6 +344,8 @@ function createSeedDeliveryOrder(params: {
   distanceKm: number;
   progress: number;
   participantRole?: DeliveryOrder["participantRole"];
+  dropoffMethod?: DeliveryOrder["dropoffMethod"];
+  hasSignatureConfirmation?: boolean;
   scheduled?: boolean;
   paymentMethodId?: string;
   orderMode?: DeliveryOrder["orderMode"];
@@ -351,6 +354,8 @@ function createSeedDeliveryOrder(params: {
   const now = new Date().toISOString();
   const paymentMethodId = params.paymentMethodId ?? "pm_wallet";
   const participantRole = params.participantRole ?? "sender";
+  const dropoffMethod = params.dropoffMethod ?? "hand_to_recipient";
+  const hasSignatureConfirmation = params.hasSignatureConfirmation ?? false;
   const senderPhone = params.senderPhone ?? "+256 700 111 222";
   const scheduleTime = params.scheduled ? getSeedScheduleTime(1, 9, 30) : "";
   const deliveredAt = params.status === "delivered" ? now : undefined;
@@ -389,6 +394,7 @@ function createSeedDeliveryOrder(params: {
       phone: params.recipientPhone,
       address: params.recipientAddress
     },
+    dropoffMethod,
     orderMode: params.orderMode ?? "individual",
     orderModeConfig:
       params.orderModeConfig ??
@@ -495,13 +501,37 @@ function createSeedDeliveryOrder(params: {
     params.status === "delivered" &&
     !["captured", "cash_collected", "refunded", "voided"].includes(settlement.status);
   const receipt = isReceiptEligible(settlement.status) ? generateDeliveryReceipt(baseOrder, settlement) : null;
+  const requiresSenderSignature =
+    participantRole === "sender" && params.status === "delivered" && dropoffMethod !== "leave_at_door";
+  const autoProof = params.status === "delivered" ? createAutoProofOfDelivery(baseOrder) : null;
+  const proofOfDelivery =
+    params.status !== "delivered"
+      ? null
+      : requiresSenderSignature && !hasSignatureConfirmation
+        ? null
+        : requiresSenderSignature && hasSignatureConfirmation && autoProof
+          ? {
+              ...autoProof,
+              methods: Array.from(
+                new Set<DeliveryProofMethod>([...autoProof.methods, "photo", "signature"])
+              ),
+              signatureName: params.recipientName,
+              signatureImageUrl: autoProof.photoUrl,
+              verifiedBy: "courier" as const
+            }
+          : autoProof;
+  const senderClosedAt =
+    params.status === "delivered" && participantRole === "sender" && dropoffMethod === "leave_at_door"
+      ? now
+      : undefined;
 
   return {
     ...baseOrder,
     needsPayment,
+    senderClosedAt,
     settlement,
     receipt,
-    proofOfDelivery: params.status === "delivered" ? createAutoProofOfDelivery(baseOrder) : null
+    proofOfDelivery
   };
 }
 
@@ -572,7 +602,30 @@ const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
     distanceKm: 0,
     progress: 100,
     paymentMethodId: "pm_momo_1",
-    participantRole: "sender"
+    participantRole: "sender",
+    dropoffMethod: "hand_to_recipient",
+    hasSignatureConfirmation: false
+  }),
+  createSeedDeliveryOrder({
+    id: "DLV-2026-04-08-077",
+    packageName: "Home groceries",
+    pickupLabel: "Lugogo Supermarket",
+    pickupAddress: "Lugogo Bypass, Kampala",
+    dropoffLabel: "Mbuya Residence",
+    dropoffAddress: "Mbuya Hill, Kampala",
+    senderName: "Fresh Basket",
+    senderPhone: "+256 776 510 224",
+    senderAvatar: "FB",
+    recipientName: "Miriam T.",
+    recipientPhone: "+256 781 300 912",
+    recipientAddress: "Mbuya Hill, Kampala",
+    status: "delivered",
+    etaMinutes: 0,
+    distanceKm: 0,
+    progress: 100,
+    paymentMethodId: "pm_wallet",
+    participantRole: "sender",
+    dropoffMethod: "leave_at_door"
   }),
   createSeedDeliveryOrder({
     id: "DLV-2026-04-11-203",

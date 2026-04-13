@@ -62,9 +62,21 @@ function statusTone(status: DeliveryOrder["status"]): { bg: string; fg: string }
   return { bg: "rgba(148,163,184,0.18)", fg: "#475569" };
 }
 
+function requiresSenderSignatureConfirmation(order: DeliveryOrder): boolean {
+  return (
+    order.participantRole === "sender" &&
+    order.status === "delivered" &&
+    order.dropoffMethod !== "leave_at_door"
+  );
+}
+
+function getSenderConfirmationImage(order: DeliveryOrder): string | null {
+  return order.proofOfDelivery?.signatureImageUrl ?? order.proofOfDelivery?.photoUrl ?? null;
+}
+
 function DeliveryDashboardHomeScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const { delivery } = useAppData();
+  const { delivery, actions } = useAppData();
   const [trackingNumber, setTrackingNumber] = useState<string>("");
   const [menuAnchor, setMenuAnchor] = useState<{
     open: boolean;
@@ -85,6 +97,13 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
   const deliveringOrders: DeliveryOrder[] = sendingOrders.filter(
     (order) => !DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
   );
+  const senderConfirmationOrders = useMemo(
+    () =>
+      sendingOrders
+        .filter((order) => requiresSenderSignatureConfirmation(order) && !order.senderClosedAt)
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()),
+    [sendingOrders]
+  );
   const incomingOrders: DeliveryOrder[] = receivingOrders.filter(
     (order) =>
       !DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number]) ||
@@ -93,16 +112,24 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
 
   const pendingDeliveriesCount = deliveringOrders.filter((order) => order.status === "requested").length;
   const incomingPendingCount = incomingOrders.filter((order) => order.status === "requested" || order.needsPayment).length;
-  const completedDeliveriesCount = delivery.orders.filter((order) =>
-    DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])
-  ).length;
+  const completedDeliveriesCount = delivery.orders.filter((order) => {
+    if (!DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])) {
+      return false;
+    }
+    return !requiresSenderSignatureConfirmation(order) || Boolean(order.senderClosedAt);
+  }).length;
 
   const kpis = useMemo(() => calculateDeliveryKpis(delivery.orders), [delivery.orders]);
 
   const historyRows = useMemo(
     () =>
       [...delivery.orders]
-        .filter((order) => DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number]))
+        .filter((order) => {
+          if (!DELIVERY_TERMINAL_STATUSES.includes(order.status as (typeof DELIVERY_TERMINAL_STATUSES)[number])) {
+            return false;
+          }
+          return !requiresSenderSignatureConfirmation(order) || Boolean(order.senderClosedAt);
+        })
         .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
         .slice(0, 3),
     [delivery.orders]
@@ -296,7 +323,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
           alignItems: "start"
         }}
       >
-        <AppCard id="incoming-deliveries-section">
+        <AppCard>
           <SectionHeader
             eyebrow="Receiving"
             title="Incoming deliveries to me"
@@ -387,6 +414,109 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
 
         <AppCard>
           <SectionHeader
+            eyebrow="Sender confirmation"
+            title="Sent deliveries awaiting recipient confirmation"
+            subtitle="Signature image proof appears here before sender closure."
+            action={
+              <Badge badgeContent={senderConfirmationOrders.length} color="primary">
+                <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, color: (t) => t.palette.text.secondary }}>
+                  Awaiting close
+                </Typography>
+              </Badge>
+            }
+            compact
+          />
+
+          <ListSection>
+            {senderConfirmationOrders.length === 0 ? (
+              <AppCard variant="muted">
+                <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                  No sent deliveries are waiting for recipient signature confirmation right now.
+                </Typography>
+              </AppCard>
+            ) : (
+              senderConfirmationOrders.map((order) => {
+                const confirmationImage = getSenderConfirmationImage(order);
+                const confirmationReady = Boolean(confirmationImage);
+                return (
+                  <AppCard key={order.id} variant="muted">
+                    <Stack spacing={1}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                            {order.packageName}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                            {order.id} • {order.pickup.label} to {order.dropoff.label}
+                          </Typography>
+                        </Box>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            px: 1,
+                            py: 0.35,
+                            borderRadius: 5,
+                            bgcolor: confirmationReady ? "rgba(34,197,94,0.14)" : "rgba(251,191,36,0.18)",
+                            color: confirmationReady ? "#15803D" : "#92400E",
+                            fontWeight: 700,
+                            whiteSpace: "nowrap"
+                          }}
+                        >
+                          {confirmationReady ? "Delivery received" : "Awaiting signature"}
+                        </Typography>
+                      </Stack>
+
+                      {confirmationReady ? (
+                        <Box
+                          component="img"
+                          src={confirmationImage ?? undefined}
+                          alt={`Recipient signature confirmation for ${order.id}`}
+                          sx={{
+                            width: "100%",
+                            borderRadius: uiTokens.radius.md,
+                            border: (t) =>
+                              t.palette.mode === "light"
+                                ? "1px solid rgba(209,213,219,0.9)"
+                                : "1px solid rgba(51,65,85,0.9)",
+                            objectFit: "cover",
+                            maxHeight: 138
+                          }}
+                        />
+                      ) : (
+                        <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                          Waiting for driver to upload recipient signature image.
+                        </Typography>
+                      )}
+
+                      <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                        {confirmationReady && (
+                          <Button
+                            variant="contained"
+                            color="success"
+                            onClick={() => actions.closeSenderDelivery(order.id)}
+                            sx={{ textTransform: "none", fontWeight: 700 }}
+                          >
+                            Close delivery
+                          </Button>
+                        )}
+                        <Button
+                          variant="text"
+                          onClick={() => navigate(`/deliveries/tracking/${order.id}`)}
+                          sx={{ textTransform: "none" }}
+                        >
+                          Open tracking
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  </AppCard>
+                );
+              })
+            )}
+          </ListSection>
+        </AppCard>
+
+        <AppCard>
+          <SectionHeader
             eyebrow="History"
             title="Recent closed orders"
             action={
@@ -409,6 +539,10 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
             ) : (
               historyRows.map((order, index) => {
                 const tone = statusTone(order.status);
+                const historyStatusLabel =
+                  order.status === "delivered" && order.participantRole === "sender" && order.senderClosedAt
+                    ? "Closed"
+                    : getDeliveryStatusLabel(order.status);
                 return (
                   <Box key={order.id}>
                     <Box sx={{ display: "grid", gridTemplateColumns: "16px 1fr auto", gap: 1, alignItems: "start", py: 0.6 }}>
@@ -460,7 +594,7 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
                             display: "inline-block"
                           }}
                         >
-                          {getDeliveryStatusLabel(order.status)}
+                          {historyStatusLabel}
                         </Typography>
                         <Box sx={{ mt: 0.4 }}>
                           <Button

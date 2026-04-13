@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, ReactNode, useReducer, useCallback, useEffect } from "react";
+import { createContext, useContext, useMemo, ReactNode, useReducer, useCallback, useEffect, useRef } from "react";
 import type {
   AppData,
   PaymentMethod,
@@ -49,7 +49,7 @@ import {
   isReceiptEligible,
   requestSettlementRefund
 } from "../features/delivery/payment";
-import { createAutoProofOfDelivery } from "../features/delivery/proof";
+import { createAutoProofOfDelivery, createSenderSignatureProof } from "../features/delivery/proof";
 import {
   createDeliveryException,
   DELIVERY_EXCEPTION_LABELS,
@@ -84,6 +84,8 @@ interface AppState extends AppData {
   sos: SosState;
 }
 
+const AUTO_SENDER_CONFIRMATION_FETCH_DELAY_MS = 45000;
+
 interface AppActions {
   updateSettings: (patch: Partial<SettingsState>) => void;
   updateNotifications: (patch: Partial<NotificationPreferences>) => void;
@@ -109,6 +111,8 @@ interface AppActions {
   }) => void;
   resolveDeliveryException: (orderId: string, exceptionId: string, resolution: string) => void;
   submitProofOfDelivery: (orderId: string, proof: DeliveryProofOfDelivery) => void;
+  receiveSenderDeliveryConfirmation: (orderId: string) => void;
+  closeSenderDelivery: (orderId: string) => void;
   updateScheduledDelivery: (orderId: string, scheduleTime: string) => void;
   cancelScheduledDelivery: (orderId: string, reason: string) => void;
   submitDeliveryRating: (orderId: string, payload: { score: number; tags: string[]; comment?: string }) => void;
@@ -177,6 +181,8 @@ type AppAction =
     }
   | { type: "delivery/exception-resolve"; payload: { orderId: string; exceptionId: string; resolution: string } }
   | { type: "delivery/proof"; payload: { orderId: string; proof: DeliveryProofOfDelivery } }
+  | { type: "delivery/sender-confirmation"; payload: { orderId: string } }
+  | { type: "delivery/sender-close"; payload: { orderId: string } }
   | { type: "delivery/schedule"; payload: { orderId: string; scheduleTime: string } }
   | { type: "delivery/cancel-scheduled"; payload: { orderId: string; reason: string } }
   | { type: "delivery/rating"; payload: { orderId: string; score: number; tags: string[]; comment?: string } }
@@ -269,6 +275,19 @@ function enforceIncomingDeliveryPendingPayment(
     capturedAt: undefined,
     note: "Awaiting recipient payment confirmation."
   };
+}
+
+function requiresSenderSignatureConfirmation(order: DeliveryOrder): boolean {
+  return (
+    order.participantRole === "sender" &&
+    order.status === "delivered" &&
+    order.dropoffMethod !== "leave_at_door"
+  );
+}
+
+function hasSenderSignatureImage(order: DeliveryOrder): boolean {
+  const proof = order.proofOfDelivery;
+  return Boolean(proof?.signatureImageUrl ?? proof?.photoUrl);
 }
 
 function appendDeliveryNotification(
@@ -384,6 +403,7 @@ function createDeliveryOrderFromDraft(
     recipient: draft.recipient,
     orderMode: draft.orderMode,
     orderModeConfig: draft.orderModeConfig,
+    dropoffMethod: state.settings.delivery.leaveAtDoor ? "leave_at_door" : "hand_to_recipient",
     schedule: draft.schedule,
     scheduleTime: draft.scheduleTime,
     paymentMethodId,
@@ -432,7 +452,6 @@ function createDeliveryOrderFromDraft(
     date: new Date(),
     time: `${etaMinutes} min`,
     progress: getDeliveryStatusProgress("requested"),
-    priceEstimate: formatCurrencyUGX(total),
     needsPayment: false,
     exceptions: [],
     contactEvents: [],
@@ -618,10 +637,22 @@ function appReducer(state: AppState, action: AppAction): AppState {
           now
         );
         const deliveredAt = action.payload.status === "delivered" ? order.deliveredAt ?? now : order.deliveredAt;
+        const requiresSenderConfirmationOnDelivery =
+          action.payload.status === "delivered" &&
+          order.participantRole === "sender" &&
+          order.dropoffMethod !== "leave_at_door";
         const proofOfDelivery =
           action.payload.status === "delivered"
-            ? order.proofOfDelivery ?? createAutoProofOfDelivery({ ...order, deliveredAt: deliveredAt ?? now })
+            ? requiresSenderConfirmationOnDelivery
+              ? order.proofOfDelivery ?? null
+              : order.proofOfDelivery ?? createAutoProofOfDelivery({ ...order, deliveredAt: deliveredAt ?? now })
             : order.proofOfDelivery;
+        const senderClosedAt =
+          action.payload.status === "delivered" &&
+          order.participantRole === "sender" &&
+          order.dropoffMethod === "leave_at_door"
+            ? order.senderClosedAt ?? now
+            : order.senderClosedAt;
         const candidateOrder = {
           ...order,
           updatedAt: now,
@@ -684,6 +715,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
                   ? `Cancelled by rider. ${formatCurrencyUGX(cancellationFee)} fee applied.`
                   : "Cancelled by rider.")
               : order.cancelledReason,
+          senderClosedAt,
           settlement: nextSettlement,
           receipt,
           proofOfDelivery
@@ -875,6 +907,91 @@ function appReducer(state: AppState, action: AppAction): AppState {
             title: "Proof of delivery captured",
             body: "Recipient verification is now available in history.",
             category: "proof",
+            createdAt: now
+          })
+        }
+      };
+    }
+    case "delivery/sender-confirmation": {
+      const now = new Date().toISOString();
+      const updatedOrders = state.delivery.orders.map((order) => {
+        if (order.id !== action.payload.orderId) {
+          return order;
+        }
+        if (!requiresSenderSignatureConfirmation(order)) {
+          return order;
+        }
+
+        const proof = createSenderSignatureProof({
+          ...order,
+          deliveredAt: order.deliveredAt ?? now,
+          updatedAt: now
+        });
+
+        return {
+          ...order,
+          updatedAt: now,
+          proofOfDelivery: proof
+        };
+      });
+
+      const activeOrderId = state.delivery.activeOrder?.id;
+      const activeOrder = activeOrderId
+        ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
+        : state.delivery.activeOrder;
+
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: updatedOrders,
+          activeOrder,
+          notifications: appendDeliveryNotification(state.delivery.notifications, {
+            orderId: action.payload.orderId,
+            title: "Recipient signature uploaded",
+            body: "Signature confirmation image is now available.",
+            category: "proof",
+            createdAt: now
+          })
+        }
+      };
+    }
+    case "delivery/sender-close": {
+      const now = new Date().toISOString();
+      const updatedOrders = state.delivery.orders.map((order) => {
+        if (order.id !== action.payload.orderId) {
+          return order;
+        }
+        if (order.participantRole !== "sender" || order.status !== "delivered") {
+          return order;
+        }
+        if (requiresSenderSignatureConfirmation(order) && !hasSenderSignatureImage(order)) {
+          return order;
+        }
+
+        return {
+          ...order,
+          updatedAt: now,
+          senderClosedAt: order.senderClosedAt ?? now
+        };
+      });
+
+      const activeOrderId = state.delivery.activeOrder?.id;
+      const activeOrder = activeOrderId
+        ? updatedOrders.find((order) => order.id === activeOrderId) ?? null
+        : state.delivery.activeOrder;
+
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: updatedOrders,
+          activeOrder,
+          notifications: appendDeliveryNotification(state.delivery.notifications, {
+            orderId: action.payload.orderId,
+            title: "Delivery closed",
+            body: "You closed this delivery after recipient confirmation.",
+            category: "system",
             createdAt: now
           })
         }
@@ -1185,10 +1302,22 @@ function appReducer(state: AppState, action: AppAction): AppState {
           settlementOrder.costBreakdown.total,
           now
         );
+        const requiresSenderConfirmation =
+          settlementOrder.participantRole === "sender" &&
+          settlementOrder.status === "delivered" &&
+          settlementOrder.dropoffMethod !== "leave_at_door";
         const proofOfDelivery =
           settlementOrder.status === "delivered"
-            ? settlementOrder.proofOfDelivery ?? createAutoProofOfDelivery(settlementOrder)
+            ? requiresSenderConfirmation
+              ? settlementOrder.proofOfDelivery ?? null
+              : settlementOrder.proofOfDelivery ?? createAutoProofOfDelivery(settlementOrder)
             : settlementOrder.proofOfDelivery;
+        const senderClosedAt =
+          settlementOrder.participantRole === "sender" &&
+          settlementOrder.status === "delivered" &&
+          settlementOrder.dropoffMethod === "leave_at_door"
+            ? settlementOrder.senderClosedAt ?? now
+            : settlementOrder.senderClosedAt;
         const receipt = isReceiptEligible(nextSettlement.status)
           ? generateDeliveryReceipt(settlementOrder, nextSettlement)
           : settlementOrder.receipt ?? null;
@@ -1209,6 +1338,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         return {
           ...settlementOrder,
           needsPayment,
+          senderClosedAt,
           settlement: nextSettlement,
           proofOfDelivery,
           receipt
@@ -1264,10 +1394,22 @@ function appReducer(state: AppState, action: AppAction): AppState {
           settlementOrder.costBreakdown.total,
           now
         );
+        const requiresSenderConfirmation =
+          settlementOrder.participantRole === "sender" &&
+          settlementOrder.status === "delivered" &&
+          settlementOrder.dropoffMethod !== "leave_at_door";
         const proofOfDelivery =
           settlementOrder.status === "delivered"
-            ? settlementOrder.proofOfDelivery ?? createAutoProofOfDelivery(settlementOrder)
+            ? requiresSenderConfirmation
+              ? settlementOrder.proofOfDelivery ?? null
+              : settlementOrder.proofOfDelivery ?? createAutoProofOfDelivery(settlementOrder)
             : settlementOrder.proofOfDelivery;
+        const senderClosedAt =
+          settlementOrder.participantRole === "sender" &&
+          settlementOrder.status === "delivered" &&
+          settlementOrder.dropoffMethod === "leave_at_door"
+            ? settlementOrder.senderClosedAt ?? now
+            : settlementOrder.senderClosedAt;
         const receipt = isReceiptEligible(nextSettlement.status)
           ? generateDeliveryReceipt(settlementOrder, nextSettlement)
           : settlementOrder.receipt ?? null;
@@ -1288,6 +1430,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         return {
           ...settlementOrder,
           needsPayment,
+          senderClosedAt,
           settlement: nextSettlement,
           proofOfDelivery,
           receipt
@@ -1410,6 +1553,7 @@ interface AppDataProviderProps {
 export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.Element {
   const { user } = useAuth();
   const [state, dispatch] = useReducer(appReducer, initialState);
+  const senderConfirmationTimersRef = useRef<Map<string, number>>(new Map());
 
   const updateSettings = useCallback((patch: Partial<SettingsState>) => {
     dispatch({ type: "settings/update", payload: patch });
@@ -1501,6 +1645,14 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
   const submitProofOfDelivery = useCallback((orderId: string, proof: DeliveryProofOfDelivery) => {
     dispatch({ type: "delivery/proof", payload: { orderId, proof } });
+  }, []);
+
+  const receiveSenderDeliveryConfirmation = useCallback((orderId: string) => {
+    dispatch({ type: "delivery/sender-confirmation", payload: { orderId } });
+  }, []);
+
+  const closeSenderDelivery = useCallback((orderId: string) => {
+    dispatch({ type: "delivery/sender-close", payload: { orderId } });
   }, []);
 
   const updateScheduledDelivery = useCallback((orderId: string, scheduleTime: string) => {
@@ -1615,6 +1767,50 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   }, []);
 
   useEffect(() => {
+    const timers = senderConfirmationTimersRef.current;
+    const pendingOrders = state.delivery.orders.filter(
+      (order) =>
+        requiresSenderSignatureConfirmation(order) &&
+        !hasSenderSignatureImage(order) &&
+        !order.senderClosedAt
+    );
+    const pendingOrderIds = new Set(pendingOrders.map((order) => order.id));
+
+    for (const [orderId, timerId] of timers) {
+      if (!pendingOrderIds.has(orderId)) {
+        window.clearTimeout(timerId);
+        timers.delete(orderId);
+      }
+    }
+
+    for (const order of pendingOrders) {
+      if (timers.has(order.id)) {
+        continue;
+      }
+
+      const deliveredAtMs = new Date(order.deliveredAt ?? order.updatedAt ?? Date.now()).getTime();
+      const elapsedMs = Number.isNaN(deliveredAtMs) ? 0 : Date.now() - deliveredAtMs;
+      const delayMs = Math.max(0, AUTO_SENDER_CONFIRMATION_FETCH_DELAY_MS - elapsedMs);
+
+      const timerId = window.setTimeout(() => {
+        senderConfirmationTimersRef.current.delete(order.id);
+        dispatch({ type: "delivery/sender-confirmation", payload: { orderId: order.id } });
+      }, delayMs);
+      timers.set(order.id, timerId);
+    }
+  }, [state.delivery.orders]);
+
+  useEffect(
+    () => () => {
+      for (const timerId of senderConfirmationTimersRef.current.values()) {
+        window.clearTimeout(timerId);
+      }
+      senderConfirmationTimersRef.current.clear();
+    },
+    []
+  );
+
+  useEffect(() => {
     const wsUrl = import.meta.env.VITE_DELIVERY_WS_URL as string | undefined;
     if (!wsUrl) {
       dispatch({ type: "delivery/ws-connected", payload: false });
@@ -1671,6 +1867,8 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       reportDeliveryException,
       resolveDeliveryException: resolveDeliveryExceptionById,
       submitProofOfDelivery,
+      receiveSenderDeliveryConfirmation,
+      closeSenderDelivery,
       updateScheduledDelivery,
       cancelScheduledDelivery,
       submitDeliveryRating,
@@ -1711,6 +1909,8 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       reportDeliveryException,
       resolveDeliveryExceptionById,
       submitProofOfDelivery,
+      receiveSenderDeliveryConfirmation,
+      closeSenderDelivery,
       updateScheduledDelivery,
       cancelScheduledDelivery,
       submitDeliveryRating,
