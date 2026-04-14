@@ -91,21 +91,20 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 
 	const handleAddStop = () => {
 		if (stops.length < MAX_STOPS) {
-			const nextLetter = String.fromCharCode(65 + stops.length); // A, B, C, D, E
-			setStops([...stops, { id: nextLetter, value: "" }]);
-		} else {
-			// Navigate to Maximum Stops screen (RA40) when 5-stop limit is reached
-			navigate("/rides/enter/multi-stops/max", {
-				state: {
-					pickup,
-					stops,
-					rideType,
-					tripDirection,
-					passengers,
-					schedule,
-				},
-			});
+			setShowAddStopModal(true);
+			return;
 		}
+		// Navigate to Maximum Stops screen (RA40) when 5-stop limit is reached
+		navigate("/rides/enter/multi-stops/max", {
+			state: {
+				pickup,
+				stops,
+				rideType,
+				tripDirection,
+				passengers,
+				schedule,
+			},
+		});
 	};
 
 	const handleStopChange = (stopId: string, value: string): void => {
@@ -426,6 +425,7 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 										placeholder="Add stop."
 										onClick={handleAddStop}
 										InputProps={{
+											readOnly: true,
 											startAdornment: (
 												<InputAdornment position="start">
 													<PlaceRoundedIcon

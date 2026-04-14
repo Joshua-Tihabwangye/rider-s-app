@@ -132,6 +132,8 @@ interface AppActions {
   startSos: (context: SosEvent["context"]) => string;
   updateSosStatus: (id: string, status: SosStatus, note?: string) => void;
   resolveSos: (id: string, note?: string) => void;
+  dismissReminder: (id: number) => void;
+  dismissReminders: (ids: number[]) => void;
 }
 
 interface AppDataContextValue extends AppState {
@@ -202,7 +204,9 @@ type AppAction =
   | { type: "emergency/remove"; payload: string }
   | { type: "emergency/set-default"; payload: string }
   | { type: "sos/start"; payload: SosEvent }
-  | { type: "sos/status"; payload: { id: string; status: SosStatus; note?: string } };
+  | { type: "sos/status"; payload: { id: string; status: SosStatus; note?: string } }
+  | { type: "reminder/dismiss"; payload: number }
+  | { type: "reminder/dismiss-many"; payload: number[] };
 
 function updateEmergencyContactsDefault(contacts: EmergencyContact[], id: string): EmergencyContact[] {
   return contacts.map((contact) => ({
@@ -1569,6 +1573,21 @@ function appReducer(state: AppState, action: AppAction): AppState {
           })
         }
       };
+    case "reminder/dismiss":
+      return {
+        ...state,
+        reminders: state.reminders.filter((reminder) => reminder.id !== action.payload)
+      };
+    case "reminder/dismiss-many": {
+      const ids = new Set(action.payload);
+      if (ids.size === 0) {
+        return state;
+      }
+      return {
+        ...state,
+        reminders: state.reminders.filter((reminder) => !ids.has(reminder.id))
+      };
+    }
     default:
       return state;
   }
@@ -1784,6 +1803,14 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     dispatch({ type: "sos/status", payload: { id, status: "resolved", note } });
   }, []);
 
+  const dismissReminder = useCallback((id: number) => {
+    dispatch({ type: "reminder/dismiss", payload: id });
+  }, []);
+
+  const dismissReminders = useCallback((ids: number[]) => {
+    dispatch({ type: "reminder/dismiss-many", payload: ids });
+  }, []);
+
   useEffect(() => {
     const interval = window.setInterval(() => {
       dispatch({ type: "delivery/poll" });
@@ -1915,7 +1942,9 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       setDefaultEmergencyContact,
       startSos,
       updateSosStatus,
-      resolveSos
+      resolveSos,
+      dismissReminder,
+      dismissReminders
     }),
     [
       updateSettings,
@@ -1957,7 +1986,9 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       setDefaultEmergencyContact,
       startSos,
       updateSosStatus,
-      resolveSos
+      resolveSos,
+      dismissReminder,
+      dismissReminders
     ]
   );
 

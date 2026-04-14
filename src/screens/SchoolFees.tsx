@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -15,11 +15,16 @@ import {
   ListItemText,
   Avatar,
   Snackbar,
-  Alert
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from "@mui/material";
 import ScreenScaffold from "../components/ScreenScaffold";
 import PageHeader from "../components/PageHeader";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
 
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
@@ -74,6 +79,15 @@ const PAYMENT_HISTORY = [
   { id: "p2", desc: "Term 1 — Liam Robinson", amount: "- UGX 380,000", date: "13 Jan 2026", method: "EVzone Wallet" }
 ];
 
+type FeeStatus = "paid" | "pending" | "overdue";
+type PaymentGateway = "wallet" | "mobile_money" | "card";
+
+const PAYMENT_GATEWAY_LABELS: Record<PaymentGateway, string> = {
+  wallet: "EVzone Wallet",
+  mobile_money: "Mobile Money",
+  card: "Card"
+};
+
 const statusConfig = {
   paid: { label: "Paid", color: "#16A34A", bg: "rgba(22,163,74,0.1)", icon: <CheckCircleRoundedIcon sx={{ fontSize: 16 }} /> },
   pending: { label: "Pending", color: "#D97706", bg: "rgba(217,119,6,0.1)", icon: <PendingRoundedIcon sx={{ fontSize: 16 }} /> },
@@ -82,16 +96,112 @@ const statusConfig = {
 
 export default function SchoolFees(): React.JSX.Element {
   const navigate = useNavigate();
-  const [activeStudent, setActiveStudent] = useState("s1");
-  const [snackbar, setSnackbar] = useState(false);
+  const { reminders, actions } = useAppData();
+  const [searchParams] = useSearchParams();
+  const statusFilter = (searchParams.get("status") ?? "").toLowerCase() as FeeStatus | "";
+  const requestedStudentId = (searchParams.get("student") ?? "").trim();
+  const shouldAutoOpenPayment = searchParams.get("pay") === "1";
+  const initialStudentId =
+    (requestedStudentId && STUDENTS.some((student) => student.id === requestedStudentId)
+      ? requestedStudentId
+      : statusFilter
+        ? FEE_SUMMARY.find((fee) => fee.status === statusFilter)?.studentId
+        : undefined) ?? "s1";
+  const [activeStudent, setActiveStudent] = useState(initialStudentId);
+  const [fees, setFees] = useState(FEE_SUMMARY);
+  const [paymentHistory, setPaymentHistory] = useState(PAYMENT_HISTORY);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [selectedGateway, setSelectedGateway] = useState<PaymentGateway>("wallet");
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({
+    open: false,
+    message: ""
+  });
+  const autoOpenHandledRef = useRef(false);
 
-  const filteredFees = FEE_SUMMARY.filter((f) => f.studentId === activeStudent);
-  const totalDue = filteredFees
-    .filter((f) => f.status !== "paid")
-    .reduce((sum, f) => sum + parseInt(f.amount.replace(/[^0-9]/g, ""), 10), 0);
+  const filteredFees = fees.filter((fee) => fee.studentId === activeStudent);
+  const payableFees = filteredFees.filter((fee) => fee.status !== "paid");
+  const payableVisibleFees = statusFilter
+    ? payableFees.filter((fee) => fee.status === statusFilter)
+    : payableFees;
+  const totalDue = payableVisibleFees.reduce(
+    (sum, fee) => sum + parseInt(fee.amount.replace(/[^0-9]/g, ""), 10),
+    0
+  );
+  const visibleFees = useMemo(
+    () => (statusFilter ? filteredFees.filter((fee) => fee.status === statusFilter) : filteredFees),
+    [filteredFees, statusFilter]
+  );
 
-  const handlePayNow = () => {
-    setSnackbar(true);
+  useEffect(() => {
+    if (shouldAutoOpenPayment && totalDue > 0 && !autoOpenHandledRef.current) {
+      setPaymentDialogOpen(true);
+      autoOpenHandledRef.current = true;
+    }
+  }, [shouldAutoOpenPayment, totalDue]);
+
+  const handlePayNow = (): void => {
+    setPaymentDialogOpen(true);
+  };
+
+  const handlePaymentSuccess = (): void => {
+    if (totalDue <= 0) {
+      return;
+    }
+
+    const studentName = STUDENTS.find((student) => student.id === activeStudent)?.name ?? "Student";
+    const today = new Date();
+    const dateLabel = today.toLocaleDateString("en-UG", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    });
+    const gatewayLabel = PAYMENT_GATEWAY_LABELS[selectedGateway];
+    setFees((prev) =>
+      prev.map((fee) =>
+        fee.studentId === activeStudent &&
+        fee.status !== "paid" &&
+        (statusFilter ? fee.status === statusFilter : true)
+          ? { ...fee, status: "paid" as const }
+          : fee
+      )
+    );
+    setPaymentHistory((prev) => [
+      {
+        id: `p${prev.length + 1}`,
+        desc: `Balance settlement — ${studentName}`,
+        amount: `- UGX ${totalDue.toLocaleString()}`,
+        date: dateLabel,
+        method: gatewayLabel
+      },
+      ...prev
+    ]);
+    setPaymentDialogOpen(false);
+    setSnackbar({
+      open: true,
+      message: `Payment successful via ${gatewayLabel}.`
+    });
+
+    const reminderIdsToDismiss = reminders
+      .filter((reminder) => {
+        if (reminder.category !== "wallet") {
+          return false;
+        }
+        if (!reminder.actionRoute.includes("/school-handoff/fees")) {
+          return false;
+        }
+        if (statusFilter === "overdue") {
+          return reminder.actionRoute.includes("status=overdue") || /overdue/i.test(reminder.title);
+        }
+        if (statusFilter === "pending") {
+          return reminder.actionRoute.includes("status=pending") || /\bdue\b/i.test(reminder.title);
+        }
+        return true;
+      })
+      .map((reminder) => reminder.id);
+
+    if (reminderIdsToDismiss.length > 0) {
+      actions.dismissReminders(reminderIdsToDismiss);
+    }
   };
 
   return (
@@ -179,7 +289,7 @@ export default function SchoolFees(): React.JSX.Element {
           </Typography>
           <Divider sx={{ mb: 1, borderColor: (t) => t.palette.divider }} />
 
-          {filteredFees.map((fee) => {
+          {visibleFees.map((fee) => {
             const cfg = statusConfig[fee.status];
             return (
               <Box
@@ -275,7 +385,7 @@ export default function SchoolFees(): React.JSX.Element {
           <Divider sx={{ mb: 0.5, borderColor: (t) => t.palette.divider }} />
 
           <List dense sx={{ py: 0 }}>
-            {PAYMENT_HISTORY.map((tx) => (
+            {paymentHistory.map((tx) => (
               <ListItem key={tx.id} disableGutters sx={{ py: 0.5 }}>
                 <ListItemAvatar>
                   <Avatar sx={{ width: 28, height: 28, bgcolor: "rgba(22,163,74,0.12)", color: "#16A34A" }}>
@@ -299,14 +409,62 @@ export default function SchoolFees(): React.JSX.Element {
         Manage school bus transport fees for your children. Payments are processed through your EVzone Wallet or linked payment methods.
       </Typography>
 
+      <Dialog
+        open={paymentDialogOpen}
+        onClose={() => setPaymentDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: uiTokens.radius.xl,
+            bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)")
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Select payment gateway</DialogTitle>
+        <DialogContent>
+          <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary, mb: 1.2, display: "block" }}>
+            Choose how to pay this balance.
+          </Typography>
+
+          <Stack spacing={1}>
+            {(Object.keys(PAYMENT_GATEWAY_LABELS) as PaymentGateway[]).map((gateway) => (
+              <Button
+                key={gateway}
+                variant={selectedGateway === gateway ? "contained" : "outlined"}
+                onClick={() => setSelectedGateway(gateway)}
+                sx={{ textTransform: "none", justifyContent: "flex-start" }}
+              >
+                {PAYMENT_GATEWAY_LABELS[gateway]}
+              </Button>
+            ))}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 2.5, pb: 2 }}>
+          <Button onClick={() => setPaymentDialogOpen(false)} sx={{ textTransform: "none" }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handlePaymentSuccess}
+            disabled={totalDue <= 0}
+            sx={{ textTransform: "none", fontWeight: 700 }}
+          >
+            Pay UGX {totalDue.toLocaleString()}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar
-        open={snackbar}
+        open={snackbar.open}
         autoHideDuration={3000}
-        onClose={() => setSnackbar(false)}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert onClose={() => setSnackbar(false)} severity="success" sx={{ borderRadius: uiTokens.radius.xl, width: "100%" }}>
-          Payment initiated! Check your wallet for confirmation.
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity="success"
+          sx={{ borderRadius: uiTokens.radius.xl, width: "100%" }}
+        >
+          {snackbar.message}
         </Alert>
       </Snackbar>
     </ScreenScaffold>

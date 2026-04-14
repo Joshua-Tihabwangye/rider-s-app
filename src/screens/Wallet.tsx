@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Box,
   IconButton,
@@ -74,7 +74,8 @@ function getTransactionIcon(type: Transaction["type"]): React.ReactElement {
 
 function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
   const navigate = useNavigate();
-  const { walletBalance, walletReserved, transactions, reminders } = useAppData();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { walletBalance, walletReserved, transactions, reminders, actions } = useAppData();
   
   const balance = walletBalance;
   const reserved = walletReserved;
@@ -98,6 +99,17 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
     () => reminders.filter((reminder) => reminder.category === "wallet"),
     [reminders]
   );
+  const walletAction = searchParams.get("action");
+
+  useEffect(() => {
+    if (walletAction !== "topup") {
+      return;
+    }
+    setShowAddMoneyDialog(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete("action");
+    setSearchParams(next, { replace: true });
+  }, [walletAction, searchParams, setSearchParams]);
 
   const handleAddMoney = () => {
     setShowAddMoneyDialog(true);
@@ -110,6 +122,17 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
       message: "Money added successfully to your wallet!",
       severity: "success"
     });
+
+    const resolvedReminderIds = reminders
+      .filter(
+        (reminder) =>
+          reminder.category === "wallet" &&
+          (reminder.actionRoute.includes("/wallet?action=topup") || /wallet balance low/i.test(reminder.title))
+      )
+      .map((reminder) => reminder.id);
+    if (resolvedReminderIds.length > 0) {
+      actions.dismissReminders(resolvedReminderIds);
+    }
   };
 
   const handleWithdraw = () => {
@@ -528,7 +551,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
                       onClick={() => navigate(reminder.actionRoute)}
                       sx={{ textTransform: "none", whiteSpace: "nowrap" }}
                     >
-                      Review
+                      {reminder.ctaLabel ?? "Review"}
                     </Button>
                   </Stack>
                 </Box>

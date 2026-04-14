@@ -88,35 +88,40 @@ export const SEED_REMINDERS: Reminder[] = [
     category: "promotion",
     title: "Ride Promotion",
     description: "Get 20% off your next ride. Valid until end of month.",
-    actionRoute: "/rides/promotions"
+    actionRoute: "/rides/promotions",
+    ctaLabel: "Check now"
   },
   {
     id: 2,
     category: "promotion",
     title: "Delivery Promo",
     description: "Free delivery service fee on your next parcel this week.",
-    actionRoute: "/deliveries"
+    actionRoute: "/deliveries",
+    ctaLabel: "Check now"
   },
   {
     id: 3,
     category: "wallet",
     title: "Wallet balance low",
     description: "Top up your wallet to avoid payment failures on your next trip.",
-    actionRoute: "/wallet"
+    actionRoute: "/wallet?action=topup",
+    ctaLabel: "Top up"
   },
   {
     id: 4,
     category: "wallet",
-    title: "School fees due",
-    description: "Student transport fees are due in 5 days. Avoid late penalties.",
-    actionRoute: "/school-handoff/fees"
+    title: "Bus fees due",
+    description: "School bus fees are due soon. Pay now to avoid late penalties.",
+    actionRoute: "/school-handoff/fees?status=pending&pay=1",
+    ctaLabel: "Pay now"
   },
   {
     id: 5,
     category: "wallet",
-    title: "Overdue payment follow-up",
-    description: "One payment is overdue. Review outstanding charges now.",
-    actionRoute: "/wallet"
+    title: "Bus fees overdue",
+    description: "Outstanding bus fees are overdue. Clear the overdue balance now.",
+    actionRoute: "/school-handoff/fees?status=overdue&pay=1",
+    ctaLabel: "Pay overdue"
   }
 ];
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
@@ -47,6 +47,8 @@ import InfoCard from "../components/primitives/InfoCard";
 import SectionHeader from "../components/primitives/SectionHeader";
 import MapShell from "../components/maps/MapShell";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
+import type { RideState } from "../store/types";
 
 
 // Pulse animation for location marker
@@ -64,31 +66,6 @@ const pulse = keyframes`
     opacity: 0;
   }
 `;
-
-// Mock service for fetching saved locations from backend
-const fetchSavedLocations = async () => {
-  // In production, this would be an API call
-  // Simulating API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return [
-    {
-      id: "home",
-      type: "home",
-      label: "Home",
-      address: "12, JJ Apartments, New Street, Kampala",
-      coordinates: { lat: 0.3476, lng: 32.5825 },
-      icon: <HomeRoundedIcon sx={{ fontSize: 20, color: "#F97316" }} />
-    },
-    {
-      id: "office",
-      type: "office",
-      label: "Office",
-      address: "12, JJ Apartments, New Street, Kampala",
-      coordinates: { lat: 0.3136, lng: 32.5811 },
-      icon: <ApartmentRoundedIcon sx={{ fontSize: 20, color: "#F97316" }} />
-    }
-  ];
-};
 
 // Type definitions
 interface Coordinates {
@@ -157,6 +134,20 @@ interface UpcomingRide {
   fare: string;
 }
 
+interface RideInsightPoint {
+  label: string;
+  address: string;
+  coordinates: Coordinates;
+}
+
+interface RideInsightRoute {
+  origin: RideInsightPoint;
+  destination: RideInsightPoint;
+  fare: string;
+  distance: string;
+  timestamp: string;
+}
+
 // Mock Google Places API autocomplete service
 const searchPlaces = async (query: string): Promise<PlaceSuggestion[]> => {
   if (!query || query.length < 2) return [];
@@ -196,53 +187,260 @@ const calculateRoute = async (_origin: Coordinates, _destination: Coordinates): 
   };
 };
 
-// Mock service for fetching daily commutes
-const fetchDailyCommutes = async () => {
-  // In production, this would be an API call
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return [
-    {
-      id: "commute-1",
-      route: "Home → Office",
-      schedule: "Weekdays · 8:00 AM",
-      origin: {
-        address: "Home",
-        coordinates: { lat: 0.3476, lng: 32.5825 }
-      },
-      destination: {
-        address: "Office",
-        coordinates: { lat: 0.3136, lng: 32.5811 }
-      },
-      distance: "12 km",
-      fare: "UGX 20,000"
-    }
-  ];
-};
+function normalizeKey(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
 
-// Mock service for fetching upcoming rides
-const fetchUpcomingRides = async () => {
-  // In production, this would be an API call
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return [
+function formatCommuteSchedule(index: number): string {
+  if (index === 0) return "Weekdays · 8:00 AM";
+  if (index === 1) return "Weekdays · 5:30 PM";
+  return "Frequent route";
+}
+
+function formatUpcomingTime(index: number): string {
+  if (index === 0) return "Tomorrow · 7:30 AM";
+  if (index === 1) return "Tomorrow · 5:30 PM";
+  return "Sat · 10:00 AM";
+}
+
+function inferPlaceIcon(label: string, address: string): React.ReactElement {
+  const normalized = `${label} ${address}`.toLowerCase();
+  if (normalized.includes("home")) {
+    return <HomeRoundedIcon sx={{ fontSize: 20, color: "#F97316" }} />;
+  }
+  if (normalized.includes("office") || normalized.includes("work")) {
+    return <ApartmentRoundedIcon sx={{ fontSize: 20, color: "#F97316" }} />;
+  }
+  return <PlaceRoundedIcon sx={{ fontSize: 20, color: "#F97316" }} />;
+}
+
+function deriveRideInsights(activityRoutes: RideInsightRoute[]): {
+  commonPlaces: SavedLocation[];
+  commutes: Commute[];
+  upcoming: UpcomingRide[];
+} {
+  const locationStats = new Map<
+    string,
+    { count: number; label: string; address: string; coordinates: Coordinates }
+  >();
+  const routeStats = new Map<
+    string,
     {
-      id: "upcoming-1",
-      time: "Today · 7:30 AM",
-      route: "Home → Office",
-      status: "Scheduled",
-      vehicle: "EV Sedan",
-      origin: {
-        address: "Home",
-        coordinates: { lat: 0.3476, lng: 32.5825 }
-      },
-      destination: {
-        address: "Office",
-        coordinates: { lat: 0.3136, lng: 32.5811 }
-      },
-      distance: "12 km",
-      fare: "UGX 20,000"
+      count: number;
+      origin: RideInsightPoint;
+      destination: RideInsightPoint;
+      fare: string;
+      distance: string;
+      timestamp: string;
     }
-  ];
-};
+  >();
+
+  const addLocation = (location: RideInsightPoint): void => {
+    const key = normalizeKey(location.address || location.label);
+    const current = locationStats.get(key);
+    if (current) {
+      current.count += 1;
+      return;
+    }
+    locationStats.set(key, {
+      count: 1,
+      label: location.label,
+      address: location.address,
+      coordinates: location.coordinates
+    });
+  };
+
+  for (const route of activityRoutes) {
+    addLocation(route.origin);
+    addLocation(route.destination);
+
+    const routeKey = `${normalizeKey(route.origin.address)}->${normalizeKey(route.destination.address)}`;
+    const currentRoute = routeStats.get(routeKey);
+    if (currentRoute) {
+      currentRoute.count += 1;
+      if (route.timestamp > currentRoute.timestamp) {
+        currentRoute.fare = route.fare;
+        currentRoute.distance = route.distance;
+        currentRoute.timestamp = route.timestamp;
+      }
+    } else {
+      routeStats.set(routeKey, {
+        count: 1,
+        origin: route.origin,
+        destination: route.destination,
+        fare: route.fare,
+        distance: route.distance,
+        timestamp: route.timestamp
+      });
+    }
+  }
+
+  const commonPlaces = Array.from(locationStats.entries())
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 4)
+    .map(([key, value], index) => ({
+      id: `common-${index + 1}-${key.replace(/[^a-z0-9]+/g, "-")}`,
+      type: "common",
+      label: value.label,
+      address: value.address,
+      coordinates: value.coordinates,
+      icon: inferPlaceIcon(value.label, value.address)
+    }));
+
+  const sortedRoutes = Array.from(routeStats.entries()).sort((a, b) => b[1].count - a[1].count);
+
+  const commutes = sortedRoutes.slice(0, 3).map(([key, route], index) => ({
+    id: `commute-${index + 1}-${key.replace(/[^a-z0-9]+/g, "-")}`,
+    route: `${route.origin.label} → ${route.destination.label}`,
+    schedule: formatCommuteSchedule(index),
+    origin: {
+      address: route.origin.address,
+      coordinates: route.origin.coordinates
+    },
+    destination: {
+      address: route.destination.address,
+      coordinates: route.destination.coordinates
+    },
+    distance: route.distance,
+    fare: route.fare
+  }));
+
+  const upcoming = commutes.slice(0, 3).map((commute, index) => ({
+    id: `upcoming-${index + 1}-${commute.id}`,
+    time: formatUpcomingTime(index),
+    route: commute.route,
+    status: "Scheduled",
+    vehicle: "EV Sedan",
+    origin: {
+      address: commute.origin.address,
+      coordinates: commute.origin.coordinates
+    },
+    destination: {
+      address: commute.destination.address,
+      coordinates: commute.destination.coordinates
+    },
+    distance: commute.distance,
+    fare: commute.fare
+  }));
+
+  return { commonPlaces, commutes, upcoming };
+}
+
+const DEFAULT_INSIGHT_COORDINATES: Coordinates = { lat: 0.3476, lng: 32.5825 };
+
+function ensureInsightCoordinates(
+  coordinates?: { lat?: number; lng?: number } | null,
+  fallback: Coordinates = DEFAULT_INSIGHT_COORDINATES
+): Coordinates {
+  if (
+    coordinates &&
+    typeof coordinates.lat === "number" &&
+    Number.isFinite(coordinates.lat) &&
+    typeof coordinates.lng === "number" &&
+    Number.isFinite(coordinates.lng)
+  ) {
+    return { lat: coordinates.lat, lng: coordinates.lng };
+  }
+  return fallback;
+}
+
+function toIsoTimestamp(timestamp?: string): string {
+  if (!timestamp) {
+    return new Date().toISOString();
+  }
+  const parsed = Date.parse(timestamp);
+  if (Number.isNaN(parsed)) {
+    return new Date().toISOString();
+  }
+  return new Date(parsed).toISOString();
+}
+
+function toInsightPoint(
+  location:
+    | { label?: string | null; address?: string | null; coordinates?: { lat?: number; lng?: number } }
+    | null
+    | undefined,
+  fallbackAddress: string,
+  fallbackCoordinates: Coordinates
+): RideInsightPoint {
+  const address = location?.address?.trim() || location?.label?.trim() || fallbackAddress;
+  const label = location?.label?.trim() || address.split(",")[0]?.trim() || fallbackAddress;
+  return {
+    label,
+    address,
+    coordinates: ensureInsightCoordinates(location?.coordinates, fallbackCoordinates)
+  };
+}
+
+function buildRideInsightRoutes(ride: RideState): RideInsightRoute[] {
+  const requestOrigin = ride.request.origin;
+  const requestDestination = ride.request.destination;
+  const originFallbackCoordinates = ensureInsightCoordinates(requestOrigin?.coordinates);
+  const destinationFallbackCoordinates = ensureInsightCoordinates(
+    requestDestination?.coordinates,
+    { lat: originFallbackCoordinates.lat + 0.01, lng: originFallbackCoordinates.lng + 0.01 }
+  );
+  const routes: RideInsightRoute[] = [];
+
+  const appendRoute = (params: {
+    origin?: { label?: string | null; address?: string | null; coordinates?: { lat?: number; lng?: number } } | null;
+    destination?: { label?: string | null; address?: string | null; coordinates?: { lat?: number; lng?: number } } | null;
+    fare?: string;
+    distance?: string;
+    timestamp?: string;
+  }): void => {
+    if (!params.origin || !params.destination) {
+      return;
+    }
+
+    const origin = toInsightPoint(params.origin, "Pickup location", originFallbackCoordinates);
+    const destination = toInsightPoint(params.destination, "Destination", destinationFallbackCoordinates);
+
+    if (normalizeKey(origin.address) === normalizeKey(destination.address)) {
+      return;
+    }
+
+    routes.push({
+      origin,
+      destination,
+      fare: params.fare || "UGX 0",
+      distance: params.distance || "—",
+      timestamp: toIsoTimestamp(params.timestamp)
+    });
+  };
+
+  ride.history.forEach((trip) => {
+    appendRoute({
+      origin: trip.pickup,
+      destination: trip.dropoff,
+      fare: trip.fareEstimate,
+      distance: trip.distance,
+      timestamp: trip.completedAt || trip.startedAt
+    });
+  });
+
+  if (ride.activeTrip) {
+    appendRoute({
+      origin: ride.activeTrip.pickup ?? requestOrigin,
+      destination: ride.activeTrip.dropoff ?? requestDestination,
+      fare: ride.activeTrip.fareEstimate,
+      distance: ride.activeTrip.distance,
+      timestamp: ride.activeTrip.startedAt
+    });
+  }
+
+  if (!routes.length && requestOrigin && requestDestination) {
+    appendRoute({
+      origin: requestOrigin,
+      destination: requestDestination,
+      fare: ride.activeTrip?.fareEstimate,
+      distance: ride.activeTrip?.distance,
+      timestamp: ride.request.scheduleTime
+    });
+  }
+
+  return routes;
+}
 
 // Star rating component
 interface StarRatingProps {
@@ -588,6 +786,7 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }: C
 function EnterDestinationMainScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
+  const { ride } = useAppData();
   
   // Check if this is a shared ride mode from query parameter
   const searchParams = new URLSearchParams(location.search);
@@ -597,65 +796,29 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const [helperState, setHelperState] = useState("idle");
   const [selectedPlace, setSelectedPlace] = useState<string | PlaceSuggestion | null>(null);
   const [whereTo, setWhereTo] = useState("");
-  const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([]);
-  const [loadingLocations, setLoadingLocations] = useState(false);
   const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
   const [routeData, setRouteData] = useState<RouteData | null>(null);
   const [destinationCoords, setDestinationCoords] = useState<Coordinates | null>(null);
-  const [dailyCommutes, setDailyCommutes] = useState<Commute[]>([]);
-  const [loadingCommutes, setLoadingCommutes] = useState(false);
-  const [upcomingRides, setUpcomingRides] = useState<UpcomingRide[]>([]);
-  const [loadingUpcomingRides, setLoadingUpcomingRides] = useState(false);
-  const [hasOrderedRide, setHasOrderedRide] = useState(false);
-  const [loadingRideInsights, setLoadingRideInsights] = useState(false);
+  const [dismissedUpcomingRideIds, setDismissedUpcomingRideIds] = useState<string[]>([]);
 
-  // Load recommendation cards only after user has already ordered a ride.
-  // This simulates the algorithm-driven card population after ride activity.
+  const insightRoutes = useMemo(() => buildRideInsightRoutes(ride), [ride]);
+  const rideInsights = useMemo(() => deriveRideInsights(insightRoutes), [insightRoutes]);
+  const savedLocations = rideInsights.commonPlaces;
+  const dailyCommutes = rideInsights.commutes;
+  const hasRideActivity = insightRoutes.length > 0;
+
+  const upcomingRides = useMemo(
+    () => rideInsights.upcoming.filter((rideItem) => !dismissedUpcomingRideIds.includes(rideItem.id)),
+    [dismissedUpcomingRideIds, rideInsights.upcoming]
+  );
+
   useEffect(() => {
-    const orderedRideFlag = typeof window !== "undefined"
-      ? window.localStorage.getItem("evz_has_ordered_ride") === "true"
-      : false;
-    setHasOrderedRide(orderedRideFlag);
-
-    if (!orderedRideFlag) {
-      setSavedLocations([]);
-      setDailyCommutes([]);
-      setUpcomingRides([]);
-      setLoadingLocations(false);
-      setLoadingCommutes(false);
-      setLoadingUpcomingRides(false);
-      return;
-    }
-
-    const loadRideInsights = async () => {
-      try {
-        setLoadingRideInsights(true);
-        setLoadingLocations(true);
-        setLoadingCommutes(true);
-        setLoadingUpcomingRides(true);
-
-        const [locations, commutes, rides] = await Promise.all([
-          fetchSavedLocations(),
-          fetchDailyCommutes(),
-          fetchUpcomingRides()
-        ]);
-
-        setSavedLocations(locations);
-        setDailyCommutes(commutes);
-        setUpcomingRides(rides);
-      } catch (error) {
-        console.error("Error loading ride insights:", error);
-      } finally {
-        setLoadingLocations(false);
-        setLoadingCommutes(false);
-        setLoadingUpcomingRides(false);
-        setLoadingRideInsights(false);
-      }
-    };
-    loadRideInsights();
-  }, []);
+    setDismissedUpcomingRideIds((previous) =>
+      previous.filter((id) => rideInsights.upcoming.some((rideItem) => rideItem.id === id))
+    );
+  }, [rideInsights.upcoming]);
 
   // Get current GPS location
   useEffect(() => {
@@ -767,9 +930,9 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   };
 
   const handleCancelRide = (ride: UpcomingRide): void => {
-    // In production, this would call API to cancel the ride
-    setUpcomingRides(prev => prev.filter((r: UpcomingRide) => r.id !== ride.id));
-    // Show success message or notification
+    setDismissedUpcomingRideIds((previous) =>
+      previous.includes(ride.id) ? previous : [...previous, ride.id]
+    );
   };
 
   const handleChangeDate = (ride: UpcomingRide): void => {
@@ -1188,53 +1351,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         </Box>
       </InfoCard>
 
-      {!hasOrderedRide && (
-        <Card
-          elevation={0}
-          sx={{
-            borderRadius: uiTokens.radius.xl,
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
-          }}
-        >
-          <CardContent sx={{ py: 3, textAlign: "center" }}>
-            <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
-              Common places, daily commutes and upcoming rides appear after your first ride order.
-            </Typography>
-            <Typography variant="caption" sx={{ color: "text.secondary", opacity: 0.85 }}>
-              We use your ride activity to fill these cards automatically.
-            </Typography>
-          </CardContent>
-        </Card>
-      )}
-
-      {hasOrderedRide && loadingRideInsights && (
-        <Card
-          elevation={0}
-          sx={{
-            borderRadius: uiTokens.radius.xl,
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
-          }}
-        >
-          <CardContent sx={{ py: 3, textAlign: "center" }}>
-            <CircularProgress size={24} />
-            <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mt: 1 }}>
-              Preparing ride insights...
-            </Typography>
-          </CardContent>
-        </Card>
-      )}
-
-      {hasOrderedRide && !loadingRideInsights && (
+      {hasRideActivity && (
         <>
       {/* Tabs */}
       <Tabs
@@ -1271,11 +1388,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       <Box sx={{ mt: 1 }}>
         {tab === "common" && (
           <>
-            {loadingLocations ? (
-              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                <CircularProgress size={24} />
-              </Box>
-            ) : savedLocations.length > 0 ? (
+            {savedLocations.length > 0 ? (
 	              <ActionGrid minWidth={220}>
 	                {savedLocations.map((location) => (
 	                  <Box key={location.id}>
@@ -1342,11 +1455,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               </Typography>
             </Stack>
 
-            {loadingCommutes ? (
-              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                <CircularProgress size={24} />
-              </Box>
-            ) : dailyCommutes.length > 0 ? (
+            {dailyCommutes.length > 0 ? (
               <Box>
                 {dailyCommutes.map((commute) => (
                   <CommuteCard
@@ -1392,11 +1501,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
 
         {tab === "upcoming" && (
           <Box sx={{ mt: 1 }}>
-            {loadingUpcomingRides ? (
-              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                <CircularProgress size={24} />
-              </Box>
-            ) : upcomingRides.length > 0 ? (
+            {upcomingRides.length > 0 ? (
               <Box>
                 {upcomingRides.map((ride) => (
                   <UpcomingRideCard
