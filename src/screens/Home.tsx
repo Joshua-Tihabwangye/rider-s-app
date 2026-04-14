@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -84,21 +84,49 @@ const QUICK_ACTIONS = [
 
 function HomeMultiServiceScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const { reminders } = useAppData();
+  const { reminders, ride } = useAppData();
 
   const [currentReminderIndex, setCurrentReminderIndex] = useState(0);
+  const promotionalReminders = useMemo(
+    () => reminders.filter((reminder) => reminder.category === "promotion"),
+    [reminders]
+  );
 
   useEffect(() => {
-    if (reminders.length > 1) {
+    if (promotionalReminders.length > 1) {
       const interval = setInterval(() => {
-        setCurrentReminderIndex((prev) => (prev + 1) % reminders.length);
+        setCurrentReminderIndex((prev) => (prev + 1) % promotionalReminders.length);
       }, 5000);
       return () => clearInterval(interval);
     }
     return undefined;
-  }, [reminders.length]);
+  }, [promotionalReminders.length]);
 
-  const activeReminder = reminders[currentReminderIndex] ?? reminders[0]!;
+  useEffect(() => {
+    if (currentReminderIndex >= promotionalReminders.length) {
+      setCurrentReminderIndex(0);
+    }
+  }, [currentReminderIndex, promotionalReminders.length]);
+
+  const activeReminder =
+    promotionalReminders[currentReminderIndex] ??
+    promotionalReminders[0] ?? {
+      id: -1,
+      category: "promotion" as const,
+      title: "Latest promotions",
+      description: "Watch this space for new EVzone ride and delivery offers.",
+      actionRoute: "/rides/promotions"
+    };
+  const lastRide = useMemo(() => ride.activeTrip ?? ride.history[0] ?? null, [ride.activeTrip, ride.history]);
+  const lastRideRoute = useMemo(() => {
+    if (!lastRide) return "";
+    const pickup = lastRide.pickup?.label ?? lastRide.pickup?.address ?? "";
+    const dropoff = lastRide.dropoff?.label ?? lastRide.dropoff?.address ?? "";
+    if (pickup && dropoff) {
+      return `${pickup} \u2192 ${dropoff}`;
+    }
+    return lastRide.routeSummary || "Last ride";
+  }, [lastRide]);
 
 
 
@@ -140,34 +168,36 @@ function HomeMultiServiceScreen(): React.JSX.Element {
         </Stack>
       </PrimarySection>
 
-      <AppCard onClick={() => navigate("/rides/enter")}>
-        <SectionHeader
-          eyebrow="Your last ride"
-          title="Home → Office"
-          action={
-            <Button
-              size="small"
-              variant="contained"
-              onClick={() => navigate("/rides/enter", { state: { rebook: true } })}
-              sx={{
-                bgcolor: uiTokens.colors.brand,
-                color: uiTokens.colors.white,
-                px: uiTokens.spacing.mdPlus,
-                py: uiTokens.spacing.xxs,
-                fontSize: 11,
-                textTransform: "none",
-                "&:hover": { bgcolor: uiTokens.colors.brandHover }
-              }}
-            >
-              Rebook
-            </Button>
-          }
-        />
-        <Stack direction="row" spacing={uiTokens.spacing.lg} sx={{ mt: uiTokens.spacing.smPlus }}>
-          <InlineStat label="Travel time" value="12 min" />
-          <InlineStat label="Fare" value="UGX 5,000" />
-        </Stack>
-      </AppCard>
+      {lastRide && (
+        <AppCard onClick={() => navigate("/rides/enter", { state: { rebook: true } })}>
+          <SectionHeader
+            eyebrow="Your last ride"
+            title={lastRideRoute}
+            action={
+              <Button
+                size="small"
+                variant="contained"
+                onClick={() => navigate("/rides/enter", { state: { rebook: true } })}
+                sx={{
+                  bgcolor: uiTokens.colors.brand,
+                  color: uiTokens.colors.white,
+                  px: uiTokens.spacing.mdPlus,
+                  py: uiTokens.spacing.xxs,
+                  fontSize: 11,
+                  textTransform: "none",
+                  "&:hover": { bgcolor: uiTokens.colors.brandHover }
+                }}
+              >
+                Rebook
+              </Button>
+            }
+          />
+          <Stack direction="row" spacing={uiTokens.spacing.lg} sx={{ mt: uiTokens.spacing.smPlus }}>
+            <InlineStat label="Travel time" value={`${Math.max(lastRide.etaMinutes, 1)} min`} />
+            <InlineStat label="Fare" value={lastRide.fareEstimate || "UGX 0"} />
+          </Stack>
+        </AppCard>
+      )}
 
       <Box>
         <SectionHeader

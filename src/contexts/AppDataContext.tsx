@@ -316,7 +316,7 @@ function createDefaultDeliveryDraft(previous?: DeliveryDraft): DeliveryDraft {
       size: "small",
       description: "",
       value: 0,
-      weightKg: 0.5,
+      weightKg: undefined,
       fragile: false,
       notes: ""
     },
@@ -339,7 +339,14 @@ function createDefaultDeliveryDraft(previous?: DeliveryDraft): DeliveryDraft {
     },
     schedule: "now",
     scheduleTime: "",
-    paymentMethodId: previous?.paymentMethodId ?? "pm_wallet",
+    paymentOption: previous?.paymentOption ?? "prepayment",
+    paymentMethodId:
+      previous?.paymentOption === "payment_on_delivery"
+        ? "pm_cash"
+        : previous?.paymentMethodId && previous.paymentMethodId !== "pm_cash"
+          ? previous.paymentMethodId
+          : "pm_wallet",
+    paymentPrepaid: false,
     deliveryFee,
     serviceFee,
     insuranceFee,
@@ -375,12 +382,33 @@ function createDeliveryOrderFromDraft(
   if (!draft.pickup || !draft.dropoff || !draft.recipient || !draft.parcel.description.trim()) {
     return null;
   }
+  if (draft.paymentOption === "prepayment" && !draft.paymentPrepaid) {
+    return null;
+  }
 
   const now = new Date().toISOString();
   const distanceKm = estimateDistanceKm(draft.pickup.address, draft.dropoff.address);
   const etaMinutes = Math.max(12, Math.round(distanceKm * 2.6));
   const total = draft.deliveryFee + draft.serviceFee + draft.insuranceFee;
-  const paymentMethodId = draft.paymentMethodId ?? state.paymentMethods[0]?.id ?? "pm_wallet";
+  const paymentOnDeliveryMethodId =
+    state.paymentMethods.find((method) => method.type === "cash")?.id ?? "pm_cash";
+  const defaultOnlinePaymentMethodId =
+    state.paymentMethods.find((method) => method.type !== "cash" && method.isDefault)?.id ??
+    state.paymentMethods.find((method) => method.type !== "cash")?.id ??
+    getDefaultPaymentMethodId(state.paymentMethods);
+  const selectedMethodType = draft.paymentMethodId
+    ? getPaymentMethodType(state.paymentMethods, draft.paymentMethodId)
+    : undefined;
+  const paymentMethodId =
+    draft.paymentOption === "payment_on_delivery"
+      ? paymentOnDeliveryMethodId
+      : draft.paymentMethodId && selectedMethodType !== "cash"
+        ? draft.paymentMethodId
+        : defaultOnlinePaymentMethodId;
+  const settlementMethodType: PaymentMethodType =
+    draft.paymentOption === "payment_on_delivery"
+      ? "cash"
+      : getPaymentMethodType(state.paymentMethods, paymentMethodId);
   const estimatedDropoffAt =
     draft.schedule === "scheduled" && draft.scheduleTime
       ? draft.scheduleTime
@@ -465,7 +493,7 @@ function createDeliveryOrderFromDraft(
 
   const settlement = initializeDeliverySettlement(
     baseOrder,
-    getPaymentMethodType(state.paymentMethods, paymentMethodId),
+    settlementMethodType,
     now
   );
 

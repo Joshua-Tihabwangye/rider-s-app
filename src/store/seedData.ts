@@ -75,8 +75,8 @@ export const SEED_PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: "pm_cash",
     type: "cash",
-    label: "Cash on delivery",
-    detail: "Recipient pays courier at handoff",
+    label: "Payment on delivery",
+    detail: "Pay at handoff",
     isDefault: false
   }
 ];
@@ -85,20 +85,37 @@ export const SEED_PAYMENT_METHODS: PaymentMethod[] = [
 export const SEED_REMINDERS: Reminder[] = [
   {
     id: 1,
-    title: "Student Bus Fees",
-    description: "John Doe - Expires in 5 days. Grace period: 2 days remaining.",
-    actionRoute: "/school-handoff/fees"
-  },
-  {
-    id: 2,
+    category: "promotion",
     title: "Ride Promotion",
     description: "Get 20% off your next ride. Valid until end of month.",
     actionRoute: "/rides/promotions"
   },
   {
+    id: 2,
+    category: "promotion",
+    title: "Delivery Promo",
+    description: "Free delivery service fee on your next parcel this week.",
+    actionRoute: "/deliveries"
+  },
+  {
     id: 3,
-    title: "Payment Alert",
-    description: "Your wallet balance is low. Add funds to continue booking.",
+    category: "wallet",
+    title: "Wallet balance low",
+    description: "Top up your wallet to avoid payment failures on your next trip.",
+    actionRoute: "/wallet"
+  },
+  {
+    id: 4,
+    category: "wallet",
+    title: "School fees due",
+    description: "Student transport fees are due in 5 days. Avoid late penalties.",
+    actionRoute: "/school-handoff/fees"
+  },
+  {
+    id: 5,
+    category: "wallet",
+    title: "Overdue payment follow-up",
+    description: "One payment is overdue. Review outstanding charges now.",
     actionRoute: "/wallet"
   }
 ];
@@ -286,7 +303,7 @@ const SEED_RIDE_OPTIONS: RideOption[] = [
 
 export const SEED_RIDE_STATE: RideState = {
   request: SEED_RIDE_REQUEST,
-  activeTrip: SEED_ACTIVE_TRIP,
+  activeTrip: null,
   history: [],
   savedPlaces: [
     {
@@ -678,7 +695,7 @@ export const SEED_DELIVERY_STATE: DeliveryState = {
       size: "small",
       description: "",
       value: 0,
-      weightKg: 0.5,
+      weightKg: undefined,
       fragile: false,
       notes: ""
     },
@@ -701,7 +718,9 @@ export const SEED_DELIVERY_STATE: DeliveryState = {
     },
     schedule: "now",
     scheduleTime: "",
+    paymentOption: "prepayment",
     paymentMethodId: "pm_wallet",
+    paymentPrepaid: false,
     deliveryFee: 6500,
     serviceFee: 1200,
     insuranceFee: 900,

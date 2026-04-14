@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -43,6 +43,7 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
@@ -73,7 +74,7 @@ function getTransactionIcon(type: Transaction["type"]): React.ReactElement {
 
 function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
   const navigate = useNavigate();
-  const { walletBalance, walletReserved, transactions } = useAppData();
+  const { walletBalance, walletReserved, transactions, reminders } = useAppData();
   
   const balance = walletBalance;
   const reserved = walletReserved;
@@ -93,6 +94,10 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
   // For demo purposes - can be toggled to show empty states
   const hasTransactions = transactions.length > 0;
   const hasBalance = balance > 0;
+  const walletReminders = useMemo(
+    () => reminders.filter((reminder) => reminder.category === "wallet"),
+    [reminders]
+  );
 
   const handleAddMoney = () => {
     setShowAddMoneyDialog(true);
@@ -445,6 +450,90 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               Withdraw
             </Button>
           </Stack>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card
+        elevation={0}
+        sx={{
+          mb: uiTokens.spacing.lg,
+          borderRadius: uiTokens.radius.sm,
+          bgcolor: (t) =>
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          border: (t) =>
+            t.palette.mode === "light"
+              ? "1px solid rgba(209,213,219,0.9)"
+              : "1px solid rgba(51,65,85,0.9)"
+        }}
+      >
+        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
+          <Stack
+            direction="row"
+            spacing={0.75}
+            alignItems="center"
+            sx={{ mb: uiTokens.spacing.md }}
+          >
+            <NotificationsRoundedIcon
+              sx={{ fontSize: 18, color: (t) => t.palette.text.secondary }}
+            />
+            <Typography
+              variant="caption"
+              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+            >
+              Wallet reminders
+            </Typography>
+          </Stack>
+
+          {walletReminders.length === 0 ? (
+            <Typography
+              variant="body2"
+              sx={{ fontSize: 12, color: (t) => t.palette.text.secondary }}
+            >
+              No payment reminders right now.
+            </Typography>
+          ) : (
+            <Stack spacing={uiTokens.spacing.smPlus}>
+              {walletReminders.map((reminder) => (
+                <Box
+                  key={reminder.id}
+                  sx={{
+                    p: uiTokens.spacing.smPlus,
+                    borderRadius: uiTokens.radius.xl,
+                    border: (t) => `1px dashed ${t.palette.divider}`,
+                    bgcolor: (t) =>
+                      t.palette.mode === "light" ? "#F8FAFC" : "rgba(15,23,42,0.9)"
+                  }}
+                >
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    spacing={uiTokens.spacing.sm}
+                    justifyContent="space-between"
+                    alignItems={{ sm: "center" }}
+                  >
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        {reminder.title}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+                      >
+                        {reminder.description}
+                      </Typography>
+                    </Box>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => navigate(reminder.actionRoute)}
+                      sx={{ textTransform: "none", whiteSpace: "nowrap" }}
+                    >
+                      Review
+                    </Button>
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
           )}
         </CardContent>
       </Card>

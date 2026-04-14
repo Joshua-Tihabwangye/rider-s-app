@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -31,9 +31,28 @@ const HOSPITALS = [
 
 function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const { actions } = useAppData();
-  const [destinationMode, setDestinationMode] = useState("nearest");
-  const [selectedHospital, setSelectedHospital] = useState("Mulago National Referral Hospital");
+  const { ambulance, actions } = useAppData();
+  const existingDestinationLabel = ambulance.request.destination?.label?.trim() ?? "";
+  const [destinationMode, setDestinationMode] = useState(
+    existingDestinationLabel.length > 0 && existingDestinationLabel.toLowerCase() !== "nearest hospital"
+      ? "manual"
+      : "nearest"
+  );
+  const [selectedHospital, setSelectedHospital] = useState(
+    existingDestinationLabel.length > 0 && existingDestinationLabel.toLowerCase() !== "nearest hospital"
+      ? existingDestinationLabel
+      : "Mulago National Referral Hospital"
+  );
+  const [customHospitals, setCustomHospitals] = useState<string[]>([]);
+  const allHospitals = useMemo(() => [...HOSPITALS, ...customHospitals], [customHospitals]);
+  const normalizedSelectedHospital = selectedHospital.trim();
+  const hasSelectedHospitalInList = useMemo(
+    () =>
+      allHospitals.some(
+        (hospital) => hospital.trim().toLowerCase() === normalizedSelectedHospital.toLowerCase()
+      ),
+    [allHospitals, normalizedSelectedHospital]
+  );
 
   const canContinue =
     destinationMode === "nearest" || (destinationMode === "manual" && selectedHospital.trim().length > 0);
@@ -237,6 +256,12 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
             value={selectedHospital}
             onChange={(e) => setSelectedHospital(e.target.value)}
             disabled={destinationMode === "nearest"}
+            placeholder="Type any hospital name"
+            helperText={
+              destinationMode === "manual"
+                ? "You can type a hospital not listed below."
+                : " "
+            }
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -265,8 +290,22 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
             }}
           />
 
+          {destinationMode === "manual" && normalizedSelectedHospital.length > 0 && !hasSelectedHospitalInList && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => {
+                setCustomHospitals((prev) => [...prev, normalizedSelectedHospital]);
+                setSelectedHospital(normalizedSelectedHospital);
+              }}
+              sx={{ mb: 1.5, textTransform: "none", width: "fit-content" }}
+            >
+              Add "{normalizedSelectedHospital}" to quick list
+            </Button>
+          )}
+
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
-            {HOSPITALS.map((h) => (
+            {allHospitals.map((h) => (
               <Chip
                 key={h}
                 label={h}

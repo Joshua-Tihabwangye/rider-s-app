@@ -69,7 +69,7 @@ test.describe("Delivery Sign-off • Device checks", () => {
         "Recipient",
         "Order mode",
         "Timing",
-        "Payment preview",
+        "Payment",
         "Confirm"
       ]) {
         await expect(page.getByText(stepLabel).first()).toBeVisible();
@@ -107,6 +107,8 @@ test.describe("Delivery Sign-off • Functional checks", () => {
     await page.getByRole("button", { name: "Continue" }).click();
 
     await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: /^Pay UGX / }).click();
     await page.getByRole("button", { name: "Continue" }).click();
     await page.getByRole("button", { name: "Confirm delivery" }).click();
 

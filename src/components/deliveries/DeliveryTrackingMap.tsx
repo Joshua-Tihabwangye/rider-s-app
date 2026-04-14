@@ -102,7 +102,15 @@ export default function DeliveryTrackingMap({
         <PlaceRoundedIcon sx={{ fontSize: 30, color: "#0284c7" }} />
       </Box>
 
-      <Box sx={{ position: "absolute", top: 12, left: 12, display: "flex", gap: 1 }}>
+      <Box
+        sx={{
+          position: "absolute",
+          top: { xs: "max(12px, env(safe-area-inset-top))", md: 12 },
+          left: showBackButton ? { xs: 62, md: 64 } : 12,
+          display: "flex",
+          gap: 1
+        }}
+      >
         <Chip
           size="small"
           icon={<AccessTimeRoundedIcon sx={{ fontSize: 14 }} />}
