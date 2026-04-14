@@ -64,6 +64,7 @@ export interface WalletTransaction {
 /** App-wide reminder */
 export interface Reminder {
   id: number;
+  category: "promotion" | "wallet";
   title: string;
   description: string;
   actionRoute: string;
@@ -238,6 +239,7 @@ export type DeliveryParcelType =
   | "other";
 
 export type DeliveryParcelSize = "small" | "medium" | "large" | "x_large";
+export type DeliveryPaymentOption = "prepayment" | "payment_on_delivery";
 
 export type DeliveryTiming = "now" | "scheduled";
 export type DeliveryDropoffMethod = "hand_to_recipient" | "leave_at_door";
@@ -424,7 +426,9 @@ export interface DeliveryDraft {
   orderModeConfig: DeliveryOrderModeConfig;
   schedule: DeliveryTiming;
   scheduleTime?: string;
+  paymentOption: DeliveryPaymentOption;
   paymentMethodId?: string;
+  paymentPrepaid: boolean;
   deliveryFee: number;
   serviceFee: number;
   insuranceFee: number;

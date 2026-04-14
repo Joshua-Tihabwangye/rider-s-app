@@ -43,7 +43,7 @@ const FINALIZED_SETTLEMENT_STATUSES = new Set(["captured", "cash_collected", "re
 function formatPaymentMethodType(value: PaymentMethodType): string {
   if (value === "mobile_money") return "Mobile money";
   if (value === "card") return "Card";
-  if (value === "cash") return "Cash";
+  if (value === "cash") return "Payment on delivery";
   return "Wallet";
 }
 
@@ -223,8 +223,8 @@ export default function DeliverySettlement(): React.JSX.Element {
           <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
             Rules
           </Typography>
-          <Typography variant="body2">Cashless methods (`wallet`, `card`, `mobile_money`) are pre-authorized and captured at completion.</Typography>
-          <Typography variant="body2">`cash` uses cash-on-delivery settlement with cash collection state tracking.</Typography>
+          <Typography variant="body2">Online methods (`wallet`, `card`, `mobile_money`) are pre-authorized and captured at completion.</Typography>
+          <Typography variant="body2">`payment on delivery` is settled at handoff with payment collection state tracking.</Typography>
           <Typography variant="body2">Receipts are generated from captured settlements, not ride payment routing.</Typography>
         </Stack>
       </AppCard>

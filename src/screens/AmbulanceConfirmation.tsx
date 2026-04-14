@@ -27,6 +27,10 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
   const { ambulance, actions } = useAppData();
   const requestId = ambulance.request.id;
   const eta = "8 min";
+  const destinationLabel =
+    ambulance.request.destination?.label?.trim() ||
+    ambulance.request.destination?.address?.trim() ||
+    "Destination hospital pending";
 
   React.useEffect(() => {
     actions.updateAmbulanceRequest({ status: "assigned" });
@@ -221,7 +225,7 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Destination: Nsambya Hospital (can be updated by triage)
+                Destination: {destinationLabel}
               </Typography>
             </Stack>
           </Stack>

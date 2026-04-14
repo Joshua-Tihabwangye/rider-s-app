@@ -45,7 +45,7 @@ const CREATION_STEPS = [
   "Recipient",
   "Order mode",
   "Timing",
-  "Payment preview",
+  "Payment",
   "Confirm"
 ] as const;
 
@@ -125,12 +125,15 @@ function canProceed(step: number, draft: DeliveryDraft): boolean {
     return !Number.isNaN(scheduleDate.getTime()) && scheduleDate.getTime() > Date.now();
   }
   if (step === 5) {
-    return Boolean(draft.paymentMethodId);
+    if (draft.paymentOption === "payment_on_delivery") {
+      return true;
+    }
+    return Boolean(draft.paymentMethodId) && draft.paymentPrepaid;
   }
   return true;
 }
 
-function getStepValidationHint(step: number, draft: DeliveryDraft, paymentMethodCount: number): string {
+function getStepValidationHint(step: number, draft: DeliveryDraft, onlinePaymentMethodCount: number): string {
   if (step === 0) {
     if (!draft.pickup?.address?.trim()) return "Pickup location is required.";
     if (!draft.dropoff?.address?.trim()) return "Dropoff location is required.";
@@ -168,8 +171,12 @@ function getStepValidationHint(step: number, draft: DeliveryDraft, paymentMethod
     }
   }
   if (step === 5) {
-    if (paymentMethodCount === 0) return "Add a payment method in Wallet before continuing.";
+    if (draft.paymentOption === "payment_on_delivery") {
+      return "Payment will be collected at delivery handoff.";
+    }
+    if (onlinePaymentMethodCount === 0) return "Add an online payment method in Wallet before continuing.";
     if (!draft.paymentMethodId) return "Payment method is required.";
+    if (!draft.paymentPrepaid) return "Complete online payment before continuing.";
   }
   return "Complete required fields before continuing.";
 }
@@ -191,10 +198,24 @@ export default function DeliveryNew(): React.JSX.Element {
 
   const draft = delivery.draft;
   const subtotal = draft.deliveryFee + draft.serviceFee + draft.insuranceFee;
+  const paymentOnDeliveryMethod = useMemo(
+    () => paymentMethods.find((method) => method.type === "cash") ?? null,
+    [paymentMethods]
+  );
+  const onlinePaymentMethods = useMemo(
+    () => paymentMethods.filter((method) => method.type !== "cash"),
+    [paymentMethods]
+  );
+  const defaultOnlinePaymentMethod = useMemo(
+    () => onlinePaymentMethods.find((method) => method.isDefault) ?? onlinePaymentMethods[0] ?? null,
+    [onlinePaymentMethods]
+  );
 
   const selectedPaymentMethod = useMemo(
-    () => paymentMethods.find((method) => method.id === draft.paymentMethodId) ?? paymentMethods[0] ?? null,
-    [paymentMethods, draft.paymentMethodId]
+    () =>
+      paymentMethods.find((method) => method.id === draft.paymentMethodId) ??
+      (draft.paymentOption === "payment_on_delivery" ? paymentOnDeliveryMethod : defaultOnlinePaymentMethod),
+    [paymentMethods, draft.paymentMethodId, draft.paymentOption, paymentOnDeliveryMethod, defaultOnlinePaymentMethod]
   );
 
   const pickupMissing = showStepValidation && activeStep === 0 && !draft.pickup?.address?.trim();
@@ -232,7 +253,16 @@ export default function DeliveryNew(): React.JSX.Element {
     draft.schedule === "scheduled" &&
     Boolean(draft.scheduleTime) &&
     new Date(draft.scheduleTime ?? "").getTime() <= Date.now();
-  const paymentMethodMissing = showStepValidation && activeStep === 5 && !draft.paymentMethodId;
+  const paymentMethodMissing =
+    showStepValidation &&
+    activeStep === 5 &&
+    draft.paymentOption === "prepayment" &&
+    !draft.paymentMethodId;
+  const onlinePaymentIncomplete =
+    showStepValidation &&
+    activeStep === 5 &&
+    draft.paymentOption === "prepayment" &&
+    !draft.paymentPrepaid;
 
   const updateDraft = (patch: Partial<DeliveryDraft>): void => {
     actions.updateDeliveryDraft({
@@ -265,10 +295,31 @@ export default function DeliveryNew(): React.JSX.Element {
     updateDraft({ orderMode: value });
   };
 
+  const handlePaymentOptionChange = (option: DeliveryDraft["paymentOption"]): void => {
+    if (option === draft.paymentOption) {
+      return;
+    }
+
+    if (option === "payment_on_delivery") {
+      updateDraft({
+        paymentOption: option,
+        paymentMethodId: paymentOnDeliveryMethod?.id ?? draft.paymentMethodId,
+        paymentPrepaid: false
+      });
+      return;
+    }
+
+    updateDraft({
+      paymentOption: option,
+      paymentMethodId: defaultOnlinePaymentMethod?.id ?? "",
+      paymentPrepaid: false
+    });
+  };
+
   const handleNext = (): void => {
     if (!canProceed(activeStep, draft)) {
       setShowStepValidation(true);
-      setSubmitError(getStepValidationHint(activeStep, draft, paymentMethods.length));
+      setSubmitError(getStepValidationHint(activeStep, draft, onlinePaymentMethods.length));
       return;
     }
     setShowStepValidation(false);
@@ -284,6 +335,12 @@ export default function DeliveryNew(): React.JSX.Element {
 
   const handleConfirm = (): void => {
     setSubmitError("");
+    if (draft.paymentOption === "prepayment" && !draft.paymentPrepaid) {
+      setActiveStep(5);
+      setShowStepValidation(true);
+      setSubmitError("Complete online payment before confirming delivery.");
+      return;
+    }
     const order = actions.createDeliveryOrder();
     if (!order) {
       setSubmitError("Pickup, dropoff, parcel and recipient details are required.");
@@ -445,10 +502,16 @@ export default function DeliveryNew(): React.JSX.Element {
                 <TextField
                   label="Declared value (UGX)"
                   type="number"
-                  value={draft.parcel.value}
+                  value={draft.parcel.value > 0 ? draft.parcel.value : ""}
                   onChange={(event) =>
-                    updateDraft({ parcel: { ...draft.parcel, value: Number(event.target.value) || 0 } })
+                    updateDraft({
+                      parcel: {
+                        ...draft.parcel,
+                        value: event.target.value === "" ? 0 : Number(event.target.value) || 0
+                      }
+                    })
                   }
+                  placeholder="e.g. 120000"
                   size="small"
                   fullWidth
                   required
@@ -458,10 +521,16 @@ export default function DeliveryNew(): React.JSX.Element {
                 <TextField
                   label="Weight (kg)"
                   type="number"
-                  value={draft.parcel.weightKg ?? 0}
+                  value={(draft.parcel.weightKg ?? 0) > 0 ? draft.parcel.weightKg : ""}
                   onChange={(event) =>
-                    updateDraft({ parcel: { ...draft.parcel, weightKg: Number(event.target.value) || 0 } })
+                    updateDraft({
+                      parcel: {
+                        ...draft.parcel,
+                        weightKg: event.target.value === "" ? undefined : Number(event.target.value) || undefined
+                      }
+                    })
                   }
+                  placeholder="e.g. 0.5"
                   size="small"
                   fullWidth
                 />
@@ -759,32 +828,86 @@ export default function DeliveryNew(): React.JSX.Element {
             <>
               <Stack direction="row" spacing={1} alignItems="center">
                 <PaymentsRoundedIcon sx={{ fontSize: 18, color: uiTokens.colors.brand }} />
-                <Typography variant="subtitle2">Payment preview</Typography>
+                <Typography variant="subtitle2">Payment</Typography>
               </Stack>
 
-              <TextField
-                select
-                label="Payment method"
-                size="small"
-                value={draft.paymentMethodId ?? selectedPaymentMethod?.id ?? ""}
-                onChange={(event) => updateDraft({ paymentMethodId: event.target.value })}
+              <ToggleButtonGroup
+                color="primary"
+                exclusive
+                value={draft.paymentOption}
+                onChange={(_event, value: DeliveryDraft["paymentOption"] | null) => {
+                  if (value) {
+                    handlePaymentOptionChange(value);
+                  }
+                }}
                 fullWidth
-                required
-                error={paymentMethodMissing || paymentMethods.length === 0}
-                helperText={
-                  paymentMethods.length === 0
-                    ? "No payment methods found. Add one in Wallet."
-                    : paymentMethodMissing
-                      ? "Payment method is required."
-                      : " "
-                }
+                aria-label="Payment option selector"
               >
-                {paymentMethods.map((method) => (
-                  <MenuItem key={method.id} value={method.id}>
-                    {method.label} • {method.detail}
-                  </MenuItem>
-                ))}
-              </TextField>
+                <ToggleButton value="prepayment" aria-label="Pre-payment">
+                  Pre-payment
+                </ToggleButton>
+                <ToggleButton value="payment_on_delivery" aria-label="Payment on delivery">
+                  Payment on delivery
+                </ToggleButton>
+              </ToggleButtonGroup>
+
+              {draft.paymentOption === "prepayment" ? (
+                <>
+                  <TextField
+                    select
+                    label="Online payment method"
+                    size="small"
+                    value={draft.paymentMethodId ?? defaultOnlinePaymentMethod?.id ?? ""}
+                    onChange={(event) =>
+                      updateDraft({ paymentMethodId: event.target.value, paymentPrepaid: false })
+                    }
+                    fullWidth
+                    required
+                    error={paymentMethodMissing || onlinePaymentMethods.length === 0}
+                    helperText={
+                      onlinePaymentMethods.length === 0
+                        ? "No online payment methods found. Add one in Wallet."
+                        : paymentMethodMissing
+                          ? "Payment method is required."
+                          : " "
+                    }
+                  >
+                    {onlinePaymentMethods.map((method) => (
+                      <MenuItem key={method.id} value={method.id}>
+                        {method.label} • {method.detail}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+
+                  <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1} alignItems={{ sm: "center" }}>
+                    <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                      {draft.paymentPrepaid
+                        ? "Online payment completed. You can confirm delivery."
+                        : "Pay now to continue to confirmation."}
+                    </Typography>
+                    <Button
+                      variant={draft.paymentPrepaid ? "outlined" : "contained"}
+                      onClick={() => {
+                        updateDraft({ paymentPrepaid: true });
+                        setSubmitError("");
+                      }}
+                      disabled={onlinePaymentMethods.length === 0 || !draft.paymentMethodId}
+                      sx={{ textTransform: "none", fontWeight: 700 }}
+                    >
+                      {draft.paymentPrepaid ? "Paid online" : `Pay ${formatCurrency(subtotal)}`}
+                    </Button>
+                  </Stack>
+                  {onlinePaymentIncomplete && (
+                    <Typography variant="caption" sx={{ color: uiTokens.colors.danger }}>
+                      Complete online payment before continuing.
+                    </Typography>
+                  )}
+                </>
+              ) : (
+                <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                  Payment will be collected at handoff. No online payment is required now.
+                </Typography>
+              )}
 
               <Stack spacing={0.8}>
                 <Stack direction="row" justifyContent="space-between">
@@ -851,7 +974,10 @@ export default function DeliveryNew(): React.JSX.Element {
                 })}
               </Typography>
               <Typography variant="body2">
-                <strong>Payment:</strong> {selectedPaymentMethod?.label} • {formatCurrency(subtotal)}
+                <strong>Payment:</strong>{" "}
+                {draft.paymentOption === "payment_on_delivery"
+                  ? `Payment on delivery • ${formatCurrency(subtotal)} due at handoff`
+                  : `${selectedPaymentMethod?.label ?? "Online payment"} • ${formatCurrency(subtotal)} (paid online)`}
               </Typography>
               <Divider />
               <Stack spacing={0.6}>
