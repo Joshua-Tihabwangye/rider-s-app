@@ -68,6 +68,7 @@ export interface Reminder {
   title: string;
   description: string;
   actionRoute: string;
+  ctaLabel?: string;
 }
 
 /** Centralized app data */

@@ -583,7 +583,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 			<Box sx={topMapBleedSx}>
 				<MapShell
 					showControls={false}
-					sx={{ height: { xs: "42dvh", md: "48vh" } }}
+					sx={{ height: { xs: "50dvh", md: "56vh" } }}
 					canvasSx={{
 						background:
 							theme.palette.mode === "light"
@@ -603,13 +603,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 							width: 40,
 							height: 40,
 							borderRadius: "50%",
-							bgcolor: "transparent",
-							color: "rgba(255,255,255,0.92)",
-							border: "1px solid rgba(255,255,255,0.45)",
-							backdropFilter: "blur(7px)",
-							WebkitBackdropFilter: "blur(7px)",
+							bgcolor: "rgba(255,255,255,0.96)",
+							color: "#111827",
+							border: "1px solid rgba(15,23,42,0.15)",
+							boxShadow: "0 4px 10px rgba(15,23,42,0.15)",
 							"&:hover": {
-								bgcolor: "rgba(255,255,255,0.12)",
+								bgcolor: "#FFFFFF",
 							},
 						}}
 					>
