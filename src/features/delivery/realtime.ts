@@ -90,7 +90,7 @@ export function simulateDeliveryPollTick(order: DeliveryOrder): DeliveryOrder {
   const etaDelta = Math.floor(Math.random() * 3) + 1;
   const positionDelta = Number((Math.random() * 0.08 + 0.03).toFixed(3));
 
-  let nextStatus = order.status;
+  let nextStatus: any = order.status;
   let nextTimeline = order.timeline;
   let nextProgress = clamp(
     order.tracking.progress + progressDelta,

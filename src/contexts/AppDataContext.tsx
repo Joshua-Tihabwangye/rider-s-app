@@ -134,6 +134,8 @@ interface AppActions {
   resolveSos: (id: string, note?: string) => void;
   dismissReminder: (id: number) => void;
   dismissReminders: (ids: number[]) => void;
+  respondToTemporaryStopRequest: (decision: "confirm" | "decline") => void;
+  respondToSafetyCheck: (action: "okay" | "sos") => void;
 }
 
 interface AppDataContextValue extends AppState {
@@ -206,8 +208,9 @@ type AppAction =
   | { type: "sos/start"; payload: SosEvent }
   | { type: "sos/status"; payload: { id: string; status: SosStatus; note?: string } }
   | { type: "reminder/dismiss"; payload: number }
-  | { type: "reminder/dismiss-many"; payload: number[] };
-
+  | { type: "reminder/dismiss-many"; payload: number[] }
+  | { type: "ride/set-temporary-stop"; payload: Partial<import("../store/types").ActiveRideTemporaryStopState> }
+  | { type: "ride/set-safety-check"; payload: Partial<import("../store/types").ActiveRideSafetyCheckState> };
 function updateEmergencyContactsDefault(contacts: EmergencyContact[], id: string): EmergencyContact[] {
   return contacts.map((contact) => ({
     ...contact,
@@ -736,7 +739,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
                   status: action.payload.status,
                   timestamp: now,
                   note: action.payload.note ?? `${getDeliveryStatusLabel(action.payload.status)} stage reached`,
-                  source: "system"
+                  source: "system" as const
                 }
               ],
           deliveredAt,
@@ -851,7 +854,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
               status: nextStatus,
               timestamp: now,
               note: `${DELIVERY_EXCEPTION_LABELS[action.payload.type]} reported`,
-              source: "rider"
+              source: "rider" as const
             }
           ]
         };
@@ -1038,7 +1041,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
         return {
           ...order,
-          schedule: "scheduled",
+          schedule: "scheduled" as const,
           scheduleTime: action.payload.scheduleTime,
           estimatedDropoffAt: action.payload.scheduleTime,
           updatedAt: now
@@ -1098,7 +1101,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
         return {
           ...order,
-          status: "cancelled",
+          status: "cancelled" as const,
           updatedAt: now,
           cancelledReason: `${action.payload.reason}. ${formatCurrencyUGX(cancellation.fee)} fee applied.`,
           settlement: nextSettlement,
@@ -1243,14 +1246,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
           currentSettlement.policy === "cash_on_delivery"
             ? {
                 ...currentSettlement,
-                status: "cash_collected",
+                status: "captured" as const,
                 capturedAmount: order.costBreakdown.total,
                 capturedAt: now,
                 note: "Cash collected and settled manually."
               }
             : {
                 ...currentSettlement,
-                status: "captured",
+                status: "captured" as const,
                 capturedAmount: order.costBreakdown.total,
                 capturedAt: now,
                 note: "Captured from delivery settlement console."
@@ -1588,6 +1591,23 @@ function appReducer(state: AppState, action: AppAction): AppState {
         reminders: state.reminders.filter((reminder) => !ids.has(reminder.id))
       };
     }
+
+    case "ride/set-temporary-stop":
+      return {
+        ...state,
+        ride: {
+          ...state.ride,
+          temporaryStop: { ...state.ride.temporaryStop, ...action.payload }
+        }
+      };
+    case "ride/set-safety-check":
+      return {
+        ...state,
+        ride: {
+          ...state.ride,
+          safetyCheck: { ...state.ride.safetyCheck, ...action.payload }
+        }
+      };
     default:
       return state;
   }
@@ -1645,6 +1665,52 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   const resetDeliveryDraft = useCallback(() => {
     dispatch({ type: "delivery/reset-draft" });
   }, []);
+
+
+  const respondToTemporaryStopRequest = useCallback((decision: "confirm" | "decline") => {
+    dispatch({ type: "ride/set-temporary-stop", payload: { status: decision === "confirm" ? "temporarily_stopped" : "idle" } });
+    if (state.ride.activeTrip) {
+        setTimeout(() => {
+            window.localStorage.setItem('evzone_active_ride_stop_response', JSON.stringify({ tripId: state.ride.activeTrip!.id, decision, ts: Date.now() }));
+        }, 50);
+    }
+  }, [state.ride.activeTrip]);
+
+  const respondToSafetyCheck = useCallback((action: "okay" | "sos") => {
+    dispatch({ type: "ride/set-safety-check", payload: { status: action === "sos" ? "sos_triggered" : "resolved" } });
+    if (state.ride.activeTrip) {
+        setTimeout(() => {
+            window.localStorage.setItem('evzone_active_ride_safety_passenger_action', JSON.stringify({ tripId: state.ride.activeTrip!.id, action, ts: Date.now() }));
+        }, 50);
+    }
+  }, [state.ride.activeTrip]);
+
+  useEffect(() => {
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (!e.newValue || !state.ride.activeTrip) return;
+      
+      const key = e.key;
+      // We only handle events we care about
+      if (!key?.startsWith("evzone_active_ride")) return;
+      
+      const parsed = JSON.parse(e.newValue);
+      if (parsed.tripId !== state.ride.activeTrip.id) return;
+      
+      if (key === "evzone_active_ride_stop_request") {
+        dispatch({ type: "ride/set-temporary-stop", payload: { status: "stop_requested", requestNote: "Driver requests a temporary stop" } });
+      } else if (key === "evzone_active_ride_stop_resume") {
+        dispatch({ type: "ride/set-temporary-stop", payload: { status: "idle" } });
+      } else if (key === "evzone_active_ride_safety_check") {
+        dispatch({ type: "ride/set-safety-check", payload: { status: "safety_check_pending" } });
+      } else if (key === "evzone_active_ride_safety_resume") {
+        dispatch({ type: "ride/set-safety-check", payload: { status: "idle" } });
+      } else if (key === "evzone_active_ride_safety_driver_okay") {
+        dispatch({ type: "ride/set-safety-check", payload: { status: "resolved" } });
+      }
+    };
+    window.addEventListener("storage", handleStorageEvent);
+    return () => window.removeEventListener("storage", handleStorageEvent);
+  }, [state.ride.activeTrip]);
 
   const createDeliveryOrder = useCallback(() => {
     const orderId = `DLV-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Date.now()
@@ -1866,7 +1932,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   );
 
   useEffect(() => {
-    const wsUrl = import.meta.env.VITE_DELIVERY_WS_URL as string | undefined;
+    const wsUrl = (import.meta as any).env.VITE_DELIVERY_WS_URL as string | undefined;
     if (!wsUrl) {
       dispatch({ type: "delivery/ws-connected", payload: false });
       return;
@@ -1944,7 +2010,9 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       updateSosStatus,
       resolveSos,
       dismissReminder,
-      dismissReminders
+      dismissReminders,
+      respondToTemporaryStopRequest,
+      respondToSafetyCheck,
     }),
     [
       updateSettings,
@@ -1988,7 +2056,9 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       updateSosStatus,
       resolveSos,
       dismissReminder,
-      dismissReminders
+      dismissReminders,
+      respondToTemporaryStopRequest,
+      respondToSafetyCheck,
     ]
   );
 

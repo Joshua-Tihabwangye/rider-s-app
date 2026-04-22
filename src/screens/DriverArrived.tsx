@@ -36,7 +36,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
     const verificationTimer = window.setTimeout(() => {
       actions.setRideStatus("in_progress");
       navigate("/rides/trip", { replace: true, state: { fromDriverVerification: true } });
-    }, 2200);
+    }, 15000);
 
     return () => window.clearTimeout(verificationTimer);
   }, [actions.setRideStatus, navigate]);
