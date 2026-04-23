@@ -20,7 +20,6 @@ import {
 	Alert,
 } from "@mui/material";
 
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
@@ -591,29 +590,6 @@ function EnterDestinationScreen(): React.JSX.Element {
 								: "linear-gradient(160deg, #1B2D3E 0%, #223A4F 25%, #1A2533 25%, #1A2533 100%)",
 					}}
 				>
-					<IconButton
-						size="small"
-						aria-label="Back"
-						onClick={() => navigate(-1)}
-						sx={{
-							position: "absolute",
-							top: 14,
-							left: 14,
-							zIndex: 12,
-							width: 40,
-							height: 40,
-							borderRadius: "50%",
-							bgcolor: "rgba(255,255,255,0.96)",
-							color: "#111827",
-							border: "1px solid rgba(15,23,42,0.15)",
-							boxShadow: "0 4px 10px rgba(15,23,42,0.15)",
-							"&:hover": {
-								bgcolor: "#FFFFFF",
-							},
-						}}
-					>
-						<ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-					</IconButton>
 					<Box
 						sx={{
 							position: "absolute",

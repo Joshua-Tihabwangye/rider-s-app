@@ -11,8 +11,6 @@ import {
   Stack,
   Typography
 } from "@mui/material";
-
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
@@ -141,31 +139,6 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
               "linear-gradient(160deg, #D6E9FF 0%, #E5F3FF 22%, #F5EED9 22%, #F5EED9 100%)"
           }}
         >
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
-            sx={{
-              position: "absolute",
-              top: 14,
-              left: 14,
-              zIndex: 12,
-              width: 40,
-              height: 40,
-              borderRadius: "50%",
-              bgcolor: "transparent",
-              color: "rgba(255,255,255,0.95)",
-              border: "1px solid rgba(255,255,255,0.55)",
-              backdropFilter: "blur(7px)",
-              WebkitBackdropFilter: "blur(7px)",
-              "&:hover": {
-                bgcolor: "rgba(255,255,255,0.14)"
-              }
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-
           <Box
             sx={{
               position: "absolute",

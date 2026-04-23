@@ -503,7 +503,6 @@ function PickDestinationMapScreen(): React.JSX.Element {
 			<MapShell
 				height="100%"
 				childrenLayer="canvas"
-				showBackButton={false}
 				showControls={false}
 				onRecenter={() => setMapOffset({ x: 0, y: 0 })}
 				canvasRef={mapRef}
@@ -517,53 +516,6 @@ function PickDestinationMapScreen(): React.JSX.Element {
 					},
 				}}
 			>
-				{/* Floating Back Button over Map */}
-				<IconButton
-					size="small"
-					onClick={() => navigate(-1)}
-					sx={{
-						position: "absolute",
-						top: 14,
-						left: 14,
-						zIndex: 10,
-						bgcolor: "rgba(255,255,255,0.92)",
-						color: "#0f172a",
-						"&:hover": { bgcolor: "#fff" },
-						borderRadius: "12px",
-						boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
-						width: 40,
-						height: 40,
-						border: "1px solid rgba(255,255,255,0.2)"
-					}}
-				>
-					<ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-				</IconButton>
-
-				{/* Floating SOS Button over Map */}
-				<Button
-					size="small"
-					variant="contained"
-					onClick={() => navigate("/rides/sos")}
-					sx={{
-						position: "absolute",
-						top: 14,
-						right: 14,
-						zIndex: 10,
-						minWidth: "auto",
-						px: 2,
-						py: 0.6,
-						borderRadius: 5,
-						bgcolor: "var(--evz-danger)",
-						color: "#fff",
-						textTransform: "none",
-						fontSize: 12,
-						fontWeight: 800,
-						boxShadow: "0 4px 12px rgba(239, 68, 68, 0.3)",
-						"&:hover": { bgcolor: "var(--evz-danger-hover)" }
-					}}
-				>
-					SOS
-				</Button>
 				{/* Movable map background - City map style */}
 				<Box
 					sx={{

@@ -3,23 +3,15 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
   Box,
-  IconButton,
   Typography,
   Card,
   CardContent,
   Button,
-  ToggleButton,
-  ToggleButtonGroup
+  ToggleButton
 } from "@mui/material";
 
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import TwoWheelerRoundedIcon from "@mui/icons-material/TwoWheelerRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
-import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
-import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
-import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
-import SmartphoneRoundedIcon from "@mui/icons-material/SmartphoneRounded";
-import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import MapShell from "../components/maps/MapShell";
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
@@ -158,16 +150,6 @@ function SelectYourRideScreen(): React.JSX.Element {
   const { ride, actions } = useAppData();
   const [selectedRide, setSelectedRide] = useState(ride.request.serviceLevel ?? ride.options[0]?.id ?? "");
   const [rideType, setRideType] = useState(ride.request.serviceClass ?? "standard");
-  const [paymentMethod, setPaymentMethod] = useState("cash");
-  const [paymentMethodName, setPaymentMethodName] = useState("Cash payment");
-  
-  // Get payment method from location state (when returning from RA21)
-  useEffect(() => {
-    if (location.state?.paymentMethod) {
-      setPaymentMethod(location.state.paymentMethod);
-      setPaymentMethodName(location.state.paymentMethodName || "Cash payment");
-    }
-  }, [location.state]);
 
   useEffect(() => {
     if (ride.request.serviceLevel && ride.request.serviceLevel !== selectedRide) {
@@ -175,11 +157,9 @@ function SelectYourRideScreen(): React.JSX.Element {
     }
   }, [ride.request.serviceLevel, selectedRide]);
   
-  const handleRideTypeChange = (_event: React.SyntheticEvent, newType: string | null): void => {
-    if (newType !== null) {
-      setRideType(newType);
-      actions.updateRideRequest({ serviceClass: newType });
-    }
+  const handleRideTypeSelect = (newType: string): void => {
+    setRideType(newType);
+    actions.updateRideRequest({ serviceClass: newType });
   };
 
   const handleSelectRide = (id: string): void => {
@@ -257,28 +237,6 @@ function SelectYourRideScreen(): React.JSX.Element {
               : "linear-gradient(135deg, #0f1e2e 0%, #1a2d3e 50%, #0f1e2e 100%)"
           }}
         >
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
-            sx={{
-              position: "absolute",
-              top: 14,
-              left: 14,
-              zIndex: 12,
-              width: 42,
-              height: 42,
-              borderRadius: "50%",
-              bgcolor: "rgba(255,255,255,0.95)",
-              color: "#111827",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.18)",
-              "&:hover": {
-                bgcolor: "#FFFFFF"
-              }
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 19 }} />
-          </IconButton>
           <Box
             sx={{
               position: "absolute",
@@ -357,13 +315,14 @@ function SelectYourRideScreen(): React.JSX.Element {
               Choose the type of ride service that fits your needs:
             </Typography>
             
-            <ToggleButtonGroup
-              value={rideType}
-              exclusive
-              onChange={handleRideTypeChange}
-              fullWidth
-              sx={{
-                "& .MuiToggleButton-root": {
+            <Box sx={{ display: "flex", gap: 1.25 }}>
+              <ToggleButton
+                value="standard"
+                selected={rideType === "standard"}
+                onClick={() => handleRideTypeSelect("standard")}
+                aria-label="Standard Ride"
+                sx={{
+                  flex: 1,
                   py: 1.2,
                   px: 2,
                   border: theme.palette.mode === "light"
@@ -373,30 +332,49 @@ function SelectYourRideScreen(): React.JSX.Element {
                   textTransform: "none",
                   fontSize: 14,
                   fontWeight: 500,
-                  color: theme.palette.text.secondary,
-                  "&.Mui-selected": {
-                    bgcolor: "#F77F00",
-                    color: "#FFFFFF",
-                    "&:hover": {
-                      bgcolor: "#1976D2"
-                    }
-                  },
-                  "&:not(.Mui-selected)": {
-                    bgcolor: theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.5)",
-                    "&:hover": {
-                      bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.7)"
-                    }
+                  color: rideType === "standard" ? "#FFFFFF" : theme.palette.text.secondary,
+                  bgcolor: rideType === "standard"
+                    ? "#FFD8A8"
+                    : "#DFF7E2",
+                  "&:hover": {
+                    bgcolor: rideType === "standard"
+                      ? "#FFC98F"
+                      : "#CDEFD2"
                   }
-                }
-              }}
-            >
-              <ToggleButton value="standard" aria-label="Standard Ride">
+                }}
+              >
                 Standard Ride
               </ToggleButton>
-              <ToggleButton value="premium" aria-label="Premium Ride">
+              <ToggleButton
+                value="premium"
+                selected={rideType === "premium"}
+                onClick={() => handleRideTypeSelect("premium")}
+                aria-label="Premium Ride"
+                sx={{
+                  flex: 1,
+                  py: 1.2,
+                  px: 2,
+                  border: theme.palette.mode === "light"
+                    ? "1px solid rgba(209,213,219,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)",
+                  borderRadius: 2,
+                  textTransform: "none",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: rideType === "premium" ? "#FFFFFF" : theme.palette.text.secondary,
+                  bgcolor: rideType === "premium"
+                    ? "#FFD8A8"
+                    : "#DFF7E2",
+                  "&:hover": {
+                    bgcolor: rideType === "premium"
+                      ? "#FFC98F"
+                      : "#CDEFD2"
+                  }
+                }}
+              >
                 Premium Ride
               </ToggleButton>
-            </ToggleButtonGroup>
+            </Box>
           </Box>
         </CardContent>
       </Card>
@@ -412,88 +390,6 @@ function SelectYourRideScreen(): React.JSX.Element {
         ))}
       </Box>
 
-      <Card
-        elevation={0}
-        onClick={() => {
-          const selectedRideOption = ride.options.find((opt) => opt.id === selectedRide);
-          const fare = selectedRideOption?.fare || ride.activeTrip?.fareEstimate || "UGX 40,365";
-
-          navigate("/rides/payment", {
-            state: {
-              fromSelectRide: true,
-              selectedRide,
-              rideType,
-              distance: ride.activeTrip?.distance || "—",
-              estimatedTime: `${ride.activeTrip?.etaMinutes ?? 0} mins`,
-              fare: fare
-            }
-          });
-        }}
-        sx={{
-          borderRadius: uiTokens.radius.xl,
-          cursor: "pointer",
-          bgcolor: theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.5)",
-          border: theme.palette.mode === "light"
-            ? "1px solid rgba(209,213,219,0.9)"
-            : "1px solid rgba(51,65,85,0.9)",
-          transition: "all 0.15s ease",
-          "&:hover": {
-            bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.7)"
-          }
-        }}
-      >
-        <CardContent sx={{ px: 2, py: 1.5 }}>
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              {paymentMethod === "cash" && (
-                <PaymentsRoundedIcon
-                  sx={{
-                    fontSize: 24,
-                    color: "#4CAF50"
-                  }}
-                />
-              )}
-              {paymentMethod === "wallet" && (
-                <AccountBalanceWalletRoundedIcon
-                  sx={{
-                    fontSize: 24,
-                    color: "#4CAF50"
-                  }}
-                />
-              )}
-              {paymentMethod === "card" && (
-                <CreditCardRoundedIcon
-                  sx={{
-                    fontSize: 24,
-                    color: "#4CAF50"
-                  }}
-                />
-              )}
-              {paymentMethod === "mobile" && (
-                <SmartphoneRoundedIcon
-                  sx={{
-                    fontSize: 24,
-                    color: "#4CAF50"
-                  }}
-                />
-              )}
-              <Typography
-                variant="body2"
-                sx={{ fontWeight: 500, fontSize: 14, textTransform: paymentMethod === "cash" ? "lowercase" : "none" }}
-              >
-                {paymentMethodName}
-              </Typography>
-            </Box>
-            <ChevronRightRoundedIcon
-              sx={{
-                fontSize: 20,
-                color: theme.palette.text.secondary
-              }}
-            />
-          </Box>
-        </CardContent>
-      </Card>
-
       <Button
         fullWidth
         variant="contained"
@@ -505,14 +401,15 @@ function SelectYourRideScreen(): React.JSX.Element {
           fontSize: 15,
           fontWeight: 600,
           textTransform: "none",
-          bgcolor: selectedRide ? "#424242" : "rgba(66,66,66,0.3)",
+          bgcolor: "#000000",
           color: "#FFFFFF",
           "&:hover": {
-            bgcolor: selectedRide ? "#525252" : "rgba(66,66,66,0.3)"
+            bgcolor: "#000000"
           },
           "&.Mui-disabled": {
-            bgcolor: "rgba(66,66,66,0.3)",
-            color: "rgba(255,255,255,0.5)"
+            bgcolor: "#000000",
+            color: "#FFFFFF",
+            opacity: 1
           }
         }}
       >

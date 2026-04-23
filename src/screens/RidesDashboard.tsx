@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
-  IconButton,
   TextField,
   InputAdornment,
   Typography,
@@ -19,13 +18,11 @@ import {
 } from "@mui/material";
 
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
-import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
@@ -955,8 +952,6 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       navigate("/rides/history/past");
     } else if (type === "schedule") {
       navigate("/rides/schedule");
-    } else if (type === "multi-stop") {
-      navigate("/rides/enter/multi-stops");
     } else if (type === "book-someone") {
       navigate("/rides/enter/details", {
         state: {
@@ -973,8 +968,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   };
 
   const quickActions = [
-    { key: "book-someone", label: "Book for someone" },
-    { key: "multi-stop", label: "Multi-stop trip", icon: <ArrowForwardIosRoundedIcon sx={{ fontSize: 14 }} /> }
+    { key: "book-someone", label: "Book for someone" }
   ];
 
   const topMapBleedSx = {
@@ -1074,29 +1068,6 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           showControls
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
         >
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
-            sx={{
-              position: "absolute",
-              top: 14,
-              left: 14,
-              zIndex: 12,
-              width: 42,
-              height: 42,
-              borderRadius: "50%",
-              bgcolor: "rgba(255,255,255,0.95)",
-              color: "#111827",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.18)",
-              "&:hover": {
-                bgcolor: "#FFFFFF"
-              }
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 19 }} />
-          </IconButton>
-        
           {/* Route preview line */}
           {routeData && routeData.polyline && (
             <svg
