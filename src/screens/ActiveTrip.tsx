@@ -119,13 +119,13 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     <ScreenScaffold disableTopPadding>
       <Box sx={topMapBleedSx}>
         <MapShell
-          onBack={() => navigate(-1)}
-          showBackButton
           preset="full"
           sx={{ height: { xs: "56dvh", md: "60vh" } }}
+          showControls={false}
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
           onRecenter={handleMapRecenter}
         >
+          {/* Floating Back Button */}
           <IconButton
             size="small"
             onClick={() => navigate(-1)}
@@ -134,19 +134,20 @@ function TripInProgressBasicScreen(): React.JSX.Element {
               top: 14,
               left: 14,
               zIndex: 10,
-              bgcolor: "rgba(255,255,255,0.9)",
+              bgcolor: "rgba(255,255,255,0.92)",
               color: "#0f172a",
               "&:hover": { bgcolor: "#fff" },
               borderRadius: "12px",
               boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
               width: 40,
-              height: 40
+              height: 40,
+              border: "1px solid rgba(255,255,255,0.2)"
             }}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
 
-          {/* SOS Button over Map */}
+          {/* Floating SOS Button over Map */}
           <Button
             size="small"
             variant="contained"
@@ -157,14 +158,15 @@ function TripInProgressBasicScreen(): React.JSX.Element {
               right: 14,
               zIndex: 10,
               minWidth: "auto",
-              px: 1.4,
-              py: 0.4,
+              px: 2,
+              py: 0.6,
               borderRadius: 5,
               bgcolor: "var(--evz-danger)",
               color: "#fff",
               textTransform: "none",
-              fontSize: 11,
-              fontWeight: 700,
+              fontSize: 12,
+              fontWeight: 800,
+              boxShadow: "0 4px 12px rgba(239, 68, 68, 0.3)",
               "&:hover": { bgcolor: "var(--evz-danger-hover)" }
             }}
           >
