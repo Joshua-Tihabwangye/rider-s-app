@@ -8,8 +8,15 @@ import {
   CardContent,
   Button,
   Stack,
-  LinearProgress
+  LinearProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from "@mui/material";
+import AlertTriangleIcon from "@mui/icons-material/WarningRounded";
+import PauseCircleIcon from "@mui/icons-material/PauseCircleRounded";
+
 
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
@@ -20,7 +27,6 @@ import BeachAccessRoundedIcon from "@mui/icons-material/BeachAccessRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import MapShell from "../components/maps/MapShell";
 import ScreenScaffold from "../components/ScreenScaffold";
-import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 
@@ -28,6 +34,8 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { ride, actions } = useAppData();
   const activeTrip = ride.activeTrip;
+  const temporaryStop = ride.temporaryStop;
+  const safetyCheck = ride.safetyCheck;
   const [progress, setProgress] = useState(40); // 40% of trip completed
   const [eta, setEta] = useState({ hours: 1, minutes: 20 });
   const [distanceCovered, setDistanceCovered] = useState(22);
@@ -39,6 +47,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   useEffect(() => {
     actions.setRideStatus("in_progress");
     const interval = setInterval(() => {
+      if (temporaryStop?.status === "temporarily_stopped") return;
       setProgress((prev) => {
         if (prev < 95) {
           return prev + 0.5;
@@ -107,67 +116,77 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   } as const;
 
   return (
-    <ScreenScaffold>
-      <SectionHeader
-        title="Active Trip"
-        subtitle={activeTrip?.routeSummary ?? "Trip in progress"}
-        leadingAction={
+    <ScreenScaffold disableTopPadding>
+      <Box sx={topMapBleedSx}>
+        <MapShell
+          preset="full"
+          sx={{ height: { xs: "56dvh", md: "60vh" } }}
+          showControls={false}
+          canvasSx={{ background: uiTokens.map.canvasEmphasis }}
+          onRecenter={handleMapRecenter}
+        >
+          {/* Floating Back Button */}
           <IconButton
             size="small"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: uiTokens.radius.xl,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
+              position: "absolute",
+              top: 14,
+              left: 14,
+              zIndex: 10,
+              bgcolor: "rgba(255,255,255,0.92)",
+              color: "#0f172a",
+              "&:hover": { bgcolor: "#fff" },
+              borderRadius: "12px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+              width: 40,
+              height: 40,
+              border: "1px solid rgba(255,255,255,0.2)"
             }}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-        }
-        action={
+
+          {/* Floating SOS Button over Map */}
           <Button
             size="small"
             variant="contained"
             onClick={() => navigate("/rides/sos")}
             sx={{
+              position: "absolute",
+              top: 14,
+              right: 14,
+              zIndex: 10,
+              minWidth: "auto",
+              px: 2,
+              py: 0.6,
+              borderRadius: 5,
               bgcolor: "var(--evz-danger)",
               color: "#fff",
               textTransform: "none",
-              px: 2,
+              fontSize: 12,
+              fontWeight: 800,
+              boxShadow: "0 4px 12px rgba(239, 68, 68, 0.3)",
               "&:hover": { bgcolor: "var(--evz-danger-hover)" }
             }}
           >
             SOS
           </Button>
-        }
-      />
 
-      <Box sx={topMapBleedSx}>
-        <MapShell
-          preset="full"
-          sx={{ height: { xs: "56dvh", md: "60vh" } }}
-          canvasSx={{ background: uiTokens.map.canvasEmphasis }}
-          onRecenter={handleMapRecenter}
-        >
-
-        {/* Map Labels - Landmarks */}
-        <Typography
-          sx={{
-            position: "absolute",
-            top: "12%",
-            left: "50%",
-            transform: "translateX(-50%)",
-            fontSize: 11,
-            fontWeight: 600,
-            color: "#03CD8C"
-          }}
-        >
-          Lake Victoria Hotel
-        </Typography>
+          {/* Map Labels - Landmarks */}
+          <Typography
+            sx={{
+              position: "absolute",
+              top: "12%",
+              left: "50%",
+              transform: "translateX(-50%)",
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#03CD8C"
+            }}
+          >
+            Lake Victoria Hotel
+          </Typography>
 
         <Typography
           sx={{
@@ -338,6 +357,25 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
         </MapShell>
       </Box>
+      <Box sx={{ pt: 2, pb: 1, px: 2 }}>
+        <Typography variant="h5" sx={{ fontWeight: 800, color: 'var(--evz-text-main, #0f172a)' }}>
+          Active Trip
+        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            {activeTrip?.routeSummary ?? "Trip in progress"}
+          </Typography>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => navigate("/rides/sos")}
+            sx={{ bgcolor: 'var(--evz-danger)', color: '#fff', px: 2, borderRadius: 2 }}
+          >
+            SOS
+          </Button>
+        </Box>
+      </Box>
+
 
       {/* Trip Info Section (Bottom Card) */}
       <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.lg, pb: uiTokens.spacing.lg }}>
@@ -548,6 +586,46 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           </CardContent>
         </Card>
       </Box>
+
+      {/* Temporary Stop Confirmation Dialog */}
+      <Dialog open={temporaryStop?.status === "stop_requested"} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#F00' }}>
+          <PauseCircleIcon sx={{ color: '#F59E0B' }}/>
+          <Typography variant="h6" fontWeight="bold">Temporary Stop Requested</Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Typography>{temporaryStop?.requestNote || "Your driver has requested a brief stop."}</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+             Trip timer will be paused automatically if you accept.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => actions.respondToTemporaryStopRequest('decline')} color="inherit">Decline</Button>
+          <Button onClick={() => actions.respondToTemporaryStopRequest('confirm')} variant="contained" color="warning" sx={{ borderRadius: uiTokens.radius.xl }}>Confirm Stop</Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Safety Check Dialog */}
+      <Dialog open={safetyCheck?.status === "safety_check_pending"} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <AlertTriangleIcon sx={{ color: 'var(--evz-danger)' }}/>
+          <Typography variant="h6" fontWeight="bold">Are you okay?</Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Typography>The vehicle has been stationary for over 20 minutes.</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            Please confirm your safety. Do you need emergency assistance?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+              actions.respondToSafetyCheck('sos');
+              navigate('/rides/sos');
+          }} variant="outlined" color="error" sx={{ color: 'var(--evz-danger)', borderColor: 'var(--evz-danger)', borderRadius: uiTokens.radius.xl }}>Help / SOS</Button>
+          <Button onClick={() => actions.respondToSafetyCheck('okay')} variant="contained" sx={{ bgcolor: '#22c55e', '&:hover': { bgcolor: '#16A34A' }, borderRadius: uiTokens.radius.xl }}>I'm Okay</Button>
+        </DialogActions>
+      </Dialog>
+
     </ScreenScaffold>
   );
 }

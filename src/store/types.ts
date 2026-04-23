@@ -211,7 +211,22 @@ export interface RideOption {
   capacity?: number;
 }
 
+
+export type ActiveRideStopStatus = "idle" | "stop_requested" | "temporarily_stopped";
+export type ActiveRideSafetyStatus = "idle" | "safety_check_pending" | "resolved" | "sos_triggered";
+
+export interface ActiveRideTemporaryStopState {
+  status: ActiveRideStopStatus;
+  requestNote: string;
+}
+
+export interface ActiveRideSafetyCheckState {
+  status: ActiveRideSafetyStatus;
+}
+
 export interface RideState {
+  temporaryStop: ActiveRideTemporaryStopState;
+  safetyCheck: ActiveRideSafetyCheckState;
   request: RideRequest;
   activeTrip: RideTrip | null;
   history: RideTrip[];
