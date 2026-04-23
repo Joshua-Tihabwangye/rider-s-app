@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
   Box,
+  Button,
   IconButton,
   Typography,
   Card,
@@ -11,51 +12,17 @@ import {
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
-import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
-import SmartphoneRoundedIcon from "@mui/icons-material/SmartphoneRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
-
-interface PaymentMethod {
-  id: string;
-  name: string;
-  detail: string;
-  accent: string;
-  icon: React.ReactElement;
-}
-
-const PAYMENT_METHODS: PaymentMethod[] = [
-  {
-    id: "wallet",
-    name: "EV wallet",
-    detail: "Instant debit from wallet balance",
-    accent: "#10B981",
-    icon: <AccountBalanceWalletRoundedIcon sx={{ fontSize: 22 }} />
-  },
-  {
-    id: "card",
-    name: "Bank card",
-    detail: "Visa, Mastercard, and virtual cards",
-    accent: "#2563EB",
-    icon: <CreditCardRoundedIcon sx={{ fontSize: 22 }} />
-  },
-  {
-    id: "mobile",
-    name: "Mobile money",
-    detail: "MTN and Airtel secure checkout",
-    accent: "#F59E0B",
-    icon: <SmartphoneRoundedIcon sx={{ fontSize: 22 }} />
-  }
-];
+import { PAYMENT_METHODS, PaymentMethodId, resolveRideFare } from "./paymentGatewayData";
 
 interface PaymentMethodCardProps {
-  method: PaymentMethod;
-  selected: string | null;
-  onSelect: (id: string) => void;
+  method: (typeof PAYMENT_METHODS)[number];
+  selected: PaymentMethodId | null;
+  onSelect: (id: PaymentMethodId) => void;
 }
 
 function PaymentMethodCard({ method, selected, onSelect }: PaymentMethodCardProps): React.JSX.Element {
@@ -133,29 +100,21 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const rideData = location.state || {};
+  const rideData = ((location.state as Record<string, unknown> | null) ?? {});
 
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<PaymentMethodId | null>(PAYMENT_METHODS[0].id);
+  const fare = resolveRideFare(rideData);
 
-  const fare =
-    rideData.fare ||
-    rideData.totalFare ||
-    rideData.fareEstimate ||
-    "UGX 40,365";
-
-  const handleGatewaySelect = (gatewayId: string): void => {
+  const handleGatewaySelect = (gatewayId: PaymentMethodId): void => {
     setSelected(gatewayId);
+  };
 
-    const selectedPaymentName =
-      PAYMENT_METHODS.find((pm) => pm.id === gatewayId)?.name || "EV wallet";
+  const handleContinue = (): void => {
+    if (!selected) return;
 
-    navigate("/rides/trip/completed", {
+    navigate(`/rides/payment/gateway/${selected}`, {
       state: {
         ...rideData,
-        paymentMethod: gatewayId,
-        paymentMethodName: selectedPaymentName,
-        paymentSimulated: true,
-        tripCompleted: true,
         totalFare: fare
       }
     });
@@ -231,7 +190,7 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
           <Box sx={{ mb: 1.5, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <Chip label="Encrypted" size="small" sx={{ height: 24, borderRadius: 1.5 }} />
             <Typography variant="caption" sx={{ fontSize: 11.5, color: theme.palette.text.secondary }}>
-              {selected ? "Redirecting..." : "No extra confirmation step"}
+              Gateway opens on the next step
             </Typography>
           </Box>
 
@@ -243,6 +202,28 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
               onSelect={handleGatewaySelect}
             />
           ))}
+
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleContinue}
+            disabled={!selected}
+            sx={{
+              mt: 1,
+              minHeight: 46,
+              borderRadius: 2.25,
+              textTransform: "none",
+              fontWeight: 700,
+              bgcolor: "#03CD8C",
+              boxShadow: "none",
+              "&:hover": {
+                bgcolor: "#02b377",
+                boxShadow: "none"
+              }
+            }}
+          >
+            Continue to secure payment
+          </Button>
         </CardContent>
       </Card>
     </ScreenScaffold>

@@ -3,15 +3,16 @@ import { useNavigate } from "react-router-dom";
 import {
   Avatar,
   Box,
+  Chip,
   Button,
   Card,
   CardContent,
+  Divider,
   IconButton,
   Stack,
   Typography
 } from "@mui/material";
 
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
 import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
@@ -29,7 +30,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
   const activeTrip = ride.activeTrip;
   const driver = activeTrip?.driver;
   const vehicle = activeTrip?.vehicle;
-  const otp = activeTrip?.otp ?? "256836";
+  const otp = (activeTrip?.otp?.trim() || "256836").replace(/\s+/g, "").slice(0, 6);
   const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
@@ -74,54 +75,6 @@ function DriverHasArrivedScreen(): React.JSX.Element {
           showControls={false}
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
         >
-          {/* Floating Back Button */}
-          <IconButton
-            size="small"
-            onClick={() => navigate(-1)}
-            sx={{
-              position: "absolute",
-              top: 14,
-              left: 14,
-              zIndex: 10,
-              bgcolor: "rgba(255,255,255,0.92)",
-              color: "#0f172a",
-              "&:hover": { bgcolor: "#fff" },
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
-              width: 40,
-              height: 40,
-              border: "1px solid rgba(255,255,255,0.2)"
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-
-          {/* Floating SOS Button */}
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => navigate("/rides/sos")}
-            sx={{
-              position: "absolute",
-              top: 14,
-              right: 14,
-              zIndex: 10,
-              minWidth: "auto",
-              px: 2,
-              py: 0.6,
-              borderRadius: 5,
-              bgcolor: "var(--evz-danger)",
-              color: "#fff",
-              textTransform: "none",
-              fontSize: 12,
-              fontWeight: 800,
-              boxShadow: "0 4px 12px rgba(239, 68, 68, 0.3)",
-              "&:hover": { bgcolor: "var(--evz-danger-hover)" }
-            }}
-          >
-            SOS
-          </Button>
-
           <Box
             sx={{
               position: "absolute",
@@ -233,50 +186,125 @@ function DriverHasArrivedScreen(): React.JSX.Element {
         }}
       >
         <CardContent sx={{ px: 1.75, py: 1.5 }}>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems="center">
+          <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} alignItems="stretch">
             <Box sx={{ flex: 1, width: "100%" }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                <Box>
+                  <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                    Rider OTP
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    Driver can enter this code instead of scanning the QR.
+                  </Typography>
+                </Box>
+                <Chip
+                  size="small"
+                  label="Use OTP"
+                  sx={{
+                    height: 24,
+                    borderRadius: 1.5,
+                    bgcolor: "rgba(3,205,140,0.14)",
+                    color: "#047857",
+                    fontWeight: 700
+                  }}
+                />
+              </Stack>
+
+              <Stack direction="row" spacing={1} sx={{ mb: 1.25, flexWrap: "wrap" }} useFlexGap>
+                {otp.split("").map((digit, index) => (
+                  <Box
+                    key={`${digit}-${index}`}
+                    sx={{
+                      minWidth: 44,
+                      height: 52,
+                      px: 1.1,
+                      borderRadius: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      bgcolor: (t) => (t.palette.mode === "light" ? "#F8FAFC" : "rgba(15,23,42,0.96)"),
+                      border: "1px solid rgba(3,205,140,0.28)"
+                    }}
+                  >
+                    <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: "0.02em", lineHeight: 1 }}>
+                      {digit}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+
               <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                Rider OTP
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: "0.08em", lineHeight: 1.1 }}>
-                {otp}
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                Share this with the driver before trip start.
+                Share this OTP with the driver before trip start.
               </Typography>
             </Box>
+
+            <Divider
+              flexItem
+              orientation="vertical"
+              sx={{ display: { xs: "none", md: "block" }, borderColor: "rgba(148,163,184,0.3)" }}
+            />
+            <Divider sx={{ display: { xs: "block", md: "none" }, borderColor: "rgba(148,163,184,0.3)" }}>
+              <Typography variant="caption" sx={{ px: 0.75, color: "text.secondary", fontWeight: 700 }}>
+                OR
+              </Typography>
+            </Divider>
+
             <Box
               sx={{
-                width: 132,
-                height: 132,
-                p: 1.25,
-                borderRadius: 2,
-                border: "1px solid rgba(148,163,184,0.45)",
-                bgcolor: "#FFFFFF",
-                position: "relative"
+                width: { xs: "100%", md: 156 },
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center"
               }}
             >
-              <Box
-                sx={{
-                  position: "absolute",
-                  inset: 10,
-                  backgroundImage:
-                    "repeating-linear-gradient(0deg, #111827 0 5px, transparent 5px 10px), repeating-linear-gradient(90deg, #111827 0 5px, transparent 5px 10px)",
-                  opacity: 0.24
-                }}
-              />
-              <Box sx={qrCornerSx(14, 14)} />
-              <Box sx={qrCornerSx(undefined, 14, 14)} />
-              <Box sx={qrCornerSx(14, undefined, undefined, 14)} />
-              <QrCode2RoundedIcon
-                sx={{
-                  position: "absolute",
-                  right: 12,
-                  bottom: 12,
-                  fontSize: 18,
-                  color: "#111827"
-                }}
-              />
+              <Stack spacing={1} alignItems="center">
+                <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                  Or scan QR
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 800,
+                    letterSpacing: "0.12em",
+                    color: "#0F172A"
+                  }}
+                >
+                  OTP {otp}
+                </Typography>
+                <Box
+                  sx={{
+                    width: 132,
+                    height: 132,
+                    p: 1.25,
+                    borderRadius: 2,
+                    border: "1px solid rgba(148,163,184,0.45)",
+                    bgcolor: "#FFFFFF",
+                    position: "relative"
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      inset: 10,
+                      backgroundImage:
+                        "repeating-linear-gradient(0deg, #111827 0 5px, transparent 5px 10px), repeating-linear-gradient(90deg, #111827 0 5px, transparent 5px 10px)",
+                      opacity: 0.24
+                    }}
+                  />
+                  <Box sx={qrCornerSx(14, 14)} />
+                  <Box sx={qrCornerSx(undefined, 14, 14)} />
+                  <Box sx={qrCornerSx(14, undefined, undefined, 14)} />
+                  <QrCode2RoundedIcon
+                    sx={{
+                      position: "absolute",
+                      right: 12,
+                      bottom: 12,
+                      fontSize: 18,
+                      color: "#111827"
+                    }}
+                  />
+                </Box>
+              </Stack>
             </Box>
           </Stack>
         </CardContent>

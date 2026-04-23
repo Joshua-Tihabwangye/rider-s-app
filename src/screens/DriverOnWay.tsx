@@ -11,7 +11,6 @@ import {
   Typography
 } from "@mui/material";
 
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
 import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
@@ -88,54 +87,6 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
           showControls={false}
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
         >
-          {/* Floating Back Button */}
-          <IconButton
-            size="small"
-            onClick={() => navigate(-1)}
-            sx={{
-              position: "absolute",
-              top: 14,
-              left: 14,
-              zIndex: 10,
-              bgcolor: "rgba(255,255,255,0.92)",
-              color: "#0f172a",
-              "&:hover": { bgcolor: "#fff" },
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
-              width: 40,
-              height: 40,
-              border: "1px solid rgba(255,255,255,0.2)"
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-
-          {/* Floating SOS Button */}
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => navigate("/rides/sos")}
-            sx={{
-              position: "absolute",
-              top: 14,
-              right: 14,
-              zIndex: 10,
-              minWidth: "auto",
-              px: 2,
-              py: 0.6,
-              borderRadius: 5,
-              bgcolor: "var(--evz-danger)",
-              color: "#fff",
-              textTransform: "none",
-              fontSize: 12,
-              fontWeight: 800,
-              boxShadow: "0 4px 12px rgba(239, 68, 68, 0.3)",
-              "&:hover": { bgcolor: "var(--evz-danger-hover)" }
-            }}
-          >
-            SOS
-          </Button>
-
           <Box
             sx={{
               position: "absolute",

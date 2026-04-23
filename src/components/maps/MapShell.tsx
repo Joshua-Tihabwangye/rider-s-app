@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import {
   Box,
   BoxProps,
+  Button,
   IconButton,
   Stack,
   SxProps,
@@ -15,10 +16,15 @@ import LayersRoundedIcon from "@mui/icons-material/LayersRounded";
 import ExploreRoundedIcon from "@mui/icons-material/ExploreRounded";
 import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
+import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
+import TrafficRoundedIcon from "@mui/icons-material/TrafficRounded";
+import EvStationRoundedIcon from "@mui/icons-material/EvStationRounded";
+import BoltRoundedIcon from "@mui/icons-material/BoltRounded";
+import { useLocation, useNavigate } from "react-router-dom";
 import { uiTokens } from "../../design/tokens";
 import { MAP_HEIGHT_PRESETS, MapHeightPreset } from "./mapPresets";
 
-type MapLayerMode = "default" | "transit" | "terrain";
+type MapLayerMode = "default" | "transit" | "terrain" | "satellite";
 
 interface MapShellProps {
   children?: React.ReactNode;
@@ -29,7 +35,10 @@ interface MapShellProps {
   showGrid?: boolean;
   showControls?: boolean;
   showBackButton?: boolean;
+  showSosButton?: boolean;
+  showFeatureControls?: boolean;
   onBack?: () => void;
+  onSos?: () => void;
   onRecenter?: () => void;
   onZoomChange?: (zoom: number) => void;
   onBearingChange?: (bearing: number) => void;
@@ -45,7 +54,7 @@ interface MapShellProps {
   fullBleed?: boolean;
 }
 
-const LAYER_ORDER: MapLayerMode[] = ["default", "transit", "terrain"];
+const LAYER_ORDER: MapLayerMode[] = ["default", "transit", "terrain", "satellite"];
 
 function clampZoom(zoom: number): number {
   return Math.max(1, Math.min(22, zoom));
@@ -60,7 +69,10 @@ export default function MapShell({
   showGrid = true,
   showControls = true,
   showBackButton,
+  showSosButton,
+  showFeatureControls,
   onBack,
+  onSos,
   onRecenter,
   onZoomChange,
   onBearingChange,
@@ -75,9 +87,15 @@ export default function MapShell({
   canvasProps,
   fullBleed = true
 }: MapShellProps): React.JSX.Element {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isRideMapRoute = location.pathname.startsWith("/rides");
   const [zoom, setZoom] = useState<number>(clampZoom(initialZoom));
   const [bearing, setBearing] = useState<number>(initialBearing % 360);
   const [layer, setLayer] = useState<MapLayerMode>(initialLayer);
+  const [trafficEnabled, setTrafficEnabled] = useState<boolean>(true);
+  const [incidentsEnabled, setIncidentsEnabled] = useState<boolean>(true);
+  const [evStationsEnabled, setEvStationsEnabled] = useState<boolean>(false);
 
   const resolvedHeight = useMemo(() => {
     if (height !== undefined) {
@@ -105,7 +123,50 @@ export default function MapShell({
     onLayerChange?.(next);
   };
 
-  const canShowBack = showBackButton ?? Boolean(onBack);
+  const canShowBack = showBackButton ?? isRideMapRoute;
+  const canShowSos = (showSosButton ?? isRideMapRoute) && Boolean(onSos ?? isRideMapRoute);
+  const canShowFeatureControls = showFeatureControls ?? isRideMapRoute;
+
+  const topInsetSx = {
+    xs: "calc(env(safe-area-inset-top, 0px) + 12px)",
+    md: 14
+  } as const;
+  const leftInsetSx = fullBleed
+    ? {
+        xs: "calc(var(--rider-shell-content-px-xs, 20px) + env(safe-area-inset-left, 0px) + 6px)",
+        md: "calc(var(--rider-shell-content-px-md, 24px) + env(safe-area-inset-left, 0px) + 6px)"
+      }
+    : {
+        xs: "calc(env(safe-area-inset-left, 0px) + 12px)",
+        md: 14
+      };
+  const rightInsetSx = fullBleed
+    ? {
+        xs: "calc(var(--rider-shell-content-px-xs, 20px) + env(safe-area-inset-right, 0px) + 6px)",
+        md: "calc(var(--rider-shell-content-px-md, 24px) + env(safe-area-inset-right, 0px) + 6px)"
+      }
+    : {
+        xs: "calc(env(safe-area-inset-right, 0px) + 12px)",
+        md: 14
+      };
+
+  const handleBack = (): void => {
+    if (onBack) {
+      onBack();
+      return;
+    }
+    navigate(-1);
+  };
+
+  const handleSos = (): void => {
+    if (onSos) {
+      onSos();
+      return;
+    }
+    if (isRideMapRoute) {
+      navigate("/rides/sos");
+    }
+  };
 
   return (
     <Box
@@ -161,6 +222,85 @@ export default function MapShell({
             }}
           />
         )}
+        {trafficEnabled && (
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              opacity: 0.4,
+              backgroundImage:
+                "linear-gradient(32deg, transparent 42%, rgba(234,88,12,0.26) 42%, rgba(234,88,12,0.26) 44%, transparent 44%), linear-gradient(148deg, transparent 35%, rgba(245,158,11,0.22) 35%, rgba(245,158,11,0.22) 37%, transparent 37%), linear-gradient(72deg, transparent 58%, rgba(220,38,38,0.22) 58%, rgba(220,38,38,0.22) 60%, transparent 60%)",
+              backgroundSize: "180px 180px, 220px 220px, 200px 200px"
+            }}
+          />
+        )}
+        {incidentsEnabled && (
+          <>
+            <Box
+              sx={{
+                position: "absolute",
+                left: "22%",
+                top: "34%",
+                width: 10,
+                height: 10,
+                borderRadius: "50%",
+                bgcolor: "rgba(220,38,38,0.88)",
+                boxShadow: "0 0 0 4px rgba(220,38,38,0.18)"
+              }}
+            />
+            <Box
+              sx={{
+                position: "absolute",
+                right: "26%",
+                top: "51%",
+                width: 10,
+                height: 10,
+                borderRadius: "50%",
+                bgcolor: "rgba(245,158,11,0.9)",
+                boxShadow: "0 0 0 4px rgba(245,158,11,0.18)"
+              }}
+            />
+          </>
+        )}
+        {evStationsEnabled && (
+          <>
+            <Box
+              sx={{
+                position: "absolute",
+                right: "18%",
+                bottom: "26%",
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                bgcolor: "rgba(3,205,140,0.2)",
+                border: "1px solid rgba(3,205,140,0.65)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <BoltRoundedIcon sx={{ fontSize: 16, color: "var(--evz-brand-green)" }} />
+            </Box>
+            <Box
+              sx={{
+                position: "absolute",
+                left: "14%",
+                bottom: "18%",
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                bgcolor: "rgba(3,205,140,0.2)",
+                border: "1px solid rgba(3,205,140,0.65)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <BoltRoundedIcon sx={{ fontSize: 16, color: "var(--evz-brand-green)" }} />
+            </Box>
+          </>
+        )}
         {childrenLayer === "canvas" && children}
       </Box>
 
@@ -183,27 +323,60 @@ export default function MapShell({
         <IconButton
           size="small"
           aria-label="Back"
-          onClick={onBack}
+          onClick={handleBack}
           sx={{
             position: "absolute",
-            top: { xs: "max(12px, env(safe-area-inset-top))", md: 14 },
-            left: 14,
-            zIndex: 5,
-            width: 40,
-            height: 40,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "rgba(255,255,255,0.92)" : "rgba(15,23,42,0.86)",
+            top: topInsetSx,
+            left: leftInsetSx,
+            zIndex: 6,
+            width: 44,
+            height: 44,
+            bgcolor: "var(--evz-map-overlay-bg)",
             color: (theme) => theme.palette.text.primary,
-            borderRadius: "var(--evz-radius-md)",
+            borderRadius: "14px",
             border: "1px solid var(--evz-map-control-border)",
-            boxShadow: uiTokens.elevation.card,
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            boxShadow: "0 8px 18px rgba(15,23,42,0.2)",
             "&:hover": {
-              bgcolor: "var(--evz-map-overlay-bg)"
+              bgcolor: "var(--evz-map-control-bg)"
             }
           }}
         >
           <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
+      )}
+
+      {canShowSos && (
+        <Button
+          size="small"
+          variant="contained"
+          aria-label="SOS Emergency"
+          onClick={handleSos}
+          startIcon={<WarningAmberRoundedIcon sx={{ fontSize: 16 }} />}
+          sx={{
+            position: "absolute",
+            top: topInsetSx,
+            right: rightInsetSx,
+            zIndex: 6,
+            minWidth: 82,
+            height: 40,
+            px: 1.5,
+            borderRadius: "999px",
+            bgcolor: "var(--evz-danger)",
+            color: "#FFFFFF",
+            textTransform: "uppercase",
+            fontSize: 11,
+            fontWeight: 900,
+            letterSpacing: "0.07em",
+            boxShadow: "0 8px 18px rgba(220,38,38,0.36)",
+            "&:hover": {
+              bgcolor: "var(--evz-danger-hover)"
+            }
+          }}
+        >
+          SOS
+        </Button>
       )}
 
       {showControls && (
@@ -212,8 +385,10 @@ export default function MapShell({
             spacing={0.75}
             sx={{
               position: "absolute",
-              top: 14,
-              right: 14,
+              top: canShowSos
+                ? { xs: "calc(env(safe-area-inset-top, 0px) + 58px)", md: 60 }
+                : topInsetSx,
+              right: rightInsetSx,
               zIndex: 5
             }}
           >
@@ -247,6 +422,26 @@ export default function MapShell({
                 <LayersRoundedIcon sx={{ fontSize: 17 }} />
               </IconButton>
             </Tooltip>
+            <Tooltip title={trafficEnabled ? "Traffic: on" : "Traffic: off"}>
+              <IconButton
+                size="small"
+                aria-label="Map Traffic"
+                onClick={() => setTrafficEnabled((prev) => !prev)}
+                sx={[controlSx, trafficEnabled ? activeControlSx : {}]}
+              >
+                <TrafficRoundedIcon sx={{ fontSize: 17 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={incidentsEnabled ? "Incidents: on" : "Incidents: off"}>
+              <IconButton
+                size="small"
+                aria-label="Map Incidents"
+                onClick={() => setIncidentsEnabled((prev) => !prev)}
+                sx={[controlSx, incidentsEnabled ? activeControlSx : {}]}
+              >
+                <WarningAmberRoundedIcon sx={{ fontSize: 17 }} />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Rotate bearing">
               <IconButton
                 size="small"
@@ -272,7 +467,7 @@ export default function MapShell({
           <Box
             sx={{
               position: "absolute",
-              right: 14,
+              right: rightInsetSx,
               bottom: 14,
               zIndex: 5,
               px: 1.1,
@@ -281,7 +476,8 @@ export default function MapShell({
               border: "1px solid var(--evz-map-overlay-border)",
               bgcolor: "var(--evz-map-overlay-bg)",
               backdropFilter: "blur(6px)",
-              boxShadow: uiTokens.elevation.card
+              boxShadow: uiTokens.elevation.card,
+              display: { xs: "none", sm: "block" }
             }}
           >
             <Typography
@@ -294,10 +490,83 @@ export default function MapShell({
                 color: "var(--evz-map-control-icon-muted)"
               }}
             >
-              Z{zoom} · {layer} · {bearing}deg
+              Z{zoom} · {layer} · T:{trafficEnabled ? "on" : "off"} · A:{incidentsEnabled ? "on" : "off"} · {bearing}deg
             </Typography>
           </Box>
+
+          <Box
+            sx={{
+              position: "absolute",
+              left: leftInsetSx,
+              right: rightInsetSx,
+              bottom: 12,
+              zIndex: 5,
+              px: 1.1,
+              py: 0.7,
+              borderRadius: "14px",
+              border: "1px solid var(--evz-map-overlay-border)",
+              bgcolor: "var(--evz-map-overlay-bg)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              boxShadow: uiTokens.elevation.card,
+              display: { xs: "block", sm: "none" }
+            }}
+          >
+            <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" alignItems="center">
+              <Typography sx={mobileInfoLabelSx}>Zoom {zoom}</Typography>
+              <Typography sx={mobileInfoLabelSx}>{layer}</Typography>
+              <Typography sx={mobileInfoLabelSx}>{bearing}deg</Typography>
+            </Stack>
+          </Box>
         </>
+      )}
+
+      {canShowFeatureControls && (
+        <Stack
+          direction="row"
+          spacing={0.75}
+          sx={{
+            position: "absolute",
+            left: leftInsetSx,
+            right: { xs: rightInsetSx, sm: "auto" },
+            bottom: { xs: 54, sm: 14 },
+            zIndex: 5,
+            flexWrap: { xs: "nowrap", sm: "wrap" },
+            maxWidth: { xs: "none", sm: "76%" },
+            overflowX: { xs: "auto", sm: "visible" },
+            overflowY: "hidden",
+            pr: { xs: 0.25, sm: 0 },
+            scrollbarWidth: "none",
+            "&::-webkit-scrollbar": {
+              display: "none"
+            }
+          }}
+        >
+          <Button
+            size="small"
+            startIcon={<TrafficRoundedIcon sx={{ fontSize: 14 }} />}
+            onClick={() => setTrafficEnabled((prev) => !prev)}
+            sx={featureButtonSx(trafficEnabled)}
+          >
+            Traffic
+          </Button>
+          <Button
+            size="small"
+            startIcon={<WarningAmberRoundedIcon sx={{ fontSize: 14 }} />}
+            onClick={() => setIncidentsEnabled((prev) => !prev)}
+            sx={featureButtonSx(incidentsEnabled)}
+          >
+            Alerts
+          </Button>
+          <Button
+            size="small"
+            startIcon={<EvStationRoundedIcon sx={{ fontSize: 14 }} />}
+            onClick={() => setEvStationsEnabled((prev) => !prev)}
+            sx={featureButtonSx(evStationsEnabled)}
+          >
+            EV Stations
+          </Button>
+        </Stack>
       )}
     </Box>
   );
@@ -317,3 +586,43 @@ const controlSx: SxProps<Theme> = {
     color: uiTokens.colors.brand
   }
 };
+
+const activeControlSx: SxProps<Theme> = {
+  borderColor: "rgba(3,205,140,0.55)",
+  bgcolor: "rgba(3,205,140,0.2)",
+  color: "var(--evz-brand-green)"
+};
+
+const mobileInfoLabelSx: SxProps<Theme> = {
+  px: 0.85,
+  py: 0.35,
+  borderRadius: "999px",
+  bgcolor: "rgba(255,255,255,0.82)",
+  color: "var(--evz-map-control-icon-muted)",
+  fontSize: 10,
+  fontWeight: 700,
+  lineHeight: 1,
+  textTransform: "uppercase",
+  letterSpacing: "0.04em"
+};
+
+const featureButtonSx = (active: boolean): SxProps<Theme> => ({
+  minHeight: 32,
+  px: 1.2,
+  flexShrink: 0,
+  borderRadius: "999px",
+  textTransform: "none",
+  fontSize: 11,
+  fontWeight: 700,
+  lineHeight: 1,
+  backdropFilter: "blur(6px)",
+  WebkitBackdropFilter: "blur(6px)",
+  border: "1px solid",
+  borderColor: active ? "rgba(3,205,140,0.55)" : "var(--evz-map-control-border)",
+  bgcolor: active ? "rgba(3,205,140,0.2)" : "var(--evz-map-control-bg)",
+  color: active ? "var(--evz-brand-green)" : "var(--evz-map-control-icon-muted)",
+  "&:hover": {
+    borderColor: active ? "rgba(3,205,140,0.7)" : "rgba(148,163,184,0.9)",
+    bgcolor: active ? "rgba(3,205,140,0.26)" : "var(--evz-map-overlay-bg)"
+  }
+});

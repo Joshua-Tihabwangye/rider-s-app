@@ -22,6 +22,7 @@ import SetupPreferences from "../screens/SetupPreferences";
 import DriverPreferences from "../screens/DriverPreferences";
 import RideOptions from "../screens/RideOptions";
 import Payment from "../screens/Payment";
+import PaymentGatewayFlow, { PaymentSuccessScreen } from "../screens/PaymentGatewayFlow";
 import SearchingDriver from "../screens/SearchingDriver";
 import DriverOnWay from "../screens/DriverOnWay";
 import DriverArrived from "../screens/DriverArrived";
@@ -171,6 +172,8 @@ export default function AppRouter(): React.JSX.Element {
 					/>
 					<Route path="options" element={<RideOptions />} />
 					<Route path="payment" element={<Payment />} />
+					<Route path="payment/gateway/:gatewayId" element={<PaymentGatewayFlow />} />
+					<Route path="payment/success" element={<PaymentSuccessScreen />} />
 					<Route path="searching" element={<SearchingDriver />} />
 					<Route path="driver-on-way" element={<DriverOnWay />} />
 					<Route path="driver-arrived" element={<DriverArrived />} />
