@@ -19,6 +19,7 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
+import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
 import { useAppData } from "../contexts/AppDataContext";
 
 
@@ -231,16 +232,35 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
         }}
       >
         <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
-            <PersonRoundedIcon
-              sx={{ fontSize: 18, color: (t) => t.palette.text.secondary }}
-            />
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            alignItems={{ xs: "flex-start", sm: "center" }}
+            justifyContent="space-between"
+            sx={{ mb: 1 }}
+          >
+            <Stack direction="row" spacing={0.75} alignItems="center">
+              <PersonRoundedIcon
+                sx={{ fontSize: 18, color: (t) => t.palette.text.secondary }}
+              />
+              <Typography
+                variant="caption"
+                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
+              >
+                Patient details
+              </Typography>
+            </Stack>
+            <PhoneBookPickerButton
+              size="small"
+              variant="outlined"
+              onContactPicked={(contact) => {
+                setPatientName(contact.name);
+                setPatientPhone(contact.phone);
+              }}
+              sx={{ textTransform: "none", borderRadius: 5 }}
             >
-              Patient details
-            </Typography>
+              Import from phone book
+            </PhoneBookPickerButton>
           </Stack>
 
           <TextField

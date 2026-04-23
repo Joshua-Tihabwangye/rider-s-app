@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   
   Box,
@@ -17,6 +17,7 @@ import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import FamilyRestroomRoundedIcon from "@mui/icons-material/FamilyRestroomRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
+import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
 
 interface Contact {
   id: number;
@@ -161,7 +162,58 @@ function ContactCard({ contact, selected, onSelect }: ContactCardProps): React.J
 
 function SwitchRiderContactSelectedScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
+  const routeState = ((location.state as Record<string, unknown> | null) ?? {});
+  const [contacts, setContacts] = useState<Contact[]>(CONTACTS);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(CONTACTS[0] ?? null);
+
+  const handlePhoneBookContact = (contact: { name: string; phone: string; initials: string; relation?: string }): void => {
+    const existing = contacts.find((item) => item.phone === contact.phone);
+    if (existing) {
+      setSelectedContact(existing);
+      return;
+    }
+
+    const importedContact: Contact = {
+      id: Date.now(),
+      name: contact.name,
+      relation: contact.relation ?? "Phone book",
+      phone: contact.phone,
+      initials: contact.initials,
+      rides: 0
+    };
+
+    setContacts((previous) => [importedContact, ...previous]);
+    setSelectedContact(importedContact);
+  };
+
+  const handleUseContact = (): void => {
+    if (!selectedContact) return;
+
+    const nextState = {
+      ...routeState,
+      riderType: "contact",
+      bookForSomeone: true,
+      fromSwitchRider: true,
+      selectedContact: {
+        id: selectedContact.id,
+        name: selectedContact.name,
+        relation: selectedContact.relation,
+        phone: selectedContact.phone,
+        initials: selectedContact.initials
+      }
+    };
+
+    const shouldReturnToRideDetails =
+      "pickup" in routeState ||
+      "destination" in routeState ||
+      "bookForSomeone" in routeState ||
+      "rideType" in routeState;
+
+    navigate(shouldReturnToRideDetails ? "/rides/enter/details" : "/rides/switch-rider/summary", {
+      state: nextState
+    });
+  };
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -296,8 +348,17 @@ function SwitchRiderContactSelectedScreen(): React.JSX.Element {
         My contacts
       </Typography>
 
+      <PhoneBookPickerButton
+        variant="outlined"
+        size="small"
+        onContactPicked={handlePhoneBookContact}
+        sx={{ mb: 1.5, textTransform: "none", borderRadius: 5 }}
+      >
+        Import from phone book
+      </PhoneBookPickerButton>
+
       <Box sx={{ mb: 2.5 }}>
-        {CONTACTS.map((c) => (
+        {contacts.map((c) => (
           <ContactCard
             key={c.id}
             contact={c}
@@ -310,6 +371,7 @@ function SwitchRiderContactSelectedScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
+        onClick={handleUseContact}
         sx={{
           borderRadius: 5,
           py: 1.1,

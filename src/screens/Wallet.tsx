@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Box,
   IconButton,
@@ -74,13 +74,12 @@ function getTransactionIcon(type: Transaction["type"]): React.ReactElement {
 
 function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { walletBalance, walletReserved, transactions, reminders, actions } = useAppData();
   
   const balance = walletBalance;
   const reserved = walletReserved;
-  const [showAddMoneyDialog, setShowAddMoneyDialog] = useState(false);
-  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
   const [showPaymentMethodsDialog, setShowPaymentMethodsDialog] = useState(false);
   const [paymentMethodMenu, setPaymentMethodMenu] = useState<{ open: boolean; anchorEl: HTMLElement | null; method: string | null }>({ open: false, anchorEl: null, method: null });
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" | "warning" | "info" }>({ open: false, message: "", severity: "success" });
@@ -105,47 +104,49 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
     if (walletAction !== "topup") {
       return;
     }
-    setShowAddMoneyDialog(true);
+    navigate("/wallet/add-money", { replace: true });
     const next = new URLSearchParams(searchParams);
     next.delete("action");
     setSearchParams(next, { replace: true });
-  }, [walletAction, searchParams, setSearchParams]);
+  }, [navigate, walletAction, searchParams, setSearchParams]);
 
-  const handleAddMoney = () => {
-    setShowAddMoneyDialog(true);
-  };
+  useEffect(() => {
+    const walletFlowResult = (location.state as { walletFlowResult?: { flow: "add-money" | "withdraw"; amount?: string; methodTitle?: string } } | null)?.walletFlowResult;
+    if (!walletFlowResult) {
+      return;
+    }
 
-  const handleAddMoneySuccess = () => {
-    setShowAddMoneyDialog(false);
     setSnackbar({
       open: true,
-      message: "Money added successfully to your wallet!",
+      message:
+        walletFlowResult.flow === "add-money"
+          ? `${walletFlowResult.amount ?? "Funds"} added via ${walletFlowResult.methodTitle ?? "wallet funding"} simulation.`
+          : `${walletFlowResult.amount ?? "Funds"} withdrawal via ${walletFlowResult.methodTitle ?? "wallet payout"} simulation submitted.`,
       severity: "success"
     });
 
-    const resolvedReminderIds = reminders
-      .filter(
-        (reminder) =>
-          reminder.category === "wallet" &&
-          (reminder.actionRoute.includes("/wallet?action=topup") || /wallet balance low/i.test(reminder.title))
-      )
-      .map((reminder) => reminder.id);
-    if (resolvedReminderIds.length > 0) {
-      actions.dismissReminders(resolvedReminderIds);
+    if (walletFlowResult.flow === "add-money") {
+      const resolvedReminderIds = reminders
+        .filter(
+          (reminder) =>
+            reminder.category === "wallet" &&
+            (reminder.actionRoute.includes("/wallet?action=topup") || /wallet balance low/i.test(reminder.title))
+        )
+        .map((reminder) => reminder.id);
+      if (resolvedReminderIds.length > 0) {
+        actions.dismissReminders(resolvedReminderIds);
+      }
     }
+
+    navigate("/wallet", { replace: true });
+  }, [actions, location.state, navigate, reminders]);
+
+  const handleAddMoney = () => {
+    navigate("/wallet/add-money");
   };
 
   const handleWithdraw = () => {
-    setShowWithdrawDialog(true);
-  };
-
-  const handleWithdrawSuccess = () => {
-    setShowWithdrawDialog(false);
-    setSnackbar({
-      open: true,
-      message: "Withdrawal request submitted successfully!",
-      severity: "success"
-    });
+    navigate("/wallet/withdraw");
   };
 
   const handleCloseSnackbar = () => {
@@ -964,100 +965,6 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
         can connect more payment methods from the EVzone Pay settings.
       </Typography>
 
-      {/* Add Money Dialog */}
-      <Dialog
-        open={showAddMoneyDialog}
-        onClose={() => setShowAddMoneyDialog(false)}
-        PaperProps={{
-          sx: {
-            borderRadius: uiTokens.radius.xl,
-            bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
-          }
-        }}
-      >
-        <DialogTitle sx={{ fontWeight: 600 }}>Add Money to Wallet</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ color: (t) => t.palette.text.secondary, mb: 2 }}>
-            Choose a payment method to add funds to your EVzone Wallet.
-          </DialogContentText>
-          <Stack spacing={1.5}>
-            <Button
-              variant="outlined"
-              fullWidth
-              startIcon={<LocalAtmRoundedIcon />}
-              onClick={handleAddMoneySuccess}
-              sx={{ textTransform: "none", justifyContent: "flex-start" }}
-            >
-              Mobile Money (MTN / Airtel)
-            </Button>
-            <Button
-              variant="outlined"
-              fullWidth
-              startIcon={<CreditCardRoundedIcon />}
-              onClick={handleAddMoneySuccess}
-              sx={{ textTransform: "none", justifyContent: "flex-start" }}
-            >
-              Credit/Debit Card
-            </Button>
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 2.5, pb: 2 }}>
-          <Button
-            onClick={() => setShowAddMoneyDialog(false)}
-            sx={{ textTransform: "none" }}
-          >
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Withdraw Dialog */}
-      <Dialog
-        open={showWithdrawDialog}
-        onClose={() => setShowWithdrawDialog(false)}
-        PaperProps={{
-          sx: {
-            borderRadius: uiTokens.radius.xl,
-            bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"
-          }
-        }}
-      >
-        <DialogTitle sx={{ fontWeight: 600 }}>Withdraw Funds</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ color: (t) => t.palette.text.secondary, mb: 2 }}>
-            Transfer funds from your EVzone Wallet to your bank account or mobile money.
-          </DialogContentText>
-          <Stack spacing={1.5}>
-            <Button
-              variant="outlined"
-              fullWidth
-              startIcon={<LocalAtmRoundedIcon />}
-              onClick={handleWithdrawSuccess}
-              sx={{ textTransform: "none", justifyContent: "flex-start" }}
-            >
-              Mobile Money (MTN / Airtel)
-            </Button>
-            <Button
-              variant="outlined"
-              fullWidth
-              startIcon={<CreditCardRoundedIcon />}
-              onClick={handleWithdrawSuccess}
-              sx={{ textTransform: "none", justifyContent: "flex-start" }}
-            >
-              Bank Account
-            </Button>
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 2.5, pb: 2 }}>
-          <Button
-            onClick={() => setShowWithdrawDialog(false)}
-            sx={{ textTransform: "none" }}
-          >
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
-
       {/* Payment Methods Management Dialog */}
       <Dialog
         open={showPaymentMethodsDialog}
@@ -1278,12 +1185,28 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
               size="small"
             />
             {editMethod.method === "cards" && (
-              <TextField
-                fullWidth
-                label="Card Number"
-                defaultValue="•••• •••• •••• 2451"
-                size="small"
-              />
+              <>
+                <TextField
+                  fullWidth
+                  label="Card Number"
+                  defaultValue="•••• •••• •••• 2451"
+                  size="small"
+                />
+                <Stack direction="row" spacing={1.5}>
+                  <TextField
+                    fullWidth
+                    label="Expiry"
+                    defaultValue="08/28"
+                    size="small"
+                  />
+                  <TextField
+                    fullWidth
+                    label="CVV"
+                    defaultValue="123"
+                    size="small"
+                  />
+                </Stack>
+              </>
             )}
             {editMethod.method === "mobile" && (
               <TextField

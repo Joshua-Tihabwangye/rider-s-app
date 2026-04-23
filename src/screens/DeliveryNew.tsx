@@ -28,6 +28,7 @@ import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import AppCard from "../components/primitives/AppCard";
+import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import type { DeliveryDraft, DeliveryOrderMode, RideLocation } from "../store/types";
@@ -540,9 +541,32 @@ export default function DeliveryNew(): React.JSX.Element {
 
           {activeStep === 2 && (
             <>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <PersonRoundedIcon sx={{ fontSize: 18, color: uiTokens.colors.brand }} />
-                <Typography variant="subtitle2">Recipient contact</Typography>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={1}
+                alignItems={{ xs: "flex-start", sm: "center" }}
+                justifyContent="space-between"
+              >
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <PersonRoundedIcon sx={{ fontSize: 18, color: uiTokens.colors.brand }} />
+                  <Typography variant="subtitle2">Recipient contact</Typography>
+                </Stack>
+                <PhoneBookPickerButton
+                  size="small"
+                  variant="outlined"
+                  onContactPicked={(contact) =>
+                    updateDraft({
+                      recipient: {
+                        name: contact.name,
+                        phone: contact.phone,
+                        address: draft.recipient?.address ?? draft.dropoff?.address ?? ""
+                      }
+                    })
+                  }
+                  sx={{ textTransform: "none", borderRadius: 5 }}
+                >
+                  Import from phone book
+                </PhoneBookPickerButton>
               </Stack>
               <TextField
                 label="Recipient name"

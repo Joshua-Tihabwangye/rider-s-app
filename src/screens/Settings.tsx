@@ -42,6 +42,7 @@ import AppCard from "../components/primitives/AppCard";
 import ListSection from "../components/primitives/ListSection";
 import SectionHeader from "../components/primitives/SectionHeader";
 import RowActionItem from "../components/primitives/RowActionItem";
+import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
 import { useThemeMode } from "../contexts/ThemeContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useAppData } from "../contexts/AppDataContext";
@@ -544,6 +545,21 @@ export default function Settings(): React.JSX.Element {
       <Dialog open={contactDialogOpen} onClose={closeContactDialog} fullWidth maxWidth="xs">
         <DialogTitle>{editingContact ? "Edit emergency contact" : "Add emergency contact"}</DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+          <PhoneBookPickerButton
+            size="small"
+            variant="outlined"
+            onContactPicked={(contact) =>
+              setContactForm((prev) => ({
+                ...prev,
+                name: contact.name,
+                phone: contact.phone,
+                relationship: prev.relationship || contact.relation || ""
+              }))
+            }
+            sx={{ alignSelf: "flex-start", textTransform: "none", borderRadius: 5 }}
+          >
+            Import from phone book
+          </PhoneBookPickerButton>
           <TextField
             label="Full name"
             value={contactForm.name}
