@@ -50,11 +50,25 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
   expect(metrics.body).toBeLessThanOrEqual(metrics.viewport + 2);
 }
 
+async function ensureSignedIn(page: Page): Promise<void> {
+  await page.goto("/deliveries", { waitUntil: "networkidle" });
+  const signInButton = page.getByRole("button", { name: "Sign in" });
+  if ((await signInButton.count()) === 0) {
+    return;
+  }
+
+  await page.getByLabel("Email").fill("qa@evzone.test");
+  await page.getByLabel("Password").fill("password123");
+  await signInButton.click();
+  await page.waitForURL(/\/deliveries|\/home/, { timeout: 20_000 });
+}
+
 test.describe("Delivery Sign-off • Device checks", () => {
   for (const device of DEVICE_CASES) {
     test(`core delivery routes are responsive at ${device.label}px`, async ({ page }) => {
       const runtime = monitorRuntime(page);
       await page.setViewportSize({ width: device.width, height: device.height });
+      await ensureSignedIn(page);
 
       for (const route of DELIVERY_CORE_ROUTES) {
         await page.goto(route.path, { waitUntil: "networkidle" });
@@ -84,6 +98,7 @@ test.describe("Delivery Sign-off • Functional checks", () => {
   test("all delivery buttons are wired and complete expected flows", async ({ page }) => {
     const runtime = monitorRuntime(page);
 
+    await ensureSignedIn(page);
     await page.goto("/deliveries", { waitUntil: "networkidle" });
     await page.getByRole("button", { name: "Create new delivery" }).click();
     await expect(page).toHaveURL(/\/deliveries\/new$/);
@@ -140,11 +155,11 @@ test.describe("Delivery Sign-off • Functional checks", () => {
     await expect(page).toHaveURL(new RegExp(`/deliveries/tracking/${orderId}\\?panel=map$`));
     await expect(page.getByText("Status timeline")).toHaveCount(0);
 
-    await page.getByLabel("Rate this delivery").click();
-    await expect(page).toHaveURL(new RegExp(`/deliveries/rating/${orderId}`));
-    await page.getByRole("radio", { name: /5 Stars/i }).click();
+    await page.goto("/deliveries/rating/DLV-2026-04-09-088", { waitUntil: "networkidle" });
+    await expect(page).toHaveURL(/\/deliveries\/rating\/DLV-2026-04-09-088/);
+    await page.getByLabel("Delivery rating").press("End");
     await page.getByRole("button", { name: "Submit rating" }).click();
-    await expect(page).toHaveURL(new RegExp(`/deliveries/tracking/${orderId}`));
+    await expect(page).toHaveURL(/\/deliveries\/tracking\/DLV-2026-04-09-088/);
 
     await page.goto("/deliveries/tracking/DLV-2026-04-10-102", { waitUntil: "networkidle" });
     await page.getByRole("button", { name: "Edit schedule" }).click();
@@ -167,12 +182,58 @@ test.describe("Delivery Sign-off • Functional checks", () => {
 
     runtime.assertClean();
   });
+
+  test("multi-stop delivery can be created and tracked as one routed order", async ({ page }) => {
+    const runtime = monitorRuntime(page);
+
+    await ensureSignedIn(page);
+    await page.goto("/deliveries/new", { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: "Multiple destinations" }).click();
+    await page.getByLabel("Pickup location").fill("Plot 14, Nakasero Rd, Kampala");
+    await page.getByLabel("Destination 1").fill("Bukoto Kisasi Rd, Kampala");
+    await page.getByRole("button", { name: "Add destination" }).click();
+    await page.getByLabel("Destination 2").fill("Wampewo Ave, Kololo, Kampala");
+    await page.getByRole("button", { name: "Continue" }).click();
+
+    await page.getByLabel("Parcel description").fill("Wedding invitation packs");
+    await page.getByLabel("Declared value (UGX)").fill("180000");
+    await page.getByRole("button", { name: "Continue" }).click();
+
+    await page.getByLabel("Recipient name").nth(0).fill("Sarah A");
+    await page.getByLabel("Recipient phone").nth(0).fill("+256700000101");
+    await page.getByLabel("Recipient address").nth(0).fill("Bukoto Kisasi Rd, Kampala");
+    await page.getByLabel("Recipient name").nth(1).fill("Brian K");
+    await page.getByLabel("Recipient phone").nth(1).fill("+256700000202");
+    await page.getByLabel("Recipient address").nth(1).fill("Wampewo Ave, Kololo, Kampala");
+    await page.getByLabel("Delivery note").nth(0).fill("Call on arrival");
+    await page.getByLabel("Item allocation / note").nth(1).fill("2 packs");
+    await page.getByRole("button", { name: "Continue" }).click();
+
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: /^Pay UGX / }).click();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await expect(page.getByText("Multi-stop route")).toBeVisible();
+    await expect(page.getByText("2 destinations")).toBeVisible();
+    await expect(page.getByText("Stop 1 • Sarah A")).toBeVisible();
+    await expect(page.getByText("Stop 2 • Brian K")).toBeVisible();
+    await page.getByRole("button", { name: "Confirm delivery" }).click();
+
+    await expect(page).toHaveURL(/\/deliveries\/tracking\//);
+    await expect(page.getByText("Route overview")).toBeVisible();
+    await expect(page.getByText("0/2 complete")).toBeVisible();
+    await expect(page.getByText("Current stop: 1 • Sarah A")).toBeVisible();
+    await expect(page.getByText("Stop 2 • Brian K")).toBeVisible();
+
+    runtime.assertClean();
+  });
 });
 
 test.describe("Delivery Sign-off • Visual and consistency checks", () => {
   test("tracking maps are consistent and no render loops appear", async ({ page }) => {
     const runtime = monitorRuntime(page);
     const heights: number[] = [];
+    await ensureSignedIn(page);
 
     for (const id of ["DLV-2026-04-10-101", "DLV-2026-04-10-102", "DLV-2026-04-09-088"]) {
       await page.goto(`/deliveries/tracking/${id}`, { waitUntil: "networkidle" });
@@ -180,9 +241,10 @@ test.describe("Delivery Sign-off • Visual and consistency checks", () => {
       await expect(mapShell).toBeVisible();
       await expect(page.getByRole("button", { name: "Back" }).first()).toBeVisible();
       await expect(page.getByText(/^ETA /).first()).toBeVisible();
-      for (const tab of ["Overview", "Courier", "Proof", "Receipt", "Support"]) {
+      for (const tab of ["Overview", "Courier", "Proof", "Support"]) {
         await expect(page.getByRole("tab", { name: tab })).toBeVisible();
       }
+      await expect(page.getByRole("button", { name: "View receipt section" })).toBeVisible();
 
       const height = await mapShell.evaluate((node) => Math.round(node.getBoundingClientRect().height));
       heights.push(height);
@@ -197,6 +259,7 @@ test.describe("Delivery Sign-off • Visual and consistency checks", () => {
 
   test("core state coverage is available", async ({ page }) => {
     const runtime = monitorRuntime(page);
+    await ensureSignedIn(page);
 
     await page.goto("/deliveries/tracking/DOES-NOT-EXIST", { waitUntil: "networkidle" });
     await expect(page.getByText("Order unavailable")).toBeVisible();

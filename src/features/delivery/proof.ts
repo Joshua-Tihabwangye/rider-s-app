@@ -19,6 +19,11 @@ function buildSignatureImageUrl(orderId: string, recipientName: string): string 
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
+function buildProofPhotoUrl(orderId: string, recipientName: string): string {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'><defs><linearGradient id='bg' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='#ecfdf5'/><stop offset='100%' stop-color='#dbeafe'/></linearGradient></defs><rect width='640' height='360' fill='url(#bg)'/><rect x='36' y='36' width='568' height='288' rx='20' fill='rgba(255,255,255,0.7)' stroke='rgba(15,23,42,0.12)'/><circle cx='140' cy='144' r='42' fill='#10b981'/><path d='M116 226 L196 152 L254 206 L324 136 L412 240 L116 240 Z' fill='rgba(14,165,233,0.25)' stroke='#0f172a' stroke-width='4'/><text x='236' y='132' fill='#0f172a' font-size='28' font-family='Arial, sans-serif'>Proof of delivery</text><text x='236' y='170' fill='#475569' font-size='18' font-family='Arial, sans-serif'>Order ${orderId}</text><text x='236' y='202' fill='#475569' font-size='18' font-family='Arial, sans-serif'>Recipient ${recipientName}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
 export function createAutoProofOfDelivery(order: DeliveryOrder): DeliveryProofOfDelivery {
   const deliveredAt = order.deliveredAt ?? order.updatedAt ?? new Date().toISOString();
   const methods = normalizeMethods(fallbackMethods(order));
@@ -33,7 +38,7 @@ export function createAutoProofOfDelivery(order: DeliveryOrder): DeliveryProofOf
       lat: order.dropoff.coordinates?.lat,
       lng: order.dropoff.coordinates?.lng
     },
-    photoUrl: methods.includes("photo") ? `proof://photo/${order.id}` : undefined,
+    photoUrl: methods.includes("photo") ? buildProofPhotoUrl(order.id, order.recipient.name) : undefined,
     signatureName: methods.includes("signature") ? order.recipient.name : undefined,
     pinCode: methods.includes("pin") ? otpSuffix : undefined,
     otpCode: methods.includes("otp") ? otpSuffix : undefined,

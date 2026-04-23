@@ -12,6 +12,7 @@ export const DELIVERY_STATE_FLOW: DeliveryStatus[] = [
 
 export const DELIVERY_TERMINAL_STATES: DeliveryStatus[] = [
   "delivered",
+  "partially_completed",
   "cancelled",
   "failed"
 ];
@@ -23,6 +24,7 @@ const STATUS_LABELS: Record<DeliveryStatus, string> = {
   picked_up: "Picked up",
   in_transit: "In transit",
   out_for_delivery: "Out for delivery",
+  partially_completed: "Partially completed",
   delivered: "Delivered",
   cancelled: "Cancelled",
   failed: "Failed"
@@ -35,6 +37,7 @@ const STATUS_DESCRIPTIONS: Record<DeliveryStatus, string> = {
   picked_up: "Parcel has been picked up from the pickup location.",
   in_transit: "Parcel is in transit to the destination.",
   out_for_delivery: "Driver is near the destination and arriving soon.",
+  partially_completed: "Some stops were completed, but one or more stops were not resolved successfully.",
   delivered: "Parcel delivered successfully.",
   cancelled: "Delivery was cancelled.",
   failed: "Delivery could not be completed."
@@ -47,6 +50,7 @@ const STATUS_PROGRESS: Record<DeliveryStatus, number> = {
   picked_up: 42,
   in_transit: 68,
   out_for_delivery: 88,
+  partially_completed: 100,
   delivered: 100,
   cancelled: 100,
   failed: 100
@@ -123,7 +127,7 @@ export function getTimelineView(status: DeliveryStatus): Array<{
   label: string;
   state: "done" | "current" | "upcoming";
 }> {
-  const terminalCancelled = status === "cancelled" || status === "failed";
+  const terminalCancelled = status === "cancelled" || status === "failed" || status === "partially_completed";
   if (terminalCancelled) {
     return [
       {

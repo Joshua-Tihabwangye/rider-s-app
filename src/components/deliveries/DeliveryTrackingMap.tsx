@@ -12,6 +12,8 @@ interface DeliveryTrackingMapProps {
   courierPosition: number;
   etaLabel: string;
   statusLabel: string;
+  stopLabels?: string[];
+  completedStops?: number;
   height?: number | string;
   rounded?: boolean;
   fullBleed?: boolean;
@@ -32,6 +34,8 @@ export default function DeliveryTrackingMap({
   courierPosition,
   etaLabel,
   statusLabel,
+  stopLabels = [],
+  completedStops = 0,
   height = STANDARD_DELIVERY_MAP_HEIGHT,
   rounded = false,
   fullBleed = true,
@@ -93,6 +97,33 @@ export default function DeliveryTrackingMap({
       <Box sx={{ position: "absolute", left: `${start.x}%`, top: `${start.y}%`, transform: "translate(-50%, -50%)" }}>
         <MyLocationRoundedIcon sx={{ fontSize: 22, color: "#22c55e" }} />
       </Box>
+
+      {stopLabels.length > 1 &&
+        stopLabels.map((label, index) => {
+          const ratio = (index + 1) / stopLabels.length;
+          const marker = {
+            x: start.x + (end.x - start.x) * ratio,
+            y: start.y + (end.y - start.y) * ratio
+          };
+          const isCompleted = index < completedStops;
+          return (
+            <Box
+              key={`${label}_${index}`}
+              sx={{ position: "absolute", left: `${marker.x}%`, top: `${marker.y}%`, transform: "translate(-50%, -50%)" }}
+            >
+              <Box
+                sx={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: "50%",
+                  bgcolor: isCompleted ? "#16a34a" : "#e2e8f0",
+                  border: `2px solid ${isCompleted ? "#166534" : "#64748b"}`,
+                  boxShadow: "0 4px 10px rgba(15,23,42,0.16)"
+                }}
+              />
+            </Box>
+          );
+        })}
 
       <Box sx={{ position: "absolute", left: `${courier.x}%`, top: `${courier.y}%`, transform: "translate(-50%, -50%)" }}>
         <LocalShippingRoundedIcon sx={{ fontSize: 28, color: "#0ea5e9", filter: "drop-shadow(0 6px 12px rgba(15,23,42,0.45))" }} />

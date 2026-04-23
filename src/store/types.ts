@@ -242,6 +242,7 @@ export type DeliveryStatus =
   | "picked_up"
   | "in_transit"
   | "out_for_delivery"
+  | "partially_completed"
   | "delivered"
   | "cancelled"
   | "failed";
@@ -259,6 +260,7 @@ export type DeliveryPaymentOption = "prepayment" | "payment_on_delivery";
 
 export type DeliveryTiming = "now" | "scheduled";
 export type DeliveryDropoffMethod = "hand_to_recipient" | "leave_at_door";
+export type DeliveryRouteMode = "single_stop" | "multi_stop";
 
 export type DeliveryOrderMode = "individual" | "family" | "business" | "company";
 
@@ -426,6 +428,61 @@ export interface DeliveryTrackingSnapshot {
   updatedAt: string;
 }
 
+export type DeliveryStopStatus =
+  | "pending"
+  | "queued"
+  | "arriving"
+  | "delivered"
+  | "failed"
+  | "skipped"
+  | "rescheduled"
+  | "cancelled";
+
+export interface DeliveryStopRecipient extends DeliveryParty {
+  deliveryNote?: string;
+  allocationNote?: string;
+}
+
+export interface DeliveryDraftStop {
+  id: string;
+  sequence: number;
+  location: RideLocation | null;
+  recipient: DeliveryStopRecipient | null;
+}
+
+export interface DeliveryStop {
+  id: string;
+  orderId: string;
+  sequence: number;
+  location: RideLocation;
+  recipient: DeliveryStopRecipient;
+  status: DeliveryStopStatus;
+  etaMinutes: number;
+  distanceKm: number;
+  deliveryNote?: string;
+  allocationNote?: string;
+  proofOfDelivery?: DeliveryProofOfDelivery | null;
+  completedAt?: string;
+  failedAt?: string;
+  skippedAt?: string;
+  cancelledAt?: string;
+  note?: string;
+}
+
+export interface DeliveryRouteSummary {
+  totalStops: number;
+  completedStops: number;
+  failedStops: number;
+  skippedStops: number;
+  remainingStops: number;
+  totalDistanceKm: number;
+  totalEtaMinutes: number;
+  nextStopId?: string;
+  currentStopId?: string;
+  optimized: boolean;
+  manualOrder: boolean;
+}
+
 export interface DeliveryStatusLog {
   status: DeliveryStatus;
   timestamp: string;
@@ -436,6 +493,8 @@ export interface DeliveryStatusLog {
 export interface DeliveryDraft {
   pickup: RideLocation | null;
   dropoff: RideLocation | null;
+  routeMode: DeliveryRouteMode;
+  stops: DeliveryDraftStop[];
   parcel: DeliveryParcel;
   recipient: DeliveryParty | null;
   orderMode: DeliveryOrderMode;
@@ -448,6 +507,12 @@ export interface DeliveryDraft {
   deliveryFee: number;
   serviceFee: number;
   insuranceFee: number;
+  basePickupFee?: number;
+  firstDropoffFee?: number;
+  additionalStopFee?: number;
+  distanceFee?: number;
+  stopCount?: number;
+  totalDistanceKm?: number;
   priceEstimate?: string;
   notes?: string;
 }
@@ -471,6 +536,9 @@ export interface DeliveryOrder {
   status: DeliveryStatus;
   pickup: RideLocation;
   dropoff: RideLocation;
+  routeMode: DeliveryRouteMode;
+  stops: DeliveryStop[];
+  routeSummary: DeliveryRouteSummary;
   parcel: DeliveryParcel;
   senderContact: DeliveryParty;
   recipient: DeliveryParty;
@@ -484,6 +552,12 @@ export interface DeliveryOrder {
     deliveryFee: number;
     serviceFee: number;
     insuranceFee: number;
+    basePickupFee?: number;
+    firstDropoffFee?: number;
+    additionalStopFee?: number;
+    distanceFee?: number;
+    stopCount?: number;
+    totalDistanceKm?: number;
     total: number;
     currency: string;
   };
