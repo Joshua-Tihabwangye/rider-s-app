@@ -23,6 +23,7 @@ import PersonAddAltRoundedIcon from "@mui/icons-material/PersonAddAltRounded";
 import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import PercentRoundedIcon from "@mui/icons-material/PercentRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
+import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
 
 const PASSENGERS = [
   { id: 1, name: "You", initials: "YOU", isOwner: true, joined: true },
@@ -82,6 +83,7 @@ function ShareRidePassengersScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const [shareUrl] = useState("https://ev.zone/r/ABC123");
   const [splitFare, setSplitFare] = useState(true);
+  const [invitePhone, setInvitePhone] = useState("");
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -280,16 +282,33 @@ function ShareRidePassengersScreen(): React.JSX.Element {
         }}
       >
         <CardContent sx={{ px: 1.75, py: 1.5 }}>
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (theme) => theme.palette.text.secondary }}
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            alignItems={{ xs: "flex-start", sm: "center" }}
+            justifyContent="space-between"
           >
-            Invite someone by phone
-          </Typography>
+            <Typography
+              variant="caption"
+              sx={{ fontSize: 11, color: (theme) => theme.palette.text.secondary }}
+            >
+              Invite someone by phone
+            </Typography>
+            <PhoneBookPickerButton
+              size="small"
+              variant="outlined"
+              onContactPicked={(contact) => setInvitePhone(contact.phone)}
+              sx={{ textTransform: "none", borderRadius: 5 }}
+            >
+              Pick from phone book
+            </PhoneBookPickerButton>
+          </Stack>
           <TextField
             fullWidth
             size="small"
             placeholder="Enter phone number"
+            value={invitePhone}
+            onChange={(event) => setInvitePhone(event.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

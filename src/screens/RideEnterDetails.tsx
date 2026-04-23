@@ -38,6 +38,7 @@ import MapShell from "../components/maps/MapShell";
 import SwitchRiderModal from "../components/SwitchRiderModal";
 import TripTypeModal from "../components/TripTypeModal";
 import AddStopModal from "../components/AddStopModal";
+import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
 import { useAppData } from "../contexts/AppDataContext";
 
 interface SearchResult {
@@ -1190,12 +1191,31 @@ function EnterDestinationScreen(): React.JSX.Element {
 					}}
 				>
 					<CardContent sx={{ px: 2, py: 1.5 }}>
-						<Typography
-							variant="subtitle2"
-							sx={{ fontWeight: 600, mb: 1.2, color: theme.palette.text.primary }}
+						<Stack
+							direction={{ xs: "column", sm: "row" }}
+							spacing={1}
+							justifyContent="space-between"
+							alignItems={{ xs: "flex-start", sm: "center" }}
+							sx={{ mb: 1.2 }}
 						>
-							Person details
-						</Typography>
+							<Typography
+								variant="subtitle2"
+								sx={{ fontWeight: 600, color: theme.palette.text.primary }}
+							>
+								Person details
+							</Typography>
+							<PhoneBookPickerButton
+								size="small"
+								variant="outlined"
+								onContactPicked={(contact) => {
+									setBookedPersonName(contact.name);
+									setBookedPersonPhone(contact.phone);
+								}}
+								sx={{ textTransform: "none", borderRadius: 5 }}
+							>
+								Add from phone book
+							</PhoneBookPickerButton>
+						</Stack>
 						<Stack spacing={1.25}>
 							<TextField
 								fullWidth

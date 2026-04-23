@@ -79,6 +79,11 @@ import SchoolHandoff from "../screens/SchoolHandoff";
 import RentalHistoryDetail from "../screens/RentalHistoryDetail";
 import AllHistory from "../screens/AllHistory";
 import Wallet from "../screens/Wallet";
+import {
+	WalletTransferMethodScreen,
+	WalletTransferSelectionScreen,
+	WalletTransferSuccessScreen
+} from "../screens/WalletTransferFlow";
 import MoreMenu from "../screens/MoreMenu";
 import Settings from "../screens/Settings";
 import LanguageSettings from "../screens/LanguageSettings";
@@ -266,6 +271,9 @@ export default function AppRouter(): React.JSX.Element {
 				</Route>
 				{/* Wallet, Profile, More, Settings */}
 				<Route path="wallet" element={<Wallet />} />
+				<Route path="wallet/:flowType" element={<WalletTransferSelectionScreen />} />
+				<Route path="wallet/:flowType/:method" element={<WalletTransferMethodScreen />} />
+				<Route path="wallet/:flowType/:method/success" element={<WalletTransferSuccessScreen />} />
 				<Route path="profile" element={<Profile />} />
 				<Route path="manager" element={<MoreMenu />} />
 				<Route path="more" element={<MoreMenu />} />

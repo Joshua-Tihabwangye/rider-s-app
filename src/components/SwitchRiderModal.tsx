@@ -36,6 +36,7 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 import Avatar from "@mui/material/Avatar";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
+import PhoneBookPickerButton from "./PhoneBookPickerButton";
 
 interface Contact {
   id: number;
@@ -721,6 +722,17 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }: SwitchRiderMo
                       }
                     }}
                   />
+                  <PhoneBookPickerButton
+                    size="small"
+                    variant="outlined"
+                    onContactPicked={(contact) => {
+                      setManualPhone(contact.phone);
+                      setRiderType("manual");
+                    }}
+                    sx={{ mt: 1, textTransform: "none", borderRadius: 5 }}
+                  >
+                    Import phone from phone book
+                  </PhoneBookPickerButton>
                 </Box>
               )}
 
@@ -761,4 +773,3 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }: SwitchRiderMo
 }
 
 export default SwitchRiderModal;
-
