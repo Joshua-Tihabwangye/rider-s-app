@@ -88,13 +88,14 @@ function toDateTimeLocalValue(value?: string): string {
   return `${year}-${month}-${day}T${hour}:${minute}`;
 }
 
-type TrackingTab = "overview" | "courier" | "receipt" | "support";
+type TrackingTab = "overview" | "courier" | "proof" | "receipt" | "support";
 type TopTrackingTab = Exclude<TrackingTab, "receipt">;
 type OverviewPanel = "timeline" | "map";
 
 const TRACKING_TAB_OPTIONS: Array<{ value: TopTrackingTab; label: string }> = [
   { value: "overview", label: "Overview" },
   { value: "courier", label: "Courier" },
+  { value: "proof", label: "Proof" },
   { value: "support", label: "Support" }
 ];
 
@@ -102,7 +103,7 @@ const DEFAULT_TRACKING_TAB: TrackingTab = "overview";
 const DEFAULT_OVERVIEW_PANEL: OverviewPanel = "timeline";
 
 function parseTrackingTab(value: string | null): TrackingTab {
-  const validTabs = new Set<TrackingTab>(["overview", "courier", "receipt", "support"]);
+  const validTabs = new Set<TrackingTab>(["overview", "courier", "proof", "receipt", "support"]);
   return value && validTabs.has(value as TrackingTab) ? (value as TrackingTab) : DEFAULT_TRACKING_TAB;
 }
 
@@ -196,8 +197,8 @@ export default function DeliveryTracking(): React.JSX.Element {
   const isReceiverView = order.participantRole === "receiver";
   const canAcceptIncoming = isReceiverView && order.status === "requested";
   const canDeclineIncoming = isReceiverView && (order.status === "requested" || order.status === "accepted");
-  const canConfirmReceipt = isReceiverView && !["delivered", "cancelled", "failed"].includes(order.status);
-  const canRateDelivery = order.status === "delivered";
+  const canConfirmReceipt = isReceiverView && !["delivered", "partially_completed", "cancelled", "failed"].includes(order.status);
+  const canRateDelivery = order.status === "delivered" || order.status === "partially_completed";
   const requiresSenderConfirmation =
     !isReceiverView && order.status === "delivered" && order.dropoffMethod !== "leave_at_door";
   const senderConfirmationImage = order.proofOfDelivery?.signatureImageUrl ?? order.proofOfDelivery?.photoUrl ?? "";
@@ -206,6 +207,22 @@ export default function DeliveryTracking(): React.JSX.Element {
   const scheduleCancellation = calculateScheduledCancellationFee(order);
   const canEditSchedule = canEditScheduledOrder(order);
   const canCancelSchedule = canCancelScheduledOrder(order);
+  const currentStop =
+    order.stops.find((stop) => stop.id === order.routeSummary.currentStopId) ??
+    order.stops.find((stop) => ["arriving", "queued", "pending", "rescheduled"].includes(stop.status)) ??
+    order.stops[order.stops.length - 1];
+  const stopSummaryLabel =
+    order.routeMode === "multi_stop" && order.routeSummary.totalStops > 1
+      ? `${order.routeSummary.completedStops}/${order.routeSummary.totalStops} stops complete`
+      : null;
+  const manualAdvanceLabel =
+    order.routeMode === "multi_stop" && order.routeSummary.totalStops > 1 && nextStatus === "delivered"
+      ? currentStop
+        ? `Complete stop ${currentStop.sequence}`
+        : "Complete current stop"
+      : nextStatus
+        ? `Mark as ${getDeliveryStatusLabel(nextStatus)}`
+        : "";
 
   const setTrackingTab = (nextTab: TrackingTab, nextOverviewPanel?: OverviewPanel): void => {
     const nextParams = new URLSearchParams(searchParams);
@@ -267,6 +284,7 @@ export default function DeliveryTracking(): React.JSX.Element {
 
   const showTimelineSection = activeTab === "overview" && activeOverviewPanel === "timeline";
   const showCourierSection = activeTab === "courier";
+  const showProofSection = activeTab === "proof";
   const showReceiptSection = activeTab === "receipt";
   const showSupportSection = activeTab === "support";
   const tabsValue: TopTrackingTab | false = activeTab === "receipt" ? false : activeTab;
@@ -303,10 +321,12 @@ export default function DeliveryTracking(): React.JSX.Element {
           <Box ref={mapRef} id="tracking-section-overview">
             <DeliveryTrackingMap
               pickupLabel={order.pickup.label}
-              dropoffLabel={order.dropoff.label}
+              dropoffLabel={currentStop?.location.label ?? order.dropoff.label}
               courierPosition={order.tracking.courierPosition}
               etaLabel={etaLabel}
               statusLabel={statusLabel}
+              stopLabels={order.stops.map((stop) => stop.location.label)}
+              completedStops={order.routeSummary.completedStops}
               showBackButton
               onBack={() => navigate(-1)}
               fullBleed
@@ -327,8 +347,13 @@ export default function DeliveryTracking(): React.JSX.Element {
               <Typography variant="caption" sx={{ display: "block", color: (t) => t.palette.text.secondary }}>
                 {isReceiverView
                   ? `Parcel: ${order.parcel.description} • Sender: ${order.senderContact.name}`
-                  : `Parcel: ${order.parcel.description} • Recipient: ${order.recipient.name}`}
+                  : `Parcel: ${order.parcel.description} • Recipient: ${currentStop?.recipient.name ?? order.recipient.name}`}
               </Typography>
+              {stopSummaryLabel && (
+                <Typography variant="caption" sx={{ display: "block", color: (t) => t.palette.text.secondary }}>
+                  {stopSummaryLabel}
+                </Typography>
+              )}
             </Box>
             <Stack spacing={0.6} alignItems="flex-end" sx={{ mt: 0.2 }}>
               <Chip
@@ -360,11 +385,78 @@ export default function DeliveryTracking(): React.JSX.Element {
 
           <DeliveryStatusSummary
             pickupLabel={order.pickup.label}
-            dropoffLabel={order.dropoff.label}
+            dropoffLabel={currentStop?.location.label ?? order.dropoff.label}
             etaLabel={etaLabel}
             distanceKm={order.tracking.distanceKm}
             lastSyncLabel={formatDateTime(delivery.lastRealtimeSync ?? order.tracking.updatedAt)}
+            totalStops={order.routeSummary.totalStops}
+            completedStops={order.routeSummary.completedStops}
           />
+
+          {order.routeSummary.totalStops > 1 && (
+            <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+              <CardContent>
+                <Stack spacing={1.2}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                      Route overview
+                    </Typography>
+                    <Chip
+                      size="small"
+                      label={`${order.routeSummary.completedStops}/${order.routeSummary.totalStops} complete`}
+                      sx={{ borderRadius: 5, fontWeight: 700 }}
+                    />
+                  </Stack>
+                  <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                    {currentStop
+                      ? `Current stop: ${currentStop.sequence} • ${currentStop.recipient.name}`
+                      : "Route is closing out."}
+                  </Typography>
+                  <Stack spacing={0.9}>
+                    {order.stops.map((stop) => (
+                      <Stack key={stop.id} direction="row" spacing={1.1} alignItems="flex-start">
+                        <Chip
+                          size="small"
+                          label={`${stop.sequence}`}
+                          sx={{
+                            minWidth: 34,
+                            fontWeight: 700,
+                            bgcolor:
+                              stop.status === "delivered"
+                                ? "rgba(34,197,94,0.14)"
+                                : stop.status === "failed" || stop.status === "skipped"
+                                  ? "rgba(248,113,113,0.16)"
+                                  : stop.status === "arriving"
+                                    ? "rgba(59,130,246,0.14)"
+                                    : "rgba(148,163,184,0.16)",
+                            color:
+                              stop.status === "delivered"
+                                ? "#15803D"
+                                : stop.status === "failed" || stop.status === "skipped"
+                                  ? "#B91C1C"
+                                  : stop.status === "arriving"
+                                    ? "#1D4ED8"
+                                    : "#475569"
+                          }}
+                        />
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                            {stop.recipient.name}
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: "block", color: (t) => t.palette.text.secondary }}>
+                            {stop.location.address}
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: "block", color: (t) => t.palette.text.secondary }}>
+                            {stop.status.replace(/_/g, " ")}{stop.completedAt ? ` • ${formatDateTime(stop.completedAt)}` : ""}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    ))}
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Card>
+          )}
 
           <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
             <CardContent sx={{ pb: "12px !important" }}>
@@ -474,7 +566,7 @@ export default function DeliveryTracking(): React.JSX.Element {
         </Card>
       )}
 
-      {showTimelineSection && order.status === "delivered" && (
+      {showTimelineSection && (order.status === "delivered" || order.status === "partially_completed") && (
         <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl, border: "1px solid rgba(34,197,94,0.28)" }}>
           <CardContent>
             <Stack direction="row" spacing={1.2} alignItems="center" justifyContent="space-between">
@@ -482,7 +574,7 @@ export default function DeliveryTracking(): React.JSX.Element {
                 <CheckCircleRoundedIcon sx={{ fontSize: 24, color: "#16A34A" }} />
                 <Box>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#16A34A" }}>
-                    Delivered
+                    {order.status === "partially_completed" ? "Route closed with partial completion" : "Delivered"}
                   </Typography>
                   <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
                     Completed at {formatDateTime(order.deliveredAt ?? order.updatedAt)}
@@ -608,6 +700,55 @@ export default function DeliveryTracking(): React.JSX.Element {
                 </Typography>
               </Stack>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {showProofSection && (
+        <Card id="tracking-section-proof" elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
+          <CardContent>
+            <Stack spacing={1}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                Proof of delivery
+              </Typography>
+              {order.routeSummary.totalStops > 1 ? (
+                order.stops.some((stop) => stop.proofOfDelivery) ? (
+                  <Stack spacing={1}>
+                    {order.stops.map((stop) => (
+                      <Box key={stop.id}>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          Stop {stop.sequence} • {stop.recipient.name}
+                        </Typography>
+                        {stop.proofOfDelivery ? (
+                          <Typography variant="caption" sx={{ display: "block", color: (t) => t.palette.text.secondary }}>
+                            {stop.proofOfDelivery.methods.join(", ")} • {formatDateTime(stop.proofOfDelivery.deliveredAt)}
+                          </Typography>
+                        ) : (
+                          <Typography variant="caption" sx={{ display: "block", color: (t) => t.palette.text.secondary }}>
+                            Proof is pending.
+                          </Typography>
+                        )}
+                      </Box>
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                    Proof is pending.
+                  </Typography>
+                )
+              ) : order.proofOfDelivery ? (
+                <Stack spacing={0.8}>
+                  <Typography variant="body2">{order.proofOfDelivery.methods.join(", ")}</Typography>
+                  <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                    Verified at {formatDateTime(order.proofOfDelivery.deliveredAt)}
+                  </Typography>
+                </Stack>
+              ) : (
+                <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary }}>
+                  Proof is pending.
+                </Typography>
+              )}
+            </Stack>
           </CardContent>
         </Card>
       )}
@@ -758,7 +899,7 @@ export default function DeliveryTracking(): React.JSX.Element {
               >
                 Confirm receipt
               </Button>
-              {order.needsPayment && order.status === "delivered" && (
+              {order.needsPayment && (order.status === "delivered" || order.status === "partially_completed") && (
                 <Button
                   variant="contained"
                   color="success"
@@ -792,13 +933,21 @@ export default function DeliveryTracking(): React.JSX.Element {
               variant="contained"
               onClick={() => actions.updateDeliveryOrderStatus(order.id, nextStatus, "Stage advanced manually")}
               sx={{ textTransform: "none", fontWeight: 700 }}
-              aria-label={`Mark as ${getDeliveryStatusLabel(nextStatus)}`}
+              aria-label={manualAdvanceLabel}
             >
-              Mark as {getDeliveryStatusLabel(nextStatus)}
+              {manualAdvanceLabel}
             </Button>
           )}
 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+            <Button
+              variant={showProofSection ? "contained" : "outlined"}
+              onClick={() => setTrackingTab("proof")}
+              aria-label="View proof of delivery"
+              sx={{ textTransform: "none" }}
+            >
+              View proof
+            </Button>
             <Button
               variant={showReceiptSection ? "contained" : "outlined"}
               onClick={() => setTrackingTab("receipt")}
@@ -858,7 +1007,7 @@ export default function DeliveryTracking(): React.JSX.Element {
                 variant="outlined"
                 color="error"
                 onClick={() => setCancelDialogOpen(true)}
-                disabled={order.status === "cancelled" || order.status === "delivered" || (order.schedule === "scheduled" && !canCancelSchedule)}
+                disabled={order.status === "cancelled" || order.status === "delivered" || order.status === "partially_completed" || (order.schedule === "scheduled" && !canCancelSchedule)}
                 sx={{ textTransform: "none" }}
               >
                 Cancel

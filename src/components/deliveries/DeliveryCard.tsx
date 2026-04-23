@@ -43,9 +43,14 @@ interface DeliveryOrder {
   packageName: string;
   status: string;
   orderMode?: DeliveryOrderMode;
+  routeMode?: "single_stop" | "multi_stop";
   progress?: number;
   date?: Date;
   time?: string;
+  routeSummary?: {
+    totalStops: number;
+    completedStops: number;
+  };
   sender?: SenderInfo;
   receiver?: ReceiverInfo;
   needsPayment?: boolean;
@@ -131,6 +136,20 @@ export default function DeliveryCard({
                     bgcolor: getDeliveryOrderModeTone(order.orderMode).bg,
                     color: getDeliveryOrderModeTone(order.orderMode).fg,
                     border: `1px solid ${getDeliveryOrderModeTone(order.orderMode).border}`
+                  }}
+                />
+              )}
+              {order.routeSummary && order.routeSummary.totalStops > 1 && (
+                <Chip
+                  size="small"
+                  label={`${order.routeSummary.completedStops}/${order.routeSummary.totalStops} stops`}
+                  sx={{
+                    height: 20,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    bgcolor: "rgba(59,130,246,0.12)",
+                    color: "#1D4ED8",
+                    border: "1px solid rgba(59,130,246,0.24)"
                   }}
                 />
               )}

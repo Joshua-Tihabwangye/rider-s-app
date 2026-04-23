@@ -39,14 +39,17 @@ export function applySettlementForDeliveryStatus(
   cancellationFee = 0,
   nowIso = new Date().toISOString()
 ): DeliverySettlement {
-  if (status === "delivered") {
+  if (status === "delivered" || status === "partially_completed") {
     if (settlement.policy === "cash_on_delivery") {
       return {
         ...settlement,
         status: "cash_collected",
         capturedAmount: order.costBreakdown.total,
         capturedAt: nowIso,
-        note: "Cash collected at successful handoff."
+        note:
+          status === "partially_completed"
+            ? "Cash collected after route closed with partial completion."
+            : "Cash collected at successful handoff."
       };
     }
 
@@ -55,7 +58,10 @@ export function applySettlementForDeliveryStatus(
       status: "captured",
       capturedAmount: order.costBreakdown.total,
       capturedAt: nowIso,
-      note: "Authorization captured on successful delivery."
+      note:
+        status === "partially_completed"
+          ? "Authorization captured after route closed with partial completion."
+          : "Authorization captured on successful delivery."
     };
   }
 

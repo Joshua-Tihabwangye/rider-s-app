@@ -33,6 +33,7 @@ import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import type { DeliveryDraft, DeliveryOrderMode, RideLocation } from "../store/types";
 import { DEFAULT_DELIVERY_SCHEDULE_POLICY } from "../features/delivery/schedulePolicy";
+import { createEmptyDeliveryDraftStop, deriveDraftStops } from "../features/delivery/multiStop";
 import {
   DELIVERY_ORDER_MODE_OPTIONS,
   getDeliveryOrderModeLabel,
@@ -84,14 +85,22 @@ function formatCurrency(amount: number): string {
 }
 
 function canProceed(step: number, draft: DeliveryDraft): boolean {
+  const stops = deriveDraftStops(draft);
   if (step === 0) {
-    return Boolean(draft.pickup?.address && draft.dropoff?.address);
+    return Boolean(draft.pickup?.address) && stops.every((stop) => Boolean(stop.location?.address?.trim()));
   }
   if (step === 1) {
     return Boolean(draft.parcel.description.trim()) && draft.parcel.value > 0;
   }
   if (step === 2) {
-    return Boolean(draft.recipient?.name && draft.recipient?.phone && draft.recipient?.address);
+    return stops.every(
+      (stop) =>
+        Boolean(
+          stop.recipient?.name?.trim() &&
+            stop.recipient?.phone?.trim() &&
+            (stop.recipient?.address?.trim() || stop.location?.address?.trim())
+        )
+    );
   }
   if (step === 3) {
     if (draft.orderMode === "individual") {
@@ -135,18 +144,21 @@ function canProceed(step: number, draft: DeliveryDraft): boolean {
 }
 
 function getStepValidationHint(step: number, draft: DeliveryDraft, onlinePaymentMethodCount: number): string {
+  const stops = deriveDraftStops(draft);
   if (step === 0) {
     if (!draft.pickup?.address?.trim()) return "Pickup location is required.";
-    if (!draft.dropoff?.address?.trim()) return "Dropoff location is required.";
+    if (stops.some((stop) => !stop.location?.address?.trim())) return "Every destination needs an address.";
   }
   if (step === 1) {
     if (!draft.parcel.description.trim()) return "Parcel description is required.";
     if (draft.parcel.value <= 0) return "Declared value must be greater than zero.";
   }
   if (step === 2) {
-    if (!draft.recipient?.name?.trim()) return "Recipient name is required.";
-    if (!draft.recipient?.phone?.trim()) return "Recipient phone is required.";
-    if (!draft.recipient?.address?.trim()) return "Recipient address is required.";
+    if (stops.some((stop) => !stop.recipient?.name?.trim())) return "Every stop needs a recipient name.";
+    if (stops.some((stop) => !stop.recipient?.phone?.trim())) return "Every stop needs a recipient phone.";
+    if (stops.some((stop) => !(stop.recipient?.address?.trim() || stop.location?.address?.trim()))) {
+      return "Every stop needs a recipient address.";
+    }
   }
   if (step === 3) {
     if (draft.orderMode === "family" && draft.orderModeConfig.family?.payer === "member" && !draft.orderModeConfig.family?.memberName?.trim()) {
@@ -198,6 +210,7 @@ export default function DeliveryNew(): React.JSX.Element {
   const [showStepValidation, setShowStepValidation] = useState(false);
 
   const draft = delivery.draft;
+  const draftStops = useMemo(() => deriveDraftStops(draft), [draft]);
   const subtotal = draft.deliveryFee + draft.serviceFee + draft.insuranceFee;
   const paymentOnDeliveryMethod = useMemo(
     () => paymentMethods.find((method) => method.type === "cash") ?? null,
@@ -220,12 +233,28 @@ export default function DeliveryNew(): React.JSX.Element {
   );
 
   const pickupMissing = showStepValidation && activeStep === 0 && !draft.pickup?.address?.trim();
-  const dropoffMissing = showStepValidation && activeStep === 0 && !draft.dropoff?.address?.trim();
+  const missingRouteStopIndexes = showStepValidation && activeStep === 0
+    ? draftStops
+        .map((stop, index) => (!stop.location?.address?.trim() ? index : -1))
+        .filter((index) => index >= 0)
+    : [];
   const parcelDescriptionMissing = showStepValidation && activeStep === 1 && !draft.parcel.description.trim();
   const parcelValueInvalid = showStepValidation && activeStep === 1 && draft.parcel.value <= 0;
-  const recipientNameMissing = showStepValidation && activeStep === 2 && !draft.recipient?.name?.trim();
-  const recipientPhoneMissing = showStepValidation && activeStep === 2 && !draft.recipient?.phone?.trim();
-  const recipientAddressMissing = showStepValidation && activeStep === 2 && !draft.recipient?.address?.trim();
+  const missingRecipientNameIndexes = showStepValidation && activeStep === 2
+    ? draftStops
+        .map((stop, index) => (!stop.recipient?.name?.trim() ? index : -1))
+        .filter((index) => index >= 0)
+    : [];
+  const missingRecipientPhoneIndexes = showStepValidation && activeStep === 2
+    ? draftStops
+        .map((stop, index) => (!stop.recipient?.phone?.trim() ? index : -1))
+        .filter((index) => index >= 0)
+    : [];
+  const missingRecipientAddressIndexes = showStepValidation && activeStep === 2
+    ? draftStops
+        .map((stop, index) => (!(stop.recipient?.address?.trim() || stop.location?.address?.trim()) ? index : -1))
+        .filter((index) => index >= 0)
+    : [];
   const familyMemberNameMissing =
     showStepValidation &&
     activeStep === 3 &&
@@ -266,10 +295,7 @@ export default function DeliveryNew(): React.JSX.Element {
     !draft.paymentPrepaid;
 
   const updateDraft = (patch: Partial<DeliveryDraft>): void => {
-    actions.updateDeliveryDraft({
-      ...patch,
-      priceEstimate: formatCurrency(subtotal)
-    });
+    actions.updateDeliveryDraft(patch);
   };
 
   const updateOrderModeConfig = (patch: OrderModeConfigPatch): void => {
@@ -294,6 +320,73 @@ export default function DeliveryNew(): React.JSX.Element {
 
   const handleModeChange = (value: DeliveryOrderMode): void => {
     updateDraft({ orderMode: value });
+  };
+
+  const updateStop = (
+    index: number,
+    updater: (stop: DeliveryDraft["stops"][number]) => DeliveryDraft["stops"][number]
+  ): void => {
+    const nextStops = draftStops.map((stop, stopIndex) =>
+      stopIndex === index ? updater(stop) : stop
+    );
+    updateDraft({ stops: nextStops });
+  };
+
+  const addStop = (): void => {
+    updateDraft({ stops: [...draftStops, createEmptyDeliveryDraftStop(draftStops.length + 1)], routeMode: "multi_stop" });
+  };
+
+  const duplicateStop = (index: number): void => {
+    const stop = draftStops[index];
+    if (!stop) {
+      return;
+    }
+    const duplicated = {
+      ...stop,
+      id: createEmptyDeliveryDraftStop(draftStops.length + 1).id,
+      location: stop.location ? { ...stop.location } : null,
+      recipient: stop.recipient
+        ? { ...stop.recipient }
+        : null
+    };
+    const nextStops = [...draftStops];
+    nextStops.splice(index + 1, 0, duplicated);
+    updateDraft({ stops: nextStops, routeMode: "multi_stop" });
+  };
+
+  const removeStop = (index: number): void => {
+    const nextStops = draftStops.filter((_, stopIndex) => stopIndex !== index);
+    updateDraft({
+      routeMode: nextStops.length <= 1 ? "single_stop" : draft.routeMode,
+      stops: nextStops.length > 0 ? nextStops : [createEmptyDeliveryDraftStop(1)]
+    });
+  };
+
+  const moveStop = (index: number, direction: -1 | 1): void => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= draftStops.length) {
+      return;
+    }
+    const nextStops = [...draftStops];
+    [nextStops[index], nextStops[targetIndex]] = [nextStops[targetIndex], nextStops[index]];
+    updateDraft({ stops: nextStops, routeMode: nextStops.length > 1 ? "multi_stop" : draft.routeMode });
+  };
+
+  const handleRouteModeChange = (value: DeliveryDraft["routeMode"]): void => {
+    if (value === draft.routeMode) {
+      return;
+    }
+    if (value === "single_stop") {
+      updateDraft({
+        routeMode: value,
+        stops: [draftStops[0] ?? createEmptyDeliveryDraftStop(1)]
+      });
+      return;
+    }
+    updateDraft({
+      routeMode: value,
+      stops: draftStops.length > 0 ? draftStops : [createEmptyDeliveryDraftStop(1)]
+    });
   };
 
   const handlePaymentOptionChange = (option: DeliveryDraft["paymentOption"]): void => {
@@ -344,7 +437,7 @@ export default function DeliveryNew(): React.JSX.Element {
     }
     const order = actions.createDeliveryOrder();
     if (!order) {
-      setSubmitError("Pickup, dropoff, parcel and recipient details are required.");
+      setSubmitError("Pickup, destination, parcel, and recipient details are required for every stop.");
       return;
     }
     actions.setActiveDeliveryById(order.id);
@@ -425,6 +518,30 @@ export default function DeliveryNew(): React.JSX.Element {
                 <PlaceRoundedIcon sx={{ fontSize: 18, color: uiTokens.colors.brand }} />
                 <Typography variant="subtitle2">Route details</Typography>
               </Stack>
+              <ToggleButtonGroup
+                color="primary"
+                exclusive
+                value={draft.routeMode}
+                onChange={(_event, value: DeliveryDraft["routeMode"] | null) => {
+                  if (value) {
+                    handleRouteModeChange(value);
+                  }
+                }}
+                fullWidth
+                aria-label="Delivery route mode selector"
+              >
+                <ToggleButton value="single_stop" aria-label="Single destination">
+                  Single stop
+                </ToggleButton>
+                <ToggleButton value="multi_stop" aria-label="Multiple destinations">
+                  Multi-stop
+                </ToggleButton>
+              </ToggleButtonGroup>
+              <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                {draft.routeMode === "multi_stop"
+                  ? "One pickup, many dropoffs. Add, duplicate, remove, and reorder stops before payment."
+                  : "Fast path for one recipient and one destination."}
+              </Typography>
               <TextField
                 label="Pickup location"
                 value={draft.pickup?.address ?? ""}
@@ -436,17 +553,73 @@ export default function DeliveryNew(): React.JSX.Element {
                 error={pickupMissing}
                 helperText={pickupMissing ? "Pickup location is required." : " "}
               />
-              <TextField
-                label="Dropoff location"
-                value={draft.dropoff?.address ?? ""}
-                onChange={(event) => updateDraft({ dropoff: toLocation(event.target.value) })}
-                placeholder="e.g. 12, JJ Apartments, New Street, Kampala"
-                size="small"
-                fullWidth
-                required
-                error={dropoffMissing}
-                helperText={dropoffMissing ? "Dropoff location is required." : " "}
-              />
+              <Stack spacing={1.2}>
+                {draftStops.map((stop, index) => (
+                  <AppCard
+                    key={stop.id}
+                    contentSx={{ display: "grid", gap: uiTokens.spacing.sm }}
+                    sx={{ bgcolor: (t) => (t.palette.mode === "light" ? "rgba(248,250,252,0.92)" : "rgba(15,23,42,0.72)") }}
+                  >
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Chip size="small" label={`Stop ${index + 1}`} />
+                        {index === 0 && <Chip size="small" label="First dropoff" />}
+                      </Stack>
+                      <Stack direction="row" spacing={0.6} flexWrap="wrap" useFlexGap>
+                        <Button size="small" variant="outlined" onClick={() => moveStop(index, -1)} disabled={index === 0} sx={{ textTransform: "none" }}>
+                          Up
+                        </Button>
+                        <Button size="small" variant="outlined" onClick={() => moveStop(index, 1)} disabled={index === draftStops.length - 1} sx={{ textTransform: "none" }}>
+                          Down
+                        </Button>
+                        <Button size="small" variant="outlined" onClick={() => duplicateStop(index)} sx={{ textTransform: "none" }}>
+                          Duplicate
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="error"
+                          onClick={() => removeStop(index)}
+                          disabled={draftStops.length === 1}
+                          sx={{ textTransform: "none" }}
+                        >
+                          Remove
+                        </Button>
+                      </Stack>
+                    </Stack>
+
+                    <TextField
+                      label={draft.routeMode === "multi_stop" ? `Destination ${index + 1}` : "Dropoff location"}
+                      value={stop.location?.address ?? ""}
+                      onChange={(event) =>
+                        updateStop(index, (currentStop) => ({
+                          ...currentStop,
+                          location: toLocation(event.target.value),
+                          recipient: currentStop.recipient
+                            ? {
+                                ...currentStop.recipient,
+                                address: currentStop.recipient.address || event.target.value
+                              }
+                            : currentStop.recipient
+                        }))
+                      }
+                      placeholder="e.g. 12, JJ Apartments, New Street, Kampala"
+                      size="small"
+                      fullWidth
+                      required
+                      error={missingRouteStopIndexes.includes(index)}
+                      helperText={missingRouteStopIndexes.includes(index) ? "Destination address is required." : " "}
+                    />
+                  </AppCard>
+                ))}
+              </Stack>
+
+              <Button variant="outlined" onClick={addStop} sx={{ textTransform: "none", fontWeight: 700 }}>
+                Add destination
+              </Button>
+              <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                {draftStops.length} destination{draftStops.length === 1 ? "" : "s"} • route fee updates automatically as you edit the stop list.
+              </Typography>
             </>
           )}
 
@@ -555,73 +728,157 @@ export default function DeliveryNew(): React.JSX.Element {
                   size="small"
                   variant="outlined"
                   onContactPicked={(contact) =>
-                    updateDraft({
+                    updateStop(0, (currentStop) => ({
+                      ...currentStop,
                       recipient: {
                         name: contact.name,
                         phone: contact.phone,
-                        address: draft.recipient?.address ?? draft.dropoff?.address ?? ""
+                        address: currentStop.recipient?.address ?? currentStop.location?.address ?? "",
+                        deliveryNote: currentStop.recipient?.deliveryNote ?? "",
+                        allocationNote: currentStop.recipient?.allocationNote ?? ""
                       }
-                    })
+                    }))
                   }
                   sx={{ textTransform: "none", borderRadius: 5 }}
                 >
                   Import from phone book
                 </PhoneBookPickerButton>
               </Stack>
-              <TextField
-                label="Recipient name"
-                value={draft.recipient?.name ?? ""}
-                onChange={(event) =>
-                  updateDraft({
-                    recipient: {
-                      name: event.target.value,
-                      phone: draft.recipient?.phone ?? "",
-                      address: draft.recipient?.address ?? ""
-                    }
-                  })
-                }
-                size="small"
-                fullWidth
-                required
-                error={recipientNameMissing}
-                helperText={recipientNameMissing ? "Recipient name is required." : " "}
-              />
-              <TextField
-                label="Recipient phone"
-                value={draft.recipient?.phone ?? ""}
-                onChange={(event) =>
-                  updateDraft({
-                    recipient: {
-                      name: draft.recipient?.name ?? "",
-                      phone: event.target.value,
-                      address: draft.recipient?.address ?? ""
-                    }
-                  })
-                }
-                size="small"
-                fullWidth
-                required
-                error={recipientPhoneMissing}
-                helperText={recipientPhoneMissing ? "Recipient phone is required." : " "}
-              />
-              <TextField
-                label="Recipient address"
-                value={draft.recipient?.address ?? draft.dropoff?.address ?? ""}
-                onChange={(event) =>
-                  updateDraft({
-                    recipient: {
-                      name: draft.recipient?.name ?? "",
-                      phone: draft.recipient?.phone ?? "",
-                      address: event.target.value
-                    }
-                  })
-                }
-                size="small"
-                fullWidth
-                required
-                error={recipientAddressMissing}
-                helperText={recipientAddressMissing ? "Recipient address is required." : " "}
-              />
+              <Stack spacing={1.2}>
+                {draftStops.map((stop, index) => (
+                  <AppCard key={stop.id} contentSx={{ display: "grid", gap: uiTokens.spacing.sm }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Chip size="small" label={`Stop ${index + 1}`} />
+                        <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                          {stop.location?.label ?? "Destination pending"}
+                        </Typography>
+                      </Stack>
+                      <PhoneBookPickerButton
+                        size="small"
+                        variant="outlined"
+                        onContactPicked={(contact) =>
+                          updateStop(index, (currentStop) => ({
+                            ...currentStop,
+                            recipient: {
+                              name: contact.name,
+                              phone: contact.phone,
+                              address: currentStop.recipient?.address ?? currentStop.location?.address ?? "",
+                              deliveryNote: currentStop.recipient?.deliveryNote ?? "",
+                              allocationNote: currentStop.recipient?.allocationNote ?? ""
+                            }
+                          }))
+                        }
+                        sx={{ textTransform: "none", borderRadius: 5 }}
+                      >
+                        Pick contact
+                      </PhoneBookPickerButton>
+                    </Stack>
+
+                    <TextField
+                      label="Recipient name"
+                      value={stop.recipient?.name ?? ""}
+                      onChange={(event) =>
+                        updateStop(index, (currentStop) => ({
+                          ...currentStop,
+                          recipient: {
+                            name: event.target.value,
+                            phone: currentStop.recipient?.phone ?? "",
+                            address: currentStop.recipient?.address ?? currentStop.location?.address ?? "",
+                            deliveryNote: currentStop.recipient?.deliveryNote ?? "",
+                            allocationNote: currentStop.recipient?.allocationNote ?? ""
+                          }
+                        }))
+                      }
+                      size="small"
+                      fullWidth
+                      required
+                      error={missingRecipientNameIndexes.includes(index)}
+                      helperText={missingRecipientNameIndexes.includes(index) ? "Recipient name is required." : " "}
+                    />
+                    <TextField
+                      label="Recipient phone"
+                      value={stop.recipient?.phone ?? ""}
+                      onChange={(event) =>
+                        updateStop(index, (currentStop) => ({
+                          ...currentStop,
+                          recipient: {
+                            name: currentStop.recipient?.name ?? "",
+                            phone: event.target.value,
+                            address: currentStop.recipient?.address ?? currentStop.location?.address ?? "",
+                            deliveryNote: currentStop.recipient?.deliveryNote ?? "",
+                            allocationNote: currentStop.recipient?.allocationNote ?? ""
+                          }
+                        }))
+                      }
+                      size="small"
+                      fullWidth
+                      required
+                      error={missingRecipientPhoneIndexes.includes(index)}
+                      helperText={missingRecipientPhoneIndexes.includes(index) ? "Recipient phone is required." : " "}
+                    />
+                    <TextField
+                      label="Recipient address"
+                      value={stop.recipient?.address ?? stop.location?.address ?? ""}
+                      onChange={(event) =>
+                        updateStop(index, (currentStop) => ({
+                          ...currentStop,
+                          recipient: {
+                            name: currentStop.recipient?.name ?? "",
+                            phone: currentStop.recipient?.phone ?? "",
+                            address: event.target.value,
+                            deliveryNote: currentStop.recipient?.deliveryNote ?? "",
+                            allocationNote: currentStop.recipient?.allocationNote ?? ""
+                          }
+                        }))
+                      }
+                      size="small"
+                      fullWidth
+                      required
+                      error={missingRecipientAddressIndexes.includes(index)}
+                      helperText={missingRecipientAddressIndexes.includes(index) ? "Recipient address is required." : " "}
+                    />
+                    <TextField
+                      label="Delivery note"
+                      value={stop.recipient?.deliveryNote ?? ""}
+                      onChange={(event) =>
+                        updateStop(index, (currentStop) => ({
+                          ...currentStop,
+                          recipient: {
+                            name: currentStop.recipient?.name ?? "",
+                            phone: currentStop.recipient?.phone ?? "",
+                            address: currentStop.recipient?.address ?? currentStop.location?.address ?? "",
+                            deliveryNote: event.target.value,
+                            allocationNote: currentStop.recipient?.allocationNote ?? ""
+                          }
+                        }))
+                      }
+                      size="small"
+                      fullWidth
+                      multiline
+                      minRows={2}
+                    />
+                    <TextField
+                      label="Item allocation / note"
+                      value={stop.recipient?.allocationNote ?? ""}
+                      onChange={(event) =>
+                        updateStop(index, (currentStop) => ({
+                          ...currentStop,
+                          recipient: {
+                            name: currentStop.recipient?.name ?? "",
+                            phone: currentStop.recipient?.phone ?? "",
+                            address: currentStop.recipient?.address ?? currentStop.location?.address ?? "",
+                            deliveryNote: currentStop.recipient?.deliveryNote ?? "",
+                            allocationNote: event.target.value
+                          }
+                        }))
+                      }
+                      size="small"
+                      fullWidth
+                    />
+                  </AppCard>
+                ))}
+              </Stack>
             </>
           )}
 
@@ -935,6 +1192,24 @@ export default function DeliveryNew(): React.JSX.Element {
 
               <Stack spacing={0.8}>
                 <Stack direction="row" justifyContent="space-between">
+                  <Typography variant="body2">Base pickup fee</Typography>
+                  <Typography variant="body2">{formatCurrency(draft.basePickupFee ?? 0)}</Typography>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography variant="body2">First dropoff fee</Typography>
+                  <Typography variant="body2">{formatCurrency(draft.firstDropoffFee ?? 0)}</Typography>
+                </Stack>
+                {draft.routeMode === "multi_stop" && (
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="body2">Additional stops</Typography>
+                    <Typography variant="body2">{formatCurrency(draft.additionalStopFee ?? 0)}</Typography>
+                  </Stack>
+                )}
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography variant="body2">Distance fee</Typography>
+                  <Typography variant="body2">{formatCurrency(draft.distanceFee ?? 0)}</Typography>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between">
                   <Typography variant="body2">Delivery fee</Typography>
                   <Typography variant="body2">{formatCurrency(draft.deliveryFee)}</Typography>
                 </Stack>
@@ -955,6 +1230,9 @@ export default function DeliveryNew(): React.JSX.Element {
                     {formatCurrency(subtotal)}
                   </Typography>
                 </Stack>
+                <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                  {draft.stopCount ?? draftStops.length} destination{(draft.stopCount ?? draftStops.length) === 1 ? "" : "s"} • {Number(draft.totalDistanceKm ?? 0).toFixed(1)} km total route
+                </Typography>
               </Stack>
             </>
           )}
@@ -968,6 +1246,8 @@ export default function DeliveryNew(): React.JSX.Element {
                 <Chip label={draft.parcel.type.replace("_", " ")} size="small" />
                 <Chip label={draft.parcel.size.replace("_", " ")} size="small" />
                 <Chip label={draft.schedule === "now" ? "Immediate" : "Scheduled"} size="small" />
+                <Chip label={draft.routeMode === "multi_stop" ? "Multi-stop route" : "Single stop"} size="small" />
+                <Chip label={`${draftStops.length} destination${draftStops.length === 1 ? "" : "s"}`} size="small" />
                 <Chip
                   label={getDeliveryOrderModeLabel(draft.orderMode)}
                   size="small"
@@ -979,13 +1259,10 @@ export default function DeliveryNew(): React.JSX.Element {
                 />
               </Stack>
               <Typography variant="body2">
-                <strong>Route:</strong> {draft.pickup?.address} to {draft.dropoff?.address}
+                <strong>Pickup:</strong> {draft.pickup?.address}
               </Typography>
               <Typography variant="body2">
                 <strong>Parcel:</strong> {draft.parcel.description} ({formatCurrency(draft.parcel.value)})
-              </Typography>
-              <Typography variant="body2">
-                <strong>Recipient:</strong> {draft.recipient?.name} • {draft.recipient?.phone}
               </Typography>
               <Typography variant="body2">
                 <strong>Timing:</strong> {draft.schedule === "now" ? "Now" : draft.scheduleTime}
@@ -1003,6 +1280,29 @@ export default function DeliveryNew(): React.JSX.Element {
                   ? `Payment on delivery • ${formatCurrency(subtotal)} due at handoff`
                   : `${selectedPaymentMethod?.label ?? "Online payment"} • ${formatCurrency(subtotal)} (paid online)`}
               </Typography>
+              <Typography variant="body2">
+                <strong>Route estimate:</strong> {Number(draft.totalDistanceKm ?? 0).toFixed(1)} km • {draftStops.length} stop{draftStops.length === 1 ? "" : "s"}
+              </Typography>
+              <Stack spacing={0.8}>
+                {draftStops.map((stop, index) => (
+                  <AppCard key={stop.id} variant="muted" contentSx={{ display: "grid", gap: 0.6 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                      Stop {index + 1} • {stop.recipient?.name || "Recipient pending"}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                      {stop.location?.address ?? "Destination pending"}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                      {stop.recipient?.phone ?? "Phone pending"}
+                    </Typography>
+                    {(stop.recipient?.deliveryNote || stop.recipient?.allocationNote) && (
+                      <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                        {[stop.recipient?.deliveryNote, stop.recipient?.allocationNote].filter(Boolean).join(" • ")}
+                      </Typography>
+                    )}
+                  </AppCard>
+                ))}
+              </Stack>
               <Divider />
               <Stack spacing={0.6}>
                 <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
@@ -1016,7 +1316,7 @@ export default function DeliveryNew(): React.JSX.Element {
                     Edit parcel
                   </Button>
                   <Button size="small" variant="outlined" onClick={() => setActiveStep(2)} sx={{ textTransform: "none" }}>
-                    Edit recipient
+                    Edit recipients
                   </Button>
                   <Button size="small" variant="outlined" onClick={() => setActiveStep(3)} sx={{ textTransform: "none" }}>
                     Edit mode

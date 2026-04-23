@@ -14,7 +14,7 @@ function toPercent(value: number): number {
 }
 
 function isOnTime(order: DeliveryOrder): boolean {
-  if (order.status !== "delivered") {
+  if (order.status !== "delivered" && order.status !== "partially_completed") {
     return false;
   }
 
@@ -35,7 +35,7 @@ function isOnTime(order: DeliveryOrder): boolean {
 
 export function calculateDeliveryKpis(orders: DeliveryOrder[]): DeliveryKpis {
   const totalOrders = orders.length;
-  const deliveredOrders = orders.filter((item) => item.status === "delivered").length;
+  const deliveredOrders = orders.filter((item) => item.status === "delivered" || item.status === "partially_completed").length;
   const cancelledOrders = orders.filter((item) => item.status === "cancelled").length;
   const failedHandoffOrders = orders.filter(
     (item) =>

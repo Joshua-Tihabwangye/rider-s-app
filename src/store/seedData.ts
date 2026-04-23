@@ -26,6 +26,7 @@ import {
   initializeDeliverySettlement,
   isReceiptEligible
 } from "../features/delivery/payment";
+import { createEmptyDeliveryDraftStop } from "../features/delivery/multiStop";
 import { createAutoProofOfDelivery } from "../features/delivery/proof";
 import { DEFAULT_DELIVERY_SCHEDULE_POLICY } from "../features/delivery/schedulePolicy";
 import { createDeliveryNotification } from "../features/delivery/notifications";
@@ -400,6 +401,57 @@ function createSeedDeliveryOrder(params: {
       address: params.dropoffAddress,
       coordinates: { lat: 0.3476, lng: 32.5825 }
     },
+    routeMode: "single_stop",
+    stops: [
+      {
+        id: `${params.id}_stop_1`,
+        orderId: params.id,
+        sequence: 1,
+        location: {
+          label: params.dropoffLabel,
+          address: params.dropoffAddress,
+          coordinates: { lat: 0.3476, lng: 32.5825 }
+        },
+        recipient: {
+          name: params.recipientName,
+          phone: params.recipientPhone,
+          address: params.recipientAddress,
+          deliveryNote: "",
+          allocationNote: ""
+        },
+        status:
+          params.status === "delivered"
+            ? "delivered"
+            : params.status === "out_for_delivery"
+              ? "arriving"
+              : params.status === "cancelled"
+                ? "cancelled"
+                : params.status === "failed"
+                  ? "failed"
+                  : "queued",
+        etaMinutes: params.etaMinutes,
+        distanceKm: params.distanceKm,
+        deliveryNote: "",
+        allocationNote: "",
+        proofOfDelivery: null,
+        completedAt: params.status === "delivered" ? deliveredAt : undefined,
+        failedAt: params.status === "failed" ? now : undefined,
+        cancelledAt: params.status === "cancelled" ? now : undefined
+      }
+    ],
+    routeSummary: {
+      totalStops: 1,
+      completedStops: params.status === "delivered" ? 1 : 0,
+      failedStops: params.status === "failed" ? 1 : 0,
+      skippedStops: 0,
+      remainingStops: params.status === "delivered" || params.status === "failed" || params.status === "cancelled" ? 0 : 1,
+      totalDistanceKm: params.distanceKm,
+      totalEtaMinutes: params.etaMinutes,
+      nextStopId: `${params.id}_stop_1`,
+      currentStopId: `${params.id}_stop_1`,
+      optimized: false,
+      manualOrder: true
+    },
     parcel: {
       type: "electronics",
       size: "medium",
@@ -547,6 +599,8 @@ function createSeedDeliveryOrder(params: {
   const senderClosedAt =
     params.status === "delivered" && participantRole === "sender" && dropoffMethod === "leave_at_door"
       ? now
+      : params.status === "delivered" && participantRole === "sender" && hasSignatureConfirmation
+        ? now
       : undefined;
 
   return {
@@ -628,7 +682,7 @@ const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
     paymentMethodId: "pm_momo_1",
     participantRole: "sender",
     dropoffMethod: "hand_to_recipient",
-    hasSignatureConfirmation: false
+    hasSignatureConfirmation: true
   }),
   createSeedDeliveryOrder({
     id: "DLV-2026-04-08-077",
@@ -697,6 +751,8 @@ export const SEED_DELIVERY_STATE: DeliveryState = {
   draft: {
     pickup: null,
     dropoff: null,
+    routeMode: "single_stop",
+    stops: [createEmptyDeliveryDraftStop(1)],
     parcel: {
       type: "documents",
       size: "small",
@@ -731,6 +787,12 @@ export const SEED_DELIVERY_STATE: DeliveryState = {
     deliveryFee: 6500,
     serviceFee: 1200,
     insuranceFee: 900,
+    basePickupFee: 3500,
+    firstDropoffFee: 600,
+    additionalStopFee: 0,
+    distanceFee: 0,
+    stopCount: 1,
+    totalDistanceKm: 0,
     priceEstimate: "UGX 8,600",
     notes: ""
   },

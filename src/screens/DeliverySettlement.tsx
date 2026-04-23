@@ -83,7 +83,7 @@ export default function DeliverySettlement(): React.JSX.Element {
   const settlementStatus = order.settlement?.status ?? "pending_authorization";
   const settlementFinalized = FINALIZED_SETTLEMENT_STATUSES.has(settlementStatus);
   const isReceiverOrder = order.participantRole === "receiver";
-  const isPendingReceiverPayment = isReceiverOrder && order.status === "delivered";
+  const isPendingReceiverPayment = isReceiverOrder && (order.status === "delivered" || order.status === "partially_completed");
   const canCaptureSettlement = !settlementFinalized && paymentMethods.length > 0;
   const handleCaptureSettlement = (): void => {
     actions.captureDeliverySettlement(order.id);

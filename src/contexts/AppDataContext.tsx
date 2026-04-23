@@ -58,6 +58,15 @@ import {
 } from "../features/delivery/exceptions";
 import { createDeliveryNotification } from "../features/delivery/notifications";
 import {
+  buildOrderStops,
+  calculateDraftPricing,
+  createEmptyDeliveryDraftStop,
+  deriveDraftStops,
+  deriveLegacyFieldsFromStops,
+  deriveOrderLegacyFields,
+  summarizeRoute
+} from "../features/delivery/multiStop";
+import {
   SEED_PAYMENT_METHODS,
   SEED_TRANSACTIONS,
   SEED_REMINDERS,
@@ -246,7 +255,7 @@ function requiresIncomingDeliveryPayment(
   orderStatus: DeliveryStatus,
   settlementStatus?: DeliverySettlementStatus
 ): boolean {
-  if (participantRole !== "receiver" || orderStatus !== "delivered" || !settlementStatus) {
+  if (participantRole !== "receiver" || !["delivered", "partially_completed"].includes(orderStatus) || !settlementStatus) {
     return false;
   }
   return !isDeliverySettlementFinalized(settlementStatus);
@@ -259,7 +268,7 @@ function enforceIncomingDeliveryPendingPayment(
   totalAmount: number,
   nowIso: string
 ): DeliverySettlement {
-  if (participantRole !== "receiver" || orderStatus !== "delivered") {
+  if (participantRole !== "receiver" || !["delivered", "partially_completed"].includes(orderStatus)) {
     return settlement;
   }
 
@@ -297,6 +306,95 @@ function hasSenderSignatureImage(order: DeliveryOrder): boolean {
   return Boolean(proof?.signatureImageUrl ?? proof?.photoUrl);
 }
 
+function getCurrentMutableStopIndex(order: DeliveryOrder): number {
+  const arrivingIndex = order.stops.findIndex((stop) => stop.status === "arriving");
+  if (arrivingIndex >= 0) {
+    return arrivingIndex;
+  }
+  const queuedIndex = order.stops.findIndex((stop) => stop.status === "queued");
+  if (queuedIndex >= 0) {
+    return queuedIndex;
+  }
+  return order.stops.findIndex((stop) => !["delivered", "failed", "skipped", "cancelled"].includes(stop.status));
+}
+
+function applyMultiStopStatusUpdate(order: DeliveryOrder, nextStatus: DeliveryStatus, now: string, note?: string): DeliveryOrder {
+  if (order.routeMode !== "multi_stop" || order.stops.length <= 1) {
+    return order;
+  }
+
+  const stops = order.stops.map((stop) => ({ ...stop }));
+  const activeIndex = getCurrentMutableStopIndex(order);
+
+  if (activeIndex >= 0) {
+    const activeStop = stops[activeIndex];
+    if (nextStatus === "delivered") {
+      activeStop.status = "delivered";
+      activeStop.completedAt = activeStop.completedAt ?? now;
+      activeStop.note = note ?? activeStop.note;
+      activeStop.proofOfDelivery =
+        activeStop.proofOfDelivery ??
+        createAutoProofOfDelivery({
+          ...order,
+          dropoff: activeStop.location,
+          recipient: {
+            name: activeStop.recipient.name,
+            phone: activeStop.recipient.phone,
+            address: activeStop.recipient.address
+          },
+          deliveredAt: now
+        });
+    } else if (nextStatus === "failed") {
+      activeStop.status = "failed";
+      activeStop.failedAt = activeStop.failedAt ?? now;
+      activeStop.note = note ?? activeStop.note;
+    } else if (nextStatus === "cancelled") {
+      activeStop.status = "cancelled";
+      activeStop.cancelledAt = activeStop.cancelledAt ?? now;
+      activeStop.note = note ?? activeStop.note;
+    } else if (nextStatus === "out_for_delivery") {
+      activeStop.status = "arriving";
+    } else if (nextStatus === "accepted" || nextStatus === "picked_up" || nextStatus === "in_transit") {
+      if (!["delivered", "failed", "skipped", "cancelled"].includes(activeStop.status)) {
+        activeStop.status = "queued";
+      }
+    }
+  }
+
+  if (nextStatus === "delivered" || nextStatus === "failed") {
+    const nextPending = stops.find((stop) => stop.status === "pending");
+    if (nextPending) {
+      nextPending.status = "queued";
+    }
+  }
+
+  const routeSummary = summarizeRoute(stops);
+  const resolvedStatus =
+    routeSummary.remainingStops === 0
+      ? routeSummary.failedStops > 0 || routeSummary.skippedStops > 0
+        ? "partially_completed"
+        : "delivered"
+      : nextStatus === "delivered" || nextStatus === "failed"
+        ? "in_transit"
+        : nextStatus;
+  const updatedOrder = {
+    ...order,
+    status: resolvedStatus,
+    stops,
+    routeSummary,
+    proofOfDelivery:
+      routeSummary.remainingStops === 0
+        ? stops[stops.length - 1]?.proofOfDelivery ?? order.proofOfDelivery
+        : order.proofOfDelivery,
+    deliveredAt: routeSummary.remainingStops === 0 ? order.deliveredAt ?? now : order.deliveredAt
+  };
+
+  return {
+    ...updatedOrder,
+    ...deriveOrderLegacyFields(updatedOrder)
+  };
+}
+
 function appendDeliveryNotification(
   notifications: DeliveryState["notifications"],
   payload: {
@@ -318,6 +416,8 @@ function createDefaultDeliveryDraft(previous?: DeliveryDraft): DeliveryDraft {
   return {
     pickup: null,
     dropoff: null,
+    routeMode: "single_stop",
+    stops: [createEmptyDeliveryDraftStop(1)],
     parcel: {
       type: "documents",
       size: "small",
@@ -357,6 +457,12 @@ function createDefaultDeliveryDraft(previous?: DeliveryDraft): DeliveryDraft {
     deliveryFee,
     serviceFee,
     insuranceFee,
+    basePickupFee: previous?.basePickupFee ?? 3500,
+    firstDropoffFee: previous?.firstDropoffFee ?? 600,
+    additionalStopFee: previous?.additionalStopFee ?? 0,
+    distanceFee: previous?.distanceFee ?? 0,
+    stopCount: previous?.stopCount ?? 1,
+    totalDistanceKm: previous?.totalDistanceKm ?? 0,
     priceEstimate: formatCurrencyUGX(deliveryFee + serviceFee + insuranceFee),
     notes: ""
   };
@@ -370,23 +476,19 @@ function getCityLabel(value: string): string {
   return "Kampala";
 }
 
-function estimateDistanceKm(pickupAddress: string, dropoffAddress: string): number {
-  const fallback = 8.2;
-  if (pickupAddress === dropoffAddress) {
-    return 1.2;
-  }
-  const pseudo = Math.abs(
-    [...`${pickupAddress}-${dropoffAddress}`].reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  );
-  return Number(((pseudo % 150) / 10 + fallback).toFixed(1));
-}
-
 function createDeliveryOrderFromDraft(
   state: AppState,
   payload: { orderId: string; senderName: string; senderPhone: string }
 ): DeliveryOrder | null {
   const { draft } = state.delivery;
-  if (!draft.pickup || !draft.dropoff || !draft.recipient || !draft.parcel.description.trim()) {
+  const draftStops = deriveDraftStops(draft).filter(
+    (stop) =>
+      stop.location?.address?.trim() &&
+      stop.recipient?.name?.trim() &&
+      stop.recipient?.phone?.trim()
+  );
+  const { dropoff, recipient } = deriveLegacyFieldsFromStops(draftStops);
+  if (!draft.pickup || !dropoff || !recipient || !draft.parcel.description.trim()) {
     return null;
   }
   if (draft.paymentOption === "prepayment" && !draft.paymentPrepaid) {
@@ -394,9 +496,15 @@ function createDeliveryOrderFromDraft(
   }
 
   const now = new Date().toISOString();
-  const distanceKm = estimateDistanceKm(draft.pickup.address, draft.dropoff.address);
-  const etaMinutes = Math.max(12, Math.round(distanceKm * 2.6));
-  const total = draft.deliveryFee + draft.serviceFee + draft.insuranceFee;
+  const pricing = calculateDraftPricing({
+    ...draft,
+    dropoff,
+    recipient,
+    stops: draftStops
+  });
+  const distanceKm = pricing.totalDistanceKm;
+  const etaMinutes = Math.max(12, Math.round(distanceKm * 2.6) + Math.max(0, draftStops.length - 1) * 4);
+  const total = pricing.total;
   const paymentOnDeliveryMethodId =
     state.paymentMethods.find((method) => method.type === "cash")?.id ?? "pm_cash";
   const defaultOnlinePaymentMethodId =
@@ -420,6 +528,8 @@ function createDeliveryOrderFromDraft(
     draft.schedule === "scheduled" && draft.scheduleTime
       ? draft.scheduleTime
       : new Date(Date.now() + etaMinutes * 60 * 1000).toISOString();
+  const stops = buildOrderStops(payload.orderId, draft.pickup, draftStops);
+  const routeSummary = summarizeRoute(stops);
 
   const baseOrder: DeliveryOrder = {
     id: payload.orderId,
@@ -428,14 +538,17 @@ function createDeliveryOrderFromDraft(
     participantRole: "sender",
     status: "requested",
     pickup: draft.pickup,
-    dropoff: draft.dropoff,
+    dropoff,
+    routeMode: draft.routeMode,
+    stops,
+    routeSummary,
     parcel: draft.parcel,
     senderContact: {
       name: payload.senderName,
       phone: payload.senderPhone,
       address: draft.pickup.address
     },
-    recipient: draft.recipient,
+    recipient,
     orderMode: draft.orderMode,
     orderModeConfig: draft.orderModeConfig,
     dropoffMethod: state.settings.delivery.leaveAtDoor ? "leave_at_door" : "hand_to_recipient",
@@ -443,9 +556,15 @@ function createDeliveryOrderFromDraft(
     scheduleTime: draft.scheduleTime,
     paymentMethodId,
     costBreakdown: {
-      deliveryFee: draft.deliveryFee,
-      serviceFee: draft.serviceFee,
-      insuranceFee: draft.insuranceFee,
+      deliveryFee: pricing.deliveryFee,
+      serviceFee: pricing.serviceFee,
+      insuranceFee: pricing.insuranceFee,
+      basePickupFee: pricing.basePickupFee,
+      firstDropoffFee: pricing.firstDropoffFee,
+      additionalStopFee: pricing.additionalStopFee,
+      distanceFee: pricing.distanceFee,
+      stopCount: pricing.stopCount,
+      totalDistanceKm: pricing.totalDistanceKm,
       total,
       currency: "UGX"
     },
@@ -481,7 +600,7 @@ function createDeliveryOrderFromDraft(
       address: draft.pickup.address
     },
     receiver: {
-      city: getCityLabel(draft.dropoff.address),
+      city: getCityLabel(dropoff.address),
       code: "256"
     },
     date: new Date(),
@@ -585,8 +704,38 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
     case "ride/set-active":
       return { ...state, ride: { ...state.ride, activeTrip: action.payload } };
-    case "delivery/draft":
-      return { ...state, delivery: { ...state.delivery, draft: { ...state.delivery.draft, ...action.payload } } };
+    case "delivery/draft": {
+      const mergedDraft = { ...state.delivery.draft, ...action.payload };
+      const stops = deriveDraftStops(mergedDraft);
+      const legacy = deriveLegacyFieldsFromStops(stops);
+      const pricing = calculateDraftPricing({
+        ...mergedDraft,
+        stops,
+        dropoff: legacy.dropoff,
+        recipient: legacy.recipient
+      });
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          draft: {
+            ...mergedDraft,
+            ...legacy,
+            stops,
+            deliveryFee: pricing.deliveryFee,
+            serviceFee: pricing.serviceFee,
+            insuranceFee: pricing.insuranceFee,
+            basePickupFee: pricing.basePickupFee,
+            firstDropoffFee: pricing.firstDropoffFee,
+            additionalStopFee: pricing.additionalStopFee,
+            distanceFee: pricing.distanceFee,
+            stopCount: pricing.stopCount,
+            totalDistanceKm: pricing.totalDistanceKm,
+            priceEstimate: formatCurrencyUGX(pricing.total)
+          }
+        }
+      };
+    }
     case "delivery/reset-draft":
       return {
         ...state,
@@ -644,7 +793,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
           action.payload.status === "cancelled" && order.schedule === "scheduled"
             ? calculateScheduledCancellationFee(order).fee
             : 0;
-        const nextProgress = Math.max(order.tracking.progress, getDeliveryStatusProgress(action.payload.status));
         const effectivePaymentMethodId =
           order.participantRole === "receiver" && action.payload.status === "delivered"
             ? getDefaultPaymentMethodId(state.paymentMethods)
@@ -653,103 +801,117 @@ function appReducer(state: AppState, action: AppAction): AppState {
           effectivePaymentMethodId === order.paymentMethodId
             ? order
             : { ...order, paymentMethodId: effectivePaymentMethodId };
+        const preStatusOrder = {
+          ...settlementOrder,
+          updatedAt: now,
+          status: action.payload.status,
+          deliveredAt: action.payload.status === "delivered" ? order.deliveredAt ?? now : order.deliveredAt
+        };
+        const candidateOrder = applyMultiStopStatusUpdate(preStatusOrder, action.payload.status, now, action.payload.note);
+        const effectiveStatus = candidateOrder.status;
         const paymentMethodType = getPaymentMethodType(state.paymentMethods, effectivePaymentMethodId);
         const currentSettlement =
           (effectivePaymentMethodId === order.paymentMethodId ? order.settlement : undefined) ??
-          initializeDeliverySettlement(settlementOrder, paymentMethodType, now);
+          initializeDeliverySettlement(candidateOrder, paymentMethodType, now);
         let nextSettlement = applySettlementForDeliveryStatus(
           currentSettlement,
-          settlementOrder,
-          action.payload.status,
+          candidateOrder,
+          effectiveStatus,
           cancellationFee,
           now
         );
         nextSettlement = enforceIncomingDeliveryPendingPayment(
           nextSettlement,
           order.participantRole,
-          action.payload.status,
+          effectiveStatus,
           order.costBreakdown.total,
           now
         );
-        const deliveredAt = action.payload.status === "delivered" ? order.deliveredAt ?? now : order.deliveredAt;
+        const deliveredAt = effectiveStatus === "delivered" || effectiveStatus === "partially_completed" ? candidateOrder.deliveredAt ?? now : order.deliveredAt;
         const requiresSenderConfirmationOnDelivery =
-          action.payload.status === "delivered" &&
+          effectiveStatus === "delivered" &&
           order.participantRole === "sender" &&
           order.dropoffMethod !== "leave_at_door";
         const proofOfDelivery =
-          action.payload.status === "delivered"
+          effectiveStatus === "delivered"
             ? requiresSenderConfirmationOnDelivery
-              ? order.proofOfDelivery ?? null
-              : order.proofOfDelivery ?? createAutoProofOfDelivery({ ...order, deliveredAt: deliveredAt ?? now })
-            : order.proofOfDelivery;
+              ? candidateOrder.proofOfDelivery ?? null
+              : candidateOrder.proofOfDelivery ?? createAutoProofOfDelivery({ ...candidateOrder, deliveredAt: deliveredAt ?? now })
+            : candidateOrder.proofOfDelivery ?? order.proofOfDelivery;
         const senderClosedAt =
-          action.payload.status === "delivered" &&
+          effectiveStatus === "delivered" &&
           order.participantRole === "sender" &&
           order.dropoffMethod === "leave_at_door"
             ? order.senderClosedAt ?? now
             : order.senderClosedAt;
-        const candidateOrder = {
-          ...order,
-          updatedAt: now,
-          status: action.payload.status,
-          deliveredAt
-        };
         const receipt = isReceiptEligible(nextSettlement.status)
           ? generateDeliveryReceipt(candidateOrder, nextSettlement)
           : order.receipt ?? null;
 
         nextNotifications = appendDeliveryNotification(nextNotifications, {
           orderId: order.id,
-          title: `Delivery ${getDeliveryStatusLabel(action.payload.status)}`,
+          title: `Delivery ${getDeliveryStatusLabel(effectiveStatus)}`,
           body:
-            action.payload.status === "cancelled" && cancellationFee > 0
+            effectiveStatus === "cancelled" && cancellationFee > 0
               ? `Cancelled with ${formatCurrencyUGX(cancellationFee)} fee at current stage.`
-              : action.payload.note ?? `${getDeliveryStatusLabel(action.payload.status)} stage reached.`,
-          category: action.payload.status === "cancelled" ? "payment" : "status",
+              : action.payload.note ?? `${getDeliveryStatusLabel(effectiveStatus)} stage reached.`,
+          category: effectiveStatus === "cancelled" ? "payment" : "status",
           createdAt: now
         });
 
         const needsPayment = requiresIncomingDeliveryPayment(
           order.participantRole,
-          action.payload.status,
+          effectiveStatus,
           nextSettlement.status
         );
+        const resolvedStopsCount = candidateOrder.stops.filter((stop) =>
+          ["delivered", "failed", "skipped", "cancelled"].includes(stop.status)
+        ).length;
+        const multiStopProgress =
+          candidateOrder.routeMode === "multi_stop" && candidateOrder.stops.length > 1
+            ? effectiveStatus === "delivered" || effectiveStatus === "partially_completed"
+              ? 100
+              : Math.max(
+                  getDeliveryStatusProgress(effectiveStatus),
+                  Math.round((resolvedStopsCount / candidateOrder.stops.length) * 100)
+                )
+            : getDeliveryStatusProgress(effectiveStatus);
+        const nextProgress = Math.max(order.tracking.progress, multiStopProgress);
 
         return {
-          ...order,
+          ...candidateOrder,
           paymentMethodId: effectivePaymentMethodId,
-          status: action.payload.status,
           updatedAt: now,
           needsPayment,
           progress: nextProgress,
-          time: order.tracking.etaMinutes > 0 ? `${order.tracking.etaMinutes} min` : "Arrived",
+          time: candidateOrder.tracking.etaMinutes > 0 ? `${candidateOrder.tracking.etaMinutes} min` : "Arrived",
           tracking: {
-            ...order.tracking,
+            ...candidateOrder.tracking,
             progress: nextProgress,
-            etaMinutes: action.payload.status === "delivered" ? 0 : order.tracking.etaMinutes,
+            etaMinutes: effectiveStatus === "delivered" || effectiveStatus === "partially_completed" ? 0 : candidateOrder.tracking.etaMinutes,
             courierPosition:
-              action.payload.status === "delivered" ? 1 : order.tracking.courierPosition,
+              effectiveStatus === "delivered" || effectiveStatus === "partially_completed" ? 1 : candidateOrder.tracking.courierPosition,
             updatedAt: now
           },
-          timeline: order.timeline.some((entry) => entry.status === action.payload.status)
-            ? order.timeline
+          timeline: candidateOrder.timeline.some((entry) => entry.status === effectiveStatus)
+            ? candidateOrder.timeline
             : [
-                ...order.timeline,
+                ...candidateOrder.timeline,
                 {
-                  status: action.payload.status,
+                  status: effectiveStatus,
                   timestamp: now,
-                  note: action.payload.note ?? `${getDeliveryStatusLabel(action.payload.status)} stage reached`,
+                  note: action.payload.note ?? `${getDeliveryStatusLabel(effectiveStatus)} stage reached`,
                   source: "system" as const
                 }
               ],
           deliveredAt,
           cancelledReason:
-            action.payload.status === "cancelled"
+            effectiveStatus === "cancelled"
               ? action.payload.note ??
                 (cancellationFee > 0
                   ? `Cancelled by rider. ${formatCurrencyUGX(cancellationFee)} fee applied.`
                   : "Cancelled by rider.")
-              : order.cancelledReason,
+              : candidateOrder.cancelledReason,
           senderClosedAt,
           settlement: nextSettlement,
           receipt,
@@ -820,7 +982,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
           action.payload.note,
           action.payload.requestedRefundAmount
         );
-        const nextStatus = getStatusFromException(action.payload.type, order.status);
+        const requestedStatus = getStatusFromException(action.payload.type, order.status);
+        const nextOrder = applyMultiStopStatusUpdate(order, requestedStatus, now, action.payload.note);
+        const nextStatus = nextOrder.status;
         const paymentMethodType = getPaymentMethodType(state.paymentMethods, order.paymentMethodId);
         const currentSettlement =
           order.settlement ?? initializeDeliverySettlement(order, paymentMethodType, now);
@@ -828,7 +992,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           action.payload.type === "dispute_refund" ? requestSettlementRefund(currentSettlement, now) : currentSettlement;
         const nextSettlement = applySettlementForDeliveryStatus(
           refundedSettlement,
-          order,
+          nextOrder,
           nextStatus,
           0,
           now
@@ -843,13 +1007,13 @@ function appReducer(state: AppState, action: AppAction): AppState {
         });
 
         return {
-          ...order,
+          ...nextOrder,
           status: nextStatus,
           updatedAt: now,
           exceptions: [...(order.exceptions ?? []), exception],
           settlement: nextSettlement,
           timeline: [
-            ...order.timeline,
+            ...nextOrder.timeline,
             {
               status: nextStatus,
               timestamp: now,
@@ -917,6 +1081,29 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const updatedOrders = state.delivery.orders.map((order) => {
         if (order.id !== action.payload.orderId) {
           return order;
+        }
+
+        if (order.routeMode === "multi_stop" && order.stops.length > 1) {
+          const stops = order.stops.map((stop) => ({ ...stop }));
+          const deliveredStop =
+            [...stops]
+              .reverse()
+              .find((stop) => stop.status === "delivered" && !stop.proofOfDelivery) ??
+            [...stops].reverse().find((stop) => stop.status === "delivered");
+          if (deliveredStop) {
+            deliveredStop.proofOfDelivery = action.payload.proof;
+          }
+          const nextOrder = {
+            ...order,
+            updatedAt: now,
+            stops,
+            proofOfDelivery: action.payload.proof
+          };
+          return {
+            ...nextOrder,
+            ...deriveOrderLegacyFields(nextOrder),
+            routeSummary: summarizeRoute(stops)
+          };
         }
 
         return {
@@ -1176,7 +1363,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         }
         if (
           order.participantRole !== "receiver" ||
-          order.status !== "delivered" ||
+          !["delivered", "partially_completed"].includes(order.status) ||
           isDeliverySettlementFinalized(order.settlement?.status)
         ) {
           return order;
@@ -1187,7 +1374,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           paymentMethodId: selectedMethod.id
         };
         let nextSettlement = initializeDeliverySettlement(nextOrder, selectedMethod.type, now);
-        if (nextOrder.status === "delivered" && nextSettlement.policy !== "cash_on_delivery") {
+        if ((nextOrder.status === "delivered" || nextOrder.status === "partially_completed") && nextSettlement.policy !== "cash_on_delivery") {
           nextSettlement = {
             ...nextSettlement,
             status: "authorized",
@@ -1312,7 +1499,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         }
 
         const effectivePaymentMethodId =
-          patchedOrder.participantRole === "receiver" && patchedOrder.status === "delivered"
+          patchedOrder.participantRole === "receiver" && ["delivered", "partially_completed"].includes(patchedOrder.status)
             ? getDefaultPaymentMethodId(state.paymentMethods)
             : patchedOrder.paymentMethodId;
         const settlementOrder =
@@ -1342,14 +1529,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
           settlementOrder.status === "delivered" &&
           settlementOrder.dropoffMethod !== "leave_at_door";
         const proofOfDelivery =
-          settlementOrder.status === "delivered"
+          settlementOrder.status === "delivered" || settlementOrder.status === "partially_completed"
             ? requiresSenderConfirmation
               ? settlementOrder.proofOfDelivery ?? null
               : settlementOrder.proofOfDelivery ?? createAutoProofOfDelivery(settlementOrder)
             : settlementOrder.proofOfDelivery;
         const senderClosedAt =
           settlementOrder.participantRole === "sender" &&
-          settlementOrder.status === "delivered" &&
+          (settlementOrder.status === "delivered" || settlementOrder.status === "partially_completed") &&
           settlementOrder.dropoffMethod === "leave_at_door"
             ? settlementOrder.senderClosedAt ?? now
             : settlementOrder.senderClosedAt;
@@ -1404,7 +1591,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         }
 
         const effectivePaymentMethodId =
-          updatedOrder.participantRole === "receiver" && updatedOrder.status === "delivered"
+          updatedOrder.participantRole === "receiver" && ["delivered", "partially_completed"].includes(updatedOrder.status)
             ? getDefaultPaymentMethodId(state.paymentMethods)
             : updatedOrder.paymentMethodId;
         const settlementOrder =
@@ -1434,14 +1621,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
           settlementOrder.status === "delivered" &&
           settlementOrder.dropoffMethod !== "leave_at_door";
         const proofOfDelivery =
-          settlementOrder.status === "delivered"
+          settlementOrder.status === "delivered" || settlementOrder.status === "partially_completed"
             ? requiresSenderConfirmation
               ? settlementOrder.proofOfDelivery ?? null
               : settlementOrder.proofOfDelivery ?? createAutoProofOfDelivery(settlementOrder)
             : settlementOrder.proofOfDelivery;
         const senderClosedAt =
           settlementOrder.participantRole === "sender" &&
-          settlementOrder.status === "delivered" &&
+          (settlementOrder.status === "delivered" || settlementOrder.status === "partially_completed") &&
           settlementOrder.dropoffMethod === "leave_at_door"
             ? settlementOrder.senderClosedAt ?? now
             : settlementOrder.senderClosedAt;

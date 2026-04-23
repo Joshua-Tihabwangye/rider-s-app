@@ -17,6 +17,8 @@ interface DeliveryStatusSummaryProps {
   etaLabel: string;
   distanceKm: number;
   lastSyncLabel: string;
+  totalStops?: number;
+  completedStops?: number;
 }
 
 export default function DeliveryStatusSummary({
@@ -24,7 +26,9 @@ export default function DeliveryStatusSummary({
   dropoffLabel,
   etaLabel,
   distanceKm,
-  lastSyncLabel
+  lastSyncLabel,
+  totalStops = 1,
+  completedStops = 0
 }: DeliveryStatusSummaryProps): React.JSX.Element {
   return (
     <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl }}>
@@ -37,6 +41,11 @@ export default function DeliveryStatusSummary({
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
               {pickupLabel} to {dropoffLabel}
             </Typography>
+            {totalStops > 1 && (
+              <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                {completedStops} of {totalStops} stops completed
+              </Typography>
+            )}
           </Stack>
           <Stack spacing={0.6} alignItems="flex-end">
             <Chip

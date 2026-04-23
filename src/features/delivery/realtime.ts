@@ -9,12 +9,90 @@ import {
   getNextDeliveryStatus,
   isDeliveryTerminalStatus
 } from "./stateMachine";
+import { createAutoProofOfDelivery } from "./proof";
+import { deriveOrderLegacyFields, summarizeRoute } from "./multiStop";
 
 export interface DeliveryRealtimePatch {
   orderId: string;
   status?: DeliveryStatus;
   tracking?: Partial<DeliveryTrackingSnapshot>;
   note?: string;
+}
+
+function getActiveStopIndex(order: DeliveryOrder): number {
+  const arrivingIndex = order.stops.findIndex((stop) => stop.status === "arriving");
+  if (arrivingIndex >= 0) {
+    return arrivingIndex;
+  }
+  const queuedIndex = order.stops.findIndex((stop) => stop.status === "queued");
+  if (queuedIndex >= 0) {
+    return queuedIndex;
+  }
+  return order.stops.findIndex((stop) => !["delivered", "failed", "skipped", "cancelled"].includes(stop.status));
+}
+
+function syncMultiStopRoute(order: DeliveryOrder, nextStatus: DeliveryStatus, now: string): DeliveryOrder {
+  if (order.routeMode !== "multi_stop" || order.stops.length <= 1) {
+    return order;
+  }
+
+  const nextStops = order.stops.map((stop) => ({ ...stop }));
+  const activeIndex = getActiveStopIndex(order);
+  const completedThreshold = nextStops.length === 0 ? 100 : 100 / nextStops.length;
+
+  nextStops.forEach((stop, index) => {
+    const stopCompletionTarget = completedThreshold * (index + 1);
+    if (order.tracking.progress >= stopCompletionTarget && !["delivered", "failed", "skipped", "cancelled"].includes(stop.status)) {
+      stop.status = "delivered";
+      stop.completedAt = stop.completedAt ?? now;
+      stop.proofOfDelivery =
+        stop.proofOfDelivery ??
+        createAutoProofOfDelivery({
+          ...order,
+          dropoff: stop.location,
+          recipient: {
+            name: stop.recipient.name,
+            phone: stop.recipient.phone,
+            address: stop.recipient.address
+          },
+          deliveredAt: now
+        });
+      return;
+    }
+
+    if (index === activeIndex && !["delivered", "failed", "skipped", "cancelled"].includes(stop.status)) {
+      stop.status = nextStatus === "out_for_delivery" ? "arriving" : "queued";
+      return;
+    }
+
+    if (!["delivered", "failed", "skipped", "cancelled"].includes(stop.status)) {
+      stop.status = index < activeIndex ? "delivered" : "pending";
+    }
+  });
+
+  const routeSummary = summarizeRoute(nextStops);
+  const routeStatus =
+    routeSummary.remainingStops === 0
+      ? routeSummary.failedStops > 0 || routeSummary.skippedStops > 0
+        ? "partially_completed"
+        : "delivered"
+      : nextStatus;
+
+  const patchedOrder = {
+    ...order,
+    status: routeStatus,
+    stops: nextStops,
+    routeSummary,
+    proofOfDelivery:
+      routeSummary.remainingStops === 0
+        ? nextStops[nextStops.length - 1]?.proofOfDelivery ?? order.proofOfDelivery
+        : order.proofOfDelivery
+  };
+
+  return {
+    ...patchedOrder,
+    ...deriveOrderLegacyFields(patchedOrder)
+  };
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -69,7 +147,7 @@ export function applyRealtimePatch(order: DeliveryOrder, patch: DeliveryRealtime
     ? pushTimelineStatus(order.timeline, nextStatus, "websocket", patch.note)
     : order.timeline;
 
-  return {
+  const patchedOrder = {
     ...order,
     status: nextStatus,
     updatedAt: now,
@@ -78,6 +156,8 @@ export function applyRealtimePatch(order: DeliveryOrder, patch: DeliveryRealtime
     progress: tracking.progress,
     deliveredAt: nextStatus === "delivered" ? order.deliveredAt ?? now : order.deliveredAt
   };
+
+  return syncMultiStopRoute(patchedOrder, nextStatus, now);
 }
 
 export function simulateDeliveryPollTick(order: DeliveryOrder): DeliveryOrder {
@@ -121,7 +201,7 @@ export function simulateDeliveryPollTick(order: DeliveryOrder): DeliveryOrder {
     updatedAt: now
   };
 
-  return {
+  const patchedOrder = {
     ...order,
     status: nextStatus,
     updatedAt: now,
@@ -130,4 +210,6 @@ export function simulateDeliveryPollTick(order: DeliveryOrder): DeliveryOrder {
     progress: tracking.progress,
     deliveredAt: nextStatus === "delivered" ? order.deliveredAt ?? now : order.deliveredAt
   };
+
+  return syncMultiStopRoute(patchedOrder, nextStatus, now);
 }

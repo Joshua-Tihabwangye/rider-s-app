@@ -36,7 +36,7 @@ import type { DeliveryOrder } from "../store/types";
 import { getDeliveryStatusLabel } from "../features/delivery/stateMachine";
 import { calculateDeliveryKpis } from "../features/delivery/analytics";
 
-const DELIVERY_TERMINAL_STATUSES = ["delivered", "cancelled", "failed"] as const;
+const DELIVERY_TERMINAL_STATUSES = ["delivered", "partially_completed", "cancelled", "failed"] as const;
 
 function formatDateLabel(value: string): string {
   const date = new Date(value);
@@ -55,6 +55,9 @@ function formatDateLabel(value: string): string {
 function statusTone(status: DeliveryOrder["status"]): { bg: string; fg: string } {
   if (status === "delivered") {
     return { bg: "rgba(34,197,94,0.14)", fg: "#15803D" };
+  }
+  if (status === "partially_completed") {
+    return { bg: "rgba(245,158,11,0.18)", fg: "#B45309" };
   }
   if (status === "cancelled" || status === "failed") {
     return { bg: "rgba(248,113,113,0.16)", fg: "#B91C1C" };
