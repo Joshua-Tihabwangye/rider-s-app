@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   
   Box,
@@ -151,8 +151,14 @@ function RentalVehicleCard({ vehicle, onSelect }: RentalVehicleCardProps): React
 
 function RentalVehicleListScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
   const { rental, actions } = useAppData();
-  const [filter, setFilter] = useState("all");
+  const initialMode = (location.state as { mode?: string } | null)?.mode;
+  const [filter, setFilter] = useState(
+    initialMode === "self" || initialMode === "chauffeur" || initialMode === "suv"
+      ? initialMode
+      : "all"
+  );
 
   const filteredVehicles = rental.vehicles.filter((v) => {
     if (filter === "all") return true;

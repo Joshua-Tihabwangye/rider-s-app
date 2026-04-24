@@ -20,12 +20,23 @@ import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import { useAppData } from "../contexts/AppDataContext";
+import {
+  buildRentalPricing,
+  formatRentalDateRange,
+  formatUgx,
+  getRentalBookingVehicle
+} from "../features/rental/booking";
 
 
 function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { rental, actions } = useAppData();
-  const vehicle = rental.vehicles.find((item) => item.id === rental.selectedVehicleId) ?? rental.vehicles[0];
+  const vehicle = getRentalBookingVehicle(
+    rental.vehicles,
+    rental.booking,
+    rental.selectedVehicleId
+  );
+  const pricing = buildRentalPricing(vehicle, rental.booking);
   const [paymentMethod, setPaymentMethod] = useState("wallet");
 
   return (
@@ -108,13 +119,13 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
                 variant="body2"
                 sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
               >
-                Nissan Leaf • EV hatchback
+                {vehicle ? `${vehicle.name} • ${vehicle.type}` : "EV rental"}
               </Typography>
               <Typography
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Self-drive • 5 seats • 220 km range
+                {vehicle ? `${vehicle.mode} • ${vehicle.seats} seats • ${vehicle.range}` : "Vehicle details pending"}
               </Typography>
             </Box>
           </Stack>
@@ -128,7 +139,7 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Thu, 10 Oct 10:00 → Sun, 13 Oct 10:00 (3 days)
+                {formatRentalDateRange(rental.booking.startDate, rental.booking.endDate)}
               </Typography>
             </Stack>
             <Stack direction="row" spacing={0.75} alignItems="center">
@@ -139,7 +150,7 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Pickup: Nsambya EV Hub • Return: Bugolobi EV Hub
+                Pickup: {rental.booking.pickupBranch ?? "Pickup pending"} • Return: {rental.booking.dropoffBranch ?? "Return pending"}
               </Typography>
             </Stack>
           </Stack>
@@ -170,18 +181,18 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
           <Stack spacing={0.4}>
             <Stack direction="row" justifyContent="space-between">
               <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Rental (3 days × UGX 180,000)
+                Rental ({pricing.durationDays} day{pricing.durationDays === 1 ? "" : "s"} × {formatUgx(pricing.dailyRate)})
               </Typography>
               <Typography variant="caption" sx={{ fontSize: 11 }}>
-                UGX 540,000
+                {formatUgx(pricing.rentalSubtotal)}
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
               <Typography variant="caption" sx={{ fontSize: 11 }}>
-                One‑way drop‑off fee
+                One-way drop-off fee
               </Typography>
               <Typography variant="caption" sx={{ fontSize: 11 }}>
-                UGX 40,000
+                {pricing.oneWayFee > 0 ? formatUgx(pricing.oneWayFee) : "UGX 0"}
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
@@ -197,7 +208,7 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
                 Refundable deposit
               </Typography>
               <Typography variant="caption" sx={{ fontSize: 11 }}>
-                UGX 300,000
+                {formatUgx(pricing.refundableDeposit)}
               </Typography>
             </Stack>
           </Stack>
@@ -216,7 +227,7 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
                 variant="h6"
                 sx={{ fontWeight: 700, letterSpacing: "-0.02em" }}
               >
-                UGX 580,000
+                {formatUgx(pricing.dueNow)}
               </Typography>
             </Box>
           </Stack>
@@ -372,7 +383,10 @@ function RentalBookingSummaryPaymentScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         onClick={() => {
-          actions.updateRentalBooking({ status: "confirmed" });
+          actions.updateRentalBooking({
+            status: "confirmed",
+            priceEstimate: formatUgx(pricing.dueNow)
+          });
           navigate("/rental/confirmation");
         }}
         sx={{

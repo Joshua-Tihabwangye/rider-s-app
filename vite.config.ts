@@ -10,6 +10,19 @@ export default defineConfig({
     open: false, // Don't auto-open browser
     host: true, // Allow external connections
     strictPort: false, // Try next available port if 3000 is busy
+    watch: {
+      usePolling: process.env.CHOKIDAR_USEPOLLING === '1',
+      interval: 300,
+      ignored: [
+        '**/.git/**',
+        '**/node_modules/**',
+        '**/build/**',
+        '**/playwright-report/**',
+        '**/test-results/**',
+        '**/baseline-screenshots/**',
+        '**/rider (1)/**',
+      ],
+    },
   },
   build: {
     outDir: 'build',
@@ -36,4 +49,3 @@ export default defineConfig({
   // Public directory for static assets
   publicDir: 'public',
 });
-

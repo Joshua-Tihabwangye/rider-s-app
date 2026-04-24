@@ -1,5 +1,4 @@
 import React from "react";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -16,11 +15,23 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import { useAppData } from "../contexts/AppDataContext";
+import {
+  formatRentalDateRange,
+  getRentalBookingVehicle
+} from "../features/rental/booking";
 
 
 function RentalBookingConfirmationScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const bookingId = "RENT-2025-10-07-001";
+  const { rental } = useAppData();
+  const booking = rental.booking;
+  const vehicle = getRentalBookingVehicle(
+    rental.vehicles,
+    booking,
+    rental.selectedVehicleId
+  );
+  const bookingId = booking.id;
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -128,7 +139,7 @@ function RentalBookingConfirmationScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Nissan Leaf • Self-drive • 3 days
+                {vehicle ? `${vehicle.name} • ${vehicle.mode}` : "EV rental"}
               </Typography>
             </Box>
           </Stack>
@@ -142,7 +153,7 @@ function RentalBookingConfirmationScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Thu, 10 Oct 10:00 → Sun, 13 Oct 10:00
+                {formatRentalDateRange(booking.startDate, booking.endDate)}
               </Typography>
             </Stack>
             <Stack direction="row" spacing={0.75} alignItems="center">
@@ -153,7 +164,7 @@ function RentalBookingConfirmationScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Pickup: Nsambya EV Hub • Return: Bugolobi EV Hub
+                Pickup: {booking.pickupBranch ?? "Pickup pending"} • Return: {booking.dropoffBranch ?? "Return pending"}
               </Typography>
             </Stack>
           </Stack>
@@ -165,6 +176,7 @@ function RentalBookingConfirmationScreen(): React.JSX.Element {
         <Button
           fullWidth
           variant="outlined"
+          onClick={() => navigate(`/rental/history/${booking.id}`)}
           sx={{
             borderRadius: 5,
             py: 1,
@@ -177,6 +189,7 @@ function RentalBookingConfirmationScreen(): React.JSX.Element {
         <Button
           fullWidth
           variant="contained"
+          onClick={() => navigate("/home")}
           sx={{
             borderRadius: 5,
             py: 1,
@@ -196,7 +209,7 @@ function RentalBookingConfirmationScreen(): React.JSX.Element {
         variant="caption"
         sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
       >
-        You can manage this rental from Rides → Rentals → Upcoming. We’ll also
+        You can manage this rental from EV Rentals to Upcoming. We’ll also
         email your booking confirmation and receipt.
       </Typography>
     </Box>

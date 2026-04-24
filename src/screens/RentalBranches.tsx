@@ -19,6 +19,12 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
+import {
+  buildRentalPricing,
+  formatUgx,
+  getRentalBookingVehicle
+} from "../features/rental/booking";
 
 
 const BRANCHES = [
@@ -30,8 +36,18 @@ const BRANCHES = [
 
 function RentalPickupReturnBranchesScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [pickupBranch, setPickupBranch] = useState("Nsambya EV Hub");
-  const [returnBranch, setReturnBranch] = useState("Nsambya EV Hub");
+  const { rental, actions } = useAppData();
+  const vehicle = getRentalBookingVehicle(
+    rental.vehicles,
+    rental.booking,
+    rental.selectedVehicleId
+  );
+  const [pickupBranch, setPickupBranch] = useState(
+    rental.booking.pickupBranch ?? "Nsambya EV Hub"
+  );
+  const [returnBranch, setReturnBranch] = useState(
+    rental.booking.dropoffBranch ?? "Nsambya EV Hub"
+  );
 
   const canContinue = Boolean(pickupBranch.trim() && returnBranch.trim());
 
@@ -243,6 +259,19 @@ function RentalPickupReturnBranchesScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         disabled={!canContinue}
+        onClick={() => {
+          const pricing = buildRentalPricing(vehicle, {
+            ...rental.booking,
+            pickupBranch,
+            dropoffBranch: returnBranch
+          });
+          actions.updateRentalBooking({
+            pickupBranch,
+            dropoffBranch: returnBranch,
+            priceEstimate: formatUgx(pricing.dueNow)
+          });
+          navigate("/rental/summary");
+        }}
         sx={{
           borderRadius: uiTokens.radius.xl,
           py: uiTokens.spacing.smPlus,

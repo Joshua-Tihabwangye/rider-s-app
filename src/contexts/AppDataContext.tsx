@@ -129,6 +129,7 @@ interface AppActions {
   captureDeliverySettlement: (orderId: string) => void;
   markDeliveryNotificationsRead: () => void;
   applyDeliveryRealtimePatch: (patch: DeliveryRealtimePatch) => void;
+  beginRentalBooking: (vehicleId?: string) => void;
   updateRentalBooking: (patch: Partial<RentalBooking>) => void;
   selectRentalVehicle: (vehicleId: string) => void;
   updateTourBooking: (patch: Partial<TourBooking>) => void;
@@ -205,6 +206,7 @@ type AppAction =
   | { type: "delivery/realtime"; payload: DeliveryRealtimePatch }
   | { type: "delivery/poll" }
   | { type: "delivery/ws-connected"; payload: boolean }
+  | { type: "rental/begin"; payload?: { vehicleId?: string } }
   | { type: "rental/booking"; payload: Partial<RentalBooking> }
   | { type: "rental/select"; payload: string }
   | { type: "tours/booking"; payload: Partial<TourBooking> }
@@ -474,6 +476,31 @@ function getCityLabel(value: string): string {
     return primary;
   }
   return "Kampala";
+}
+
+function createRentalBookingId(): string {
+  const now = new Date();
+  const date = now.toISOString().slice(0, 10);
+  const suffix = String(now.getTime()).slice(-4);
+  return `RENT-${date}-${suffix}`;
+}
+
+function createDraftRentalBooking(vehicleId: string): RentalBooking {
+  return {
+    id: createRentalBookingId(),
+    vehicleId,
+    status: "draft",
+    priceEstimate: undefined
+  };
+}
+
+function upsertRentalBooking(bookings: RentalBooking[], booking: RentalBooking): RentalBooking[] {
+  const existingIndex = bookings.findIndex((entry) => entry.id === booking.id);
+  if (existingIndex === -1) {
+    return [booking, ...bookings];
+  }
+
+  return bookings.map((entry) => (entry.id === booking.id ? booking : entry));
 }
 
 function createDeliveryOrderFromDraft(
@@ -1681,9 +1708,47 @@ function appReducer(state: AppState, action: AppAction): AppState {
           websocketConnected: action.payload
         }
       };
-    case "rental/booking":
-      return { ...state, rental: { ...state.rental, booking: { ...state.rental.booking, ...action.payload } } };
+    case "rental/begin": {
+      const vehicleId =
+        action.payload?.vehicleId ??
+        state.rental.selectedVehicleId ??
+        state.rental.vehicles[0]?.id ??
+        "EV-RENT-01";
+      return {
+        ...state,
+        rental: {
+          ...state.rental,
+          selectedVehicleId: vehicleId,
+          booking: createDraftRentalBooking(vehicleId)
+        }
+      };
+    }
+    case "rental/booking": {
+      const nextBooking = { ...state.rental.booking, ...action.payload };
+      const nextBookings =
+        nextBooking.status === "draft"
+          ? state.rental.bookings
+          : upsertRentalBooking(state.rental.bookings, nextBooking);
+      return {
+        ...state,
+        rental: {
+          ...state.rental,
+          booking: nextBooking,
+          bookings: nextBookings
+        }
+      };
+    }
     case "rental/select":
+      if (state.rental.booking.status !== "draft") {
+        return {
+          ...state,
+          rental: {
+            ...state.rental,
+            selectedVehicleId: action.payload,
+            booking: createDraftRentalBooking(action.payload)
+          }
+        };
+      }
       return {
         ...state,
         rental: {
@@ -1986,6 +2051,10 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     dispatch({ type: "delivery/realtime", payload: patch });
   }, []);
 
+  const beginRentalBooking = useCallback((vehicleId?: string) => {
+    dispatch({ type: "rental/begin", payload: { vehicleId } });
+  }, []);
+
   const updateRentalBooking = useCallback((patch: Partial<RentalBooking>) => {
     dispatch({ type: "rental/booking", payload: patch });
   }, []);
@@ -2184,6 +2253,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       captureDeliverySettlement,
       markDeliveryNotificationsRead,
       applyDeliveryRealtimePatch,
+      beginRentalBooking,
       updateRentalBooking,
       selectRentalVehicle,
       updateTourBooking,
@@ -2230,6 +2300,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       captureDeliverySettlement,
       markDeliveryNotificationsRead,
       applyDeliveryRealtimePatch,
+      beginRentalBooking,
       updateRentalBooking,
       selectRentalVehicle,
       updateTourBooking,
