@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  
   Box,
   IconButton,
   Typography,
@@ -17,56 +16,27 @@ import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
-
-const UPCOMING_RENTALS = [
-  {
-    id: "RENT-2025-10-07-001",
-    vehicle: "Nissan Leaf",
-    mode: "Self-drive",
-    dates: "Thu, 10 Oct → Sun, 13 Oct",
-    pickup: "Nsambya EV Hub",
-    returnBranch: "Bugolobi EV Hub",
-    status: "Upcoming"
-  },
-  {
-    id: "RENT-2025-10-20-002",
-    vehicle: "Hyundai Kona EV",
-    mode: "Self-drive",
-    dates: "Mon, 20 Oct → Fri, 24 Oct",
-    pickup: "Entebbe Airport EV Desk",
-    returnBranch: "Nsambya EV Hub",
-    status: "Upcoming"
-  }
-];
-
-const PAST_RENTALS = [
-  {
-    id: "RENT-2025-09-01-003",
-    vehicle: "Tesla Model 3",
-    mode: "With chauffeur",
-    dates: "Mon, 01 Sep → Wed, 03 Sep",
-    pickup: "Nsambya EV Hub",
-    returnBranch: "Nsambya EV Hub",
-    status: "Completed"
-  }
-];
-
-interface Booking {
-  id: string;
-  vehicle: string;
-  mode: string;
-  dates: string;
-  pickup: string;
-  returnBranch: string;
-  status: string;
-}
+import { useAppData } from "../contexts/AppDataContext";
+import {
+  formatRentalDateRange,
+  getRentalBookingVehicle,
+  getRentalStatusLabel
+} from "../features/rental/booking";
+import type { RentalBooking, RentalVehicle } from "../store/types";
 
 interface RentalBookingCardProps {
-  booking: Booking;
+  booking: RentalBooking;
+  vehicle: RentalVehicle | null;
   onViewDetails: (bookingId: string) => void;
 }
 
-function RentalBookingCard({ booking, onViewDetails }: RentalBookingCardProps): React.JSX.Element {
+function RentalBookingCard({
+  booking,
+  vehicle,
+  onViewDetails
+}: RentalBookingCardProps): React.JSX.Element {
+  const statusLabel = getRentalStatusLabel(booking.status);
+
   return (
     <Card
       elevation={0}
@@ -102,13 +72,13 @@ function RentalBookingCard({ booking, onViewDetails }: RentalBookingCardProps): 
               variant="body2"
               sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
             >
-              {booking.vehicle}
+              {vehicle ? `${vehicle.name} • ${vehicle.mode}` : "EV rental"}
             </Typography>
             <Typography
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              {booking.mode}
+              {vehicle ? `${vehicle.type} • ${vehicle.range}` : "Vehicle details pending"}
             </Typography>
             <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.4 }}>
               <CalendarMonthRoundedIcon
@@ -118,23 +88,29 @@ function RentalBookingCard({ booking, onViewDetails }: RentalBookingCardProps): 
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                {booking.dates}
+                {formatRentalDateRange(booking.startDate, booking.endDate)}
               </Typography>
             </Stack>
           </Box>
           <Chip
             size="small"
-            label={booking.status}
+            label={statusLabel}
             sx={{
               borderRadius: 5,
               fontSize: 10,
               height: 22,
               bgcolor:
-                booking.status === "Upcoming"
+                statusLabel === "Upcoming"
                   ? "rgba(34,197,94,0.12)"
-                  : "rgba(148,163,184,0.18)",
+                  : statusLabel === "Cancelled"
+                    ? "rgba(248,113,113,0.18)"
+                    : "rgba(148,163,184,0.18)",
               color:
-                booking.status === "Upcoming" ? "#16A34A" : "rgba(148,163,184,1)"
+                statusLabel === "Upcoming"
+                  ? "#16A34A"
+                  : statusLabel === "Cancelled"
+                    ? "#DC2626"
+                    : "rgba(148,163,184,1)"
             }}
           />
         </Stack>
@@ -148,7 +124,7 @@ function RentalBookingCard({ booking, onViewDetails }: RentalBookingCardProps): 
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Pickup: {booking.pickup}
+              Pickup: {booking.pickupBranch ?? "Pickup pending"}
             </Typography>
           </Stack>
           <Stack direction="row" spacing={0.75} alignItems="center">
@@ -159,7 +135,7 @@ function RentalBookingCard({ booking, onViewDetails }: RentalBookingCardProps): 
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Return: {booking.returnBranch}
+              Return: {booking.dropoffBranch ?? "Return pending"}
             </Typography>
           </Stack>
         </Stack>
@@ -193,13 +169,19 @@ function RentalBookingCard({ booking, onViewDetails }: RentalBookingCardProps): 
 
 function RentalBookingsUpcomingHistoryScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { rental } = useAppData();
   const [tab, setTab] = useState("upcoming");
 
-  const bookings = tab === "upcoming" ? UPCOMING_RENTALS : PAST_RENTALS;
+  const bookings = useMemo(
+    () =>
+      rental.bookings.filter((booking) =>
+        tab === "upcoming" ? booking.status === "confirmed" : booking.status !== "confirmed"
+      ),
+    [rental.bookings, tab]
+  );
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
       <Box
         sx={{
           mb: 2,
@@ -242,7 +224,6 @@ function RentalBookingsUpcomingHistoryScreen(): React.JSX.Element {
         </Box>
       </Box>
 
-      {/* Tabs */}
       <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
         <Chip
           label="Upcoming"
@@ -252,10 +233,13 @@ function RentalBookingsUpcomingHistoryScreen(): React.JSX.Element {
             borderRadius: 5,
             fontSize: 11,
             height: 26,
-            bgcolor: tab === "upcoming" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
+            bgcolor: tab === "upcoming"
+              ? "primary.main"
+              : (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
             border: (t) =>
-              t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)",
+              t.palette.mode === "light"
+                ? "1px solid rgba(209,213,219,0.9)"
+                : "1px solid rgba(51,65,85,0.9)",
             color: tab === "upcoming" ? "#020617" : (t) => t.palette.text.primary
           }}
         />
@@ -267,10 +251,13 @@ function RentalBookingsUpcomingHistoryScreen(): React.JSX.Element {
             borderRadius: 5,
             fontSize: 11,
             height: 26,
-            bgcolor: tab === "history" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
+            bgcolor: tab === "history"
+              ? "primary.main"
+              : (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
             border: (t) =>
-              t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)",
+              t.palette.mode === "light"
+                ? "1px solid rgba(209,213,219,0.9)"
+                : "1px solid rgba(51,65,85,0.9)",
             color: tab === "history" ? "#020617" : (t) => t.palette.text.primary
           }}
         />
@@ -279,7 +266,12 @@ function RentalBookingsUpcomingHistoryScreen(): React.JSX.Element {
       {bookings.length === 0 ? (
         <Typography
           variant="caption"
-          sx={{ mt: 4, display: "block", textAlign: "center", color: (t) => t.palette.text.secondary }}
+          sx={{
+            mt: 4,
+            display: "block",
+            textAlign: "center",
+            color: (t) => t.palette.text.secondary
+          }}
         >
           No rentals in this view yet.
         </Typography>
@@ -288,6 +280,7 @@ function RentalBookingsUpcomingHistoryScreen(): React.JSX.Element {
           <RentalBookingCard
             key={booking.id}
             booking={booking}
+            vehicle={getRentalBookingVehicle(rental.vehicles, booking)}
             onViewDetails={(bookingId) => navigate(`/rental/history/${bookingId}`)}
           />
         ))
@@ -297,20 +290,15 @@ function RentalBookingsUpcomingHistoryScreen(): React.JSX.Element {
 }
 
 export default function RiderScreen76RentalBookingsUpcomingHistoryCanvas_v2() {
-      return (
-    
-      
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: (t) => t.palette.background.default
-        }}
-      >
-
-          <RentalBookingsUpcomingHistoryScreen />
-        
-      </Box>
-    
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        minHeight: "100vh",
+        bgcolor: (t) => t.palette.background.default
+      }}
+    >
+      <RentalBookingsUpcomingHistoryScreen />
+    </Box>
   );
 }

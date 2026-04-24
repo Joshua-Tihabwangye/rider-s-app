@@ -860,11 +860,43 @@ export const SEED_RENTAL_STATE: RentalState = {
   vehicles: SEED_RENTAL_VEHICLES,
   selectedVehicleId: SEED_RENTAL_VEHICLES[0]?.id ?? null,
   booking: {
-    id: "rent_0001",
+    id: "rent_draft_0001",
     vehicleId: SEED_RENTAL_VEHICLES[0]?.id ?? "EV-RENT-01",
     status: "draft",
     priceEstimate: "UGX 180,000 / day"
-  }
+  },
+  bookings: [
+    {
+      id: "RENT-2025-10-07-001",
+      vehicleId: SEED_RENTAL_VEHICLES[0]?.id ?? "EV-RENT-01",
+      startDate: "Thu, 10 Oct 10:00",
+      endDate: "Sun, 13 Oct 10:00",
+      pickupBranch: "Nsambya EV Hub",
+      dropoffBranch: "Bugolobi EV Hub",
+      priceEstimate: "UGX 580,000",
+      status: "confirmed"
+    },
+    {
+      id: "RENT-2025-10-20-002",
+      vehicleId: SEED_RENTAL_VEHICLES[1]?.id ?? "EV-RENT-02",
+      startDate: "Mon, 20 Oct 10:00",
+      endDate: "Fri, 24 Oct 10:00",
+      pickupBranch: "Entebbe Airport EV Desk",
+      dropoffBranch: "Nsambya EV Hub",
+      priceEstimate: "UGX 940,000",
+      status: "confirmed"
+    },
+    {
+      id: "RENT-2025-09-01-003",
+      vehicleId: SEED_RENTAL_VEHICLES[2]?.id ?? "EV-RENT-03",
+      startDate: "Mon, 01 Sep 10:00",
+      endDate: "Wed, 03 Sep 10:00",
+      pickupBranch: "Nsambya EV Hub",
+      dropoffBranch: "Nsambya EV Hub",
+      priceEstimate: "UGX 680,000",
+      status: "completed"
+    }
+  ]
 };
 
 /** Tours */

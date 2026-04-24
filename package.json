@@ -27,8 +27,8 @@
     "vite": "^7.2.6"
   },
   "scripts": {
-    "dev": "vite",
-    "start": "vite",
+    "dev": "CHOKIDAR_USEPOLLING=1 vite",
+    "start": "CHOKIDAR_USEPOLLING=1 vite",
     "build": "vite build",
     "preview": "vite preview",
     "design:guardrails": "node scripts/design-guardrails.mjs",

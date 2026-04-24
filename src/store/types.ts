@@ -631,6 +631,7 @@ export interface RentalState {
   vehicles: RentalVehicle[];
   selectedVehicleId?: string | null;
   booking: RentalBooking;
+  bookings: RentalBooking[];
 }
 
 /** Tours */

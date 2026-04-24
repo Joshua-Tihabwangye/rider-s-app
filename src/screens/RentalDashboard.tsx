@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -15,6 +15,11 @@ import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import ActionGrid from "../components/primitives/ActionGrid";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
+import {
+  formatRentalDateRange,
+  getRentalBookingVehicle
+} from "../features/rental/booking";
 
 import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
@@ -22,23 +27,37 @@ import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 
-
 function RentalDashboardHomeScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { rental, actions } = useAppData();
   const [modeSelection, setModeSelection] = useState("self");
 
+  const upcomingBookings = useMemo(
+    () => rental.bookings.filter((booking) => booking.status === "confirmed"),
+    [rental.bookings]
+  );
+  const upcomingBooking = upcomingBookings[0] ?? null;
+  const upcomingVehicle = getRentalBookingVehicle(
+    rental.vehicles,
+    upcomingBooking,
+    rental.selectedVehicleId
+  );
+
   const handleBrowseRentals = () => {
+    actions.beginRentalBooking();
     navigate("/rental/list");
   };
 
   const handleBookSelfDrive = () => {
     setModeSelection("self");
-    navigate("/rental/list");
+    actions.beginRentalBooking();
+    navigate("/rental/list", { state: { mode: "self" } });
   };
 
   const handleBookChauffeur = () => {
     setModeSelection("chauffeur");
-    navigate("/rental/list");
+    actions.beginRentalBooking();
+    navigate("/rental/list", { state: { mode: "chauffeur" } });
   };
 
   const handleViewRentalHistory = () => {
@@ -86,7 +105,6 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
         }
       />
 
-      {/* Upcoming rental summary */}
       <Card
         elevation={0}
         sx={{
@@ -112,7 +130,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             variant="body1"
             sx={{ fontWeight: 700, letterSpacing: "-0.02em", mb: 0.1, color: (t) => t.palette.text.primary }}
           >
-            Nissan Leaf • Self-drive
+            {upcomingVehicle ? `${upcomingVehicle.name} • ${upcomingVehicle.mode}` : "No active rental yet"}
           </Typography>
           <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.4 }}>
             <CalendarMonthRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
@@ -120,7 +138,9 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Thu 10 Oct → Sun 13 Oct • 3 days
+              {upcomingBooking
+                ? formatRentalDateRange(upcomingBooking.startDate, upcomingBooking.endDate)
+                : "Your next confirmed rental will appear here"}
             </Typography>
           </Stack>
           <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
@@ -129,7 +149,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Pickup: Nsambya EV Hub • Return: Bugolobi EV Hub
+              Pickup: {upcomingBooking?.pickupBranch ?? "Pickup pending"} • Return: {upcomingBooking?.dropoffBranch ?? "Return pending"}
             </Typography>
           </Stack>
 
@@ -137,7 +157,13 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             <Button
               fullWidth
               variant="contained"
-              onClick={() => navigate("/rental/history/1")}
+              onClick={() => {
+                if (upcomingBooking) {
+                  navigate(`/rental/history/${upcomingBooking.id}`);
+                  return;
+                }
+                navigate("/rental/history");
+              }}
               sx={{
                 borderRadius: uiTokens.radius.xl,
                 py: 0.9,
@@ -154,7 +180,20 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             <Button
               fullWidth
               variant="outlined"
-              onClick={() => navigate("/rental/dates")}
+              onClick={() => {
+                if (upcomingBooking) {
+                  actions.beginRentalBooking(upcomingBooking.vehicleId);
+                  actions.updateRentalBooking({
+                    vehicleId: upcomingBooking.vehicleId,
+                    startDate: upcomingBooking.startDate,
+                    endDate: upcomingBooking.endDate,
+                    pickupBranch: upcomingBooking.pickupBranch,
+                    dropoffBranch: upcomingBooking.dropoffBranch,
+                    priceEstimate: upcomingBooking.priceEstimate
+                  });
+                }
+                navigate("/rental/dates");
+              }}
               sx={{
                 borderRadius: uiTokens.radius.xl,
                 py: 0.9,
@@ -186,7 +225,6 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      {/* Rental modes & quick actions */}
       <Card
         elevation={0}
         sx={{
@@ -325,7 +363,10 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             <Button
               fullWidth
               variant="outlined"
-              onClick={() => navigate("/rental/list", { state: { mode: "custom" } })}
+              onClick={() => {
+                actions.beginRentalBooking();
+                navigate("/rental/list", { state: { mode: "custom" } });
+              }}
               sx={{
                 borderRadius: uiTokens.radius.xl,
                 py: 0.85,
@@ -339,7 +380,6 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      {/* Upcoming rentals list */}
       <Card
         elevation={0}
         sx={{
@@ -375,60 +415,68 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
           </Stack>
           <Divider sx={{ mb: 1, borderColor: (t) => t.palette.divider }} />
 
-          {[0, 1].map((i) => (
-            <Box
-              key={i}
-              onClick={() => navigate("/rental/history/1")}
-              sx={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                py: 0.6,
-                "&:not(:last-of-type)": {
-                  borderBottom: (t) => `1px dashed ${t.palette.divider}`
-                }
-              }}
-            >
-              <Box>
-                <Typography
-                  variant="body2"
-                  sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
-                >
-                  {i === 0
-                    ? "Nissan Leaf • Self-drive"
-                    : "Hyundai Kona EV • With chauffeur"}
-                </Typography>
-                <Stack direction="row" spacing={0.75} alignItems="center">
-                  <CalendarMonthRoundedIcon
-                    sx={{ fontSize: 15, color: (t) => t.palette.text.secondary }}
-                  />
+          {upcomingBookings.slice(0, 2).map((booking) => {
+            const vehicle = getRentalBookingVehicle(rental.vehicles, booking);
+            return (
+              <Box
+                key={booking.id}
+                onClick={() => navigate(`/rental/history/${booking.id}`)}
+                sx={{
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  py: 0.6,
+                  "&:not(:last-of-type)": {
+                    borderBottom: (t) => `1px dashed ${t.palette.divider}`
+                  }
+                }}
+              >
+                <Box>
                   <Typography
-                    variant="caption"
-                    sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
+                    variant="body2"
+                    sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
                   >
-                    {i === 0
-                      ? "10–13 Oct • 3 days"
-                      : "20–22 Oct • 2 days"}
+                    {vehicle ? `${vehicle.name} • ${vehicle.mode}` : "EV rental"}
                   </Typography>
-                </Stack>
-                <Stack direction="row" spacing={0.75} alignItems="center">
-                  <PlaceRoundedIcon
-                    sx={{ fontSize: 15, color: (t) => t.palette.text.secondary }}
-                  />
-                  <Typography
-                    variant="caption"
-                    sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-                  >
-                    Pickup: Nsambya EV Hub
-                  </Typography>
-                </Stack>
+                  <Stack direction="row" spacing={0.75} alignItems="center">
+                    <CalendarMonthRoundedIcon
+                      sx={{ fontSize: 15, color: (t) => t.palette.text.secondary }}
+                    />
+                    <Typography
+                      variant="caption"
+                      sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
+                    >
+                      {formatRentalDateRange(booking.startDate, booking.endDate)}
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={0.75} alignItems="center">
+                    <PlaceRoundedIcon
+                      sx={{ fontSize: 15, color: (t) => t.palette.text.secondary }}
+                    />
+                    <Typography
+                      variant="caption"
+                      sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
+                    >
+                      {booking.pickupBranch ?? "Pickup pending"} → {booking.dropoffBranch ?? "Return pending"}
+                    </Typography>
+                  </Stack>
+                </Box>
+                <ArrowForwardIosRoundedIcon
+                  sx={{ fontSize: 14, color: (t) => t.palette.text.secondary }}
+                />
               </Box>
-              <ArrowForwardIosRoundedIcon
-                sx={{ fontSize: 14, color: (t) => t.palette.text.secondary }}
-              />
-            </Box>
-          ))}
+            );
+          })}
+
+          {upcomingBookings.length === 0 && (
+            <Typography
+              variant="caption"
+              sx={{ display: "block", py: 1, color: (t) => t.palette.text.secondary }}
+            >
+              No confirmed rentals yet. Start a new booking to see it here.
+            </Typography>
+          )}
         </CardContent>
       </Card>
 
@@ -445,11 +493,5 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
 }
 
 export default function RentalDashboard(): React.JSX.Element {
-  return (
-    <>
-
-        <RentalDashboardHomeScreen />
-      
-    </>
-  );
+  return <RentalDashboardHomeScreen />;
 }

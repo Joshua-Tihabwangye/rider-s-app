@@ -1,8 +1,6 @@
 import React from "react";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-  
   Box,
   IconButton,
   Typography,
@@ -20,15 +18,29 @@ import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
 
+import { useAppData } from "../contexts/AppDataContext";
+import {
+  buildRentalPricing,
+  formatRentalDateRange,
+  formatUgx,
+  getRentalBookingVehicle,
+  getRentalStatusLabel
+} from "../features/rental/booking";
 
 function RentalBookingDetailViewScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const bookingId = "RENT-2025-10-07-001";
-  const status = "Upcoming";
+  const { rentalId } = useParams();
+  const { rental, actions } = useAppData();
+
+  const booking =
+    rental.bookings.find((entry) => entry.id === rentalId) ??
+    (rental.booking.id === rentalId ? rental.booking : rental.bookings[0] ?? rental.booking);
+  const vehicle = getRentalBookingVehicle(rental.vehicles, booking, rental.selectedVehicleId);
+  const pricing = buildRentalPricing(vehicle, booking);
+  const status = getRentalStatusLabel(booking.status);
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
       <Box
         sx={{
           mb: 2,
@@ -65,7 +77,7 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              Nissan Leaf • Self-drive
+              {vehicle ? `${vehicle.name} • ${vehicle.mode}` : "EV rental"}
             </Typography>
           </Box>
         </Box>
@@ -76,13 +88,22 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
             borderRadius: 5,
             fontSize: 10,
             height: 22,
-            bgcolor: status === "Upcoming" ? "rgba(34,197,94,0.12)" : "rgba(148,163,184,0.18)",
-            color: status === "Upcoming" ? "#16A34A" : "rgba(148,163,184,1)"
+            bgcolor:
+              status === "Upcoming"
+                ? "rgba(34,197,94,0.12)"
+                : status === "Cancelled"
+                  ? "rgba(248,113,113,0.18)"
+                  : "rgba(148,163,184,0.18)",
+            color:
+              status === "Upcoming"
+                ? "#16A34A"
+                : status === "Cancelled"
+                  ? "#DC2626"
+                  : "rgba(148,163,184,1)"
           }}
         />
       </Box>
 
-      {/* Vehicle & booking summary */}
       <Card
         elevation={0}
         sx={{
@@ -117,13 +138,13 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
                 variant="body2"
                 sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
               >
-                Nissan Leaf • EV hatchback
+                {vehicle ? `${vehicle.name} • ${vehicle.type}` : "EV rental"}
               </Typography>
               <Typography
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Self-drive • 5 seats • 220 km range
+                {vehicle ? `${vehicle.mode} • ${vehicle.seats} seats • ${vehicle.range}` : "Vehicle details pending"}
               </Typography>
               <Typography
                 variant="caption"
@@ -133,7 +154,7 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
                   color: (t) => t.palette.text.secondary
                 }}
               >
-                ID: {bookingId}
+                ID: {booking.id}
               </Typography>
             </Box>
           </Stack>
@@ -149,7 +170,7 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Thu, 10 Oct 10:00 → Sun, 13 Oct 10:00 (3 days)
+                {formatRentalDateRange(booking.startDate, booking.endDate)}
               </Typography>
             </Stack>
             <Stack direction="row" spacing={0.75} alignItems="center">
@@ -160,14 +181,13 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Pickup: Nsambya EV Hub • Return: Bugolobi EV Hub
+                Pickup: {booking.pickupBranch ?? "Pickup pending"} • Return: {booking.dropoffBranch ?? "Return pending"}
               </Typography>
             </Stack>
           </Stack>
         </CardContent>
       </Card>
 
-      {/* Price breakdown */}
       <Card
         elevation={0}
         sx={{
@@ -191,18 +211,18 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
           <Stack spacing={0.4}>
             <Stack direction="row" justifyContent="space-between">
               <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Rental (3 days × UGX 180,000)
+                Rental ({pricing.durationDays} day{pricing.durationDays === 1 ? "" : "s"} × {formatUgx(pricing.dailyRate)})
               </Typography>
               <Typography variant="caption" sx={{ fontSize: 11 }}>
-                UGX 540,000
+                {formatUgx(pricing.rentalSubtotal)}
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
               <Typography variant="caption" sx={{ fontSize: 11 }}>
-                One‑way drop‑off fee
+                One-way drop-off fee
               </Typography>
               <Typography variant="caption" sx={{ fontSize: 11 }}>
-                UGX 40,000
+                {pricing.oneWayFee > 0 ? formatUgx(pricing.oneWayFee) : "UGX 0"}
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
@@ -218,7 +238,7 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
                 Refundable deposit
               </Typography>
               <Typography variant="caption" sx={{ fontSize: 11 }}>
-                UGX 300,000
+                {formatUgx(pricing.refundableDeposit)}
               </Typography>
             </Stack>
           </Stack>
@@ -237,7 +257,7 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
                 variant="h6"
                 sx={{ fontWeight: 700, letterSpacing: "-0.02em" }}
               >
-                UGX 580,000
+                {booking.priceEstimate ?? formatUgx(pricing.dueNow)}
               </Typography>
             </Box>
             <Chip
@@ -257,11 +277,22 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      {/* Actions */}
       <Stack direction="row" spacing={1.25} sx={{ mb: 1.5 }}>
         <Button
           fullWidth
           variant="outlined"
+          onClick={() => {
+            actions.beginRentalBooking(booking.vehicleId);
+            actions.updateRentalBooking({
+              vehicleId: booking.vehicleId,
+              startDate: booking.startDate,
+              endDate: booking.endDate,
+              pickupBranch: booking.pickupBranch,
+              dropoffBranch: booking.dropoffBranch,
+              priceEstimate: booking.priceEstimate
+            });
+            navigate("/rental/dates");
+          }}
           sx={{
             borderRadius: 5,
             py: 1,
@@ -274,6 +305,13 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
         <Button
           fullWidth
           variant="outlined"
+          onClick={() => {
+            actions.updateRentalBooking({
+              ...booking,
+              status: "cancelled"
+            });
+            navigate("/rental/history");
+          }}
           sx={{
             borderRadius: 5,
             py: 1,
@@ -303,20 +341,15 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
 }
 
 export default function RiderScreen90RentalBookingDetailViewCanvas_v2() {
-      return (
-    
-      
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: (t) => t.palette.background.default
-        }}
-      >
-
-          <RentalBookingDetailViewScreen />
-        
-      </Box>
-    
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        minHeight: "100vh",
+        bgcolor: (t) => t.palette.background.default
+      }}
+    >
+      <RentalBookingDetailViewScreen />
+    </Box>
   );
 }
