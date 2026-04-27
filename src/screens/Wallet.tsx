@@ -77,6 +77,7 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { walletBalance, walletReserved, transactions, reminders, actions } = useAppData();
+  const dismissReminders = actions.dismissReminders;
   
   const balance = walletBalance;
   const reserved = walletReserved;
@@ -134,12 +135,12 @@ function WalletContent({ onBack }: WalletContentProps): React.JSX.Element {
         )
         .map((reminder) => reminder.id);
       if (resolvedReminderIds.length > 0) {
-        actions.dismissReminders(resolvedReminderIds);
+        dismissReminders(resolvedReminderIds);
       }
     }
 
     navigate("/wallet", { replace: true });
-  }, [actions, location.state, navigate, reminders]);
+  }, [dismissReminders, location.state, navigate, reminders]);
 
   const handleAddMoney = () => {
     navigate("/wallet/add-money");

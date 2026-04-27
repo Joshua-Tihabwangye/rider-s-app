@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import {
   
   Box,
@@ -26,8 +26,14 @@ import { useAppData } from "../contexts/AppDataContext";
 function TourBookingSummaryPaymentScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
+  const { tourId } = useParams();
   const { tours, actions } = useAppData();
-  const selectedTour = tours.tours.find((tour) => tour.id === tours.selectedTourId) ?? tours.tours[0];
+  const selectTour = actions.selectTour;
+  const updateTourBooking = actions.updateTourBooking;
+  const selectedTour =
+    tours.tours.find((tour) => tour.id === tourId) ??
+    tours.tours.find((tour) => tour.id === tours.selectedTourId) ??
+    tours.tours[0];
   const [paymentMethod, setPaymentMethod] = useState("wallet");
 
   const { date = tours.booking.date || "Sat, 12 Oct 2025", timeSlot = "Afternoon (14:00)", adults = tours.booking.guests || 2, children = 1 } = (location.state as any) || {};
@@ -38,6 +44,12 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
   const totalAdultsPrice = adults * adultPrice;
   const totalChildrenPrice = children * childPrice;
   const totalPrice = totalAdultsPrice + totalChildrenPrice + bookingFee;
+
+  useEffect(() => {
+    if (tourId) {
+      selectTour(tourId);
+    }
+  }, [tourId, selectTour]);
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -78,7 +90,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
             >
-              EV Day Trip – Jinja • {adults} {adults === 1 ? "adult" : "adults"}{children > 0 ? `, ${children} ${children === 1 ? "child" : "children"}` : ""}
+              {(selectedTour?.title ?? "EV Tour")} • {adults} {adults === 1 ? "adult" : "adults"}{children > 0 ? `, ${children} ${children === 1 ? "child" : "children"}` : ""}
             </Typography>
           </Box>
         </Box>
@@ -119,13 +131,13 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
                 variant="body2"
                 sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
               >
-                EV Day Trip – Jinja, Source of the Nile
+                {selectedTour?.title ?? "EV Tour"}
               </Typography>
               <Typography
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Full day • EV transport included
+                {selectedTour ? `${selectedTour.duration} • EV transport included` : "Tour details pending"}
               </Typography>
             </Box>
           </Stack>
@@ -395,7 +407,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
         variant="contained"
         onClick={() => {
           if (selectedTour) {
-            actions.updateTourBooking({ status: "confirmed", tourId: selectedTour.id });
+            updateTourBooking({ status: "confirmed", tourId: selectedTour.id });
             navigate(`/tours/${selectedTour.id}/confirmation`);
           }
         }}

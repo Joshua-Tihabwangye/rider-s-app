@@ -25,13 +25,14 @@ function TourDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { tourId } = useParams();
   const { tours, actions } = useAppData();
+  const selectTour = actions.selectTour;
   const selectedTour = tours.tours.find((tour) => tour.id === tourId) ?? tours.tours[0];
 
   useEffect(() => {
     if (tourId) {
-      actions.selectTour(tourId);
+      selectTour(tourId);
     }
-  }, [tourId, actions]);
+  }, [tourId, selectTour]);
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>

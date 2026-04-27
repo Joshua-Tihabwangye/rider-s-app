@@ -16,6 +16,7 @@ import ScreenScaffold from "../components/ScreenScaffold";
 import PageHeader from "../components/PageHeader";
 import ActionGrid from "../components/primitives/ActionGrid";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
 
 import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
@@ -38,6 +39,7 @@ const TOUR_TYPES = [
 export default function ToursNew(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
+  const { tours, actions } = useAppData();
   const isQuoteMode = (location.state as { mode?: string } | null)?.mode === "quote";
 
   const [tourType, setTourType] = useState("daytrip");
@@ -61,7 +63,14 @@ export default function ToursNew(): React.JSX.Element {
     if (isQuoteMode) {
       setSnackbar({ open: true, message: "Quote request submitted! We'll contact you within 24 hours.", severity: "success" });
     } else {
-      navigate("/tours/1/dates", {
+      const nextTour = tours.tours.find((tour) => tour.id === tours.selectedTourId) ?? tours.tours[0];
+      if (!nextTour) {
+        setSnackbar({ open: true, message: "No tours are available right now.", severity: "error" });
+        return;
+      }
+
+      actions.selectTour(nextTour.id);
+      navigate(`/tours/${nextTour.id}/dates`, {
         state: {
           tourType,
           destination,

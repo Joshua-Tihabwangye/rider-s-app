@@ -261,7 +261,11 @@ function RentalDatesDurationScreen(): React.JSX.Element {
         fullWidth
         variant="contained"
         onClick={() => {
-          actions.updateRentalBooking({ startDate: startDateTime, endDate: endDateTime });
+          actions.updateRentalBooking({
+            vehicleId: rental.booking.vehicleId ?? rental.selectedVehicleId ?? rental.vehicles[0]?.id,
+            startDate: startDateTime,
+            endDate: endDateTime
+          });
           navigate("/rental/branches");
         }}
         disabled={!canContinue}
