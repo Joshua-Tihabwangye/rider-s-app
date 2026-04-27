@@ -283,14 +283,7 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
           variant="outlined"
           onClick={() => {
             actions.beginRentalBooking(booking.vehicleId);
-            actions.updateRentalBooking({
-              vehicleId: booking.vehicleId,
-              startDate: booking.startDate,
-              endDate: booking.endDate,
-              pickupBranch: booking.pickupBranch,
-              dropoffBranch: booking.dropoffBranch,
-              priceEstimate: booking.priceEstimate
-            });
+            actions.updateRentalBooking({ ...booking, status: "draft" });
             navigate("/rental/dates");
           }}
           sx={{

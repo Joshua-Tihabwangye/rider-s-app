@@ -65,6 +65,7 @@ import RentalBranches from "../screens/RentalBranches";
 import RentalSummary from "../screens/RentalSummary";
 import RentalConfirmation from "../screens/RentalConfirmation";
 import RentalHistory from "../screens/RentalHistory";
+import RentalCustom from "../screens/RentalCustom";
 import TourDetail from "../screens/TourDetail";
 import TourDates from "../screens/TourDates";
 import TourSummary from "../screens/TourSummary";
@@ -229,6 +230,7 @@ export default function AppRouter(): React.JSX.Element {
 				{/* Rental */}
 				<Route path="rental">
 					<Route index element={<RentalDashboard />} />
+					<Route path="custom" element={<RentalCustom />} />
 					<Route path="list" element={<RentalList />} />
 					<Route
 						path="vehicle/:vehicleId"
