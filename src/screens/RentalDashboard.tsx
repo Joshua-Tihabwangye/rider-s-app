@@ -22,7 +22,6 @@ import RouteRoundedIcon from "@mui/icons-material/RouteRounded";
 import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
 
 import ScreenScaffold from "../components/ScreenScaffold";
-import SectionHeader from "../components/primitives/SectionHeader";
 import RentalAnalyticsCard from "../components/rental/RentalAnalyticsCard";
 import UpcomingRentalCard from "../components/rental/UpcomingRentalCard";
 import EmptyRentalState from "../components/rental/EmptyRentalState";
@@ -146,11 +145,9 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
 
   return (
     <ScreenScaffold>
-      <SectionHeader
-        title="EV rentals"
-        subtitle="Book self-drive or chauffeur EVs for your trips"
-        leadingAction={
-          <Stack direction="row" spacing={uiTokens.spacing.sm} alignItems="center">
+      <Box>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.2}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
             <IconButton
               size="small"
               aria-label="Back"
@@ -176,19 +173,37 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
                   t.palette.mode === "light" ? "#DCFCE7" : "rgba(15,23,42,0.9)",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center"
+                justifyContent: "center",
+                flexShrink: 0
               }}
             >
               <ElectricCarRoundedIcon sx={{ fontSize: 22, color: "#059669" }} />
             </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="h6" sx={{ ...uiTokens.text.sectionTitle, lineHeight: 1.25 }}>
+                EV rentals
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  ...uiTokens.text.itemBody,
+                  fontSize: 12,
+                  color: (t) => t.palette.text.secondary,
+                  display: "block",
+                  mt: 0.3
+                }}
+              >
+                Book self-drive or chauffeur EVs for your trips
+              </Typography>
+            </Box>
           </Stack>
-        }
-        action={
+
           <Chip
             icon={<LocalOfferRoundedIcon sx={{ fontSize: 14 }} />}
             label="Clean electric rides"
             size="small"
             sx={{
+              display: { xs: "none", sm: "inline-flex" },
               borderRadius: uiTokens.radius.pill,
               fontSize: 10.5,
               height: 24,
@@ -197,8 +212,23 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
               border: "1px solid rgba(249,115,22,0.35)"
             }}
           />
-        }
-      />
+        </Stack>
+        <Chip
+          icon={<LocalOfferRoundedIcon sx={{ fontSize: 14 }} />}
+          label="Clean electric rides"
+          size="small"
+          sx={{
+            display: { xs: "inline-flex", sm: "none" },
+            mt: 0.7,
+            borderRadius: uiTokens.radius.pill,
+            fontSize: 10.5,
+            height: 24,
+            bgcolor: "rgba(249,115,22,0.14)",
+            color: ORANGE_ACCENT,
+            border: "1px solid rgba(249,115,22,0.35)"
+          }}
+        />
+      </Box>
 
       <Card
         elevation={0}

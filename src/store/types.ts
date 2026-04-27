@@ -603,6 +603,8 @@ export interface DeliveryState {
 }
 
 /** Rentals */
+export type RentalModeOption = "self_drive" | "chauffeur";
+
 export interface RentalVehicle {
   id: string;
   name: string;
@@ -610,13 +612,16 @@ export interface RentalVehicle {
   dailyPrice: string;
   mode: string;
   seats: number;
+  luggageCapacity: number;
   range: string;
+  supportedModes?: RentalModeOption[];
+  availableLocationIds?: string[];
+  available?: boolean;
   tag?: string;
   image?: string;
   features?: string[];
 }
 
-export type RentalModeOption = "self_drive" | "chauffeur";
 export type RentalTripPurpose =
   | "personal"
   | "business"
@@ -643,7 +648,16 @@ export interface RentalAddOnSelection {
   description: string;
   price: number;
   pricingType: RentalAddOnPricingType;
+  quantity: number;
   selected: boolean;
+}
+
+export interface RentalUploadedDocument {
+  kind: "drivers_license" | "id_or_passport";
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  lastModified: number;
 }
 
 export interface RentalCustomEstimate {
@@ -657,6 +671,8 @@ export interface RentalCustomEstimate {
 }
 
 export interface RentalCustomRequest {
+  pickupLocationId: string;
+  dropoffLocationId: string;
   pickupLocation: string;
   dropoffLocation: string;
   differentDropoff: boolean;
@@ -673,6 +689,7 @@ export interface RentalCustomRequest {
   routeNotes?: string;
   vehiclePreference: RentalVehiclePreferenceType;
   minimumRangeKm?: number;
+  maximumRangeKm?: number;
   requiredSeats?: number;
   requiredLuggageCapacity?: number;
   premiumInterior: boolean;
@@ -684,6 +701,7 @@ export interface RentalCustomRequest {
   preferredVehicleModel?: string;
   accessibilityNeeds?: string;
   contactPreference: RentalContactPreference;
+  documents: RentalUploadedDocument[];
   pricing: RentalCustomEstimate;
 }
 

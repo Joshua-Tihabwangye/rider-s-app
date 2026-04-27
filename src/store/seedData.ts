@@ -831,8 +831,18 @@ const SEED_RENTAL_VEHICLES: RentalVehicle[] = [
     dailyPrice: "UGX 180,000",
     mode: "Self-drive",
     seats: 5,
+    luggageCapacity: 3,
     range: "220 km",
-    tag: "Most popular"
+    tag: "Most popular",
+    supportedModes: ["self_drive"],
+    availableLocationIds: [
+      "nsambya_hub",
+      "bugolobi_hub",
+      "kampala_central_hub",
+      "ntinda_hub",
+      "jinja_road_hub"
+    ],
+    available: true
   },
   {
     id: "EV-RENT-02",
@@ -841,8 +851,17 @@ const SEED_RENTAL_VEHICLES: RentalVehicle[] = [
     dailyPrice: "UGX 230,000",
     mode: "Self-drive",
     seats: 5,
+    luggageCapacity: 4,
     range: "300 km",
-    tag: "Family friendly"
+    tag: "Family friendly",
+    supportedModes: ["self_drive", "chauffeur"],
+    availableLocationIds: [
+      "nsambya_hub",
+      "bugolobi_hub",
+      "entebbe_airport_desk",
+      "kampala_central_hub"
+    ],
+    available: true
   },
   {
     id: "EV-RENT-03",
@@ -851,8 +870,18 @@ const SEED_RENTAL_VEHICLES: RentalVehicle[] = [
     dailyPrice: "UGX 320,000",
     mode: "With chauffeur",
     seats: 4,
+    luggageCapacity: 3,
     range: "400 km",
-    tag: "Premium"
+    tag: "Premium",
+    supportedModes: ["chauffeur"],
+    availableLocationIds: [
+      "nsambya_hub",
+      "bugolobi_hub",
+      "entebbe_airport_desk",
+      "kampala_central_hub",
+      "jinja_road_hub"
+    ],
+    available: true
   }
 ];
 
