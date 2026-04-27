@@ -177,15 +177,29 @@ function RentalSummaryScreen(): React.JSX.Element {
             <Typography variant="body2" sx={{ fontSize: 12.5, fontWeight: 700, color: "#C2410C", mb: 0.6 }}>
               Custom rental details
             </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-              Trip purpose: {customRequest.tripPurpose.replace(/_/g, " ")} • Contact: {customRequest.contactPreference}
-            </Typography>
+            <Stack spacing={0.35}>
+              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                Trip purpose: {customRequest.tripPurpose.replace(/_/g, " ")}
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                Driver option: {customRequest.driverOption === "chauffeur" ? "With chauffeur" : "Self-drive"}
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                Pickup: {customRequest.pickupLocation} • Return: {customRequest.dropoffLocation}
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                Contact preference: {customRequest.contactPreference}
+              </Typography>
+            </Stack>
             {selectedAddOns.length > 0 ? (
               <Typography
                 variant="caption"
                 sx={{ display: "block", mt: 0.5, fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Selected add-ons: {selectedAddOns.map((addOn) => addOn.name).join(", ")}
+                Selected add-ons:{" "}
+                {selectedAddOns
+                  .map((addOn) => `${addOn.name} x${Math.max(1, addOn.quantity || 1)}`)
+                  .join(", ")}
               </Typography>
             ) : (
               <Typography
@@ -193,6 +207,15 @@ function RentalSummaryScreen(): React.JSX.Element {
                 sx={{ display: "block", mt: 0.5, fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
                 No add-ons selected.
+              </Typography>
+            )}
+            {Boolean(customRequest.documents?.length) && (
+              <Typography
+                variant="caption"
+                sx={{ display: "block", mt: 0.45, fontSize: 11, color: (t) => t.palette.text.secondary }}
+              >
+                Uploaded documents:{" "}
+                {customRequest.documents.map((document) => document.fileName).join(", ")}
               </Typography>
             )}
           </CardContent>

@@ -182,8 +182,79 @@ export const RENTAL_ADD_ON_CATALOG: ReadonlyArray<RentalAddOnCatalogItem> = [
 export function createDefaultRentalAddOns(): RentalAddOnSelection[] {
   return RENTAL_ADD_ON_CATALOG.map((item) => ({
     ...item,
+    quantity: 1,
     selected: false
   }));
+}
+
+export const RENTAL_ADD_ONS_BY_PURPOSE: Record<RentalTripPurpose, string[]> = {
+  personal: [
+    "child_seat",
+    "extra_mileage",
+    "phone_charging_kit",
+    "premium_insurance",
+    "doorstep_delivery"
+  ],
+  business: [
+    "wifi_hotspot",
+    "luxury_interior",
+    "priority_support",
+    "additional_driver",
+    "bottled_water"
+  ],
+  airport_transfer: [
+    "airport_assistance",
+    "chauffeur_waiting",
+    "doorstep_collection",
+    "bottled_water",
+    "priority_support"
+  ],
+  event: [
+    "vip_chauffeur",
+    "luxury_interior",
+    "bottled_water",
+    "event_decor",
+    "security_escort"
+  ],
+  wedding: [
+    "event_decor",
+    "vip_chauffeur",
+    "luxury_interior",
+    "bottled_water",
+    "priority_support"
+  ],
+  tourism: [
+    "extra_mileage",
+    "vip_chauffeur",
+    "bottled_water",
+    "phone_charging_kit",
+    "doorstep_collection"
+  ],
+  corporate: [
+    "priority_support",
+    "premium_insurance",
+    "additional_driver",
+    "wifi_hotspot",
+    "vip_chauffeur"
+  ],
+  emergency: [
+    "priority_support",
+    "premium_insurance",
+    "doorstep_delivery",
+    "airport_assistance",
+    "extra_mileage"
+  ],
+  other: [
+    "premium_insurance",
+    "extra_mileage",
+    "additional_driver",
+    "wifi_hotspot",
+    "priority_support"
+  ]
+};
+
+export function getAddOnIdsForTripPurpose(tripPurpose: RentalTripPurpose): string[] {
+  return RENTAL_ADD_ONS_BY_PURPOSE[tripPurpose] ?? RENTAL_ADD_ONS_BY_PURPOSE.other;
 }
 
 function isValidDate(date: Date): boolean {
@@ -218,17 +289,19 @@ export function calculateAddOnCost(
     return 0;
   }
 
+  const quantity = Math.max(1, Math.round(addOn.quantity || 1));
+
   switch (addOn.pricingType) {
     case "per_day":
-      return addOn.price * durationDays;
+      return addOn.price * durationDays * quantity;
     case "per_hour": {
       const hours = Math.max(1, Math.round(chauffeurWaitingTimeHours || 1));
-      return addOn.price * hours;
+      return addOn.price * hours * quantity;
     }
     case "per_trip":
     case "one_time":
     default:
-      return addOn.price;
+      return addOn.price * quantity;
   }
 }
 

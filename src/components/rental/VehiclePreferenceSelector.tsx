@@ -12,17 +12,28 @@ import type { RentalVehiclePreferenceType } from "../../store/types";
 import { RENTAL_VEHICLE_PREFERENCE_OPTIONS } from "../../features/rental/custom";
 import { uiTokens } from "../../design/tokens";
 
+function blockInvalidNumberKey(event: React.KeyboardEvent<HTMLInputElement>): void {
+  if (["-", "+", "e", "E"].includes(event.key)) {
+    event.preventDefault();
+  }
+}
+
 interface VehiclePreferenceSelectorProps {
   vehiclePreference: RentalVehiclePreferenceType;
-  minimumRangeKm: string;
   requiredSeats: string;
   requiredLuggageCapacity: string;
   premiumInterior: boolean;
   fastestCharging: boolean;
   budgetMin: string;
   budgetMax: string;
+  errors?: Partial<Record<
+    | "requiredSeats"
+    | "requiredLuggageCapacity"
+    | "budgetMin"
+    | "budgetMax",
+    string
+  >>;
   onVehiclePreferenceChange: (value: RentalVehiclePreferenceType) => void;
-  onMinimumRangeChange: (value: string) => void;
   onRequiredSeatsChange: (value: string) => void;
   onRequiredLuggageChange: (value: string) => void;
   onPremiumInteriorChange: (value: boolean) => void;
@@ -33,15 +44,14 @@ interface VehiclePreferenceSelectorProps {
 
 export default function VehiclePreferenceSelector({
   vehiclePreference,
-  minimumRangeKm,
   requiredSeats,
   requiredLuggageCapacity,
   premiumInterior,
   fastestCharging,
   budgetMin,
   budgetMax,
+  errors,
   onVehiclePreferenceChange,
-  onMinimumRangeChange,
   onRequiredSeatsChange,
   onRequiredLuggageChange,
   onPremiumInteriorChange,
@@ -82,46 +92,59 @@ export default function VehiclePreferenceSelector({
 
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
         <TextField
-          label="Minimum range (km)"
-          size="small"
-          type="number"
-          value={minimumRangeKm}
-          onChange={(event) => onMinimumRangeChange(event.target.value)}
-          fullWidth
-        />
-        <TextField
+          id="requiredSeats"
           label="Seats"
           size="small"
           type="number"
+          required
           value={requiredSeats}
           onChange={(event) => onRequiredSeatsChange(event.target.value)}
+          error={Boolean(errors?.requiredSeats)}
+          helperText={errors?.requiredSeats}
+          inputProps={{ min: 1, step: 1 }}
+          onKeyDown={blockInvalidNumberKey}
+          fullWidth
+        />
+        <TextField
+          id="requiredLuggageCapacity"
+          label="Luggage capacity"
+          size="small"
+          type="number"
+          value={requiredLuggageCapacity}
+          onChange={(event) => onRequiredLuggageChange(event.target.value)}
+          error={Boolean(errors?.requiredLuggageCapacity)}
+          helperText={errors?.requiredLuggageCapacity}
+          inputProps={{ min: 0, step: 1 }}
+          onKeyDown={blockInvalidNumberKey}
           fullWidth
         />
       </Stack>
 
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
         <TextField
-          label="Luggage capacity"
-          size="small"
-          type="number"
-          value={requiredLuggageCapacity}
-          onChange={(event) => onRequiredLuggageChange(event.target.value)}
-          fullWidth
-        />
-        <TextField
+          id="budgetMin"
           label="Budget min (UGX)"
           size="small"
           type="number"
           value={budgetMin}
           onChange={(event) => onBudgetMinChange(event.target.value)}
+          error={Boolean(errors?.budgetMin)}
+          helperText={errors?.budgetMin}
+          inputProps={{ min: 0, step: 1000 }}
+          onKeyDown={blockInvalidNumberKey}
           fullWidth
         />
         <TextField
+          id="budgetMax"
           label="Budget max (UGX)"
           size="small"
           type="number"
           value={budgetMax}
           onChange={(event) => onBudgetMaxChange(event.target.value)}
+          error={Boolean(errors?.budgetMax)}
+          helperText={errors?.budgetMax}
+          inputProps={{ min: 0, step: 1000 }}
+          onKeyDown={blockInvalidNumberKey}
           fullWidth
         />
       </Stack>
