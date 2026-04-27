@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Alert,
-  Box,
   Chip,
   FormControlLabel,
   MenuItem,
@@ -24,15 +23,13 @@ interface DriverOptionSelectorProps {
   driverOption: RentalModeOption;
   additionalDriver: boolean;
   passengerCount: string;
-  luggageQuantity: string;
   preferredDriverLanguage: string;
   chauffeurWaitingTimeHours: string;
   routeNotes: string;
-  errors?: Partial<Record<"passengerCount" | "luggageQuantity" | "chauffeurWaitingTimeHours", string>>;
+  errors?: Partial<Record<"passengerCount" | "chauffeurWaitingTimeHours", string>>;
   onDriverOptionChange: (value: RentalModeOption) => void;
   onAdditionalDriverChange: (value: boolean) => void;
   onPassengerCountChange: (value: string) => void;
-  onLuggageQuantityChange: (value: string) => void;
   onPreferredDriverLanguageChange: (value: string) => void;
   onChauffeurWaitingTimeHoursChange: (value: string) => void;
   onRouteNotesChange: (value: string) => void;
@@ -42,7 +39,6 @@ export default function DriverOptionSelector({
   driverOption,
   additionalDriver,
   passengerCount,
-  luggageQuantity,
   preferredDriverLanguage,
   chauffeurWaitingTimeHours,
   routeNotes,
@@ -50,7 +46,6 @@ export default function DriverOptionSelector({
   onDriverOptionChange,
   onAdditionalDriverChange,
   onPassengerCountChange,
-  onLuggageQuantityChange,
   onPreferredDriverLanguageChange,
   onChauffeurWaitingTimeHoursChange,
   onRouteNotesChange
@@ -117,20 +112,6 @@ export default function DriverOptionSelector({
               error={Boolean(errors?.passengerCount)}
               helperText={errors?.passengerCount}
               inputProps={{ min: 1, step: 1 }}
-              onKeyDown={blockInvalidNumberKey}
-              fullWidth
-            />
-            <TextField
-              id="luggageQuantity"
-              label="Luggage quantity"
-              size="small"
-              type="number"
-              required
-              value={luggageQuantity}
-              onChange={(event) => onLuggageQuantityChange(event.target.value)}
-              error={Boolean(errors?.luggageQuantity)}
-              helperText={errors?.luggageQuantity}
-              inputProps={{ min: 0, step: 1 }}
               onKeyDown={blockInvalidNumberKey}
               fullWidth
             />
