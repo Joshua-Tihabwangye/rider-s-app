@@ -1,12 +1,19 @@
 import type { RentalBooking, RentalVehicle } from "../../store/types";
+import {
+  DEFAULT_CHAUFFEUR_DAILY_FEE,
+  DEFAULT_ONE_WAY_FEE,
+  DEFAULT_REFUNDABLE_DEPOSIT,
+  calculateSelectedAddOnsTotal
+} from "./custom";
 
-const DEFAULT_ONE_WAY_FEE = 40_000;
-const DEFAULT_REFUNDABLE_DEPOSIT = 300_000;
+export type RentalModeLabel = "Self-drive" | "With chauffeur";
 
 export interface RentalPricingSummary {
   dailyRate: number;
   durationDays: number;
   rentalSubtotal: number;
+  chauffeurFee: number;
+  addOnsTotal: number;
   oneWayFee: number;
   refundableDeposit: number;
   dueNow: number;
@@ -26,6 +33,16 @@ export function formatUgx(amount: number): string {
 }
 
 export function estimateRentalDays(startDate?: string, endDate?: string): number {
+  if (startDate?.trim() && endDate?.trim()) {
+    const parsedStart = new Date(startDate);
+    const parsedEnd = new Date(endDate);
+    if (!Number.isNaN(parsedStart.getTime()) && !Number.isNaN(parsedEnd.getTime()) && parsedEnd > parsedStart) {
+      const dayMs = 24 * 60 * 60 * 1000;
+      const diffMs = parsedEnd.getTime() - parsedStart.getTime();
+      return Math.max(1, Math.ceil(diffMs / dayMs));
+    }
+  }
+
   const combined = `${startDate ?? ""} ${endDate ?? ""}`.toLowerCase();
   const plusDaysMatch = combined.match(/\+(\d+)\s*days?/);
   if (plusDaysMatch) {
@@ -45,10 +62,6 @@ export function estimateRentalDays(startDate?: string, endDate?: string): number
   }
 
   if (combined.includes("today only")) {
-    return 1;
-  }
-
-  if (startDate?.trim() && endDate?.trim()) {
     return 1;
   }
 
@@ -86,22 +99,52 @@ export function buildRentalPricing(
 ): RentalPricingSummary {
   const dailyRate = parseUgx(vehicle?.dailyPrice);
   const durationDays = estimateRentalDays(booking.startDate, booking.endDate);
-  const rentalSubtotal = dailyRate * durationDays;
-  const oneWayFee =
-    booking.pickupBranch && booking.dropoffBranch && booking.pickupBranch !== booking.dropoffBranch
+  const customPricing = booking.customRequest?.pricing;
+  const rentalSubtotal =
+    dailyRate > 0
+      ? dailyRate * durationDays
+      : customPricing?.baseRental && customPricing.baseRental > 0
+        ? customPricing.baseRental
+        : 0;
+  const hasExplicitBranches = Boolean(booking.pickupBranch && booking.dropoffBranch);
+  const oneWayFee = hasExplicitBranches
+    ? booking.pickupBranch !== booking.dropoffBranch
       ? DEFAULT_ONE_WAY_FEE
-      : 0;
-  const refundableDeposit = DEFAULT_REFUNDABLE_DEPOSIT;
-  const dueNow = rentalSubtotal + oneWayFee;
+      : 0
+    : customPricing?.oneWayFee ?? 0;
+  const isChauffeurRental =
+    booking.customRequest?.driverOption === "chauffeur" ||
+    booking.rentalMode === "chauffeur";
+  const chauffeurFee = isChauffeurRental ? DEFAULT_CHAUFFEUR_DAILY_FEE * durationDays : 0;
+  const addOnsTotal =
+    booking.customRequest?.addOns && booking.customRequest.addOns.length > 0
+      ? calculateSelectedAddOnsTotal(
+          booking.customRequest.addOns,
+          durationDays,
+          booking.customRequest.chauffeurWaitingTimeHours ?? 0
+        )
+      : customPricing?.addOnsTotal ?? 0;
+  const refundableDeposit = customPricing?.refundableDeposit ?? DEFAULT_REFUNDABLE_DEPOSIT;
+  const dueNow = rentalSubtotal + oneWayFee + chauffeurFee + addOnsTotal;
 
   return {
     dailyRate,
     durationDays,
     rentalSubtotal,
+    chauffeurFee,
+    addOnsTotal,
     oneWayFee,
     refundableDeposit,
     dueNow
   };
+}
+
+export function getRentalModeLabel(booking: RentalBooking): RentalModeLabel {
+  if (booking.customRequest?.driverOption === "chauffeur" || booking.rentalMode === "chauffeur") {
+    return "With chauffeur";
+  }
+
+  return "Self-drive";
 }
 
 export function getRentalStatusLabel(status: RentalBooking["status"]): string {

@@ -616,6 +616,77 @@ export interface RentalVehicle {
   features?: string[];
 }
 
+export type RentalModeOption = "self_drive" | "chauffeur";
+export type RentalTripPurpose =
+  | "personal"
+  | "business"
+  | "airport_transfer"
+  | "event"
+  | "wedding"
+  | "tourism"
+  | "corporate"
+  | "emergency"
+  | "other";
+export type RentalVehiclePreferenceType =
+  | "compact_ev"
+  | "sedan"
+  | "suv"
+  | "van"
+  | "luxury_ev"
+  | "any";
+export type RentalContactPreference = "call" | "sms" | "whatsapp" | "email";
+export type RentalAddOnPricingType = "one_time" | "per_day" | "per_hour" | "per_trip";
+
+export interface RentalAddOnSelection {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  pricingType: RentalAddOnPricingType;
+  selected: boolean;
+}
+
+export interface RentalCustomEstimate {
+  baseRental: number;
+  chauffeurFee: number;
+  addOnsTotal: number;
+  oneWayFee: number;
+  refundableDeposit: number;
+  totalEstimated: number;
+  durationDays: number;
+}
+
+export interface RentalCustomRequest {
+  pickupLocation: string;
+  dropoffLocation: string;
+  differentDropoff: boolean;
+  pickupDateTime: string;
+  returnDateTime: string;
+  rentalDurationLabel: string;
+  tripPurpose: RentalTripPurpose;
+  driverOption: RentalModeOption;
+  additionalDriver: boolean;
+  passengerCount?: number;
+  luggageQuantity?: number;
+  preferredDriverLanguage?: string;
+  chauffeurWaitingTimeHours?: number;
+  routeNotes?: string;
+  vehiclePreference: RentalVehiclePreferenceType;
+  minimumRangeKm?: number;
+  requiredSeats?: number;
+  requiredLuggageCapacity?: number;
+  premiumInterior: boolean;
+  fastestCharging: boolean;
+  budgetMin?: number;
+  budgetMax?: number;
+  addOns: RentalAddOnSelection[];
+  specialInstructions?: string;
+  preferredVehicleModel?: string;
+  accessibilityNeeds?: string;
+  contactPreference: RentalContactPreference;
+  pricing: RentalCustomEstimate;
+}
+
 export interface RentalBooking {
   id: string;
   vehicleId: string;
@@ -624,6 +695,9 @@ export interface RentalBooking {
   pickupBranch?: string;
   dropoffBranch?: string;
   priceEstimate?: string;
+  rentalMode?: RentalModeOption;
+  paymentMethodId?: string;
+  customRequest?: RentalCustomRequest;
   status: "draft" | "confirmed" | "completed" | "cancelled";
 }
 

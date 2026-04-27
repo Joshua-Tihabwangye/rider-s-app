@@ -489,6 +489,8 @@ function createDraftRentalBooking(vehicleId: string): RentalBooking {
   return {
     id: createRentalBookingId(),
     vehicleId,
+    rentalMode: "self_drive",
+    paymentMethodId: "pm_wallet",
     status: "draft",
     priceEstimate: undefined
   };

@@ -26,7 +26,9 @@ function RentalVehicleDetailsScreen(): React.JSX.Element {
   const { vehicleId } = useParams();
   const { rental, actions } = useAppData();
   const selectRentalVehicle = actions.selectRentalVehicle;
-  const [modeSelection, setModeSelection] = useState("self");
+  const [modeSelection, setModeSelection] = useState(
+    rental.booking.rentalMode === "chauffeur" ? "chauffeur" : "self"
+  );
   const vehicle = rental.vehicles.find((item) => item.id === vehicleId) ?? rental.vehicles[0];
 
   useEffect(() => {
@@ -292,6 +294,9 @@ function RentalVehicleDetailsScreen(): React.JSX.Element {
           if (vehicle) {
             actions.selectRentalVehicle(vehicle.id);
           }
+          actions.updateRentalBooking({
+            rentalMode: modeSelection === "chauffeur" ? "chauffeur" : "self_drive"
+          });
           navigate("/rental/dates");
         }}
         sx={{
