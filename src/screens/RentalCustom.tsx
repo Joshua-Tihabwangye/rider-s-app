@@ -125,6 +125,37 @@ function renderUploadedFileLabel(file: File | null): string {
   return `${file.name} (${sizeKb} KB)`;
 }
 
+function toSeatCapacityBucket(value?: number): string {
+  if (!value || value <= 0) {
+    return "";
+  }
+  if (value >= 8) {
+    return "8";
+  }
+  if (value >= 6) {
+    return "6";
+  }
+  if (value >= 4) {
+    return "4";
+  }
+  return "2";
+}
+
+function getSeatCapacityLabel(value: string): string {
+  switch (value) {
+    case "2":
+      return "2 seats";
+    case "4":
+      return "4-5 seats";
+    case "6":
+      return "6-7 seats";
+    case "8":
+      return "8+ (group)";
+    default:
+      return "Not set";
+  }
+}
+
 export default function RentalCustom(): React.JSX.Element {
   const navigate = useNavigate();
   const { rental, actions } = useAppData();
@@ -186,9 +217,6 @@ export default function RentalCustom(): React.JSX.Element {
   const [passengerCount, setPassengerCount] = useState(
     existingCustomRequest?.passengerCount?.toString() ?? ""
   );
-  const [luggageQuantity, setLuggageQuantity] = useState(
-    existingCustomRequest?.luggageQuantity?.toString() ?? ""
-  );
   const [preferredDriverLanguage, setPreferredDriverLanguage] = useState(
     existingCustomRequest?.preferredDriverLanguage ?? "English"
   );
@@ -200,8 +228,11 @@ export default function RentalCustom(): React.JSX.Element {
   const [vehiclePreference, setVehiclePreference] = useState<RentalVehiclePreferenceType>(
     existingCustomRequest?.vehiclePreference ?? "any"
   );
+  const [minimumRangeKm, setMinimumRangeKm] = useState(
+    existingCustomRequest?.minimumRangeKm?.toString() ?? ""
+  );
   const [requiredSeats, setRequiredSeats] = useState(
-    existingCustomRequest?.requiredSeats?.toString() ?? ""
+    toSeatCapacityBucket(existingCustomRequest?.requiredSeats)
   );
   const [requiredLuggageCapacity, setRequiredLuggageCapacity] = useState(
     existingCustomRequest?.requiredLuggageCapacity?.toString() ?? ""
@@ -211,12 +242,6 @@ export default function RentalCustom(): React.JSX.Element {
   );
   const [fastestCharging, setFastestCharging] = useState(
     existingCustomRequest?.fastestCharging ?? false
-  );
-  const [budgetMin, setBudgetMin] = useState(
-    existingCustomRequest?.budgetMin?.toString() ?? ""
-  );
-  const [budgetMax, setBudgetMax] = useState(
-    existingCustomRequest?.budgetMax?.toString() ?? ""
   );
 
   const [addOns, setAddOns] = useState(() => {
@@ -279,19 +304,8 @@ export default function RentalCustom(): React.JSX.Element {
     if (selectedVehicleRate > 0) {
       return selectedVehicleRate;
     }
-
-    const maxBudget = parseNumberValue(budgetMax, 0);
-    if (maxBudget && maxBudget > 0) {
-      return maxBudget;
-    }
-
-    const minBudget = parseNumberValue(budgetMin, 0);
-    if (minBudget && minBudget > 0) {
-      return minBudget;
-    }
-
     return DEFAULT_BASE_DAILY_RATE;
-  }, [budgetMax, budgetMin, selectedVehicle?.dailyPrice]);
+  }, [selectedVehicle?.dailyPrice]);
 
   const estimate = useMemo(
     () =>
@@ -319,16 +333,16 @@ export default function RentalCustom(): React.JSX.Element {
     if (!pickupLocationId || !pickupDateTime || !returnDateTime) {
       return 0;
     }
-    if (!requiredSeats) {
+    if (!minimumRangeKm || !requiredSeats) {
       return 1;
     }
-    if (driverOption === "chauffeur" && (!passengerCount || !luggageQuantity)) {
+    if (driverOption === "chauffeur" && !passengerCount) {
       return 2;
     }
     return 4;
   }, [
     driverOption,
-    luggageQuantity,
+    minimumRangeKm,
     passengerCount,
     pickupDateTime,
     pickupLocationId,
@@ -349,10 +363,9 @@ export default function RentalCustom(): React.JSX.Element {
       "pickupDateTime",
       "returnDateTime",
       "tripPurpose",
+      "minimumRangeKm",
       "requiredSeats",
-      "budgetMax",
       "passengerCount",
-      "luggageQuantity",
       "chauffeurWaitingTimeHours",
       "drivers_license",
       "id_or_passport"
@@ -427,37 +440,29 @@ export default function RentalCustom(): React.JSX.Element {
       nextErrors.returnDateTime = "Return date & time must be after pickup date & time.";
     }
 
+    if (!minimumRangeKm.trim()) {
+      nextErrors.minimumRangeKm = "Minimum battery distance is required.";
+    }
     if (!requiredSeats.trim()) {
       nextErrors.requiredSeats = "Seats are required.";
     }
 
-    const parsedSeats = parseNumberValue(requiredSeats, 1);
+    const parsedMinimumRange = parseNumberValue(minimumRangeKm, 0);
+    if (minimumRangeKm.trim() && parsedMinimumRange === undefined) {
+      nextErrors.minimumRangeKm = "Battery distance cannot be negative.";
+    }
+
+    const parsedSeats = parseNumberValue(requiredSeats, 2);
     if (requiredSeats.trim() && parsedSeats === undefined) {
       nextErrors.requiredSeats = "Seats must be a positive number.";
     }
 
-    const parsedBudgetMin = parseNumberValue(budgetMin, 0);
-    const parsedBudgetMax = parseNumberValue(budgetMax, 0);
-    if (
-      parsedBudgetMin !== undefined &&
-      parsedBudgetMax !== undefined &&
-      parsedBudgetMax < parsedBudgetMin
-    ) {
-      nextErrors.budgetMax = "Budget max must be greater than or equal to budget min.";
-    }
-
     if (driverOption === "chauffeur") {
       const parsedPassengers = parseNumberValue(passengerCount, 1);
-      const parsedLuggage = parseNumberValue(luggageQuantity, 0);
       if (!passengerCount.trim()) {
         nextErrors.passengerCount = "Passengers are required for chauffeur trips.";
       } else if (parsedPassengers === undefined) {
         nextErrors.passengerCount = "Passengers must be at least 1.";
-      }
-      if (!luggageQuantity.trim()) {
-        nextErrors.luggageQuantity = "Luggage quantity is required for chauffeur trips.";
-      } else if (parsedLuggage === undefined) {
-        nextErrors.luggageQuantity = "Luggage quantity cannot be negative.";
       }
     }
 
@@ -511,12 +516,10 @@ export default function RentalCustom(): React.JSX.Element {
       documents.push(toUploadedDocument("id_or_passport", idDocumentFile));
     }
 
-    const parsedSeats = parseNumberValue(requiredSeats, 1);
+    const parsedMinimumRange = parseNumberValue(minimumRangeKm, 0);
+    const parsedSeats = parseNumberValue(requiredSeats, 2);
     const parsedLuggageCapacity = parseNumberValue(requiredLuggageCapacity, 0);
-    const parsedBudgetMin = parseNumberValue(budgetMin, 0);
-    const parsedBudgetMax = parseNumberValue(budgetMax, 0);
     const parsedPassengers = parseNumberValue(passengerCount, 1);
-    const parsedLuggageQty = parseNumberValue(luggageQuantity, 0);
     const parsedWaitingHours = parseNumberValue(chauffeurWaitingTimeHours, 0);
 
     actions.updateRentalBooking({
@@ -539,17 +542,15 @@ export default function RentalCustom(): React.JSX.Element {
         driverOption,
         additionalDriver,
         passengerCount: parsedPassengers,
-        luggageQuantity: parsedLuggageQty,
         preferredDriverLanguage: preferredDriverLanguage.trim() || undefined,
         chauffeurWaitingTimeHours: parsedWaitingHours,
         routeNotes: routeNotes.trim() || undefined,
         vehiclePreference,
+        minimumRangeKm: parsedMinimumRange,
         requiredSeats: parsedSeats,
         requiredLuggageCapacity: parsedLuggageCapacity,
         premiumInterior,
         fastestCharging,
-        budgetMin: parsedBudgetMin,
-        budgetMax: parsedBudgetMax,
         addOns: normalizedAddOns,
         specialInstructions: specialInstructions.trim() || undefined,
         preferredVehicleModel: preferredVehicleModel.trim() || undefined,
@@ -569,10 +570,9 @@ export default function RentalCustom(): React.JSX.Element {
         customFilters: {
           pickupLocationId,
           dropoffLocationId: resolvedReturnLocationId,
+          minimumRangeKm: parsedMinimumRange,
           requiredSeats: parsedSeats,
           requiredLuggageCapacity: parsedLuggageCapacity,
-          budgetMin: parsedBudgetMin,
-          budgetMax: parsedBudgetMax,
           driverOption
         }
       }
@@ -828,27 +828,24 @@ export default function RentalCustom(): React.JSX.Element {
           </Typography>
           <VehiclePreferenceSelector
             vehiclePreference={vehiclePreference}
+            minimumRangeKm={minimumRangeKm}
             requiredSeats={requiredSeats}
             requiredLuggageCapacity={requiredLuggageCapacity}
             premiumInterior={premiumInterior}
             fastestCharging={fastestCharging}
-            budgetMin={budgetMin}
-            budgetMax={budgetMax}
             errors={{
+              minimumRangeKm: errors.minimumRangeKm,
               requiredSeats: errors.requiredSeats,
-              requiredLuggageCapacity: errors.requiredLuggageCapacity,
-              budgetMin: errors.budgetMin,
-              budgetMax: errors.budgetMax
+              requiredLuggageCapacity: errors.requiredLuggageCapacity
             }}
             onVehiclePreferenceChange={setVehiclePreference}
-            onRequiredSeatsChange={(value) => setRequiredSeats(sanitizeIntegerString(value))}
+            onMinimumRangeChange={(value) => setMinimumRangeKm(sanitizeIntegerString(value))}
+            onRequiredSeatsChange={setRequiredSeats}
             onRequiredLuggageChange={(value) =>
               setRequiredLuggageCapacity(sanitizeIntegerString(value))
             }
             onPremiumInteriorChange={setPremiumInterior}
             onFastestChargingChange={setFastestCharging}
-            onBudgetMinChange={(value) => setBudgetMin(sanitizeIntegerString(value))}
-            onBudgetMaxChange={(value) => setBudgetMax(sanitizeIntegerString(value))}
           />
         </CardContent>
       </Card>
@@ -862,19 +859,16 @@ export default function RentalCustom(): React.JSX.Element {
             driverOption={driverOption}
             additionalDriver={additionalDriver}
             passengerCount={passengerCount}
-            luggageQuantity={luggageQuantity}
             preferredDriverLanguage={preferredDriverLanguage}
             chauffeurWaitingTimeHours={chauffeurWaitingTimeHours}
             routeNotes={routeNotes}
             errors={{
               passengerCount: errors.passengerCount,
-              luggageQuantity: errors.luggageQuantity,
               chauffeurWaitingTimeHours: errors.chauffeurWaitingTimeHours
             }}
             onDriverOptionChange={setDriverOption}
             onAdditionalDriverChange={setAdditionalDriver}
             onPassengerCountChange={(value) => setPassengerCount(sanitizeIntegerString(value))}
-            onLuggageQuantityChange={(value) => setLuggageQuantity(sanitizeIntegerString(value))}
             onPreferredDriverLanguageChange={setPreferredDriverLanguage}
             onChauffeurWaitingTimeHoursChange={(value) =>
               setChauffeurWaitingTimeHours(sanitizeIntegerString(value))
@@ -985,10 +979,10 @@ export default function RentalCustom(): React.JSX.Element {
       <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl, border: uiTokens.borders.subtle }}>
         <CardContent sx={FORM_CONTENT_SX}>
           <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 700, mb: 0.3 }}>
-            Step 4: Add-ons and amenities
+            Step 4: Add-ons and amenities (optional)
           </Typography>
           <Typography variant="caption" sx={{ display: "block", fontSize: 10.8, color: (t) => t.palette.text.secondary, mb: 1 }}>
-            Showing add-ons for {tripPurpose.replace(/_/g, " ")} trips.
+            Optional: select any extras for {tripPurpose.replace(/_/g, " ")} trips.
           </Typography>
           <RentalAddOnsSelector
             addOns={visibleAddOns}
@@ -1069,7 +1063,7 @@ export default function RentalCustom(): React.JSX.Element {
               Trip purpose: {tripPurpose.replace(/_/g, " ")}
             </Typography>
             <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Vehicle: {vehiclePreference.replace(/_/g, " ")} • Seats {requiredSeats || "Not set"}
+              Vehicle: {vehiclePreference.replace(/_/g, " ")} • Battery distance {minimumRangeKm || "0"} km • Seats {getSeatCapacityLabel(requiredSeats)}
             </Typography>
             <Typography variant="caption" sx={{ fontSize: 11 }}>
               Driver option: {driverOption === "chauffeur" ? "With chauffeur" : "Self-drive"}
