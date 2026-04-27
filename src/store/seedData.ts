@@ -874,7 +874,7 @@ export const SEED_RENTAL_STATE: RentalState = {
       pickupBranch: "Nsambya EV Hub",
       dropoffBranch: "Bugolobi EV Hub",
       priceEstimate: "UGX 580,000",
-      status: "confirmed"
+      status: "completed"
     },
     {
       id: "RENT-2025-10-20-002",
@@ -884,7 +884,7 @@ export const SEED_RENTAL_STATE: RentalState = {
       pickupBranch: "Entebbe Airport EV Desk",
       dropoffBranch: "Nsambya EV Hub",
       priceEstimate: "UGX 940,000",
-      status: "confirmed"
+      status: "cancelled"
     },
     {
       id: "RENT-2025-09-01-003",
