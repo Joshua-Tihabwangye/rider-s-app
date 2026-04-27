@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   
@@ -24,6 +24,8 @@ function TourDateGuestsScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { tourId } = useParams();
   const { tours, actions } = useAppData();
+  const selectTour = actions.selectTour;
+  const updateTourBooking = actions.updateTourBooking;
   const selectedTour = tours.tours.find((tour) => tour.id === tourId) ?? tours.tours[0];
   const [date, setDate] = useState(tours.booking.date ?? "");
   const [timeSlot, setTimeSlot] = useState("Afternoon (14:00)");
@@ -31,6 +33,12 @@ function TourDateGuestsScreen(): React.JSX.Element {
   const [children, setChildren] = useState(0);
 
   const canContinue = Boolean(date.trim() && timeSlot.trim() && adults > 0);
+
+  useEffect(() => {
+    if (tourId) {
+      selectTour(tourId);
+    }
+  }, [tourId, selectTour]);
 
   const adjust = (setter: React.Dispatch<React.SetStateAction<number>>, delta: number, min = 0, max = 10): void => {
     setter((prev: number) => {
@@ -318,12 +326,13 @@ function TourDateGuestsScreen(): React.JSX.Element {
           if (!selectedTour) return;
           const guests = adults + children;
           const estimate = `${selectedTour.pricePerPerson} × ${guests}`;
-          actions.updateTourBooking({
+          updateTourBooking({
             tourId: selectedTour.id,
             date,
             guests,
             priceEstimate: estimate
           });
+          selectTour(selectedTour.id);
           navigate(`/tours/${selectedTour.id}/summary`, { state: { date, timeSlot, adults, children } });
         }}
         sx={{

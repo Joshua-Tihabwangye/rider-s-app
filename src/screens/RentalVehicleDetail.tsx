@@ -25,14 +25,15 @@ function RentalVehicleDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { vehicleId } = useParams();
   const { rental, actions } = useAppData();
+  const selectRentalVehicle = actions.selectRentalVehicle;
   const [modeSelection, setModeSelection] = useState("self");
   const vehicle = rental.vehicles.find((item) => item.id === vehicleId) ?? rental.vehicles[0];
 
   useEffect(() => {
     if (vehicleId) {
-      actions.selectRentalVehicle(vehicleId);
+      selectRentalVehicle(vehicleId);
     }
-  }, [vehicleId, actions]);
+  }, [vehicleId, selectRentalVehicle]);
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>

@@ -1,6 +1,6 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Box,
   Typography,
   Card,
@@ -13,11 +13,25 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import { useAppData } from "../contexts/AppDataContext";
 
 
 function TourBookingConfirmationScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const bookingId = "TOUR-BOOK-2025-10-12-001";
+  const { tourId } = useParams();
+  const { tours, actions } = useAppData();
+  const selectTour = actions.selectTour;
+  const selectedTour =
+    tours.tours.find((tour) => tour.id === tourId) ??
+    tours.tours.find((tour) => tour.id === tours.booking.tourId) ??
+    tours.tours[0];
+  const bookingId = tours.booking.id;
+
+  React.useEffect(() => {
+    if (tourId) {
+      selectTour(tourId);
+    }
+  }, [tourId, selectTour]);
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -74,7 +88,7 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
           variant="caption"
           sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
         >
-          Your spot is confirmed for Kampala City EV Highlights.
+          Your spot is confirmed for {selectedTour?.title ?? "your EV tour"}.
         </Typography>
       </Box>
 
@@ -125,7 +139,7 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Kampala City EV Highlights • 2 adults, 1 child
+                {(selectedTour?.title ?? "EV Tour")} • {tours.booking.guests} {tours.booking.guests === 1 ? "guest" : "guests"}
               </Typography>
             </Box>
           </Stack>
@@ -139,7 +153,7 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                Sat, 12 Oct 2025 • Afternoon (14:00)
+                {tours.booking.date ?? "Date to be confirmed"} • Afternoon (14:00)
               </Typography>
             </Stack>
             <Stack direction="row" spacing={0.75} alignItems="center">
@@ -162,6 +176,7 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
         <Button
           fullWidth
           variant="outlined"
+          onClick={() => navigate("/tours/history")}
           sx={{
             borderRadius: 5,
             py: 1,
@@ -174,6 +189,7 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
         <Button
           fullWidth
           variant="contained"
+          onClick={() => navigate("/home")}
           sx={{
             borderRadius: 5,
             py: 1,
