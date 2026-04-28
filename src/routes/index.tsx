@@ -67,6 +67,7 @@ import RentalConfirmation from "../screens/RentalConfirmation";
 import RentalHistory from "../screens/RentalHistory";
 import RentalCustom from "../screens/RentalCustom";
 import RentalPaymentProcessing from "../screens/RentalPaymentProcessing";
+import RentalWalletPayment from "../screens/RentalWalletPayment";
 import RentalCardPayment from "../screens/RentalCardPayment";
 import RentalMobileMoneyPayment from "../screens/RentalMobileMoneyPayment";
 import RentalPaymentVerify from "../screens/RentalPaymentVerify";
@@ -246,6 +247,7 @@ export default function AppRouter(): React.JSX.Element {
 					<Route path="dates" element={<RentalDates />} />
 					<Route path="branches" element={<RentalBranches />} />
 					<Route path="summary" element={<RentalSummary />} />
+					<Route path="payment/wallet" element={<RentalWalletPayment />} />
 					<Route path="payment/processing" element={<RentalPaymentProcessing />} />
 					<Route path="payment/card" element={<RentalCardPayment />} />
 					<Route path="payment/mobile-money" element={<RentalMobileMoneyPayment />} />

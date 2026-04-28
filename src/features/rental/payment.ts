@@ -106,7 +106,7 @@ export function resolveMobileMoneyOutcome(phoneNumber: string): RentalGatewayOut
 
 export function resolveGatewayFailure(
   outcome: RentalGatewayOutcome
-): { status: "failed" | "declined" | "timeout"; reason: string } {
+): { status: "failed" | "declined" | "timeout" | "insufficient_funds"; reason: string } {
   switch (outcome) {
     case "declined":
       return {
@@ -120,7 +120,7 @@ export function resolveGatewayFailure(
       };
     case "insufficient_funds":
       return {
-        status: "failed",
+        status: "insufficient_funds",
         reason: "Insufficient funds or balance for this payment."
       };
     case "failed":

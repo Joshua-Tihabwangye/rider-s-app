@@ -444,12 +444,7 @@ function RentalSummaryScreen(): React.JSX.Element {
           });
 
           if (selectedPaymentMethod.type === "wallet") {
-            actions.updateRentalPaymentSession({
-              status: "processing",
-              gatewayOutcome: "success",
-              failureReason: undefined
-            });
-            navigate("/rental/payment/processing");
+            navigate("/rental/payment/wallet");
             return;
           }
 

@@ -27,8 +27,6 @@ export default function RentalPaymentProcessing(): React.JSX.Element {
       return;
     }
 
-    actions.updateRentalPaymentSession({ status: "processing" });
-
     const timer = window.setTimeout(() => {
       const outcome = activePayment.gatewayOutcome ?? "success";
 
@@ -48,7 +46,7 @@ export default function RentalPaymentProcessing(): React.JSX.Element {
           billingPhone: activePayment.billingPhone
         });
         if (tx) {
-          navigate("/rental/payment/success", { replace: true });
+          navigate("/rental/confirmation", { replace: true });
         } else {
           navigate("/rental/payment/failed", { replace: true });
         }

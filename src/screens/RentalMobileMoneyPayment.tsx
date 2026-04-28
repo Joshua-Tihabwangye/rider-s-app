@@ -34,6 +34,7 @@ export default function RentalMobileMoneyPayment(): React.JSX.Element {
   );
   const [phoneNumber, setPhoneNumber] = useState(activePayment?.customerPhone ?? "");
   const [formError, setFormError] = useState("");
+  const showTestHelpers = Boolean((import.meta as ImportMeta).env.DEV);
 
   const vehicle = useMemo(
     () => rental.vehicles.find((entry) => entry.id === rental.booking.vehicleId) ?? rental.vehicles[0] ?? null,
@@ -173,32 +174,34 @@ export default function RentalMobileMoneyPayment(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      <Card
-        elevation={0}
-        sx={{
-          borderRadius: 2,
-          border: "1px solid rgba(249,115,22,0.35)",
-          bgcolor: "rgba(249,115,22,0.07)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.6 }}>
-          <Typography variant="body2" sx={{ fontWeight: 700, color: "#C2410C", mb: 0.5 }}>
-            Test numbers
-          </Typography>
-          <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
-            0700000001 = successful payment
-          </Typography>
-          <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
-            0700000002 = declined payment
-          </Typography>
-          <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
-            0700000003 = timeout
-          </Typography>
-          <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
-            0700000004 = insufficient balance
-          </Typography>
-        </CardContent>
-      </Card>
+      {showTestHelpers && (
+        <Card
+          elevation={0}
+          sx={{
+            borderRadius: 2,
+            border: "1px solid rgba(249,115,22,0.35)",
+            bgcolor: "rgba(249,115,22,0.07)"
+          }}
+        >
+          <CardContent sx={{ px: 1.75, py: 1.6 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: "#C2410C", mb: 0.5 }}>
+              Test numbers
+            </Typography>
+            <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
+              0700000001 = successful payment
+            </Typography>
+            <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
+              0700000002 = declined payment
+            </Typography>
+            <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
+              0700000003 = timeout
+            </Typography>
+            <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
+              0700000004 = insufficient balance
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
     </ScreenScaffold>
   );
 }

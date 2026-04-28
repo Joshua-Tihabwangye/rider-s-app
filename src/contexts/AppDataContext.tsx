@@ -157,7 +157,7 @@ interface AppActions {
     billingPhone?: string;
   }) => RentalPaymentTransaction | null;
   failRentalPayment: (params: {
-    status: Exclude<RentalPaymentStatus, "pending" | "processing" | "successful">;
+    status: Exclude<RentalPaymentStatus, "pending" | "processing" | "successful" | "requires_verification">;
     reason: string;
   }) => void;
   resetRentalPayment: () => void;
@@ -252,7 +252,7 @@ type AppAction =
   | {
       type: "rental/payment-fail";
       payload: {
-        status: Exclude<RentalPaymentStatus, "pending" | "processing" | "successful">;
+        status: Exclude<RentalPaymentStatus, "pending" | "processing" | "successful" | "requires_verification">;
         reason: string;
       };
     }
@@ -2407,7 +2407,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
   const failRentalPayment = useCallback(
     (params: {
-      status: Exclude<RentalPaymentStatus, "pending" | "processing" | "successful">;
+      status: Exclude<RentalPaymentStatus, "pending" | "processing" | "successful" | "requires_verification">;
       reason: string;
     }) => {
       dispatch({ type: "rental/payment-fail", payload: params });

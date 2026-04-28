@@ -52,7 +52,7 @@ export default function RentalPaymentVerify(): React.JSX.Element {
         billingEmail: activePayment.billingEmail
       });
       if (tx) {
-        navigate("/rental/payment/success", { replace: true });
+        navigate("/rental/confirmation", { replace: true });
       } else {
         navigate("/rental/payment/failed", { replace: true });
       }
