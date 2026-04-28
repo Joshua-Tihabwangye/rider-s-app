@@ -52,7 +52,7 @@ export default function TourPaymentVerify(): React.JSX.Element {
         billingEmail: activePayment.billingEmail
       });
       if (tx) {
-        navigate(`/tours/${tx.tourId}/confirmation`, { replace: true });
+        navigate(`/tours/payment/receipt/${tx.transactionId}`, { replace: true });
       } else {
         navigate("/tours/payment/failed", { replace: true });
       }

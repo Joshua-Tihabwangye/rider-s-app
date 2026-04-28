@@ -102,22 +102,37 @@ export default function TourPaymentReceipt(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      <Button
-        fullWidth
-        variant="contained"
-        onClick={() => navigate(`/tours/${transaction.tourId}`)}
-        sx={{
-          borderRadius: 5,
-          py: 1,
-          textTransform: "none",
-          fontWeight: 700,
-          bgcolor: "primary.main",
-          color: "#022C22",
-          "&:hover": { bgcolor: "#06e29a" }
-        }}
-      >
-        View tour details
-      </Button>
+      <Stack spacing={1}>
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={() => navigate(`/tours/${transaction.tourId}/confirmation`)}
+          sx={{
+            borderRadius: 5,
+            py: 1,
+            textTransform: "none",
+            fontWeight: 700,
+            bgcolor: "primary.main",
+            color: "#022C22",
+            "&:hover": { bgcolor: "#06e29a" }
+          }}
+        >
+          Continue to confirmation
+        </Button>
+        <Button
+          fullWidth
+          variant="outlined"
+          onClick={() => navigate(`/tours/${transaction.tourId}`)}
+          sx={{
+            borderRadius: 5,
+            py: 1,
+            textTransform: "none",
+            fontWeight: 600
+          }}
+        >
+          View tour details
+        </Button>
+      </Stack>
     </ScreenScaffold>
   );
 }

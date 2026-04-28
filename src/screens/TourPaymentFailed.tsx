@@ -19,14 +19,23 @@ export default function TourPaymentFailed(): React.JSX.Element {
   }
 
   const paymentMethodLabel =
-    paymentMethods.find((method) => method.id === booking.paymentMethodId)?.label ?? "Payment";
+    paymentMethods.find((method) => method.id === activePayment.paymentMethodId)?.label ??
+    paymentMethods.find((method) => method.id === booking.paymentMethodId)?.label ??
+    "Payment";
+
+  const activeMethodType =
+    booking.paymentMethodType ??
+    paymentMethods.find((method) => method.id === activePayment.paymentMethodId)?.type ??
+    "wallet";
 
   const retryRoute =
-    booking.paymentMethodType === "card"
+    activeMethodType === "card"
       ? "/tours/payment/card"
-      : booking.paymentMethodType === "mobile_money"
+      : activeMethodType === "mobile_money"
         ? "/tours/payment/mobile-money"
         : "/tours/payment/wallet";
+
+  const changeMethodRoute = booking.tourId ? `/tours/${booking.tourId}/summary` : "/tours";
 
   return (
     <ScreenScaffold>
@@ -68,7 +77,7 @@ export default function TourPaymentFailed(): React.JSX.Element {
         secondaryLabel="Choose another payment method"
         tertiaryLabel="Back to tours"
         onPrimaryClick={() => navigate(retryRoute)}
-        onSecondaryClick={() => navigate("/tours")}
+        onSecondaryClick={() => navigate(changeMethodRoute)}
         onTertiaryClick={() => navigate("/tours")}
       />
     </ScreenScaffold>
