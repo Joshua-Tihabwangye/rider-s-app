@@ -32,6 +32,10 @@ import type {
   RentalPaymentReceipt,
   ToursState,
   TourBooking,
+  TourPaymentSession,
+  TourPaymentStatus,
+  TourPaymentTransaction,
+  TourPaymentReceipt,
   AmbulanceState,
   AmbulanceRequest,
   SosState,
@@ -161,6 +165,26 @@ interface AppActions {
     reason: string;
   }) => void;
   resetRentalPayment: () => void;
+  initializeTourPayment: (params: {
+    paymentMethodId: string;
+    amount: number;
+  }) => TourPaymentSession | null;
+  updateTourPaymentSession: (patch: Partial<TourPaymentSession>) => void;
+  completeTourPayment: (params: {
+    paymentMethodLabel: string;
+    maskedCardNumber?: string;
+    provider?: "MTN Mobile Money" | "Airtel Money";
+    mobileMoneyPhone?: string;
+    cardHolderName?: string;
+    cardLast4?: string;
+    billingEmail?: string;
+    billingPhone?: string;
+  }) => TourPaymentTransaction | null;
+  failTourPayment: (params: {
+    status: Exclude<TourPaymentStatus, "pending" | "processing" | "successful" | "requires_verification">;
+    reason: string;
+  }) => void;
+  resetTourPayment: () => void;
   updateTourBooking: (patch: Partial<TourBooking>) => void;
   selectTour: (tourId: string) => void;
   updateAmbulanceRequest: (patch: Partial<AmbulanceRequest>) => void;
@@ -257,6 +281,25 @@ type AppAction =
       };
     }
   | { type: "rental/payment-reset" }
+  | { type: "tours/payment-init"; payload: TourPaymentSession }
+  | { type: "tours/payment-session"; payload: Partial<TourPaymentSession> }
+  | {
+      type: "tours/payment-complete";
+      payload: {
+        booking: TourBooking;
+        transaction: TourPaymentTransaction;
+        receipt: TourPaymentReceipt;
+        walletDebitAmount: number;
+      };
+    }
+  | {
+      type: "tours/payment-fail";
+      payload: {
+        status: Exclude<TourPaymentStatus, "pending" | "processing" | "successful" | "requires_verification">;
+        reason: string;
+      };
+    }
+  | { type: "tours/payment-reset" }
   | { type: "tours/booking"; payload: Partial<TourBooking> }
   | { type: "tours/select"; payload: string }
   | { type: "ambulance/update"; payload: Partial<AmbulanceRequest> }
@@ -533,6 +576,13 @@ function createRentalBookingId(): string {
   return `RENT-${date}-${suffix}`;
 }
 
+function createTourBookingId(): string {
+  const now = new Date();
+  const date = now.toISOString().slice(0, 10);
+  const suffix = String(now.getTime()).slice(-4);
+  return `TOUR-${date}-${suffix}`;
+}
+
 function toDateToken(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -579,12 +629,31 @@ function createDraftRentalBooking(vehicleId: string): RentalBooking {
   };
 }
 
+function createDraftTourBooking(tourId: string, previous?: TourBooking): TourBooking {
+  return {
+    id: createTourBookingId(),
+    tourId,
+    guests: previous?.guests ?? 2,
+    date: undefined,
+    priceEstimate: undefined,
+    status: "draft"
+  };
+}
+
 function upsertRentalBooking(bookings: RentalBooking[], booking: RentalBooking): RentalBooking[] {
   const existingIndex = bookings.findIndex((entry) => entry.id === booking.id);
   if (existingIndex === -1) {
     return [booking, ...bookings];
   }
 
+  return bookings.map((entry) => (entry.id === booking.id ? booking : entry));
+}
+
+function upsertTourBooking(bookings: TourBooking[], booking: TourBooking): TourBooking[] {
+  const existingIndex = bookings.findIndex((entry) => entry.id === booking.id);
+  if (existingIndex === -1) {
+    return [booking, ...bookings];
+  }
   return bookings.map((entry) => (entry.id === booking.id ? booking : entry));
 }
 
@@ -1963,15 +2032,156 @@ function appReducer(state: AppState, action: AppAction): AppState {
           activePayment: null
         }
       };
-    case "tours/booking":
-      return { ...state, tours: { ...state.tours, booking: { ...state.tours.booking, ...action.payload } } };
+    case "tours/payment-init": {
+      const nextBooking: TourBooking = {
+        ...state.tours.booking,
+        bookingReference: action.payload.bookingReference,
+        userId: action.payload.userId,
+        paymentMethodId: action.payload.paymentMethodId,
+        paymentMethodType: action.payload.paymentMethodType,
+        paymentStatus: "pending",
+        paymentFailureReason: undefined,
+        status: "pending_payment"
+      };
+      return {
+        ...state,
+        tours: {
+          ...state.tours,
+          booking: nextBooking,
+          activePayment: action.payload
+        }
+      };
+    }
+    case "tours/payment-session": {
+      if (!state.tours.activePayment) {
+        return state;
+      }
+      const nextPayment: TourPaymentSession = {
+        ...state.tours.activePayment,
+        ...action.payload,
+        updatedAt: action.payload.updatedAt ?? new Date().toISOString()
+      };
+      const nextBooking: TourBooking = {
+        ...state.tours.booking,
+        paymentMethodId: nextPayment.paymentMethodId,
+        paymentMethodType: nextPayment.paymentMethodType,
+        paymentStatus: nextPayment.status,
+        paymentFailureReason: nextPayment.failureReason
+      };
+      return {
+        ...state,
+        tours: {
+          ...state.tours,
+          booking: nextBooking,
+          activePayment: nextPayment
+        }
+      };
+    }
+    case "tours/payment-fail": {
+      if (!state.tours.activePayment) {
+        return state;
+      }
+      const now = new Date().toISOString();
+      const nextPayment: TourPaymentSession = {
+        ...state.tours.activePayment,
+        status: action.payload.status,
+        failureReason: action.payload.reason,
+        updatedAt: now
+      };
+      const nextBooking: TourBooking = {
+        ...state.tours.booking,
+        paymentMethodId: nextPayment.paymentMethodId,
+        paymentMethodType: nextPayment.paymentMethodType,
+        paymentStatus: action.payload.status,
+        paymentFailureReason: action.payload.reason,
+        status: "failed_payment"
+      };
+      return {
+        ...state,
+        tours: {
+          ...state.tours,
+          booking: nextBooking,
+          activePayment: nextPayment
+        }
+      };
+    }
+    case "tours/payment-complete": {
+      const now = action.payload.transaction.paidAt;
+      const walletTransaction: WalletTransaction = {
+        id: `tx_tour_${action.payload.transaction.transactionId}`,
+        title: "Tour payment",
+        source: action.payload.transaction.bookingReference,
+        amount: `-UGX ${Math.round(action.payload.transaction.amountPaid).toLocaleString()}`,
+        time: formatWalletTransactionTime(now),
+        type: "tour"
+      };
+      const activePayment = state.tours.activePayment
+        ? {
+            ...state.tours.activePayment,
+            status: "successful" as const,
+            transactionId: action.payload.transaction.transactionId,
+            updatedAt: now,
+            failureReason: undefined
+          }
+        : null;
+
+      return {
+        ...state,
+        walletBalance: Math.max(0, state.walletBalance - action.payload.walletDebitAmount),
+        transactions: [walletTransaction, ...state.transactions],
+        tours: {
+          ...state.tours,
+          booking: action.payload.booking,
+          bookings: upsertTourBooking(state.tours.bookings, action.payload.booking),
+          paymentTransactions: [action.payload.transaction, ...state.tours.paymentTransactions],
+          receipts: [action.payload.receipt, ...state.tours.receipts],
+          activePayment
+        }
+      };
+    }
+    case "tours/payment-reset":
+      return {
+        ...state,
+        tours: {
+          ...state.tours,
+          activePayment: null
+        }
+      };
+    case "tours/booking": {
+      const nextBooking: TourBooking = { ...state.tours.booking, ...action.payload };
+      const nextBookings =
+        nextBooking.status === "draft"
+          ? state.tours.bookings
+          : upsertTourBooking(state.tours.bookings, nextBooking);
+      return {
+        ...state,
+        tours: {
+          ...state.tours,
+          booking: nextBooking,
+          bookings: nextBookings,
+          activePayment: nextBooking.status === "draft" ? null : state.tours.activePayment
+        }
+      };
+    }
     case "tours/select":
+      if (state.tours.booking.status !== "draft") {
+        return {
+          ...state,
+          tours: {
+            ...state.tours,
+            selectedTourId: action.payload,
+            booking: createDraftTourBooking(action.payload, state.tours.booking),
+            activePayment: null
+          }
+        };
+      }
       return {
         ...state,
         tours: {
           ...state.tours,
           selectedTourId: action.payload,
-          booking: { ...state.tours.booking, tourId: action.payload }
+          booking: { ...state.tours.booking, tourId: action.payload },
+          activePayment: null
         }
       };
     case "ambulance/update":
@@ -2419,6 +2629,148 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     dispatch({ type: "rental/payment-reset" });
   }, []);
 
+  const initializeTourPayment = useCallback(
+    (params: { paymentMethodId: string; amount: number }): TourPaymentSession | null => {
+      const selectedMethod = state.paymentMethods.find((method) => method.id === params.paymentMethodId);
+      if (!selectedMethod || selectedMethod.type === "cash") {
+        return null;
+      }
+      const now = new Date().toISOString();
+      const bookingReference = state.tours.booking.bookingReference ?? createBookingReference(new Date(now));
+      const session: TourPaymentSession = {
+        bookingId: state.tours.booking.id,
+        bookingReference,
+        userId: user?.id ?? "guest_user",
+        customerName: user?.fullName ?? "Guest user",
+        customerEmail: user?.email,
+        customerPhone: user?.phone,
+        paymentMethodId: selectedMethod.id,
+        paymentMethodType: selectedMethod.type,
+        amount: params.amount,
+        status: "pending",
+        otpAttempts: 0,
+        createdAt: now,
+        updatedAt: now
+      };
+      dispatch({ type: "tours/payment-init", payload: session });
+      return session;
+    },
+    [state.paymentMethods, state.tours.booking.bookingReference, state.tours.booking.id, user]
+  );
+
+  const updateTourPaymentSession = useCallback((patch: Partial<TourPaymentSession>) => {
+    dispatch({ type: "tours/payment-session", payload: patch });
+  }, []);
+
+  const completeTourPayment = useCallback(
+    (params: {
+      paymentMethodLabel: string;
+      maskedCardNumber?: string;
+      provider?: "MTN Mobile Money" | "Airtel Money";
+      mobileMoneyPhone?: string;
+      cardHolderName?: string;
+      cardLast4?: string;
+      billingEmail?: string;
+      billingPhone?: string;
+    }): TourPaymentTransaction | null => {
+      const payment = state.tours.activePayment;
+      if (!payment) {
+        return null;
+      }
+      const now = new Date().toISOString();
+      const selectedTour =
+        state.tours.tours.find((tour) => tour.id === state.tours.booking.tourId) ??
+        state.tours.tours.find((tour) => tour.id === state.tours.selectedTourId) ??
+        state.tours.tours[0];
+      const transactionId = createTransactionId(new Date(now));
+      const bookingReference = payment.bookingReference;
+      const nextBooking: TourBooking = {
+        ...state.tours.booking,
+        bookingReference,
+        userId: payment.userId,
+        paymentMethodId: payment.paymentMethodId,
+        paymentMethodType: payment.paymentMethodType,
+        paymentStatus: "successful",
+        paymentFailureReason: undefined,
+        status: "confirmed",
+        transactionId,
+        confirmedAt: now,
+        priceEstimate: formatCurrencyUGX(payment.amount)
+      };
+
+      const transaction: TourPaymentTransaction = {
+        transactionId,
+        bookingId: nextBooking.id,
+        bookingReference,
+        userId: payment.userId,
+        customerName: payment.customerName,
+        customerEmail: params.billingEmail ?? payment.customerEmail,
+        customerPhone: params.billingPhone ?? params.mobileMoneyPhone ?? payment.customerPhone,
+        tourId: selectedTour?.id ?? nextBooking.tourId,
+        tourTitle: selectedTour?.title ?? "EV tour",
+        location: selectedTour?.location ?? "Kampala",
+        duration: selectedTour?.duration ?? "Tour",
+        date: nextBooking.date,
+        guests: nextBooking.guests,
+        amountPaid: payment.amount,
+        paymentMethodId: payment.paymentMethodId,
+        paymentMethodType: payment.paymentMethodType,
+        paymentMethodLabel: params.paymentMethodLabel,
+        provider: params.provider,
+        maskedCardNumber: params.maskedCardNumber,
+        status: "successful",
+        paidAt: now
+      };
+
+      const receipt: TourPaymentReceipt = {
+        receiptNumber: createReceiptNumber(new Date(now)),
+        transactionId,
+        bookingId: nextBooking.id,
+        bookingReference,
+        customerName: payment.customerName,
+        customerEmail: params.billingEmail ?? payment.customerEmail,
+        customerPhone: params.billingPhone ?? params.mobileMoneyPhone ?? payment.customerPhone,
+        tourTitle: selectedTour?.title ?? "EV tour",
+        location: selectedTour?.location ?? "Kampala",
+        duration: selectedTour?.duration ?? "Tour",
+        date: nextBooking.date,
+        guests: nextBooking.guests,
+        paymentMethodLabel: params.paymentMethodLabel,
+        paymentStatus: "successful",
+        bookingStatus: "confirmed",
+        amountPaid: payment.amount,
+        currency: "UGX",
+        createdAt: now
+      };
+
+      dispatch({
+        type: "tours/payment-complete",
+        payload: {
+          booking: nextBooking,
+          transaction,
+          receipt,
+          walletDebitAmount: payment.paymentMethodType === "wallet" ? payment.amount : 0
+        }
+      });
+      return transaction;
+    },
+    [state.tours]
+  );
+
+  const failTourPayment = useCallback(
+    (params: {
+      status: Exclude<TourPaymentStatus, "pending" | "processing" | "successful" | "requires_verification">;
+      reason: string;
+    }) => {
+      dispatch({ type: "tours/payment-fail", payload: params });
+    },
+    []
+  );
+
+  const resetTourPayment = useCallback(() => {
+    dispatch({ type: "tours/payment-reset" });
+  }, []);
+
   const updateTourBooking = useCallback((patch: Partial<TourBooking>) => {
     dispatch({ type: "tours/booking", payload: patch });
   }, []);
@@ -2617,6 +2969,11 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       completeRentalPayment,
       failRentalPayment,
       resetRentalPayment,
+      initializeTourPayment,
+      updateTourPaymentSession,
+      completeTourPayment,
+      failTourPayment,
+      resetTourPayment,
       updateTourBooking,
       selectTour,
       updateAmbulanceRequest,
@@ -2669,6 +3026,11 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       completeRentalPayment,
       failRentalPayment,
       resetRentalPayment,
+      initializeTourPayment,
+      updateTourPaymentSession,
+      completeTourPayment,
+      failTourPayment,
+      resetTourPayment,
       updateTourBooking,
       selectTour,
       updateAmbulanceRequest,
