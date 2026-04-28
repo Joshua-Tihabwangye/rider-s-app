@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useLocation, useParams } from "react-router-dom";
 import {
   Alert,
   Box,
@@ -33,10 +33,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
   const selectTour = actions.selectTour;
   const updateTourBooking = actions.updateTourBooking;
   const initializeTourPayment = actions.initializeTourPayment;
-  const selectedTour =
-    tours.tours.find((tour) => tour.id === tourId) ??
-    tours.tours.find((tour) => tour.id === tours.selectedTourId) ??
-    tours.tours[0];
+  const selectedTour = tourId ? tours.tours.find((tour) => tour.id === tourId) : null;
   const [paymentMethod, setPaymentMethod] = useState<"wallet" | "card" | "mobile_money">("wallet");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -51,11 +48,14 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
   const totalPrice = totalAdultsPrice + totalChildrenPrice + bookingFee;
   const walletInsufficient = paymentMethod === "wallet" && walletBalance < totalPrice;
   const disableConfirm = !acceptedTerms || walletInsufficient;
+  const guests = adults + children;
+
+  if (!tourId || !selectedTour) {
+    return <Navigate to="/tours/available" replace />;
+  }
 
   useEffect(() => {
-    if (tourId) {
-      selectTour(tourId);
-    }
+    selectTour(tourId);
   }, [tourId, selectTour]);
 
   return (
@@ -369,13 +369,13 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
                 borderRadius: 2,
                 cursor: "pointer",
                 bgcolor: (t) =>
-                  paymentMethod === "mobile"
+                  paymentMethod === "mobile_money"
                     ? "rgba(249,115,22,0.15)"
                     : t.palette.mode === "light"
                     ? "#F3F4F6"
                     : "rgba(15,23,42,0.96)",
                 border: (t) =>
-                  paymentMethod === "mobile"
+                  paymentMethod === "mobile_money"
                     ? "1px solid #F97316"
                     : t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
@@ -415,14 +415,18 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
         disabled={disableConfirm}
         onClick={() => {
           setSubmitError(null);
-          if (!selectedTour) {
-            setSubmitError("No tour selected. Please go back and choose a tour.");
-            return;
-          }
           if (walletInsufficient) {
             setSubmitError("Wallet balance is insufficient. Choose another payment method.");
             return;
           }
+
+          selectTour(selectedTour.id);
+          updateTourBooking({
+            tourId: selectedTour.id,
+            date,
+            guests,
+            priceEstimate: `UGX ${totalPrice.toLocaleString()}`
+          });
 
           const paymentMethodId =
             paymentMethods.find((entry) => entry.type === paymentMethod)?.id ??
@@ -443,9 +447,11 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
 
           updateTourBooking({
             tourId: selectedTour.id,
-            guests: adults + children,
+            date,
+            guests,
             priceEstimate: `UGX ${totalPrice.toLocaleString()}`,
-            paymentMethodId
+            paymentMethodId,
+            paymentMethodType: paymentMethod
           });
 
           if (paymentMethod === "wallet") {
