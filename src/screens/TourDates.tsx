@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import {
   
   Box,
@@ -26,7 +26,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
   const { tours, actions } = useAppData();
   const selectTour = actions.selectTour;
   const updateTourBooking = actions.updateTourBooking;
-  const selectedTour = tours.tours.find((tour) => tour.id === tourId) ?? tours.tours[0];
+  const selectedTour = tourId ? tours.tours.find((tour) => tour.id === tourId) : null;
   const [date, setDate] = useState(tours.booking.date ?? "");
   const [timeSlot, setTimeSlot] = useState("Afternoon (14:00)");
   const [adults, setAdults] = useState(tours.booking.guests ?? 2);
@@ -34,10 +34,12 @@ function TourDateGuestsScreen(): React.JSX.Element {
 
   const canContinue = Boolean(date.trim() && timeSlot.trim() && adults > 0);
 
+  if (!tourId || !selectedTour) {
+    return <Navigate to="/tours/available" replace />;
+  }
+
   useEffect(() => {
-    if (tourId) {
-      selectTour(tourId);
-    }
+    selectTour(tourId);
   }, [tourId, selectTour]);
 
   const adjust = (setter: React.Dispatch<React.SetStateAction<number>>, delta: number, min = 0, max = 10): void => {

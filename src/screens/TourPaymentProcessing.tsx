@@ -46,7 +46,7 @@ export default function TourPaymentProcessing(): React.JSX.Element {
           billingPhone: activePayment.billingPhone
         });
         if (tx) {
-          navigate(`/tours/${tx.tourId}/confirmation`, { replace: true });
+          navigate(`/tours/payment/receipt/${tx.transactionId}`, { replace: true });
         } else {
           navigate("/tours/payment/failed", { replace: true });
         }

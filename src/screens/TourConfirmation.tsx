@@ -1,6 +1,6 @@
 import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { Box,
   Typography,
   Card,
@@ -21,16 +21,15 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
   const { tourId } = useParams();
   const { tours, actions } = useAppData();
   const selectTour = actions.selectTour;
-  const selectedTour =
-    tours.tours.find((tour) => tour.id === tourId) ??
-    tours.tours.find((tour) => tour.id === tours.booking.tourId) ??
-    tours.tours[0];
+  const selectedTour = tourId ? tours.tours.find((tour) => tour.id === tourId) : null;
   const bookingId = tours.booking.id;
 
+  if (!tourId || !selectedTour) {
+    return <Navigate to="/tours/available" replace />;
+  }
+
   React.useEffect(() => {
-    if (tourId) {
-      selectTour(tourId);
-    }
+    selectTour(tourId);
   }, [tourId, selectTour]);
 
   return (

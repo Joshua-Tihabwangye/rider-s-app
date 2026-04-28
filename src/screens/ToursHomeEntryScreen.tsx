@@ -34,15 +34,18 @@ interface TourCardView {
 
 interface TourCardProps {
   tour: TourCardView;
+  onClick: () => void;
 }
 
-function TourCard({ tour }: TourCardProps): React.JSX.Element {
+function TourCard({ tour, onClick }: TourCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
+      onClick={onClick}
       sx={{
         mb: uiTokens.spacing.mdPlus,
         borderRadius: uiTokens.radius.sm,
+        cursor: "pointer",
         bgcolor: (t) =>
           t.palette.mode === "light"
             ? "linear-gradient(135deg,#FFFFFF,#F9FAFB)"
@@ -50,7 +53,12 @@ function TourCard({ tour }: TourCardProps): React.JSX.Element {
         border: (t) =>
           t.palette.mode === "light"
             ? "1px solid rgba(209,213,219,0.9)"
-            : "1px solid rgba(51,65,85,0.9)"
+            : "1px solid rgba(51,65,85,0.9)",
+        transition: "transform 0.12s ease, box-shadow 0.12s ease",
+        "&:hover": {
+          transform: "translateY(-1px)",
+          boxShadow: 3
+        }
       }}
     >
       <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
@@ -143,7 +151,7 @@ function TourCard({ tour }: TourCardProps): React.JSX.Element {
 
 function ToursHomeBrowseScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const { tours } = useAppData();
+  const { tours, actions } = useAppData();
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
 
@@ -351,7 +359,16 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
           No tours match your search. Try a different date, city or category.
         </Typography>
       ) : (
-        filteredTours.map((tour) => <TourCard key={tour.id} tour={tour} />)
+        filteredTours.map((tour) => (
+          <TourCard
+            key={tour.id}
+            tour={tour}
+            onClick={() => {
+              actions.selectTour(tour.id);
+              navigate(`/tours/${tour.id}`);
+            }}
+          />
+        ))
       )}
     </Box>
   );
