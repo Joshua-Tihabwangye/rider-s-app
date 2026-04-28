@@ -49,6 +49,10 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
     navigate("/tours/new");
   };
 
+  const handleBrowseAllTours = () => {
+    navigate("/tours/available");
+  };
+
   return (
     <ScreenScaffold>
       <SectionHeader
@@ -141,36 +145,51 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             </Typography>
           </Stack>
 
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
+          <Stack spacing={1}>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25}>
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={handleBookFeatured}
+                sx={{
+                  borderRadius: uiTokens.radius.xl,
+                  py: 0.9,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textTransform: "none",
+                  bgcolor: "#020617",
+                  color: "#FFFFFF",
+                  "&:hover": { bgcolor: "#1E293B" }
+                }}
+              >
+                Book this tour
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={handleViewDetails}
+                sx={{
+                  borderRadius: uiTokens.radius.xl,
+                  py: 0.9,
+                  fontSize: 13,
+                  textTransform: "none"
+                }}
+              >
+                View details
+              </Button>
+            </Stack>
             <Button
               fullWidth
-              variant="contained"
-              onClick={handleBookFeatured}
+              variant="text"
+              onClick={handleBrowseAllTours}
               sx={{
                 borderRadius: uiTokens.radius.xl,
-                py: 0.9,
-                fontSize: 13,
-                fontWeight: 600,
-                textTransform: "none",
-                bgcolor: "#020617",
-                color: "#FFFFFF",
-                "&:hover": { bgcolor: "#1E293B" }
-              }}
-            >
-              Book this tour
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={handleViewDetails}
-              sx={{
-                borderRadius: uiTokens.radius.xl,
-                py: 0.9,
-                fontSize: 13,
+                py: 0.75,
+                fontSize: 12.5,
                 textTransform: "none"
               }}
             >
-              View details
+              Browse all tours
             </Button>
           </Stack>
         </CardContent>

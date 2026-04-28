@@ -116,6 +116,7 @@ import SchoolDashboard from "../screens/SchoolDashboard";
 import SchoolFees from "../screens/SchoolFees";
 import RidePromotions from "../screens/RidePromotions";
 import ToursNew from "../screens/ToursNew";
+import ToursHomeEntryScreen from "../screens/ToursHomeEntryScreen";
 import Profile from "../screens/Profile";
 
 export default function AppRouter(): React.JSX.Element {
@@ -269,26 +270,27 @@ export default function AppRouter(): React.JSX.Element {
 						element={<RentalHistoryDetail />}
 					/>
 				</Route>
-				{/* Tours */}
-				<Route path="tours">
-					<Route index element={<ToursDashboard />} />
-					<Route path="new" element={<ToursNew />} />
-					<Route path=":tourId" element={<TourDetail />} />
-					<Route path=":tourId/dates" element={<TourDates />} />
-					<Route path=":tourId/summary" element={<TourSummary />} />
-					<Route path="payment/wallet" element={<TourPaymentWallet />} />
-					<Route path="payment/processing" element={<TourPaymentProcessing />} />
-					<Route path="payment/card" element={<TourPaymentCard />} />
-					<Route path="payment/mobile-money" element={<TourPaymentMobileMoney />} />
-					<Route path="payment/verify" element={<TourPaymentVerify />} />
-					<Route path="payment/failed" element={<TourPaymentFailed />} />
-					<Route path="payment/receipt/:transactionId" element={<TourPaymentReceipt />} />
-					<Route
-						path=":tourId/confirmation"
-						element={<TourConfirmation />}
-					/>
-					<Route path="history" element={<TourHistory />} />
-				</Route>
+					{/* Tours */}
+					<Route path="tours">
+						<Route index element={<ToursDashboard />} />
+						<Route path="available" element={<ToursHomeEntryScreen />} />
+						<Route path="new" element={<ToursNew />} />
+						<Route path=":tourId" element={<TourDetail />} />
+						<Route path=":tourId/dates" element={<TourDates />} />
+						<Route path=":tourId/summary" element={<TourSummary />} />
+						<Route path="payment/wallet" element={<TourPaymentWallet />} />
+						<Route path="payment/processing" element={<TourPaymentProcessing />} />
+						<Route path="payment/card" element={<TourPaymentCard />} />
+						<Route path="payment/mobile-money" element={<TourPaymentMobileMoney />} />
+						<Route path="payment/verify" element={<TourPaymentVerify />} />
+						<Route path="payment/failed" element={<TourPaymentFailed />} />
+						<Route path="payment/receipt/:transactionId" element={<TourPaymentReceipt />} />
+						<Route
+							path=":tourId/confirmation"
+							element={<TourConfirmation />}
+						/>
+						<Route path="history" element={<TourHistory />} />
+					</Route>
 				{/* Ambulance */}
 				<Route path="ambulance">
 					<Route index element={<AmbulanceDashboard />} />
