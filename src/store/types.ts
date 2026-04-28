@@ -58,7 +58,7 @@ export interface WalletTransaction {
   source: string;
   amount: string;
   time: string;
-  type: "topup" | "ride" | "delivery" | "rental" | "withdrawal";
+  type: "topup" | "ride" | "delivery" | "rental" | "tour" | "withdrawal";
 }
 
 /** App-wide reminder */
@@ -854,16 +854,125 @@ export interface Tour {
 export interface TourBooking {
   id: string;
   tourId: string;
+  bookingReference?: string;
+  userId?: string;
   date?: string;
   guests: number;
   priceEstimate?: string;
-  status: "draft" | "confirmed" | "completed" | "cancelled";
+  paymentMethodId?: string;
+  paymentMethodType?: PaymentMethodType;
+  paymentStatus?:
+    | "pending"
+    | "processing"
+    | "successful"
+    | "failed"
+    | "declined"
+    | "timeout"
+    | "insufficient_funds"
+    | "requires_verification";
+  paymentFailureReason?: string;
+  transactionId?: string;
+  confirmedAt?: string;
+  status: "draft" | "pending_payment" | "confirmed" | "completed" | "cancelled" | "failed_payment";
+}
+
+export type TourPaymentStatus =
+  | "pending"
+  | "processing"
+  | "successful"
+  | "failed"
+  | "declined"
+  | "timeout"
+  | "insufficient_funds"
+  | "requires_verification";
+
+export type TourGatewayOutcome =
+  | "success"
+  | "failed"
+  | "declined"
+  | "timeout"
+  | "insufficient_funds"
+  | "requires_verification";
+
+export interface TourPaymentSession {
+  bookingId: string;
+  bookingReference: string;
+  userId: string;
+  customerName: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  paymentMethodId: string;
+  paymentMethodType: PaymentMethodType;
+  amount: number;
+  transactionId?: string;
+  status: TourPaymentStatus;
+  gatewayOutcome?: TourGatewayOutcome;
+  failureReason?: string;
+  provider?: "MTN Mobile Money" | "Airtel Money";
+  mobileMoneyPhone?: string;
+  cardLast4?: string;
+  maskedCardNumber?: string;
+  cardHolderName?: string;
+  billingPhone?: string;
+  billingEmail?: string;
+  otpAttempts: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TourPaymentTransaction {
+  transactionId: string;
+  bookingId: string;
+  bookingReference: string;
+  userId: string;
+  customerName: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  tourId: string;
+  tourTitle: string;
+  location: string;
+  duration: string;
+  date?: string;
+  guests: number;
+  amountPaid: number;
+  paymentMethodId: string;
+  paymentMethodType: PaymentMethodType;
+  paymentMethodLabel: string;
+  provider?: "MTN Mobile Money" | "Airtel Money";
+  maskedCardNumber?: string;
+  status: "successful";
+  paidAt: string;
+}
+
+export interface TourPaymentReceipt {
+  receiptNumber: string;
+  transactionId: string;
+  bookingId: string;
+  bookingReference: string;
+  customerName: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  tourTitle: string;
+  location: string;
+  duration: string;
+  date?: string;
+  guests: number;
+  paymentMethodLabel: string;
+  paymentStatus: "successful";
+  bookingStatus: "confirmed";
+  amountPaid: number;
+  currency: string;
+  createdAt: string;
 }
 
 export interface ToursState {
   tours: Tour[];
   selectedTourId?: string | null;
   booking: TourBooking;
+  bookings: TourBooking[];
+  activePayment: TourPaymentSession | null;
+  paymentTransactions: TourPaymentTransaction[];
+  receipts: TourPaymentReceipt[];
 }
 
 /** Ambulance */

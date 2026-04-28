@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import {
-  
+  Alert,
   Box,
+  Checkbox,
+  FormControlLabel,
   IconButton,
   Typography,
   Card,
@@ -27,14 +29,17 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const { tourId } = useParams();
-  const { tours, actions } = useAppData();
+  const { tours, actions, walletBalance, paymentMethods } = useAppData();
   const selectTour = actions.selectTour;
   const updateTourBooking = actions.updateTourBooking;
+  const initializeTourPayment = actions.initializeTourPayment;
   const selectedTour =
     tours.tours.find((tour) => tour.id === tourId) ??
     tours.tours.find((tour) => tour.id === tours.selectedTourId) ??
     tours.tours[0];
-  const [paymentMethod, setPaymentMethod] = useState("wallet");
+  const [paymentMethod, setPaymentMethod] = useState<"wallet" | "card" | "mobile_money">("wallet");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const { date = tours.booking.date || "Sat, 12 Oct 2025", timeSlot = "Afternoon (14:00)", adults = tours.booking.guests || 2, children = 1 } = (location.state as any) || {};
   const adultPrice = 250000;
@@ -44,6 +49,8 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
   const totalAdultsPrice = adults * adultPrice;
   const totalChildrenPrice = children * childPrice;
   const totalPrice = totalAdultsPrice + totalChildrenPrice + bookingFee;
+  const walletInsufficient = paymentMethod === "wallet" && walletBalance < totalPrice;
+  const disableConfirm = !acceptedTerms || walletInsufficient;
 
   useEffect(() => {
     if (tourId) {
@@ -306,7 +313,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
                       variant="caption"
                       sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
                     >
-                      Balance: UGX 520,000
+                      Balance: UGX {walletBalance.toLocaleString()}
                     </Typography>
                   </Box>
                 </Stack>
@@ -374,7 +381,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
                     ? "1px solid rgba(209,213,219,0.9)"
                     : "1px solid rgba(51,65,85,0.9)"
               }}
-              onClick={() => setPaymentMethod("mobile")}
+              onClick={() => setPaymentMethod("mobile_money")}
             >
               <CardContent sx={{ px: 1.75, py: 1 }}>
                 <Stack direction="row" spacing={1} alignItems="center">
@@ -405,10 +412,53 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
+        disabled={disableConfirm}
         onClick={() => {
-          if (selectedTour) {
-            updateTourBooking({ status: "confirmed", tourId: selectedTour.id });
-            navigate(`/tours/${selectedTour.id}/confirmation`);
+          setSubmitError(null);
+          if (!selectedTour) {
+            setSubmitError("No tour selected. Please go back and choose a tour.");
+            return;
+          }
+          if (walletInsufficient) {
+            setSubmitError("Wallet balance is insufficient. Choose another payment method.");
+            return;
+          }
+
+          const paymentMethodId =
+            paymentMethods.find((entry) => entry.type === paymentMethod)?.id ??
+            paymentMethods.find((entry) => entry.type !== "cash")?.id;
+          if (!paymentMethodId) {
+            setSubmitError("No supported payment method is available.");
+            return;
+          }
+
+          const session = initializeTourPayment({
+            paymentMethodId,
+            amount: totalPrice
+          });
+          if (!session) {
+            setSubmitError("Could not initialize payment. Please try again.");
+            return;
+          }
+
+          updateTourBooking({
+            tourId: selectedTour.id,
+            guests: adults + children,
+            priceEstimate: `UGX ${totalPrice.toLocaleString()}`,
+            paymentMethodId
+          });
+
+          if (paymentMethod === "wallet") {
+            navigate("/tours/payment/wallet");
+            return;
+          }
+          if (paymentMethod === "card") {
+            navigate("/tours/payment/card");
+            return;
+          }
+          if (paymentMethod === "mobile_money") {
+            navigate("/tours/payment/mobile-money");
+            return;
           }
         }}
         sx={{
@@ -424,6 +474,47 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
       >
         Confirm booking & pay
       </Button>
+
+      {walletInsufficient && (
+        <Alert severity="warning" sx={{ mt: 1.1 }}>
+          Wallet balance is below the total amount. Choose card/mobile money or top up your wallet.
+        </Alert>
+      )}
+      {submitError && (
+        <Alert severity="error" sx={{ mt: 1.1 }}>
+          {submitError}
+        </Alert>
+      )}
+
+      <Card
+        elevation={0}
+        sx={{
+          mt: 1.2,
+          borderRadius: 2,
+          bgcolor: (t) =>
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          border: (t) =>
+            t.palette.mode === "light"
+              ? "1px solid rgba(209,213,219,0.9)"
+              : "1px solid rgba(51,65,85,0.9)"
+        }}
+      >
+        <CardContent sx={{ px: 1.75, py: 1.45 }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={acceptedTerms}
+                onChange={(event) => setAcceptedTerms(event.target.checked)}
+              />
+            }
+            label={
+              <Typography variant="caption" sx={{ fontSize: 11 }}>
+                I agree to the tour booking terms, refund policy and EV travel guidelines.
+              </Typography>
+            }
+          />
+        </CardContent>
+      </Card>
 
       <Typography
         variant="caption"

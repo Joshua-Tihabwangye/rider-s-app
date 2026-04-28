@@ -79,6 +79,13 @@ import TourDates from "../screens/TourDates";
 import TourSummary from "../screens/TourSummary";
 import TourConfirmation from "../screens/TourConfirmation";
 import TourHistory from "../screens/TourHistory";
+import TourPaymentWallet from "../screens/TourPaymentWallet";
+import TourPaymentCard from "../screens/TourPaymentCard";
+import TourPaymentMobileMoney from "../screens/TourPaymentMobileMoney";
+import TourPaymentVerify from "../screens/TourPaymentVerify";
+import TourPaymentProcessing from "../screens/TourPaymentProcessing";
+import TourPaymentFailed from "../screens/TourPaymentFailed";
+import TourPaymentReceipt from "../screens/TourPaymentReceipt";
 import AmbulanceLocation from "../screens/AmbulanceLocation";
 import AmbulanceDestination from "../screens/AmbulanceDestination";
 import AmbulanceConfirmation from "../screens/AmbulanceConfirmation";
@@ -269,6 +276,13 @@ export default function AppRouter(): React.JSX.Element {
 					<Route path=":tourId" element={<TourDetail />} />
 					<Route path=":tourId/dates" element={<TourDates />} />
 					<Route path=":tourId/summary" element={<TourSummary />} />
+					<Route path="payment/wallet" element={<TourPaymentWallet />} />
+					<Route path="payment/processing" element={<TourPaymentProcessing />} />
+					<Route path="payment/card" element={<TourPaymentCard />} />
+					<Route path="payment/mobile-money" element={<TourPaymentMobileMoney />} />
+					<Route path="payment/verify" element={<TourPaymentVerify />} />
+					<Route path="payment/failed" element={<TourPaymentFailed />} />
+					<Route path="payment/receipt/:transactionId" element={<TourPaymentReceipt />} />
 					<Route
 						path=":tourId/confirmation"
 						element={<TourConfirmation />}

@@ -977,7 +977,11 @@ export const SEED_TOURS_STATE: ToursState = {
     guests: 2,
     status: "draft",
     priceEstimate: "UGX 370,000"
-  }
+  },
+  bookings: [],
+  activePayment: null,
+  paymentTransactions: [],
+  receipts: []
 };
 
 /** Ambulance */

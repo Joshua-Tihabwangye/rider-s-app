@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  
   Box,
   IconButton,
   Typography,
@@ -15,50 +14,35 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
+import { useAppData } from "../contexts/AppDataContext";
+import type { TourBooking } from "../store/types";
 
-const UPCOMING_TOURS = [
-  {
-    id: "TOUR-BOOK-2025-10-12-001",
-    tourId: "tour_002",
-    title: "Kampala City EV Highlights",
-    date: "Sat, 12 Oct 2025",
-    time: "Afternoon (14:00)",
-    location: "Kampala",
-    guests: "2 adults, 1 child",
-    status: "Upcoming"
-  }
-];
-
-const PAST_TOURS = [
-  {
-    id: "TOUR-BOOK-2025-09-01-002",
-    tourId: "tour_001",
-    title: "EV Day Trip – Jinja Source of the Nile",
-    date: "Sat, 01 Sep 2025",
-    time: "Full day",
-    location: "Jinja",
-    guests: "3 adults",
-    status: "Completed"
-  }
-];
-
-interface Booking {
-  id: string;
+interface BookingView {
+  booking: TourBooking;
   tourId: string;
   title: string;
-  date: string;
-  time: string;
   location: string;
-  guests: string;
-  status: string;
+  dateLabel: string;
+  guestsLabel: string;
+  statusLabel: string;
 }
 
 interface TourBookingCardProps {
-  booking: Booking;
+  item: BookingView;
   onViewDetails: (tourId: string) => void;
 }
 
-function TourBookingCard({ booking, onViewDetails }: TourBookingCardProps): React.JSX.Element {
+function toStatusLabel(status: TourBooking["status"]): string {
+  if (status === "pending_payment") return "Pending payment";
+  if (status === "failed_payment") return "Failed payment";
+  return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, " ");
+}
+
+function isUpcomingStatus(status: TourBooking["status"]): boolean {
+  return status === "pending_payment" || status === "confirmed";
+}
+
+function TourBookingCard({ item, onViewDetails }: TourBookingCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
@@ -90,65 +74,41 @@ function TourBookingCard({ booking, onViewDetails }: TourBookingCardProps): Reac
             <TourRoundedIcon sx={{ fontSize: 22, color: "#1D4ED8" }} />
           </Box>
           <Box sx={{ flex: 1 }}>
-            <Typography
-              variant="body2"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              {booking.title}
+            <Typography variant="body2" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
+              {item.title}
             </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              {booking.location} • {booking.guests}
+            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+              {item.location} • {item.guestsLabel}
             </Typography>
             <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.4 }}>
-              <CalendarMonthRoundedIcon
-                sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                {booking.date} • {booking.time}
+              <CalendarMonthRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
+              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                {item.dateLabel}
               </Typography>
             </Stack>
           </Box>
           <Chip
             size="small"
-            label={booking.status}
+            label={item.statusLabel}
             sx={{
               borderRadius: 5,
               fontSize: 10,
               height: 22,
-              bgcolor:
-                booking.status === "Upcoming"
-                  ? "rgba(34,197,94,0.12)"
-                  : "rgba(148,163,184,0.18)",
-              color:
-                booking.status === "Upcoming" ? "#16A34A" : "rgba(148,163,184,1)"
+              bgcolor: item.booking.status === "confirmed" ? "rgba(34,197,94,0.12)" : "rgba(148,163,184,0.18)",
+              color: item.booking.status === "confirmed" ? "#16A34A" : "rgba(148,163,184,1)"
             }}
           />
         </Stack>
 
         <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-          >
-            ID: {booking.id}
+          <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+            ID: {item.booking.id}
           </Typography>
           <Button
             size="small"
             variant="outlined"
-            onClick={() => onViewDetails(booking.tourId)}
-            sx={{
-              borderRadius: 5,
-              px: 2,
-              py: 0.4,
-              fontSize: 12,
-              textTransform: "none"
-            }}
+            onClick={() => onViewDetails(item.tourId)}
+            sx={{ borderRadius: 5, px: 2, py: 0.4, fontSize: 12, textTransform: "none" }}
           >
             View details
           </Button>
@@ -160,12 +120,33 @@ function TourBookingCard({ booking, onViewDetails }: TourBookingCardProps): Reac
 
 function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [tab, setTab] = useState("upcoming");
-  const bookings = tab === "upcoming" ? UPCOMING_TOURS : PAST_TOURS;
+  const { tours } = useAppData();
+  const [tab, setTab] = useState<"upcoming" | "history">("upcoming");
+
+  const bookingItems = useMemo<BookingView[]>(() => {
+    const source = tours.bookings.length > 0 ? tours.bookings : [tours.booking];
+    return source
+      .filter((booking) => Boolean(booking.id))
+      .map((booking) => {
+        const tour = tours.tours.find((entry) => entry.id === booking.tourId) ?? tours.tours[0];
+        return {
+          booking,
+          tourId: tour?.id ?? booking.tourId,
+          title: tour?.title ?? "EV tour",
+          location: tour?.location ?? "Kampala",
+          dateLabel: booking.date ?? tour?.scheduleLabel ?? "Schedule pending",
+          guestsLabel: `${booking.guests} ${booking.guests === 1 ? "guest" : "guests"}`,
+          statusLabel: toStatusLabel(booking.status)
+        };
+      });
+  }, [tours.booking, tours.bookings, tours.tours]);
+
+  const bookings = bookingItems.filter((item) =>
+    tab === "upcoming" ? isUpcomingStatus(item.booking.status) : !isUpcomingStatus(item.booking.status)
+  );
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
       <Box
         sx={{
           mb: 2,
@@ -192,23 +173,16 @@ function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
           <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
               My tours
             </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
+            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
               Upcoming and past EV tours
             </Typography>
           </Box>
         </Box>
       </Box>
 
-      {/* Tabs */}
       <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
         <Chip
           label="Upcoming"
@@ -250,12 +224,8 @@ function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
           No tours in this view yet.
         </Typography>
       ) : (
-        bookings.map((booking) => (
-          <TourBookingCard
-            key={booking.id}
-            booking={booking}
-            onViewDetails={(tourId) => navigate(`/tours/${tourId}`)}
-          />
+        bookings.map((item) => (
+          <TourBookingCard key={item.booking.id} item={item} onViewDetails={(tourId) => navigate(`/tours/${tourId}`)} />
         ))
       )}
     </Box>
@@ -263,20 +233,15 @@ function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
 }
 
 export default function RiderScreen82TourBookingsUpcomingHistoryCanvas_v2() {
-      return (
-    
-      
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: (t) => t.palette.background.default
-        }}
-      >
-
-          <TourBookingsUpcomingHistoryScreen />
-        
-      </Box>
-    
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        minHeight: "100vh",
+        bgcolor: (t) => t.palette.background.default
+      }}
+    >
+      <TourBookingsUpcomingHistoryScreen />
+    </Box>
   );
 }
