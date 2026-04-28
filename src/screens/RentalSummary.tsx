@@ -63,11 +63,13 @@ function RentalSummaryScreen(): React.JSX.Element {
     "pm_wallet";
   const [paymentMethodId, setPaymentMethodId] = useState(initialPaymentMethodId);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const selectedPaymentMethod =
     paymentMethods.find((method) => method.id === paymentMethodId) ?? paymentMethods[0];
   const walletInsufficient =
     selectedPaymentMethod?.type === "wallet" && walletBalance < pricing.dueNow;
+  const disableConfirm = !acceptedTerms || walletInsufficient;
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -358,6 +360,20 @@ function RentalSummaryScreen(): React.JSX.Element {
           {walletInsufficient && (
             <Alert severity="warning" sx={{ mt: 1.1 }}>
               Your wallet balance is below the total due now. Choose card/mobile money or top up your wallet.
+              <Link
+                component="button"
+                type="button"
+                underline="hover"
+                onClick={() => navigate("/wallet?action=topup")}
+                sx={{ ml: 0.75, fontSize: 12 }}
+              >
+                Top up wallet
+              </Link>
+            </Alert>
+          )}
+          {submitError && (
+            <Alert severity="error" sx={{ mt: 1.1 }}>
+              {submitError}
             </Alert>
           )}
         </CardContent>
@@ -401,14 +417,53 @@ function RentalSummaryScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
-        disabled={!acceptedTerms}
+        disabled={disableConfirm}
         onClick={() => {
+          setSubmitError(null);
+          if (!selectedPaymentMethod) {
+            setSubmitError("Select a payment method to continue.");
+            return;
+          }
+          if (selectedPaymentMethod.type === "wallet" && walletInsufficient) {
+            setSubmitError("Wallet balance is insufficient. Choose another method or top up.");
+            return;
+          }
+
+          const session = actions.initializeRentalPayment({
+            paymentMethodId,
+            amount: pricing.dueNow
+          });
+          if (!session) {
+            setSubmitError("Could not initialize payment. Please try again.");
+            return;
+          }
+
           actions.updateRentalBooking({
-            status: "confirmed",
             paymentMethodId,
             priceEstimate: formatUgx(pricing.dueNow)
           });
-          navigate("/rental/confirmation");
+
+          if (selectedPaymentMethod.type === "wallet") {
+            actions.updateRentalPaymentSession({
+              status: "processing",
+              gatewayOutcome: "success",
+              failureReason: undefined
+            });
+            navigate("/rental/payment/processing");
+            return;
+          }
+
+          if (selectedPaymentMethod.type === "card") {
+            navigate("/rental/payment/card");
+            return;
+          }
+
+          if (selectedPaymentMethod.type === "mobile_money") {
+            navigate("/rental/payment/mobile-money");
+            return;
+          }
+
+          setSubmitError("Unsupported payment method selected.");
         }}
         sx={{
           borderRadius: 5,
@@ -416,12 +471,12 @@ function RentalSummaryScreen(): React.JSX.Element {
           fontSize: 15,
           fontWeight: 600,
           textTransform: "none",
-          bgcolor: acceptedTerms ? "primary.main" : "#9CA3AF",
-          color: acceptedTerms ? "#020617" : "#E5E7EB",
-          "&:hover": { bgcolor: acceptedTerms ? "#06e29a" : "#9CA3AF" }
+          bgcolor: !disableConfirm ? "primary.main" : "#9CA3AF",
+          color: !disableConfirm ? "#020617" : "#E5E7EB",
+          "&:hover": { bgcolor: !disableConfirm ? "#06e29a" : "#9CA3AF" }
         }}
       >
-        Confirm rental
+        Confirm rental booking
       </Button>
     </Box>
   );

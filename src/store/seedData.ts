@@ -925,7 +925,10 @@ export const SEED_RENTAL_STATE: RentalState = {
       priceEstimate: "UGX 680,000",
       status: "completed"
     }
-  ]
+  ],
+  activePayment: null,
+  paymentTransactions: [],
+  receipts: []
 };
 
 /** Tours */
