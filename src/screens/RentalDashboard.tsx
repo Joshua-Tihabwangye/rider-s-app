@@ -198,36 +198,7 @@ function RentalDashboardHomeScreen(): React.JSX.Element {
             </Box>
           </Stack>
 
-          <Chip
-            icon={<LocalOfferRoundedIcon sx={{ fontSize: 14 }} />}
-            label="Clean electric rides"
-            size="small"
-            sx={{
-              display: { xs: "none", sm: "inline-flex" },
-              borderRadius: uiTokens.radius.pill,
-              fontSize: 10.5,
-              height: 24,
-              bgcolor: "rgba(249,115,22,0.14)",
-              color: ORANGE_ACCENT,
-              border: "1px solid rgba(249,115,22,0.35)"
-            }}
-          />
         </Stack>
-        <Chip
-          icon={<LocalOfferRoundedIcon sx={{ fontSize: 14 }} />}
-          label="Clean electric rides"
-          size="small"
-          sx={{
-            display: { xs: "inline-flex", sm: "none" },
-            mt: 0.7,
-            borderRadius: uiTokens.radius.pill,
-            fontSize: 10.5,
-            height: 24,
-            bgcolor: "rgba(249,115,22,0.14)",
-            color: ORANGE_ACCENT,
-            border: "1px solid rgba(249,115,22,0.35)"
-          }}
-        />
       </Box>
 
       <Card

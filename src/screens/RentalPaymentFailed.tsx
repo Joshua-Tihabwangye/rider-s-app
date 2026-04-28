@@ -66,10 +66,10 @@ export default function RentalPaymentFailed(): React.JSX.Element {
         reason={booking.paymentFailureReason ?? activePayment.failureReason ?? "Payment was not approved."}
         primaryLabel="Try again"
         secondaryLabel="Choose another payment method"
-        tertiaryLabel="Contact support"
+        tertiaryLabel="Back to summary"
         onPrimaryClick={() => navigate(retryRoute)}
         onSecondaryClick={() => navigate("/rental/summary")}
-        onTertiaryClick={() => navigate("/help")}
+        onTertiaryClick={() => navigate("/rental/summary")}
       />
     </ScreenScaffold>
   );

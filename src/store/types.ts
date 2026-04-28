@@ -724,6 +724,7 @@ export interface RentalBooking {
     | "failed"
     | "declined"
     | "timeout"
+    | "insufficient_funds"
     | "requires_verification";
   paymentFailureReason?: string;
   paymentMethodType?: PaymentMethodType;
@@ -740,6 +741,7 @@ export type RentalPaymentStatus =
   | "failed"
   | "declined"
   | "timeout"
+  | "insufficient_funds"
   | "requires_verification";
 
 export type RentalGatewayOutcome =

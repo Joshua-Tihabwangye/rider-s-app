@@ -41,6 +41,7 @@ export default function RentalCardPayment(): React.JSX.Element {
   const [billingEmail, setBillingEmail] = useState(activePayment?.customerEmail ?? "");
   const [errors, setErrors] = useState<CardFormErrors>({});
   const [formError, setFormError] = useState<string>("");
+  const showTestHelpers = Boolean((import.meta as ImportMeta).env.DEV);
 
   const vehicle = useMemo(
     () => rental.vehicles.find((entry) => entry.id === rental.booking.vehicleId) ?? rental.vehicles[0] ?? null,
@@ -56,6 +57,16 @@ export default function RentalCardPayment(): React.JSX.Element {
 
   const handlePayNow = () => {
     const validationErrors = validateCardForm({ cardholderName, cardNumber, expiry, cvv });
+    if (activePayment.customerEmail && !billingEmail.trim()) {
+      setFormError("Billing email is required for this account.");
+      setErrors(validationErrors);
+      return;
+    }
+    if (activePayment.customerPhone && !billingPhone.trim()) {
+      setFormError("Billing phone is required for this account.");
+      setErrors(validationErrors);
+      return;
+    }
     setErrors(validationErrors);
     setFormError("");
     if (Object.keys(validationErrors).length > 0) {
@@ -211,32 +222,34 @@ export default function RentalCardPayment(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      <Card
-        elevation={0}
-        sx={{
-          borderRadius: 2,
-          border: "1px solid rgba(249,115,22,0.35)",
-          bgcolor: "rgba(249,115,22,0.07)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.6 }}>
-          <Typography variant="body2" sx={{ fontWeight: 700, color: "#C2410C", mb: 0.5 }}>
-            Test card numbers
-          </Typography>
-          <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
-            4242 4242 4242 4242 = successful payment
-          </Typography>
-          <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
-            4000 0000 0000 0002 = failed payment
-          </Typography>
-          <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
-            4000 0000 0000 9995 = insufficient funds
-          </Typography>
-          <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
-            4000 0000 0000 3220 = requires OTP verification
-          </Typography>
-        </CardContent>
-      </Card>
+      {showTestHelpers && (
+        <Card
+          elevation={0}
+          sx={{
+            borderRadius: 2,
+            border: "1px solid rgba(249,115,22,0.35)",
+            bgcolor: "rgba(249,115,22,0.07)"
+          }}
+        >
+          <CardContent sx={{ px: 1.75, py: 1.6 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: "#C2410C", mb: 0.5 }}>
+              Test card numbers
+            </Typography>
+            <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
+              4242 4242 4242 4242 = successful payment
+            </Typography>
+            <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
+              4000 0000 0000 0002 = failed payment
+            </Typography>
+            <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
+              4000 0000 0000 9995 = insufficient funds
+            </Typography>
+            <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
+              4000 0000 0000 3220 = requires OTP verification
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
     </ScreenScaffold>
   );
 }

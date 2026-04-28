@@ -32,6 +32,7 @@ function RentalBookingConfirmationScreen(): React.JSX.Element {
     rental.selectedVehicleId
   );
   const bookingId = booking.id;
+  const bookingReference = booking.bookingReference;
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -133,7 +134,7 @@ function RentalBookingConfirmationScreen(): React.JSX.Element {
                 variant="body2"
                 sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
               >
-                {bookingId}
+                {bookingReference ?? bookingId}
               </Typography>
               <Typography
                 variant="caption"
@@ -141,6 +142,14 @@ function RentalBookingConfirmationScreen(): React.JSX.Element {
               >
                 {vehicle ? `${vehicle.name} • ${vehicle.mode}` : "EV rental"}
               </Typography>
+              {booking.transactionId && (
+                <Typography
+                  variant="caption"
+                  sx={{ display: "block", fontSize: 11, color: (t) => t.palette.text.secondary }}
+                >
+                  Transaction: {booking.transactionId}
+                </Typography>
+              )}
             </Box>
           </Stack>
 
