@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -19,49 +19,21 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
 
-const TOURS = [
-  {
-    id: "TOUR-01",
-    title: "Kampala City EV Highlights",
-    location: "Kampala",
-    duration: "Half day",
-    price: "UGX 180,000",
-    tag: "Most popular",
-    summary: "Old Taxi Park, Parliament, Ggaba Beach with EV city tour"
-  },
-  {
-    id: "TOUR-02",
-    title: "EV Day Trip – Jinja Source of the Nile",
-    location: "Jinja",
-    duration: "Full day",
-    price: "UGX 350,000",
-    tag: "Day trip",
-    summary: "EV drive to Jinja, boat ride and lunch"
-  },
-  {
-    id: "TOUR-03",
-    title: "Weekend EV Safari – Lake Mburo",
-    location: "Lake Mburo",
-    duration: "2 days",
-    price: "UGX 950,000",
-    tag: "Safari",
-    summary: "EV transfer, game drive and overnight stay"
-  }
-];
-
-interface Tour {
+interface TourCardView {
   id: string;
   title: string;
   location: string;
   duration: string;
   price: string;
+  category: "city" | "day" | "safari" | "all";
   tag?: string;
   summary: string;
 }
 
 interface TourCardProps {
-  tour: Tour;
+  tour: TourCardView;
 }
 
 function TourCard({ tour }: TourCardProps): React.JSX.Element {
@@ -171,19 +143,54 @@ function TourCard({ tour }: TourCardProps): React.JSX.Element {
 
 function ToursHomeBrowseScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { tours } = useAppData();
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
 
-  const filteredTours = TOURS.filter((tour) => {
-    if (filter === "city") return tour.duration === "Half day";
-    if (filter === "day") return tour.tag === "Day trip";
-    if (filter === "safari") return tour.tag === "Safari";
+  const availableTours = useMemo<TourCardView[]>(
+    () =>
+      tours.tours.map((tour) => {
+        const title = tour.title.trim();
+        const location = tour.location.trim();
+        const duration = tour.duration.trim();
+        const summary = tour.description.trim() || tour.highlights[0] || "EV tour";
+        const lowered = `${title} ${location} ${duration} ${summary} ${tour.highlights.join(" ")}`.toLowerCase();
+
+        let category: TourCardView["category"] = "all";
+        if (lowered.includes("safari")) {
+          category = "safari";
+        } else if (duration.toLowerCase().includes("day")) {
+          category = "day";
+        } else if (location.toLowerCase().includes("kampala") || duration.toLowerCase().includes("hour")) {
+          category = "city";
+        }
+
+        return {
+          id: tour.id,
+          title,
+          location,
+          duration,
+          price: tour.pricePerPerson,
+          summary,
+          category,
+          tag: tour.seatsLeft > 0 ? `${tour.seatsLeft} spots left` : "Fully booked"
+        };
+      }),
+    [tours.tours]
+  );
+
+  const searchText = search.trim().toLowerCase();
+  const filteredTours = availableTours.filter((tour) => {
+    if (filter === "city") return tour.category === "city";
+    if (filter === "day") return tour.category === "day";
+    if (filter === "safari") return tour.category === "safari";
     return true;
   }).filter((tour) => {
-    if (!search.trim()) return true;
+    if (!searchText) return true;
     return (
-      tour.title.toLowerCase().includes(search.toLowerCase()) ||
-      tour.location.toLowerCase().includes(search.toLowerCase())
+      tour.title.toLowerCase().includes(searchText) ||
+      tour.location.toLowerCase().includes(searchText) ||
+      tour.summary.toLowerCase().includes(searchText)
     );
   });
 
