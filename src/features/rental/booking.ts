@@ -149,12 +149,16 @@ export function getRentalModeLabel(booking: RentalBooking): RentalModeLabel {
 
 export function getRentalStatusLabel(status: RentalBooking["status"]): string {
   switch (status) {
+    case "pending_payment":
+      return "Pending payment";
     case "confirmed":
       return "Upcoming";
     case "completed":
       return "Completed";
     case "cancelled":
       return "Cancelled";
+    case "failed_payment":
+      return "Payment failed";
     default:
       return "Draft";
   }

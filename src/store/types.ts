@@ -707,6 +707,8 @@ export interface RentalCustomRequest {
 
 export interface RentalBooking {
   id: string;
+  bookingReference?: string;
+  userId?: string;
   vehicleId: string;
   startDate?: string;
   endDate?: string;
@@ -715,8 +717,113 @@ export interface RentalBooking {
   priceEstimate?: string;
   rentalMode?: RentalModeOption;
   paymentMethodId?: string;
+  paymentStatus?:
+    | "pending"
+    | "processing"
+    | "successful"
+    | "failed"
+    | "declined"
+    | "timeout"
+    | "requires_verification";
+  paymentFailureReason?: string;
+  paymentMethodType?: PaymentMethodType;
+  transactionId?: string;
+  confirmedAt?: string;
   customRequest?: RentalCustomRequest;
-  status: "draft" | "confirmed" | "completed" | "cancelled";
+  status: "draft" | "pending_payment" | "confirmed" | "completed" | "cancelled" | "failed_payment";
+}
+
+export type RentalPaymentStatus =
+  | "pending"
+  | "processing"
+  | "successful"
+  | "failed"
+  | "declined"
+  | "timeout"
+  | "requires_verification";
+
+export type RentalGatewayOutcome =
+  | "success"
+  | "failed"
+  | "declined"
+  | "timeout"
+  | "insufficient_funds"
+  | "requires_verification";
+
+export interface RentalPaymentSession {
+  bookingId: string;
+  bookingReference: string;
+  userId: string;
+  customerName: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  paymentMethodId: string;
+  paymentMethodType: PaymentMethodType;
+  amount: number;
+  transactionId?: string;
+  status: RentalPaymentStatus;
+  gatewayOutcome?: RentalGatewayOutcome;
+  failureReason?: string;
+  provider?: "MTN Mobile Money" | "Airtel Money";
+  mobileMoneyPhone?: string;
+  cardLast4?: string;
+  maskedCardNumber?: string;
+  cardHolderName?: string;
+  billingPhone?: string;
+  billingEmail?: string;
+  otpAttempts: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RentalPaymentTransaction {
+  transactionId: string;
+  bookingId: string;
+  bookingReference: string;
+  userId: string;
+  customerName: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  vehicleId: string;
+  vehicleName: string;
+  startDate?: string;
+  endDate?: string;
+  pickupBranch?: string;
+  dropoffBranch?: string;
+  amountPaid: number;
+  refundableDeposit: number;
+  paymentMethodId: string;
+  paymentMethodType: PaymentMethodType;
+  paymentMethodLabel: string;
+  provider?: "MTN Mobile Money" | "Airtel Money";
+  maskedCardNumber?: string;
+  status: "successful";
+  paidAt: string;
+}
+
+export interface RentalPaymentReceipt {
+  receiptNumber: string;
+  transactionId: string;
+  bookingId: string;
+  bookingReference: string;
+  customerName: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  vehicleName: string;
+  rentalDurationLabel: string;
+  pickupBranch?: string;
+  dropoffBranch?: string;
+  paymentMethodLabel: string;
+  paymentStatus: "successful";
+  bookingStatus: "confirmed";
+  amountPaid: number;
+  refundableDeposit: number;
+  rentalSubtotal: number;
+  chauffeurFee: number;
+  addOnsTotal: number;
+  oneWayFee: number;
+  currency: string;
+  createdAt: string;
 }
 
 export interface RentalState {
@@ -724,6 +831,9 @@ export interface RentalState {
   selectedVehicleId?: string | null;
   booking: RentalBooking;
   bookings: RentalBooking[];
+  activePayment: RentalPaymentSession | null;
+  paymentTransactions: RentalPaymentTransaction[];
+  receipts: RentalPaymentReceipt[];
 }
 
 /** Tours */

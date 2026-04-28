@@ -26,6 +26,10 @@ import type {
   DeliveryContactType,
   RentalState,
   RentalBooking,
+  RentalPaymentSession,
+  RentalPaymentStatus,
+  RentalPaymentTransaction,
+  RentalPaymentReceipt,
   ToursState,
   TourBooking,
   AmbulanceState,
@@ -66,6 +70,11 @@ import {
   deriveOrderLegacyFields,
   summarizeRoute
 } from "../features/delivery/multiStop";
+import {
+  buildRentalPricing,
+  estimateRentalDays,
+  getRentalBookingVehicle
+} from "../features/rental/booking";
 import {
   SEED_PAYMENT_METHODS,
   SEED_TRANSACTIONS,
@@ -132,6 +141,26 @@ interface AppActions {
   beginRentalBooking: (vehicleId?: string) => void;
   updateRentalBooking: (patch: Partial<RentalBooking>) => void;
   selectRentalVehicle: (vehicleId: string) => void;
+  initializeRentalPayment: (params: {
+    paymentMethodId: string;
+    amount: number;
+  }) => RentalPaymentSession | null;
+  updateRentalPaymentSession: (patch: Partial<RentalPaymentSession>) => void;
+  completeRentalPayment: (params: {
+    paymentMethodLabel: string;
+    maskedCardNumber?: string;
+    provider?: "MTN Mobile Money" | "Airtel Money";
+    mobileMoneyPhone?: string;
+    cardHolderName?: string;
+    cardLast4?: string;
+    billingEmail?: string;
+    billingPhone?: string;
+  }) => RentalPaymentTransaction | null;
+  failRentalPayment: (params: {
+    status: Exclude<RentalPaymentStatus, "pending" | "processing" | "successful">;
+    reason: string;
+  }) => void;
+  resetRentalPayment: () => void;
   updateTourBooking: (patch: Partial<TourBooking>) => void;
   selectTour: (tourId: string) => void;
   updateAmbulanceRequest: (patch: Partial<AmbulanceRequest>) => void;
@@ -209,6 +238,25 @@ type AppAction =
   | { type: "rental/begin"; payload?: { vehicleId?: string } }
   | { type: "rental/booking"; payload: Partial<RentalBooking> }
   | { type: "rental/select"; payload: string }
+  | { type: "rental/payment-init"; payload: RentalPaymentSession }
+  | { type: "rental/payment-session"; payload: Partial<RentalPaymentSession> }
+  | {
+      type: "rental/payment-complete";
+      payload: {
+        booking: RentalBooking;
+        transaction: RentalPaymentTransaction;
+        receipt: RentalPaymentReceipt;
+        walletDebitAmount: number;
+      };
+    }
+  | {
+      type: "rental/payment-fail";
+      payload: {
+        status: Exclude<RentalPaymentStatus, "pending" | "processing" | "successful">;
+        reason: string;
+      };
+    }
+  | { type: "rental/payment-reset" }
   | { type: "tours/booking"; payload: Partial<TourBooking> }
   | { type: "tours/select"; payload: string }
   | { type: "ambulance/update"; payload: Partial<AmbulanceRequest> }
@@ -483,6 +531,41 @@ function createRentalBookingId(): string {
   const date = now.toISOString().slice(0, 10);
   const suffix = String(now.getTime()).slice(-4);
   return `RENT-${date}-${suffix}`;
+}
+
+function toDateToken(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}${month}${day}`;
+}
+
+function createBookingReference(now = new Date()): string {
+  const suffix = String(Math.floor(1000 + Math.random() * 9000));
+  return `EVR-${toDateToken(now)}-${suffix}`;
+}
+
+function createTransactionId(now = new Date()): string {
+  const suffix = String(Math.floor(100000 + Math.random() * 900000));
+  return `TXN-${toDateToken(now)}-${suffix}`;
+}
+
+function createReceiptNumber(now = new Date()): string {
+  const suffix = String(Math.floor(100000 + Math.random() * 900000));
+  return `RCP-${toDateToken(now)}-${suffix}`;
+}
+
+function formatWalletTransactionTime(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return "Just now";
+  }
+  return date.toLocaleString("en-UG", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 function createDraftRentalBooking(vehicleId: string): RentalBooking {
@@ -1721,7 +1804,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
         rental: {
           ...state.rental,
           selectedVehicleId: vehicleId,
-          booking: createDraftRentalBooking(vehicleId)
+          booking: createDraftRentalBooking(vehicleId),
+          activePayment: null
         }
       };
     }
@@ -1736,7 +1820,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
         rental: {
           ...state.rental,
           booking: nextBooking,
-          bookings: nextBookings
+          bookings: nextBookings,
+          activePayment: nextBooking.status === "draft" ? null : state.rental.activePayment
         }
       };
     }
@@ -1747,7 +1832,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
           rental: {
             ...state.rental,
             selectedVehicleId: action.payload,
-            booking: createDraftRentalBooking(action.payload)
+            booking: createDraftRentalBooking(action.payload),
+            activePayment: null
           }
         };
       }
@@ -1757,6 +1843,124 @@ function appReducer(state: AppState, action: AppAction): AppState {
           ...state.rental,
           selectedVehicleId: action.payload,
           booking: { ...state.rental.booking, vehicleId: action.payload }
+        }
+      };
+    case "rental/payment-init": {
+      const nextBooking: RentalBooking = {
+        ...state.rental.booking,
+        bookingReference: action.payload.bookingReference,
+        userId: action.payload.userId,
+        paymentMethodId: action.payload.paymentMethodId,
+        paymentMethodType: action.payload.paymentMethodType,
+        paymentStatus: "pending",
+        paymentFailureReason: undefined,
+        status: "pending_payment"
+      };
+      return {
+        ...state,
+        rental: {
+          ...state.rental,
+          booking: nextBooking,
+          bookings: upsertRentalBooking(state.rental.bookings, nextBooking),
+          activePayment: action.payload
+        }
+      };
+    }
+    case "rental/payment-session": {
+      if (!state.rental.activePayment) {
+        return state;
+      }
+      const nextPayment: RentalPaymentSession = {
+        ...state.rental.activePayment,
+        ...action.payload,
+        updatedAt: action.payload.updatedAt ?? new Date().toISOString()
+      };
+      const nextBooking: RentalBooking = {
+        ...state.rental.booking,
+        paymentMethodId: nextPayment.paymentMethodId,
+        paymentMethodType: nextPayment.paymentMethodType,
+        paymentStatus: nextPayment.status,
+        paymentFailureReason: nextPayment.failureReason
+      };
+      return {
+        ...state,
+        rental: {
+          ...state.rental,
+          booking: nextBooking,
+          bookings: upsertRentalBooking(state.rental.bookings, nextBooking),
+          activePayment: nextPayment
+        }
+      };
+    }
+    case "rental/payment-fail": {
+      if (!state.rental.activePayment) {
+        return state;
+      }
+      const now = new Date().toISOString();
+      const nextPayment: RentalPaymentSession = {
+        ...state.rental.activePayment,
+        status: action.payload.status,
+        failureReason: action.payload.reason,
+        updatedAt: now
+      };
+      const nextBooking: RentalBooking = {
+        ...state.rental.booking,
+        paymentMethodId: nextPayment.paymentMethodId,
+        paymentMethodType: nextPayment.paymentMethodType,
+        paymentStatus: action.payload.status,
+        paymentFailureReason: action.payload.reason,
+        status: "failed_payment"
+      };
+      return {
+        ...state,
+        rental: {
+          ...state.rental,
+          booking: nextBooking,
+          bookings: upsertRentalBooking(state.rental.bookings, nextBooking),
+          activePayment: nextPayment
+        }
+      };
+    }
+    case "rental/payment-complete": {
+      const now = action.payload.transaction.paidAt;
+      const walletTransaction: WalletTransaction = {
+        id: `tx_rental_${action.payload.transaction.transactionId}`,
+        title: "Rental payment",
+        source: action.payload.transaction.bookingReference,
+        amount: `-UGX ${Math.round(action.payload.transaction.amountPaid).toLocaleString()}`,
+        time: formatWalletTransactionTime(now),
+        type: "rental"
+      };
+      const activePayment = state.rental.activePayment
+        ? {
+            ...state.rental.activePayment,
+            status: "successful" as const,
+            transactionId: action.payload.transaction.transactionId,
+            updatedAt: now,
+            failureReason: undefined
+          }
+        : null;
+
+      return {
+        ...state,
+        walletBalance: Math.max(0, state.walletBalance - action.payload.walletDebitAmount),
+        transactions: [walletTransaction, ...state.transactions],
+        rental: {
+          ...state.rental,
+          booking: action.payload.booking,
+          bookings: upsertRentalBooking(state.rental.bookings, action.payload.booking),
+          paymentTransactions: [action.payload.transaction, ...state.rental.paymentTransactions],
+          receipts: [action.payload.receipt, ...state.rental.receipts],
+          activePayment
+        }
+      };
+    }
+    case "rental/payment-reset":
+      return {
+        ...state,
+        rental: {
+          ...state.rental,
+          activePayment: null
         }
       };
     case "tours/booking":
@@ -2065,6 +2269,156 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     dispatch({ type: "rental/select", payload: vehicleId });
   }, []);
 
+  const initializeRentalPayment = useCallback(
+    (params: { paymentMethodId: string; amount: number }): RentalPaymentSession | null => {
+      const selectedMethod = state.paymentMethods.find((method) => method.id === params.paymentMethodId);
+      if (!selectedMethod || selectedMethod.type === "cash") {
+        return null;
+      }
+      const now = new Date().toISOString();
+      const bookingReference = state.rental.booking.bookingReference ?? createBookingReference(new Date(now));
+      const session: RentalPaymentSession = {
+        bookingId: state.rental.booking.id,
+        bookingReference,
+        userId: user?.id ?? "guest_user",
+        customerName: user?.fullName ?? "Guest user",
+        customerEmail: user?.email,
+        customerPhone: user?.phone,
+        paymentMethodId: selectedMethod.id,
+        paymentMethodType: selectedMethod.type,
+        amount: params.amount,
+        status: "pending",
+        otpAttempts: 0,
+        createdAt: now,
+        updatedAt: now
+      };
+      dispatch({ type: "rental/payment-init", payload: session });
+      return session;
+    },
+    [state.paymentMethods, state.rental.booking.bookingReference, state.rental.booking.id, user]
+  );
+
+  const updateRentalPaymentSession = useCallback((patch: Partial<RentalPaymentSession>) => {
+    dispatch({ type: "rental/payment-session", payload: patch });
+  }, []);
+
+  const completeRentalPayment = useCallback(
+    (params: {
+      paymentMethodLabel: string;
+      maskedCardNumber?: string;
+      provider?: "MTN Mobile Money" | "Airtel Money";
+      mobileMoneyPhone?: string;
+      cardHolderName?: string;
+      cardLast4?: string;
+      billingEmail?: string;
+      billingPhone?: string;
+    }): RentalPaymentTransaction | null => {
+      const payment = state.rental.activePayment;
+      if (!payment) {
+        return null;
+      }
+      const now = new Date().toISOString();
+      const vehicle = getRentalBookingVehicle(
+        state.rental.vehicles,
+        state.rental.booking,
+        state.rental.selectedVehicleId
+      );
+      const pricing = buildRentalPricing(vehicle, state.rental.booking);
+      const transactionId = createTransactionId(new Date(now));
+      const bookingReference = payment.bookingReference;
+      const nextBooking: RentalBooking = {
+        ...state.rental.booking,
+        bookingReference,
+        userId: payment.userId,
+        paymentMethodId: payment.paymentMethodId,
+        paymentMethodType: payment.paymentMethodType,
+        paymentStatus: "successful",
+        paymentFailureReason: undefined,
+        status: "confirmed",
+        transactionId,
+        confirmedAt: now,
+        priceEstimate: formatCurrencyUGX(payment.amount)
+      };
+
+      const transaction: RentalPaymentTransaction = {
+        transactionId,
+        bookingId: nextBooking.id,
+        bookingReference,
+        userId: payment.userId,
+        customerName: payment.customerName,
+        customerEmail: params.billingEmail ?? payment.customerEmail,
+        customerPhone: params.billingPhone ?? params.mobileMoneyPhone ?? payment.customerPhone,
+        vehicleId: vehicle?.id ?? nextBooking.vehicleId,
+        vehicleName: vehicle?.name ?? "EV rental",
+        startDate: nextBooking.startDate,
+        endDate: nextBooking.endDate,
+        pickupBranch: nextBooking.pickupBranch,
+        dropoffBranch: nextBooking.dropoffBranch,
+        amountPaid: payment.amount,
+        refundableDeposit: pricing.refundableDeposit,
+        paymentMethodId: payment.paymentMethodId,
+        paymentMethodType: payment.paymentMethodType,
+        paymentMethodLabel: params.paymentMethodLabel,
+        provider: params.provider,
+        maskedCardNumber: params.maskedCardNumber,
+        status: "successful",
+        paidAt: now
+      };
+
+      const durationDays = estimateRentalDays(nextBooking.startDate, nextBooking.endDate);
+      const receipt: RentalPaymentReceipt = {
+        receiptNumber: createReceiptNumber(new Date(now)),
+        transactionId,
+        bookingId: nextBooking.id,
+        bookingReference,
+        customerName: payment.customerName,
+        customerEmail: params.billingEmail ?? payment.customerEmail,
+        customerPhone: params.billingPhone ?? params.mobileMoneyPhone ?? payment.customerPhone,
+        vehicleName: vehicle?.name ?? "EV rental",
+        rentalDurationLabel: `${durationDays} day${durationDays === 1 ? "" : "s"}`,
+        pickupBranch: nextBooking.pickupBranch,
+        dropoffBranch: nextBooking.dropoffBranch,
+        paymentMethodLabel: params.paymentMethodLabel,
+        paymentStatus: "successful",
+        bookingStatus: "confirmed",
+        amountPaid: payment.amount,
+        refundableDeposit: pricing.refundableDeposit,
+        rentalSubtotal: pricing.rentalSubtotal,
+        chauffeurFee: pricing.chauffeurFee,
+        addOnsTotal: pricing.addOnsTotal,
+        oneWayFee: pricing.oneWayFee,
+        currency: "UGX",
+        createdAt: now
+      };
+
+      dispatch({
+        type: "rental/payment-complete",
+        payload: {
+          booking: nextBooking,
+          transaction,
+          receipt,
+          walletDebitAmount: payment.paymentMethodType === "wallet" ? payment.amount : 0
+        }
+      });
+      return transaction;
+    },
+    [state.rental, state.rental.activePayment]
+  );
+
+  const failRentalPayment = useCallback(
+    (params: {
+      status: Exclude<RentalPaymentStatus, "pending" | "processing" | "successful">;
+      reason: string;
+    }) => {
+      dispatch({ type: "rental/payment-fail", payload: params });
+    },
+    []
+  );
+
+  const resetRentalPayment = useCallback(() => {
+    dispatch({ type: "rental/payment-reset" });
+  }, []);
+
   const updateTourBooking = useCallback((patch: Partial<TourBooking>) => {
     dispatch({ type: "tours/booking", payload: patch });
   }, []);
@@ -2258,6 +2612,11 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       beginRentalBooking,
       updateRentalBooking,
       selectRentalVehicle,
+      initializeRentalPayment,
+      updateRentalPaymentSession,
+      completeRentalPayment,
+      failRentalPayment,
+      resetRentalPayment,
       updateTourBooking,
       selectTour,
       updateAmbulanceRequest,
@@ -2305,6 +2664,11 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       beginRentalBooking,
       updateRentalBooking,
       selectRentalVehicle,
+      initializeRentalPayment,
+      updateRentalPaymentSession,
+      completeRentalPayment,
+      failRentalPayment,
+      resetRentalPayment,
       updateTourBooking,
       selectTour,
       updateAmbulanceRequest,

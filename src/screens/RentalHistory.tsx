@@ -102,12 +102,20 @@ function RentalBookingCard({
               bgcolor:
                 statusLabel === "Upcoming"
                   ? "rgba(34,197,94,0.12)"
+                  : statusLabel === "Pending payment"
+                    ? "rgba(249,115,22,0.16)"
+                    : statusLabel === "Payment failed"
+                      ? "rgba(239,68,68,0.18)"
                   : statusLabel === "Cancelled"
                     ? "rgba(248,113,113,0.18)"
                     : "rgba(148,163,184,0.18)",
               color:
                 statusLabel === "Upcoming"
                   ? "#16A34A"
+                  : statusLabel === "Pending payment"
+                    ? "#C2410C"
+                    : statusLabel === "Payment failed"
+                      ? "#B91C1C"
                   : statusLabel === "Cancelled"
                     ? "#DC2626"
                     : "rgba(148,163,184,1)"

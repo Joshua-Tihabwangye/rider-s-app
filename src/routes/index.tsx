@@ -66,6 +66,13 @@ import RentalSummary from "../screens/RentalSummary";
 import RentalConfirmation from "../screens/RentalConfirmation";
 import RentalHistory from "../screens/RentalHistory";
 import RentalCustom from "../screens/RentalCustom";
+import RentalPaymentProcessing from "../screens/RentalPaymentProcessing";
+import RentalCardPayment from "../screens/RentalCardPayment";
+import RentalMobileMoneyPayment from "../screens/RentalMobileMoneyPayment";
+import RentalPaymentVerify from "../screens/RentalPaymentVerify";
+import RentalPaymentSuccess from "../screens/RentalPaymentSuccess";
+import RentalPaymentFailed from "../screens/RentalPaymentFailed";
+import RentalPaymentReceipt from "../screens/RentalPaymentReceipt";
 import TourDetail from "../screens/TourDetail";
 import TourDates from "../screens/TourDates";
 import TourSummary from "../screens/TourSummary";
@@ -239,6 +246,13 @@ export default function AppRouter(): React.JSX.Element {
 					<Route path="dates" element={<RentalDates />} />
 					<Route path="branches" element={<RentalBranches />} />
 					<Route path="summary" element={<RentalSummary />} />
+					<Route path="payment/processing" element={<RentalPaymentProcessing />} />
+					<Route path="payment/card" element={<RentalCardPayment />} />
+					<Route path="payment/mobile-money" element={<RentalMobileMoneyPayment />} />
+					<Route path="payment/verify" element={<RentalPaymentVerify />} />
+					<Route path="payment/success" element={<RentalPaymentSuccess />} />
+					<Route path="payment/failed" element={<RentalPaymentFailed />} />
+					<Route path="payment/receipt/:transactionId" element={<RentalPaymentReceipt />} />
 					<Route path="confirmation" element={<RentalConfirmation />} />
 					<Route path="history" element={<RentalHistory />} />
 					<Route
