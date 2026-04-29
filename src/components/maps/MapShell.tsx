@@ -18,8 +18,6 @@ import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import TrafficRoundedIcon from "@mui/icons-material/TrafficRounded";
-import EvStationRoundedIcon from "@mui/icons-material/EvStationRounded";
-import BoltRoundedIcon from "@mui/icons-material/BoltRounded";
 import { useLocation, useNavigate } from "react-router-dom";
 import { uiTokens } from "../../design/tokens";
 import { MAP_HEIGHT_PRESETS, MapHeightPreset } from "./mapPresets";
@@ -95,7 +93,6 @@ export default function MapShell({
   const [layer, setLayer] = useState<MapLayerMode>(initialLayer);
   const [trafficEnabled, setTrafficEnabled] = useState<boolean>(true);
   const [incidentsEnabled, setIncidentsEnabled] = useState<boolean>(true);
-  const [evStationsEnabled, setEvStationsEnabled] = useState<boolean>(false);
 
   const resolvedHeight = useMemo(() => {
     if (height !== undefined) {
@@ -263,44 +260,6 @@ export default function MapShell({
             />
           </>
         )}
-        {evStationsEnabled && (
-          <>
-            <Box
-              sx={{
-                position: "absolute",
-                right: "18%",
-                bottom: "26%",
-                width: 28,
-                height: 28,
-                borderRadius: "50%",
-                bgcolor: "rgba(3,205,140,0.2)",
-                border: "1px solid rgba(3,205,140,0.65)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-            >
-              <BoltRoundedIcon sx={{ fontSize: 16, color: "var(--evz-brand-green)" }} />
-            </Box>
-            <Box
-              sx={{
-                position: "absolute",
-                left: "14%",
-                bottom: "18%",
-                width: 28,
-                height: 28,
-                borderRadius: "50%",
-                bgcolor: "rgba(3,205,140,0.2)",
-                border: "1px solid rgba(3,205,140,0.65)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-            >
-              <BoltRoundedIcon sx={{ fontSize: 16, color: "var(--evz-brand-green)" }} />
-            </Box>
-          </>
-        )}
         {childrenLayer === "canvas" && children}
       </Box>
 
@@ -422,26 +381,6 @@ export default function MapShell({
                 <LayersRoundedIcon sx={{ fontSize: 17 }} />
               </IconButton>
             </Tooltip>
-            <Tooltip title={trafficEnabled ? "Traffic: on" : "Traffic: off"}>
-              <IconButton
-                size="small"
-                aria-label="Map Traffic"
-                onClick={() => setTrafficEnabled((prev) => !prev)}
-                sx={[controlSx, trafficEnabled ? activeControlSx : {}]}
-              >
-                <TrafficRoundedIcon sx={{ fontSize: 17 }} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title={incidentsEnabled ? "Incidents: on" : "Incidents: off"}>
-              <IconButton
-                size="small"
-                aria-label="Map Incidents"
-                onClick={() => setIncidentsEnabled((prev) => !prev)}
-                sx={[controlSx, incidentsEnabled ? activeControlSx : {}]}
-              >
-                <WarningAmberRoundedIcon sx={{ fontSize: 17 }} />
-              </IconButton>
-            </Tooltip>
             <Tooltip title="Rotate bearing">
               <IconButton
                 size="small"
@@ -558,14 +497,6 @@ export default function MapShell({
           >
             Alerts
           </Button>
-          <Button
-            size="small"
-            startIcon={<EvStationRoundedIcon sx={{ fontSize: 14 }} />}
-            onClick={() => setEvStationsEnabled((prev) => !prev)}
-            sx={featureButtonSx(evStationsEnabled)}
-          >
-            EV Stations
-          </Button>
         </Stack>
       )}
     </Box>
@@ -585,12 +516,6 @@ const controlSx: SxProps<Theme> = {
     borderColor: "var(--evz-border-brand)",
     color: uiTokens.colors.brand
   }
-};
-
-const activeControlSx: SxProps<Theme> = {
-  borderColor: "rgba(3,205,140,0.55)",
-  bgcolor: "rgba(3,205,140,0.2)",
-  color: "var(--evz-brand-green)"
 };
 
 const mobileInfoLabelSx: SxProps<Theme> = {
