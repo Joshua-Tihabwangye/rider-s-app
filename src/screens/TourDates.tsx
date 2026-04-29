@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   
   Box,
@@ -22,15 +22,24 @@ import { useAppData } from "../contexts/AppDataContext";
 
 function TourDateGuestsScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
   const { tourId } = useParams();
   const { tours, actions } = useAppData();
   const selectTour = actions.selectTour;
   const updateTourBooking = actions.updateTourBooking;
   const selectedTour = tourId ? tours.tours.find((tour) => tour.id === tourId) : null;
-  const [date, setDate] = useState(tours.booking.date ?? "");
-  const [timeSlot, setTimeSlot] = useState("Afternoon (14:00)");
-  const [adults, setAdults] = useState(tours.booking.guests ?? 2);
-  const [children, setChildren] = useState(0);
+  const routeState = (location.state as
+    | {
+        startDate?: string;
+        groupSize?: number;
+      }
+    | null) ?? null;
+  const initialAdults = tours.booking.adults ?? routeState?.groupSize ?? tours.booking.guests ?? 2;
+  const initialChildren = tours.booking.children ?? 0;
+  const [date, setDate] = useState(tours.booking.date ?? routeState?.startDate ?? "");
+  const [timeSlot, setTimeSlot] = useState(tours.booking.timeSlot ?? "Afternoon (14:00)");
+  const [adults, setAdults] = useState(Math.max(1, initialAdults));
+  const [children, setChildren] = useState(Math.max(0, initialChildren));
 
   const canContinue = Boolean(date.trim() && timeSlot.trim() && adults > 0);
 
@@ -70,14 +79,14 @@ function TourDateGuestsScreen(): React.JSX.Element {
             sx={{
               borderRadius: 5,
               bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.2)",
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
                   : "1px solid rgba(51,65,85,0.9)"
             }}
           >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18, color: "#FB923C" }} />
           </IconButton>
           <Box>
             <Typography
@@ -103,7 +112,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
           mb: 2.5,
           borderRadius: 2,
           bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
           border: (t) =>
             t.palette.mode === "light"
               ? "1px solid rgba(209,213,219,0.9)"
@@ -141,7 +150,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
               "& .MuiOutlinedInput-root": {
                 borderRadius: 5,
                 bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(134,239,172,0.14)",
                 "& fieldset": {
                   borderColor: (t) =>
                     t.palette.mode === "light"
@@ -185,9 +194,9 @@ function TourDateGuestsScreen(): React.JSX.Element {
                       : (t) =>
                           t.palette.mode === "light"
                             ? "#F3F4F6"
-                            : "rgba(15,23,42,0.96)",
+                            : "rgba(134,239,172,0.14)",
                   color:
-                    timeSlot === slot ? "#020617" : (t) => t.palette.text.primary
+                    timeSlot === slot ? "#22C55E" : (t) => t.palette.text.primary
                 }}
               />
             ))}
@@ -202,7 +211,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
           mb: 2,
           borderRadius: 2,
           bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
           border: (t) =>
             t.palette.mode === "light"
               ? "1px solid rgba(209,213,219,0.9)"
@@ -331,6 +340,9 @@ function TourDateGuestsScreen(): React.JSX.Element {
           updateTourBooking({
             tourId: selectedTour.id,
             date,
+            timeSlot,
+            adults,
+            children,
             guests,
             priceEstimate: estimate
           });
@@ -344,7 +356,7 @@ function TourDateGuestsScreen(): React.JSX.Element {
           fontWeight: 600,
           textTransform: "none",
           bgcolor: canContinue ? "primary.main" : "#9CA3AF",
-          color: canContinue ? "#020617" : "#E5E7EB",
+          color: canContinue ? "#22C55E" : "#E5E7EB",
           "&:hover": {
             bgcolor: canContinue ? "#06e29a" : "#9CA3AF"
           }

@@ -55,14 +55,14 @@ function TourDetailsScreen(): React.JSX.Element {
             sx={{
               borderRadius: 5,
               bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.2)",
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
                   : "1px solid rgba(51,65,85,0.9)"
             }}
           >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18, color: "#FB923C" }} />
           </IconButton>
           <Box>
             <Typography
@@ -89,8 +89,8 @@ function TourDetailsScreen(): React.JSX.Element {
           borderRadius: 3,
           bgcolor: (t) =>
             t.palette.mode === "light"
-              ? "radial-gradient(circle at top,#DBEAFE,#EEF2FF)"
-              : "radial-gradient(circle at top,#020617,#020617)",
+              ? "radial-gradient(circle at top,#DCFCE7,#EEF2FF)"
+              : "radial-gradient(circle at top,#22C55E,#22C55E)",
           border: (t) =>
             t.palette.mode === "light"
               ? "1px solid rgba(191,219,254,0.9)"
@@ -105,7 +105,7 @@ function TourDetailsScreen(): React.JSX.Element {
                 minHeight: 90,
                 borderRadius: 2,
                 bgcolor: (t) =>
-                  t.palette.mode === "light" ? "rgba(255,255,255,0.85)" : "rgba(15,23,42,0.9)",
+                  t.palette.mode === "light" ? "rgba(255,255,255,0.85)" : "rgba(134,239,172,0.2)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center"
@@ -114,8 +114,8 @@ function TourDetailsScreen(): React.JSX.Element {
               <TourRoundedIcon
                 sx={{
                   fontSize: 48,
-                  color: "#1D4ED8",
-                  filter: "drop-shadow(0 12px 20px rgba(15,23,42,0.6))"
+                  color: "#22C55E",
+                  filter: "drop-shadow(0 12px 20px rgba(21,128,61,0.45))"
                 }}
               />
             </Box>
@@ -130,7 +130,7 @@ function TourDetailsScreen(): React.JSX.Element {
                 fontSize: 11,
                 height: 24,
                 bgcolor: "rgba(59,130,246,0.12)",
-                color: "#1D4ED8"
+                color: "#22C55E"
               }}
             />
             <Chip
@@ -141,7 +141,7 @@ function TourDetailsScreen(): React.JSX.Element {
                 fontSize: 11,
                 height: 24,
                 bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
+                  t.palette.mode === "light" ? "#F3F4F6" : "rgba(134,239,172,0.14)",
                 color: (t) => t.palette.text.primary
               }}
             />
@@ -154,7 +154,7 @@ function TourDetailsScreen(): React.JSX.Element {
                 fontSize: 11,
                 height: 24,
                 bgcolor: "rgba(3,205,140,0.12)",
-                color: "#059669"
+                color: "#34D399"
               }}
             />
           </Stack>
@@ -181,7 +181,7 @@ function TourDetailsScreen(): React.JSX.Element {
           mb: 2,
           borderRadius: 2,
           bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
           border: (t) =>
             t.palette.mode === "light"
               ? "1px solid rgba(209,213,219,0.9)"
@@ -238,7 +238,7 @@ function TourDetailsScreen(): React.JSX.Element {
           mb: 2,
           borderRadius: 2,
           bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
           border: (t) =>
             t.palette.mode === "light"
               ? "1px solid rgba(209,213,219,0.9)"
@@ -289,7 +289,7 @@ function TourDetailsScreen(): React.JSX.Element {
           fontWeight: 600,
           textTransform: "none",
           bgcolor: "primary.main",
-          color: "#020617",
+          color: "#FFFFFF",
           "&:hover": { bgcolor: "#06e29a" }
         }}
       >

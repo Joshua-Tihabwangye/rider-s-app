@@ -974,7 +974,10 @@ export const SEED_TOURS_STATE: ToursState = {
   booking: {
     id: "tour_book_001",
     tourId: SEED_TOURS[0]?.id ?? "tour_001",
+    adults: 2,
+    children: 0,
     guests: 2,
+    timeSlot: "Afternoon (14:00)",
     status: "draft",
     priceEstimate: "UGX 370,000"
   },
