@@ -50,7 +50,7 @@ function TourBookingCard({ item, onViewDetails }: TourBookingCardProps): React.J
         mb: 1.75,
         borderRadius: 2,
         bgcolor: (t) =>
-          t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
         border: (t) =>
           t.palette.mode === "light"
             ? "1px solid rgba(209,213,219,0.9)"
@@ -65,13 +65,13 @@ function TourBookingCard({ item, onViewDetails }: TourBookingCardProps): React.J
               height: 40,
               borderRadius: 5,
               bgcolor: (t) =>
-                t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
+                t.palette.mode === "light" ? "#DCFCE7" : "rgba(134,239,172,0.2)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center"
             }}
           >
-            <TourRoundedIcon sx={{ fontSize: 22, color: "#1D4ED8" }} />
+            <TourRoundedIcon sx={{ fontSize: 22, color: "#22C55E" }} />
           </Box>
           <Box sx={{ flex: 1 }}>
             <Typography variant="body2" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
@@ -163,14 +163,14 @@ function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
             sx={{
               borderRadius: 5,
               bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.2)",
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
                   : "1px solid rgba(51,65,85,0.9)"
             }}
           >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18, color: "#FB923C" }} />
           </IconButton>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
@@ -193,10 +193,10 @@ function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
             fontSize: 11,
             height: 26,
             bgcolor: tab === "upcoming" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
+              t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.12)",
             border: (t) =>
               t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)",
-            color: tab === "upcoming" ? "#020617" : (t) => t.palette.text.primary
+            color: tab === "upcoming" ? "#22C55E" : (t) => t.palette.text.primary
           }}
         />
         <Chip
@@ -208,10 +208,10 @@ function TourBookingsUpcomingHistoryScreen(): React.JSX.Element {
             fontSize: 11,
             height: 26,
             bgcolor: tab === "history" ? "primary.main" : (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
+              t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.12)",
             border: (t) =>
               t.palette.mode === "light" ? "1px solid rgba(209,213,219,0.9)" : "1px solid rgba(51,65,85,0.9)",
-            color: tab === "history" ? "#020617" : (t) => t.palette.text.primary
+            color: tab === "history" ? "#22C55E" : (t) => t.palette.text.primary
           }}
         />
       </Stack>

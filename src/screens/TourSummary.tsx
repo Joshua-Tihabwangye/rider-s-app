@@ -38,7 +38,19 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { date = tours.booking.date || "Sat, 12 Oct 2025", timeSlot = "Afternoon (14:00)", adults = tours.booking.guests || 2, children = 1 } = (location.state as any) || {};
+  const routeState = (location.state as
+    | {
+        date?: string;
+        timeSlot?: string;
+        adults?: number;
+        children?: number;
+      }
+    | null) ?? null;
+  const adults = Math.max(1, tours.booking.adults ?? routeState?.adults ?? tours.booking.guests ?? 2);
+  const children = Math.max(0, tours.booking.children ?? routeState?.children ?? 0);
+  const guests = adults + children;
+  const date = tours.booking.date ?? routeState?.date ?? "Sat, 12 Oct 2025";
+  const timeSlot = tours.booking.timeSlot ?? routeState?.timeSlot ?? "Afternoon (14:00)";
   const adultPrice = 250000;
   const childPrice = 150000;
   const bookingFee = 15000;
@@ -48,7 +60,6 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
   const totalPrice = totalAdultsPrice + totalChildrenPrice + bookingFee;
   const walletInsufficient = paymentMethod === "wallet" && walletBalance < totalPrice;
   const disableConfirm = !acceptedTerms || walletInsufficient;
-  const guests = adults + children;
 
   if (!tourId || !selectedTour) {
     return <Navigate to="/tours/available" replace />;
@@ -77,14 +88,14 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
             sx={{
               borderRadius: 5,
               bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.2)",
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
                   : "1px solid rgba(51,65,85,0.9)"
             }}
           >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18, color: "#FB923C" }} />
           </IconButton>
           <Box>
             <Typography
@@ -110,7 +121,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
           mb: 2,
           borderRadius: 2,
           bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
           border: (t) =>
             t.palette.mode === "light"
               ? "1px solid rgba(209,213,219,0.9)"
@@ -125,13 +136,13 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
                 height: 44,
                 borderRadius: 5,
                 bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
+                  t.palette.mode === "light" ? "#DCFCE7" : "rgba(134,239,172,0.2)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center"
               }}
             >
-              <TourRoundedIcon sx={{ fontSize: 26, color: "#1D4ED8" }} />
+              <TourRoundedIcon sx={{ fontSize: 26, color: "#22C55E" }} />
             </Box>
             <Box>
               <Typography
@@ -194,7 +205,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
           mb: 2,
           borderRadius: 2,
           bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
           border: (t) =>
             t.palette.mode === "light"
               ? "1px solid rgba(209,213,219,0.9)"
@@ -262,7 +273,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
           mb: 2,
           borderRadius: 2,
           bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
           border: (t) =>
             t.palette.mode === "light"
               ? "1px solid rgba(209,213,219,0.9)"
@@ -287,10 +298,10 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
                     ? "rgba(3,205,140,0.16)"
                     : t.palette.mode === "light"
                     ? "#F3F4F6"
-                    : "rgba(15,23,42,0.96)",
+                    : "rgba(134,239,172,0.14)",
                 border: (t) =>
                   paymentMethod === "wallet"
-                    ? "1px solid #03CD8C"
+                    ? "1px solid #22C55E"
                     : t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
                     : "1px solid rgba(51,65,85,0.9)"
@@ -330,10 +341,10 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
                     ? "rgba(59,130,246,0.15)"
                     : t.palette.mode === "light"
                     ? "#F3F4F6"
-                    : "rgba(15,23,42,0.96)",
+                    : "rgba(134,239,172,0.14)",
                 border: (t) =>
                   paymentMethod === "card"
-                    ? "1px solid #03CD8C"
+                    ? "1px solid #22C55E"
                     : t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
                     : "1px solid rgba(51,65,85,0.9)"
@@ -373,7 +384,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
                     ? "rgba(249,115,22,0.15)"
                     : t.palette.mode === "light"
                     ? "#F3F4F6"
-                    : "rgba(15,23,42,0.96)",
+                    : "rgba(134,239,172,0.14)",
                 border: (t) =>
                   paymentMethod === "mobile_money"
                     ? "1px solid #F97316"
@@ -424,6 +435,9 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
           updateTourBooking({
             tourId: selectedTour.id,
             date,
+            timeSlot,
+            adults,
+            children,
             guests,
             priceEstimate: `UGX ${totalPrice.toLocaleString()}`
           });
@@ -448,6 +462,9 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
           updateTourBooking({
             tourId: selectedTour.id,
             date,
+            timeSlot,
+            adults,
+            children,
             guests,
             priceEstimate: `UGX ${totalPrice.toLocaleString()}`,
             paymentMethodId,
@@ -474,7 +491,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
           fontWeight: 600,
           textTransform: "none",
           bgcolor: "primary.main",
-          color: "#020617",
+          color: "#FFFFFF",
           "&:hover": { bgcolor: "#06e29a" }
         }}
       >
@@ -498,7 +515,7 @@ function TourBookingSummaryPaymentScreen(): React.JSX.Element {
           mt: 1.2,
           borderRadius: 2,
           bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
           border: (t) =>
             t.palette.mode === "light"
               ? "1px solid rgba(209,213,219,0.9)"

@@ -30,8 +30,8 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 
 const TOUR_TYPES = [
-  { id: "city", label: "City tour", icon: <ExploreRoundedIcon sx={{ fontSize: 22, color: "#1D4ED8" }} />, bg: "#DBEAFE" },
-  { id: "daytrip", label: "Day trip", icon: <TourRoundedIcon sx={{ fontSize: 22, color: "#059669" }} />, bg: "#DCFCE7" },
+  { id: "city", label: "City tour", icon: <ExploreRoundedIcon sx={{ fontSize: 22, color: "#22C55E" }} />, bg: "#DCFCE7" },
+  { id: "daytrip", label: "Day trip", icon: <TourRoundedIcon sx={{ fontSize: 22, color: "#34D399" }} />, bg: "#DCFCE7" },
   { id: "safari", label: "Safari", icon: <NaturePeopleRoundedIcon sx={{ fontSize: 22, color: "#D97706" }} />, bg: "#FEF3C7" },
   { id: "weekend", label: "Weekend", icon: <WeekendRoundedIcon sx={{ fontSize: 22, color: "#7C3AED" }} />, bg: "#EDE9FE" }
 ];
@@ -97,7 +97,7 @@ export default function ToursNew(): React.JSX.Element {
         elevation={0}
         sx={{
           borderRadius: uiTokens.radius.xl,
-          bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
           border: (t) => t.palette.mode === "light"
             ? "1px solid rgba(209,213,219,0.9)"
             : "1px solid rgba(51,65,85,0.9)"
@@ -118,8 +118,8 @@ export default function ToursNew(): React.JSX.Element {
                   borderRadius: uiTokens.radius.xl,
                   cursor: "pointer",
                   bgcolor: tourType === type.id
-                    ? (t) => t.palette.mode === "light" ? type.bg : "rgba(15,23,42,0.96)"
-                    : (t) => t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
+                    ? (t) => t.palette.mode === "light" ? type.bg : "rgba(134,239,172,0.14)"
+                    : (t) => t.palette.mode === "light" ? "#F9FAFB" : "rgba(134,239,172,0.14)",
                   border: tourType === type.id
                     ? "1.5px solid rgba(3,205,140,0.7)"
                     : (t) => t.palette.mode === "light"
@@ -145,7 +145,7 @@ export default function ToursNew(): React.JSX.Element {
         elevation={0}
         sx={{
           borderRadius: uiTokens.radius.xl,
-          bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
           border: (t) => t.palette.mode === "light"
             ? "1px solid rgba(209,213,219,0.9)"
             : "1px solid rgba(51,65,85,0.9)"
@@ -207,7 +207,7 @@ export default function ToursNew(): React.JSX.Element {
         elevation={0}
         sx={{
           borderRadius: uiTokens.radius.xl,
-          bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+          bgcolor: (t) => t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
           border: (t) => t.palette.mode === "light"
             ? "1px solid rgba(209,213,219,0.9)"
             : "1px solid rgba(51,65,85,0.9)"
@@ -264,7 +264,7 @@ export default function ToursNew(): React.JSX.Element {
         elevation={0}
         sx={{
           borderRadius: uiTokens.radius.xl,
-          bgcolor: (t) => t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.98)",
+          bgcolor: (t) => t.palette.mode === "light" ? "#F9FAFB" : "rgba(134,239,172,0.16)",
           border: (t) => t.palette.mode === "light"
             ? "1px dashed rgba(148,163,184,0.9)"
             : "1px dashed rgba(148,163,184,0.8)"
@@ -319,9 +319,9 @@ export default function ToursNew(): React.JSX.Element {
             fontSize: 14,
             fontWeight: 600,
             textTransform: "none",
-            bgcolor: (t) => t.palette.mode === "light" ? "#020617" : "#03CD8C",
-            color: (t) => t.palette.mode === "light" ? "#FFFFFF" : "#020617",
-            "&:hover": { bgcolor: (t) => t.palette.mode === "light" ? "#1E293B" : "#02B87A" }
+            bgcolor: (t) => t.palette.mode === "light" ? "#22C55E" : "#22C55E",
+            color: (t) => t.palette.mode === "light" ? "#FFFFFF" : "#22C55E",
+            "&:hover": { bgcolor: (t) => t.palette.mode === "light" ? "#22C55E" : "#02B87A" }
           }}
         >
           {isQuoteMode ? "Submit quote request" : "Continue to dates"}

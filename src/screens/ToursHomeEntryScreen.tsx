@@ -49,7 +49,7 @@ function TourCard({ tour, onClick }: TourCardProps): React.JSX.Element {
         bgcolor: (t) =>
           t.palette.mode === "light"
             ? "linear-gradient(135deg,#FFFFFF,#F9FAFB)"
-            : "linear-gradient(135deg,#020617,#020617)",
+            : "linear-gradient(135deg,#22C55E,#22C55E)",
         border: (t) =>
           t.palette.mode === "light"
             ? "1px solid rgba(209,213,219,0.9)"
@@ -69,13 +69,13 @@ function TourCard({ tour, onClick }: TourCardProps): React.JSX.Element {
               height: 52,
               borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
-                t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
+                t.palette.mode === "light" ? "#DCFCE7" : "rgba(134,239,172,0.2)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center"
             }}
           >
-            <TourRoundedIcon sx={{ fontSize: 26, color: "#1D4ED8" }} />
+            <TourRoundedIcon sx={{ fontSize: 26, color: "#22C55E" }} />
           </Box>
           <Box sx={{ flex: 1 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
@@ -138,7 +138,7 @@ function TourCard({ tour, onClick }: TourCardProps): React.JSX.Element {
                   fontSize: 10,
                   height: 22,
                   bgcolor: "rgba(3,205,140,0.12)",
-                  color: "#059669"
+                  color: "#34D399"
                 }}
               />
             </Stack>
@@ -221,14 +221,14 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
             sx={{
               borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.2)",
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
                   : "1px solid rgba(51,65,85,0.9)"
             }}
           >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18, color: "#FB923C" }} />
           </IconButton>
           <Box>
             <Typography
@@ -266,7 +266,7 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
             "& .MuiOutlinedInput-root": {
               borderRadius: uiTokens.radius.xl,
               bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.14)",
               "& fieldset": {
                 borderColor: (t) =>
                   t.palette.mode === "light"
@@ -288,12 +288,12 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
               fontSize: 11,
               height: 26,
               bgcolor: filter === "all" ? "primary.main" : (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.12)",
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
                   : "1px solid rgba(51,65,85,0.9)",
-              color: filter === "all" ? "#020617" : (t) => t.palette.text.primary
+              color: filter === "all" ? "#22C55E" : (t) => t.palette.text.primary
             }}
           />
           <Chip
@@ -305,12 +305,12 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
               fontSize: 11,
               height: 26,
               bgcolor: filter === "city" ? "primary.main" : (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.12)",
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
                   : "1px solid rgba(51,65,85,0.9)",
-              color: filter === "city" ? "#020617" : (t) => t.palette.text.primary
+              color: filter === "city" ? "#22C55E" : (t) => t.palette.text.primary
             }}
           />
           <Chip
@@ -322,12 +322,12 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
               fontSize: 11,
               height: 26,
               bgcolor: filter === "day" ? "primary.main" : (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.12)",
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
                   : "1px solid rgba(51,65,85,0.9)",
-              color: filter === "day" ? "#020617" : (t) => t.palette.text.primary
+              color: filter === "day" ? "#22C55E" : (t) => t.palette.text.primary
             }}
           />
           <Chip
@@ -339,12 +339,12 @@ function ToursHomeBrowseScreen(): React.JSX.Element {
               fontSize: 11,
               height: 26,
               bgcolor: filter === "safari" ? "primary.main" : (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
+                t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.12)",
               border: (t) =>
                 t.palette.mode === "light"
                   ? "1px solid rgba(209,213,219,0.9)"
                   : "1px solid rgba(51,65,85,0.9)",
-              color: filter === "safari" ? "#020617" : (t) => t.palette.text.primary
+              color: filter === "safari" ? "#22C55E" : (t) => t.palette.text.primary
             }}
           />
         </Stack>

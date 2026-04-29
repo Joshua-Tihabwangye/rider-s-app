@@ -101,14 +101,14 @@ export default function TourPaymentCard(): React.JSX.Element {
           onClick={() => navigate(-1)}
           sx={{
             borderRadius: 5,
-            bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)"),
+            bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.2)"),
             border: (t) =>
               t.palette.mode === "light"
                 ? "1px solid rgba(209,213,219,0.9)"
                 : "1px solid rgba(51,65,85,0.9)"
           }}
         >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18, color: "#FB923C" }} />
         </IconButton>
         <Box>
           <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
@@ -138,7 +138,7 @@ export default function TourPaymentCard(): React.JSX.Element {
             t.palette.mode === "light"
               ? "1px solid rgba(209,213,219,0.9)"
               : "1px solid rgba(51,65,85,0.9)",
-          bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)")
+          bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)")
         }}
       >
         <CardContent sx={{ px: 1.75, py: 1.75 }}>
@@ -209,7 +209,7 @@ export default function TourPaymentCard(): React.JSX.Element {
                 fontWeight: 700,
                 textTransform: "none",
                 bgcolor: "primary.main",
-                color: "#022C22",
+                color: "#FFFFFF",
                 "&:hover": { bgcolor: "#06e29a" }
               }}
             >

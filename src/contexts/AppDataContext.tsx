@@ -630,10 +630,16 @@ function createDraftRentalBooking(vehicleId: string): RentalBooking {
 }
 
 function createDraftTourBooking(tourId: string, previous?: TourBooking): TourBooking {
+  const adults = previous?.adults ?? previous?.guests ?? 2;
+  const children = previous?.children ?? 0;
+  const guests = Math.max(1, adults + children);
   return {
     id: createTourBookingId(),
     tourId,
-    guests: previous?.guests ?? 2,
+    adults,
+    children,
+    guests,
+    timeSlot: previous?.timeSlot,
     date: undefined,
     priceEstimate: undefined,
     status: "draft"

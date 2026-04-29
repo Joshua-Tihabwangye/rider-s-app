@@ -66,14 +66,14 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
               sx={{
                 borderRadius: uiTokens.radius.xl,
                 bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.2)",
                 border: (t) =>
                   t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
                     : "1px solid rgba(51,65,85,0.9)"
               }}
             >
-              <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+              <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18, color: "#FB923C" }} />
             </IconButton>
             <Box
               sx={{
@@ -81,13 +81,13 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
                 height: 40,
                 borderRadius: uiTokens.radius.xl,
                 bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
+                  t.palette.mode === "light" ? "#DCFCE7" : "rgba(134,239,172,0.2)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center"
               }}
             >
-              <TourRoundedIcon sx={{ fontSize: 22, color: "#1D4ED8" }} />
+              <TourRoundedIcon sx={{ fontSize: 22, color: "#22C55E" }} />
             </Box>
           </Stack>
         }
@@ -105,10 +105,10 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
           textTransform: "none",
           fontSize: 14,
           fontWeight: 700,
-          bgcolor: "#0B1220",
+          bgcolor: "#22C55E",
           color: "#FFFFFF",
-          boxShadow: "0 14px 28px rgba(2,6,23,0.22)",
-          "&:hover": { bgcolor: "#1E293B" }
+          boxShadow: "0 14px 28px rgba(21,128,61,0.22)",
+          "&:hover": { bgcolor: "#22C55E" }
         }}
       >
         Browse all tours
@@ -128,7 +128,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
             bgcolor: (t) =>
               t.palette.mode === "light"
                 ? "linear-gradient(145deg, #E0F2FE 0%, #EEF2FF 55%, #FFFFFF 100%)"
-                : "linear-gradient(160deg, #0F172A 0%, #111827 55%, #020617 100%)",
+                : "linear-gradient(160deg, #22C55E 0%, #22C55E 55%, #22C55E 100%)",
             border: (t) =>
               t.palette.mode === "light"
                 ? "1px solid rgba(125,211,252,0.8)"
@@ -180,9 +180,9 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
                   fontSize: 13,
                   fontWeight: 600,
                   textTransform: "none",
-                  bgcolor: "#020617",
+                  bgcolor: "#22C55E",
                   color: "#FFFFFF",
-                  "&:hover": { bgcolor: "#1E293B" }
+                  "&:hover": { bgcolor: "#22C55E" }
                 }}
               >
                 Book this tour
@@ -208,7 +208,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
           elevation={0}
           sx={{
             borderRadius: uiTokens.radius.xl,
-            bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
+            bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)"),
             border: (t) =>
               t.palette.mode === "light"
                 ? "1px solid rgba(203,213,225,0.9)"
@@ -262,7 +262,7 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
         sx={{
           borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
           border: (t) =>
             t.palette.mode === "light"
               ? "1px solid rgba(209,213,219,0.9)"

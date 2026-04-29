@@ -50,14 +50,14 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
           sx={{
             borderRadius: 5,
             bgcolor: (t) =>
-              t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+              t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.2)",
             border: (t) =>
               t.palette.mode === "light"
                 ? "1px solid rgba(209,213,219,0.9)"
                 : "1px solid rgba(51,65,85,0.9)"
           }}
         >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18, color: "#FB923C" }} />
         </IconButton>
         <Box sx={{ width: 32 }} />
       </Box>
@@ -98,7 +98,7 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
           mb: 2,
           borderRadius: 2,
           bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
+            t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
           border: (t) =>
             t.palette.mode === "light"
               ? "1px solid rgba(209,213,219,0.9)"
@@ -113,13 +113,13 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
                 height: 44,
                 borderRadius: 5,
                 bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
+                  t.palette.mode === "light" ? "#DCFCE7" : "rgba(134,239,172,0.2)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center"
               }}
             >
-              <TourRoundedIcon sx={{ fontSize: 26, color: "#1D4ED8" }} />
+              <TourRoundedIcon sx={{ fontSize: 26, color: "#22C55E" }} />
             </Box>
             <Box>
               <Typography
@@ -152,7 +152,7 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
                 variant="caption"
                 sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
               >
-                {tours.booking.date ?? "Date to be confirmed"} • Afternoon (14:00)
+                {tours.booking.date ?? "Date to be confirmed"} • {tours.booking.timeSlot ?? "Afternoon (14:00)"}
               </Typography>
             </Stack>
             <Stack direction="row" spacing={0.75} alignItems="center">
@@ -196,7 +196,7 @@ function TourBookingConfirmationScreen(): React.JSX.Element {
             fontWeight: 600,
             textTransform: "none",
             bgcolor: "primary.main",
-            color: "#020617",
+            color: "#FFFFFF",
             "&:hover": { bgcolor: "#06e29a" }
           }}
         >

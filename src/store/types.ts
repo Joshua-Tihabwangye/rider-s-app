@@ -857,6 +857,9 @@ export interface TourBooking {
   bookingReference?: string;
   userId?: string;
   date?: string;
+  timeSlot?: string;
+  adults?: number;
+  children?: number;
   guests: number;
   priceEstimate?: string;
   paymentMethodId?: string;

@@ -33,7 +33,7 @@ export default function TourPaymentSummaryCard({
           t.palette.mode === "light"
             ? "1px solid rgba(209,213,219,0.9)"
             : "1px solid rgba(51,65,85,0.9)",
-        bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)")
+        bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)")
       }}
     >
       <CardContent sx={{ px: 1.75, py: 1.7 }}>
