@@ -122,6 +122,9 @@ import Profile from "../screens/Profile";
 export default function AppRouter(): React.JSX.Element {
 	return (
 		<Routes>
+			{/* ── Landing ───────────────────────────────────────── */}
+			<Route path="/" element={<Navigate to="/auth/sign-in" replace />} />
+
 			{/* ── Auth (public) ─────────────────────────────────── */}
 			<Route path="auth/sign-in" element={<SignIn />} />
 			<Route path="auth/sign-up" element={<SignUp />} />
@@ -130,7 +133,6 @@ export default function AppRouter(): React.JSX.Element {
 			{/* ── Protected app routes ──────────────────────────── */}
 			<Route element={<ProtectedRoute><ProtectedOutlet /></ProtectedRoute>}>
 				{/* Home & Global */}
-				<Route index element={<Navigate to="/home" replace />} />
 				<Route path="home" element={<Home />} />
 				<Route path="school-handoff" element={<SchoolDashboard />} />
 				<Route path="school-handoff/fees" element={<SchoolFees />} />
@@ -323,7 +325,7 @@ export default function AppRouter(): React.JSX.Element {
 			</Route>
 
 			{/* Fallback */}
-			<Route path="*" element={<Navigate to="/home" replace />} />
+			<Route path="*" element={<Navigate to="/auth/sign-in" replace />} />
 		</Routes>
 	);
 }

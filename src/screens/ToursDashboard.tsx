@@ -25,6 +25,10 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 
 
 function ToursDashboardHomeScreen(): React.JSX.Element {
+  const greenAction = "#22C55E";
+  const orangeButton = "#FDBA74";
+  const orangeButtonHover = "#FB923C";
+  const orangeButtonText = "#7C2D12";
   const navigate = useNavigate();
   const { tours, actions } = useAppData();
   const featuredTour = tours.tours[0];
@@ -105,10 +109,10 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
           textTransform: "none",
           fontSize: 14,
           fontWeight: 700,
-          bgcolor: "#22C55E",
-          color: "#FFFFFF",
+          bgcolor: orangeButton,
+          color: orangeButtonText,
           boxShadow: "0 14px 28px rgba(21,128,61,0.22)",
-          "&:hover": { bgcolor: "#22C55E" }
+          "&:hover": { bgcolor: orangeButtonHover }
         }}
       >
         Browse all tours
@@ -180,9 +184,9 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
                   fontSize: 13,
                   fontWeight: 600,
                   textTransform: "none",
-                  bgcolor: "#22C55E",
-                  color: "#FFFFFF",
-                  "&:hover": { bgcolor: "#22C55E" }
+                  bgcolor: orangeButton,
+                  color: orangeButtonText,
+                  "&:hover": { bgcolor: orangeButtonHover }
                 }}
               >
                 Book this tour
@@ -195,7 +199,13 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
                   borderRadius: uiTokens.radius.xl,
                   py: 0.95,
                   fontSize: 13,
-                  textTransform: "none"
+                  textTransform: "none",
+                  color: greenAction,
+                  borderColor: greenAction,
+                  "&:hover": {
+                    borderColor: greenAction,
+                    bgcolor: "rgba(34,197,94,0.08)"
+                  }
                 }}
               >
                 View details
@@ -233,7 +243,18 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
                 fullWidth
                 variant="outlined"
                 onClick={handleCreateCustom}
-                sx={{ borderRadius: uiTokens.radius.xl, py: 0.85, fontSize: 13, textTransform: "none" }}
+                sx={{
+                  borderRadius: uiTokens.radius.xl,
+                  py: 0.85,
+                  fontSize: 13,
+                  textTransform: "none",
+                  color: greenAction,
+                  borderColor: greenAction,
+                  "&:hover": {
+                    borderColor: greenAction,
+                    bgcolor: "rgba(34,197,94,0.08)"
+                  }
+                }}
               >
                 Build custom tour
               </Button>
@@ -246,7 +267,13 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
                   py: 0.85,
                   fontSize: 13,
                   textTransform: "none",
-                  borderStyle: "dotted"
+                  borderStyle: "dotted",
+                  color: greenAction,
+                  borderColor: greenAction,
+                  "&:hover": {
+                    borderColor: greenAction,
+                    bgcolor: "rgba(34,197,94,0.08)"
+                  }
                 }}
               >
                 Request quote

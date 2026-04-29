@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation, Link as RouterLink } from "react-router-dom";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 import AuthLayout from "../../components/auth/AuthLayout";
 import AuthFormField from "../../components/auth/AuthFormField";
@@ -10,15 +10,12 @@ import type { AuthProvider } from "../../store/types";
 
 export default function SignIn(): React.JSX.Element {
   const navigate = useNavigate();
-  const location = useLocation();
   const { signIn, socialSignIn, loading, error, clearError } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [socialProvider, setSocialProvider] = useState<AuthProvider | null>(null);
-
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? "/home";
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -47,9 +44,9 @@ export default function SignIn(): React.JSX.Element {
   const { isAuthenticated } = useAuth();
   React.useEffect(() => {
     if (isAuthenticated) {
-      navigate(from, { replace: true });
+      navigate("/home", { replace: true });
     }
-  }, [isAuthenticated, navigate, from]);
+  }, [isAuthenticated, navigate]);
 
   return (
     <AuthLayout title="Welcome back" subtitle="Sign in to your EVzone account">
