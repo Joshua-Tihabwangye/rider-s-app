@@ -26,7 +26,6 @@ import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownR
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
-import ContactPhoneRoundedIcon from "@mui/icons-material/ContactPhoneRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
@@ -1285,11 +1284,6 @@ function EnterDestinationScreen(): React.JSX.Element {
 											setRideType(newValue);
 											setSelectedContact(null);
 											setRiderType("personal");
-										} else if (
-											newValue === "add-contact" ||
-											newValue === "manual"
-										) {
-											setShowSwitchRiderModal(true);
 										}
 									}}
 									renderValue={(value) => {
@@ -1337,7 +1331,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 													}}
 												/>
 												<Typography>
-													{rideType}
+													{rideType === "Business" ? "Organization" : rideType}
 												</Typography>
 											</Box>
 										);
@@ -1420,27 +1414,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 											<DirectionsCarRoundedIcon
 												sx={{ fontSize: 18 }}
 											/>
-											Business
-										</Box>
-									</MenuItem>
-									<MenuItem
-										value="add-contact"
-										onClick={(e) => {
-											e.preventDefault();
-											setShowSwitchRiderModal(true);
-										}}
-									>
-										<Box
-											sx={{
-												display: "flex",
-												alignItems: "center",
-												gap: 1,
-											}}
-										>
-											<ContactPhoneRoundedIcon
-												sx={{ fontSize: 18 }}
-											/>
-											Add Contact
+											Organization
 										</Box>
 									</MenuItem>
 								</Select>

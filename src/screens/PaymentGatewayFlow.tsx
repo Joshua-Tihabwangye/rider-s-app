@@ -25,6 +25,7 @@ import WalletRoundedIcon from "@mui/icons-material/WalletRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
 import { getPaymentMethodById, PaymentMethodId, resolveRideFare } from "./paymentGatewayData";
 
 interface PaymentRouteState extends Record<string, unknown> {
@@ -84,6 +85,10 @@ function PaymentGatewayScreen(): React.JSX.Element {
   const rideData = ((location.state as PaymentRouteState | null) ?? {});
   const method = getPaymentMethodById(params.gatewayId);
   const fare = resolveRideFare(rideData);
+  const headerSubtitle =
+    method.id === "wallet"
+      ? "Review the ride amount, confirm your wallet balance, and approve the debit."
+      : method.gatewayDescription;
 
   const [walletPin, setWalletPin] = useState("");
   const [cardNumber, setCardNumber] = useState("");
@@ -129,7 +134,8 @@ function PaymentGatewayScreen(): React.JSX.Element {
     <ScreenScaffold>
       <SectionHeader
         title={method.name}
-        subtitle={method.gatewayDescription}
+        subtitle={headerSubtitle}
+        compact
         leadingAction={
           <IconButton
             size="small"
@@ -149,9 +155,10 @@ function PaymentGatewayScreen(): React.JSX.Element {
         action={
           <Chip
             icon={<LockRoundedIcon sx={{ fontSize: 16 }} />}
-            label="Simulated secure checkout"
+            label="Secure checkout"
             size="small"
             sx={{
+              display: { xs: "none", sm: "inline-flex" },
               height: 28,
               borderRadius: 2,
               bgcolor: theme.palette.mode === "light" ? "#F8FAFC" : "rgba(15,23,42,0.98)"
@@ -159,6 +166,18 @@ function PaymentGatewayScreen(): React.JSX.Element {
           />
         }
       />
+      <Box sx={{ display: { xs: "flex", sm: "none" }, mt: 1, mb: 1, justifyContent: "flex-start" }}>
+        <Chip
+          icon={<LockRoundedIcon sx={{ fontSize: 16 }} />}
+          label="Secure checkout"
+          size="small"
+          sx={{
+            height: 28,
+            borderRadius: 2,
+            bgcolor: theme.palette.mode === "light" ? "#F8FAFC" : "rgba(15,23,42,0.98)"
+          }}
+        />
+      </Box>
 
       <CheckoutSummary fare={fare} accent={method.accent} label={method.gatewayTitle} />
 
@@ -347,11 +366,30 @@ export function PaymentSuccessScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
+  const { actions, ride } = useAppData();
   const rideData = ((location.state as PaymentRouteState | null) ?? {});
   const method = getPaymentMethodById(
     typeof rideData.paymentMethod === "string" ? rideData.paymentMethod : undefined
   );
   const fare = resolveRideFare(rideData);
+  const finishTrip = (): void => {
+    const completedAt = new Date().toISOString();
+    if (ride.activeTrip) {
+      actions.updateRideTrip({
+        status: "completed",
+        completedAt
+      });
+    }
+    actions.setActiveTrip(null);
+    navigate("/home", {
+      replace: true,
+      state: {
+        paymentSimulated: true,
+        totalFare: fare,
+        paymentMethodName: method.name
+      } satisfies PaymentRouteState
+    });
+  };
 
   return (
     <ScreenScaffold>
@@ -455,18 +493,7 @@ export function PaymentSuccessScreen(): React.JSX.Element {
             <Button
               fullWidth
               variant="contained"
-              onClick={() =>
-                navigate("/rides/trip/completed", {
-                  state: {
-                    ...rideData,
-                    totalFare: fare,
-                    paymentMethod: method.id,
-                    paymentMethodName: method.name,
-                    paymentSimulated: true,
-                    tripCompleted: true
-                  } satisfies PaymentRouteState
-                })
-              }
+              onClick={finishTrip}
               sx={{
                 minHeight: 48,
                 borderRadius: 2.5,

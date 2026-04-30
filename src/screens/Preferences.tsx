@@ -298,7 +298,7 @@ function PreferenceSelectionScreen(): React.JSX.Element {
                   return (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <PersonRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
-                      <Typography>{rideType}</Typography>
+                      <Typography>{rideType === "Business" ? "Organization" : rideType}</Typography>
                     </Box>
                   );
                 }}
@@ -313,7 +313,7 @@ function PreferenceSelectionScreen(): React.JSX.Element {
                 }}
               >
                 <MenuItem value="Personal">Personal</MenuItem>
-                <MenuItem value="Business">Business</MenuItem>
+                <MenuItem value="Business">Organization</MenuItem>
                 <MenuItem value="Family">Family</MenuItem>
               </Select>
             </FormControl>

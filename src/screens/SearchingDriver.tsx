@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -25,6 +25,7 @@ import { useAppData } from "../contexts/AppDataContext";
 
 function SearchingForDriverScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
   const { actions } = useAppData();
   const [dots, setDots] = useState(".");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -33,6 +34,13 @@ function SearchingForDriverScreen(): React.JSX.Element {
   useEffect(() => {
     actions.setRideStatus("searching");
   }, [actions.setRideStatus]);
+
+  useEffect(() => {
+    console.debug("[SearchingDriver] mounted", location.pathname);
+    return () => {
+      console.debug("[SearchingDriver] unmounted", location.pathname);
+    };
+  }, [location.pathname]);
 
   useEffect(() => {
     const interval = setInterval(() => {
