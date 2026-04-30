@@ -95,6 +95,12 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
   const isNested = useMobileShellContext();
   const location = useLocation();
   const navigate = useNavigate();
+  const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    // Ensure route transitions always repaint fresh content from top.
+    scrollContainerRef.current?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname, location.search, location.key]);
 
   // Don't render the shell chrome on auth pages
   const isAuthPage = location.pathname.startsWith("/auth");
@@ -152,6 +158,7 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
           />
 
           <Box
+            ref={scrollContainerRef}
             sx={{
               flex: 1,
               minHeight: 0,
@@ -171,6 +178,7 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
             }}
           >
             <Box
+              key={location.key}
               sx={{
                 width: "100%",
                 maxWidth: CONTENT_MAX_WIDTH,

@@ -522,7 +522,7 @@ function EnterDestinationMaxStopsScreen(): React.JSX.Element {
 													color: accentGreen,
 												}}
 											/>
-											<Typography>{value}</Typography>
+											<Typography>{value === "Business" ? "Organization" : value}</Typography>
 										</Box>
 									)}
 									sx={{
@@ -573,7 +573,7 @@ function EnterDestinationMaxStopsScreen(): React.JSX.Element {
 											<DirectionsCarRoundedIcon
 												sx={{ fontSize: 18 }}
 											/>
-											Business
+											Organization
 										</Box>
 									</MenuItem>
 									<MenuItem value="Delivery">

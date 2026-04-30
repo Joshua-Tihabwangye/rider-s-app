@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { useAuth } from "../contexts/AuthContext";
 import SignIn from "../screens/auth/SignIn";
@@ -121,8 +121,9 @@ import ToursHomeEntryScreen from "../screens/ToursHomeEntryScreen";
 import Profile from "../screens/Profile";
 
 export default function AppRouter(): React.JSX.Element {
+	const location = useLocation();
 	return (
-		<Routes>
+		<Routes location={location} key={`${location.pathname}${location.search}${location.hash}`}>
 			{/* ── Landing ───────────────────────────────────────── */}
 			<Route path="/" element={<AuthAwareRedirect />} />
 

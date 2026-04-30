@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
   Box,
@@ -25,7 +24,6 @@ import {
 } from "@mui/material";
 
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
-import ContactPhoneRoundedIcon from "@mui/icons-material/ContactPhoneRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
@@ -33,7 +31,6 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 import Avatar from "@mui/material/Avatar";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import PhoneBookPickerButton from "./PhoneBookPickerButton";
@@ -82,7 +79,6 @@ const SAVED_CONTACTS: Contact[] = [
 ];
 
 function SwitchRiderModal({ open, onClose, tripData, onContinue }: SwitchRiderModalProps): React.JSX.Element {
-  const navigate = useNavigate();
   const theme = useTheme();
   const [riderType, setRiderType] = useState<string>("personal");
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -99,7 +95,11 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }: SwitchRiderMo
   const tripType = tripData?.tripType || "One Way";
   
   const passengerOptions = [1, 2, 3, 4, 5, 6];
-  const rideTypeOptions = ["Personal", "Business", "Delivery"];
+  const rideTypeOptions: Array<{ value: string; label: string }> = [
+    { value: "Personal", label: "Personal" },
+    { value: "Business", label: "Organization" },
+    { value: "Delivery", label: "Delivery" }
+  ];
   
   // Update passengers when tripData changes
   useEffect(() => {
@@ -154,12 +154,6 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }: SwitchRiderMo
         });
       }
       onClose();
-    } else if (riderType === "add-contact") {
-      // Navigate to add new contact screen
-      navigate("/rides/switch-rider/contact", {
-        state: updatedTripData
-      });
-      onClose();
     } else if (riderType === "manual") {
       // Manual entry - validate phone number and proceed
       if (manualPhone.trim().length >= 10) {
@@ -189,8 +183,7 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }: SwitchRiderMo
   const canContinue = riderType !== "" && (
     riderType === "personal" || 
     riderType.startsWith("contact-") || 
-    (riderType === "manual" && manualPhone.trim().length >= 10) || 
-    riderType === "add-contact"
+    (riderType === "manual" && manualPhone.trim().length >= 10)
   );
   
   // Theme-aware colors
@@ -329,7 +322,7 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }: SwitchRiderMo
                         renderValue={(value) => (
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                             <PersonRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
-                            <Typography>{value}</Typography>
+                            <Typography>{value === "Business" ? "Organization" : value}</Typography>
                           </Box>
                         )}
                         sx={{
@@ -346,10 +339,10 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }: SwitchRiderMo
                         }}
                       >
                         {rideTypeOptions.map((option) => (
-                          <MenuItem key={option} value={option}>
+                          <MenuItem key={option.value} value={option.value}>
                             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                               <PersonRoundedIcon sx={{ fontSize: 18 }} />
-                              {option}
+                              {option.label}
                             </Box>
                           </MenuItem>
                         ))}
@@ -592,49 +585,6 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }: SwitchRiderMo
                     />
                   );
                 })}
-
-                {/* Add New Contact Option */}
-                <FormControlLabel
-                  value="add-contact"
-                  control={
-                    <Radio
-                      icon={<CircleOutlinedIcon sx={{ color: accentGreen }} />}
-                      checkedIcon={<CheckCircleRoundedIcon sx={{ color: accentGreen }} />}
-                    />
-                  }
-                  label={
-                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1.5, ml: 1, flex: 1 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                        <ContactPhoneRoundedIcon sx={{ fontSize: 24, color: theme.palette.text.primary }} />
-                        <Typography sx={{ color: theme.palette.text.primary }}>
-                          Add New Contact
-                        </Typography>
-                      </Box>
-                      <ArrowForwardIosRoundedIcon sx={{ fontSize: 16, color: theme.palette.text.secondary }} />
-                    </Box>
-                  }
-                  sx={{
-                    mb: 1.5,
-                    p: 1.5,
-                    borderRadius: 2,
-                    bgcolor: riderType === "add-contact"
-                      ? theme.palette.mode === "light"
-                        ? "rgba(3,205,140,0.1)"
-                        : "rgba(3,205,140,0.2)"
-                      : contentBg,
-                    border: riderType === "add-contact"
-                      ? "1px solid #03CD8C"
-                      : theme.palette.mode === "light"
-                        ? "1px solid rgba(0,0,0,0.1)"
-                        : "1px solid rgba(255,255,255,0.1)",
-                    cursor: "pointer",
-                    "&:hover": {
-                      bgcolor: theme.palette.mode === "light"
-                        ? "rgba(0,0,0,0.05)"
-                        : "rgba(255,255,255,0.05)"
-                    }
-                  }}
-                />
 
                 {/* Manual Option */}
                 <FormControlLabel

@@ -72,6 +72,9 @@ const TILE_LAYERS: Record<LeafletMapLayerMode, string> = {
 };
 const LAYER_ORDER: LeafletMapLayerMode[] = ["default", "transit", "terrain", "satellite"];
 const routeCache = new Map<string, MapPoint[]>();
+const EMPTY_MARKERS: LeafletMapMarker[] = [];
+const EMPTY_ALERTS: LeafletAlertMarker[] = [];
+const EMPTY_ROUTE: MapPoint[] = [];
 
 function createDotIcon(color: string) {
   return L.divIcon({
@@ -96,6 +99,21 @@ function isValidPoint(point: MapPoint | null | undefined): point is MapPoint {
       typeof point.lng === "number" &&
       Number.isFinite(point.lng)
   );
+}
+
+function arePointsEqual(a: MapPoint, b: MapPoint): boolean {
+  return a.lat === b.lat && a.lng === b.lng;
+}
+
+function areRoutesEqual(a: MapPoint[], b: MapPoint[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    const aPoint = a[i];
+    const bPoint = b[i];
+    if (!aPoint || !bPoint) return false;
+    if (!arePointsEqual(aPoint, bPoint)) return false;
+  }
+  return true;
 }
 
 async function fetchRoutedPath(points: MapPoint[], signal?: AbortSignal): Promise<MapPoint[] | null> {
@@ -202,13 +220,13 @@ export default function LeafletMapView({
   center,
   zoom = 13,
   layer = "default",
-  markers = [],
+  markers = EMPTY_MARKERS,
   pickupLocation = null,
   dropoffLocation = null,
   driverLocation = null,
   riderLocation = null,
-  alerts = [],
-  routePolyline = [],
+  alerts = EMPTY_ALERTS,
+  routePolyline = EMPTY_ROUTE,
   showTraffic = false,
   showAlerts = false,
   children,
@@ -226,13 +244,13 @@ export default function LeafletMapView({
   const [resolvedRoute, setResolvedRoute] = useState<MapPoint[]>(routePolyline);
 
   useEffect(() => {
-    setActiveLayer(layer);
+    setActiveLayer((previous) => (previous === layer ? previous : layer));
   }, [layer]);
 
   useEffect(() => {
     const validRoute = routePolyline.filter(isValidPoint);
     if (validRoute.length < 2) {
-      setResolvedRoute(validRoute);
+      setResolvedRoute((previous) => (areRoutesEqual(previous, validRoute) ? previous : validRoute));
       return;
     }
 
@@ -242,11 +260,12 @@ export default function LeafletMapView({
     fetchRoutedPath(validRoute, controller.signal)
       .then((path) => {
         if (!mounted) return;
-        setResolvedRoute(path && path.length > 1 ? path : validRoute);
+        const nextRoute = path && path.length > 1 ? path : validRoute;
+        setResolvedRoute((previous) => (areRoutesEqual(previous, nextRoute) ? previous : nextRoute));
       })
       .catch(() => {
         if (!mounted) return;
-        setResolvedRoute(validRoute);
+        setResolvedRoute((previous) => (areRoutesEqual(previous, validRoute) ? previous : validRoute));
       });
 
     return () => {
