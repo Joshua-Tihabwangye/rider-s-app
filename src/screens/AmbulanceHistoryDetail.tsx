@@ -77,28 +77,28 @@ function buildSnapshot(snapshot?: RequestSnapshot): (Partial<AmbulanceRequest> &
 
   if ("pickup" in snapshot || "destination" in snapshot || "urgency" in snapshot) {
     return {
-      id: snapshot.id,
       ...snapshot,
       status: normalizeStatus(snapshot.status),
       urgency: snapshot.urgency ?? "medium"
     };
   }
 
+  const legacy = snapshot as LegacySnapshot;
   return {
-    id: snapshot.id,
-    status: normalizeStatus(snapshot.status),
+    id: legacy.id,
+    status: normalizeStatus(legacy.status),
     urgency: "medium",
-    requestedAt: snapshot.date,
-    pickup: snapshot.from
+    requestedAt: legacy.date,
+    pickup: legacy.from
       ? {
-          label: snapshot.from,
-          address: snapshot.from
+          label: legacy.from,
+          address: legacy.from
         }
       : null,
-    destination: snapshot.to
+    destination: legacy.to
       ? {
-          label: snapshot.to,
-          address: snapshot.to
+          label: legacy.to,
+          address: legacy.to
         }
       : null
   };

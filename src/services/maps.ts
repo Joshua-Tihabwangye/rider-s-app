@@ -15,47 +15,240 @@ export interface RouteResult {
   path: Coordinates[];
 }
 
+interface MockPlaceEntry {
+  id: string;
+  name: string;
+  address: string;
+  coordinates: Coordinates;
+}
+
 function isFiniteCoordinate(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
 
+function normalizeQuery(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+const MOCK_PLACE_GROUPS: Record<string, MockPlaceEntry[]> = {
+  mall: [
+    {
+      id: "mall-1",
+      name: "Arena Mall",
+      address: "Nsambya, Kampala",
+      coordinates: { lat: 0.3097, lng: 32.5893 }
+    },
+    {
+      id: "mall-2",
+      name: "Acacia Mall",
+      address: "Kisementi, Kampala",
+      coordinates: { lat: 0.3397, lng: 32.5864 }
+    },
+    {
+      id: "mall-3",
+      name: "Victoria Mall",
+      address: "Entebbe Road, Entebbe",
+      coordinates: { lat: 0.0507, lng: 32.4639 }
+    },
+    {
+      id: "mall-4",
+      name: "Jinja City Mall",
+      address: "Main Street, Jinja",
+      coordinates: { lat: 0.4314, lng: 33.2032 }
+    },
+    {
+      id: "mall-5",
+      name: "Metroplex Mall",
+      address: "Naalya, Kampala",
+      coordinates: { lat: 0.3777, lng: 32.6372 }
+    }
+  ],
+  market: [
+    {
+      id: "market-1",
+      name: "Nakasero Market",
+      address: "Nakasero, Kampala",
+      coordinates: { lat: 0.3182, lng: 32.5805 }
+    },
+    {
+      id: "market-2",
+      name: "Owino Market",
+      address: "Downtown, Kampala",
+      coordinates: { lat: 0.3118, lng: 32.5726 }
+    },
+    {
+      id: "market-3",
+      name: "Kalerwe Market",
+      address: "Kalerwe, Kampala",
+      coordinates: { lat: 0.3564, lng: 32.5612 }
+    },
+    {
+      id: "market-4",
+      name: "Nakawa Market",
+      address: "Nakawa, Kampala",
+      coordinates: { lat: 0.3364, lng: 32.6188 }
+    },
+    {
+      id: "market-5",
+      name: "Nateete Market",
+      address: "Nateete, Kampala",
+      coordinates: { lat: 0.3043, lng: 32.5325 }
+    }
+  ],
+  church: [
+    {
+      id: "church-1",
+      name: "Rubaga Cathedral",
+      address: "Rubaga, Kampala",
+      coordinates: { lat: 0.3009, lng: 32.5522 }
+    },
+    {
+      id: "church-2",
+      name: "Namirembe Cathedral",
+      address: "Namirembe Hill, Kampala",
+      coordinates: { lat: 0.3133, lng: 32.5566 }
+    },
+    {
+      id: "church-3",
+      name: "St. Francis Chapel",
+      address: "Kololo, Kampala",
+      coordinates: { lat: 0.3371, lng: 32.5923 }
+    },
+    {
+      id: "church-4",
+      name: "Watoto Church Downtown",
+      address: "Bugolobi, Kampala",
+      coordinates: { lat: 0.3229, lng: 32.6131 }
+    },
+    {
+      id: "church-5",
+      name: "All Saints Church",
+      address: "Nakasero, Kampala",
+      coordinates: { lat: 0.3246, lng: 32.5822 }
+    }
+  ],
+  hospital: [
+    {
+      id: "hospital-1",
+      name: "Mulago National Referral Hospital",
+      address: "Mulago Hill, Kampala",
+      coordinates: { lat: 0.3382, lng: 32.5762 }
+    },
+    {
+      id: "hospital-2",
+      name: "Nakasero Hospital",
+      address: "Akii Bua Road, Kampala",
+      coordinates: { lat: 0.3234, lng: 32.5856 }
+    },
+    {
+      id: "hospital-3",
+      name: "Case Hospital",
+      address: "Buganda Road, Kampala",
+      coordinates: { lat: 0.3099, lng: 32.5808 }
+    },
+    {
+      id: "hospital-4",
+      name: "International Hospital Kampala",
+      address: "Namuwongo, Kampala",
+      coordinates: { lat: 0.3041, lng: 32.6123 }
+    },
+    {
+      id: "hospital-5",
+      name: "Mengo Hospital",
+      address: "Mengo Hill, Kampala",
+      coordinates: { lat: 0.3078, lng: 32.5613 }
+    }
+  ],
+  school: [
+    {
+      id: "school-1",
+      name: "Makerere University",
+      address: "Makerere Hill, Kampala",
+      coordinates: { lat: 0.3345, lng: 32.5686 }
+    },
+    {
+      id: "school-2",
+      name: "Kyambogo University",
+      address: "Kyambogo, Kampala",
+      coordinates: { lat: 0.3499, lng: 32.6304 }
+    },
+    {
+      id: "school-3",
+      name: "Gayaza High School",
+      address: "Gayaza, Wakiso",
+      coordinates: { lat: 0.4428, lng: 32.6061 }
+    },
+    {
+      id: "school-4",
+      name: "King's College Budo",
+      address: "Budo, Wakiso",
+      coordinates: { lat: 0.2551, lng: 32.4632 }
+    },
+    {
+      id: "school-5",
+      name: "Namilyango College",
+      address: "Namugongo, Mukono",
+      coordinates: { lat: 0.3812, lng: 32.6727 }
+    }
+  ]
+};
+
+const DEFAULT_MOCK_SEQUENCE = ["mall", "market", "church", "hospital", "school"] as const;
+type MockGroupKey = (typeof DEFAULT_MOCK_SEQUENCE)[number];
+
+function getMockGroup(key: MockGroupKey): MockPlaceEntry[] {
+  return MOCK_PLACE_GROUPS[key] ?? [];
+}
+
+function flattenMockPlaces(): MockPlaceEntry[] {
+  return DEFAULT_MOCK_SEQUENCE.flatMap((group) => getMockGroup(group));
+}
+
+function mapMockPlacesToSuggestions(places: MockPlaceEntry[]): PlaceSuggestion[] {
+  return places.map((place) => ({
+    description: `${place.name}, ${place.address}`,
+    placeId: place.id,
+    coordinates: place.coordinates
+  }));
+}
+
 export async function searchPlaces(query: string): Promise<PlaceSuggestion[]> {
-  const term = query.trim();
+  const term = normalizeQuery(query);
   if (term.length < 2) return [];
 
-  const response = await fetch(
-    `/api/osm/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=ug&q=${encodeURIComponent(term)}`,
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/json"
-      }
-    }
-  );
+  await new Promise((resolve) => window.setTimeout(resolve, 180));
 
-  if (!response.ok) {
-    return [];
+  if (term.includes("mall")) {
+    return mapMockPlacesToSuggestions(getMockGroup("mall"));
+  }
+  if (term.includes("market")) {
+    return mapMockPlacesToSuggestions(getMockGroup("market"));
+  }
+  if (term.includes("church")) {
+    return mapMockPlacesToSuggestions(getMockGroup("church"));
+  }
+  if (term.includes("hospital")) {
+    return mapMockPlacesToSuggestions(getMockGroup("hospital"));
+  }
+  if (term.includes("school")) {
+    return mapMockPlacesToSuggestions(getMockGroup("school"));
   }
 
-  const payload = (await response.json()) as Array<{
-    place_id?: number | string;
-    display_name?: string;
-    lat?: string;
-    lon?: string;
-  }>;
+  const matches = flattenMockPlaces().filter((place) => {
+    const haystack = normalizeQuery(`${place.name} ${place.address}`);
+    return haystack.includes(term);
+  });
 
-  return payload
-    .map((item, index) => {
-      const lat = Number(item.lat);
-      const lng = Number(item.lon);
-      if (!isFiniteCoordinate(lat) || !isFiniteCoordinate(lng)) return null;
-      return {
-        description: item.display_name?.trim() || `Result ${index + 1}`,
-        placeId: String(item.place_id ?? `${index + 1}`),
-        coordinates: { lat, lng }
-      };
-    })
-    .filter((item): item is PlaceSuggestion => Boolean(item));
+  if (matches.length >= 5) {
+    return mapMockPlacesToSuggestions(matches.slice(0, 5));
+  }
+
+  const seed = DEFAULT_MOCK_SEQUENCE.flatMap((group) => getMockGroup(group).slice(0, 1));
+  const fallback = [...matches, ...seed].filter(
+    (place, index, list) => list.findIndex((candidate) => candidate.id === place.id) === index
+  );
+
+  return mapMockPlacesToSuggestions(fallback.slice(0, 5));
 }
 
 export async function geocodeAddress(query: string): Promise<Coordinates | null> {

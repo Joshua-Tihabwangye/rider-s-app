@@ -58,12 +58,13 @@ interface Stop {
 	address?: string;
 }
 
-const VALID_RIDE_TYPES = ["Personal", "Business", "Group", "Delivery"] as const;
+type RideTypeOption = "Personal" | "Business";
+const VALID_RIDE_TYPES: readonly RideTypeOption[] = ["Personal", "Business"];
 
-function normalizeRideType(value: unknown): string {
+function normalizeRideType(value: unknown): RideTypeOption {
 	const raw = typeof value === "string" ? value.trim() : "";
-	return VALID_RIDE_TYPES.includes(raw as (typeof VALID_RIDE_TYPES)[number])
-		? raw
+	return VALID_RIDE_TYPES.includes(raw as RideTypeOption)
+		? (raw as RideTypeOption)
 		: "Personal";
 }
 
@@ -1279,9 +1280,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 										const newValue = e.target.value;
 										if (
 											newValue === "Personal" ||
-											newValue === "Business" ||
-											newValue === "Group" ||
-											newValue === "Delivery"
+											newValue === "Business"
 										) {
 											setRideType(newValue);
 											setSelectedContact(null);
@@ -1422,34 +1421,6 @@ function EnterDestinationScreen(): React.JSX.Element {
 												sx={{ fontSize: 18 }}
 											/>
 											Business
-										</Box>
-									</MenuItem>
-									<MenuItem value="Group">
-										<Box
-											sx={{
-												display: "flex",
-												alignItems: "center",
-												gap: 1,
-											}}
-										>
-											<GroupRoundedIcon
-												sx={{ fontSize: 18 }}
-											/>
-											Group
-										</Box>
-									</MenuItem>
-									<MenuItem value="Delivery">
-										<Box
-											sx={{
-												display: "flex",
-												alignItems: "center",
-												gap: 1,
-											}}
-										>
-											<DirectionsCarRoundedIcon
-												sx={{ fontSize: 18 }}
-											/>
-											Delivery
 										</Box>
 									</MenuItem>
 									<MenuItem

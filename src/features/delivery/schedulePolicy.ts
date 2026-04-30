@@ -55,7 +55,13 @@ function getRuleFromPolicy(
   stage: DeliverySchedulePolicyStage,
   policy: DeliverySchedulePolicy
 ): DeliverySchedulePolicyRule {
-  return policy.rules.find((rule) => rule.stage === stage) ?? DEFAULT_DELIVERY_SCHEDULE_POLICY.rules[0];
+  const fallbackRule: DeliverySchedulePolicyRule = {
+    stage: "requested",
+    feePercent: 0,
+    minimumFee: 0,
+    description: "Free cancellation while waiting for courier assignment."
+  };
+  return policy.rules.find((rule) => rule.stage === stage) ?? fallbackRule;
 }
 
 function getScheduleTimestamp(order: DeliveryOrder): number | null {

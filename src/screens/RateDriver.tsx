@@ -71,9 +71,15 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
       // Show confirmation toast
       setShowSuccessToast(true);
       
-      // After submission, redirect to Home screen
+      // After submission, return to trip completion for payment when applicable.
+      const returnTo =
+        typeof location.state?.returnTo === "string" && location.state.returnTo.trim()
+          ? location.state.returnTo
+          : location.state?.tripCompleted
+            ? "/rides/trip/completed"
+            : "/home";
       setTimeout(() => {
-        navigate("/home");
+        navigate(returnTo, { replace: true });
       }, 2000);
     } catch (error) {
       console.error("Error submitting feedback:", error);
@@ -217,7 +223,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
             <Box sx={{ display: "flex", justifyContent: "center", mb: uiTokens.spacing.xl }}>
               <Rating
                 value={rating}
-                onChange={(e, newValue) => {
+                onChange={(_event, newValue) => {
                   if (newValue !== null) {
                     setRating(newValue);
                   }
