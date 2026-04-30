@@ -19,6 +19,7 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import LeafletMapView from "../components/maps/LeafletMapView";
 
 function RideRatingFeedbackScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -92,14 +93,20 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
           position: "relative",
           width: "100%",
           height: "55vh",
-          background: (theme) =>
-            theme.palette.mode === "light"
-              ? "#F5F5F5"
-              : "linear-gradient(135deg, rgba(15,23,42,0.3), #020617 60%, #020617 100%)",
           overflow: "hidden",
           opacity: 0.6
         }}
       >
+        <LeafletMapView
+          center={{ lat: 0.3476, lng: 32.5825 }}
+          zoom={12}
+          routePolyline={[
+            { lat: 0.336, lng: 32.56 },
+            { lat: 0.345, lng: 32.575 },
+            { lat: 0.356, lng: 32.59 }
+          ]}
+          className="evz-map-static"
+        />
         {/* Grid overlay */}
         <Box
           sx={{

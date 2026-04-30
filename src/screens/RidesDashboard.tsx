@@ -1067,6 +1067,15 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           sx={{ mb: 0, height: { xs: "62dvh", md: "55vh" } }}
           showControls
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
+          mapCenter={destinationCoords ?? currentLocation ?? { lat: 0.3476, lng: 32.5825 }}
+          mapMarkers={[
+            ...(currentLocation
+              ? [{ id: "current-location", position: currentLocation, label: "Current location", color: "#03CD8C" }]
+              : []),
+            ...(destinationCoords
+              ? [{ id: "destination", position: destinationCoords, label: "Destination", color: "#F77F00" }]
+              : [])
+          ]}
         >
           {/* Route preview line */}
           {routeData && routeData.polyline && (
