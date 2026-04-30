@@ -92,7 +92,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
         sx={{
           position: "relative",
           width: "100%",
-          height: "55vh",
+          height: { xs: "62vh", md: "55vh" },
           overflow: "hidden",
           opacity: 0.6
         }}
@@ -105,7 +105,6 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
             { lat: 0.345, lng: 32.575 },
             { lat: 0.356, lng: 32.59 }
           ]}
-          className="evz-map-static"
         />
         {/* Grid overlay */}
         <Box
@@ -113,6 +112,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
             position: "absolute",
             inset: 0,
             opacity: theme.palette.mode === "light" ? 0.08 : 0.15,
+            pointerEvents: "none",
             backgroundImage:
               "linear-gradient(to right, rgba(148,163,184,0.4) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.4) 1px, transparent 1px)",
             backgroundSize: "32px 32px"
@@ -132,7 +132,8 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
             transform: "rotate(-35deg)",
             transformOrigin: "left center",
             opacity: 0.4,
-            zIndex: 2
+            zIndex: 2,
+            pointerEvents: "none"
           }}
         />
 
@@ -143,7 +144,8 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
             left: "50%",
             top: "50%",
             transform: "translate(-50%, -50%)",
-            zIndex: 5
+            zIndex: 5,
+            pointerEvents: "none"
           }}
         >
           <DirectionsCarFilledRoundedIcon

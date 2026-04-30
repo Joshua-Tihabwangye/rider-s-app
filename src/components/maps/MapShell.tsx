@@ -4,20 +4,11 @@ import {
   BoxProps,
   Button,
   IconButton,
-  Stack,
   SxProps,
-  Theme,
-  Tooltip,
-  Typography
+  Theme
 } from "@mui/material";
-import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
-import LayersRoundedIcon from "@mui/icons-material/LayersRounded";
-import ExploreRoundedIcon from "@mui/icons-material/ExploreRounded";
-import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
-import TrafficRoundedIcon from "@mui/icons-material/TrafficRounded";
 import { useLocation, useNavigate } from "react-router-dom";
 import { uiTokens } from "../../design/tokens";
 import { MAP_HEIGHT_PRESETS, MapHeightPreset } from "./mapPresets";
@@ -70,7 +61,6 @@ interface MapShellProps {
   interactive?: boolean;
 }
 
-const LAYER_ORDER: MapLayerMode[] = ["default", "transit", "terrain", "satellite"];
 const KAMPALA_CENTER: MapPoint = { lat: 0.3476, lng: 32.5825 };
 
 function clampZoom(zoom: number): number {
@@ -84,21 +74,15 @@ export default function MapShell({
   height,
   rounded = false,
   showGrid = false,
-  showControls = true,
   showBackButton,
   showSosButton,
-  showFeatureControls,
   onBack,
   onSos,
-  onRecenter,
   onZoomChange,
-  onBearingChange,
-  onLayerChange,
   onMapClick,
   onLocationSelect,
   onMarkerClick,
   initialZoom = 13,
-  initialBearing = 0,
   initialLayer = "default",
   mapCenter = KAMPALA_CENTER,
   mapMarkers = [],
@@ -120,11 +104,8 @@ export default function MapShell({
   const location = useLocation();
   const isRideMapRoute = location.pathname.startsWith("/rides");
   const [zoom, setZoom] = useState<number>(clampZoom(initialZoom));
-  const [bearing, setBearing] = useState<number>(initialBearing % 360);
-  const [layer, setLayer] = useState<MapLayerMode>(initialLayer);
-  const [trafficEnabled, setTrafficEnabled] = useState<boolean>(true);
-  const [incidentsEnabled, setIncidentsEnabled] = useState<boolean>(true);
-  const [recenterKey, setRecenterKey] = useState<number>(0);
+  const layer = initialLayer;
+  const recenterKey = 0;
 
   const resolvedHeight = useMemo(() => {
     if (height !== undefined) {
@@ -133,51 +114,8 @@ export default function MapShell({
     return MAP_HEIGHT_PRESETS[preset];
   }, [height, preset]);
 
-  const fallbackAlerts = useMemo<LeafletAlertMarker[]>(
-    () => [
-      {
-        id: "map_shell_alert_1",
-        label: "Traffic incident",
-        severity: "high",
-        position: { lat: mapCenter.lat + 0.007, lng: mapCenter.lng - 0.009 }
-      },
-      {
-        id: "map_shell_alert_2",
-        label: "Road alert",
-        severity: "medium",
-        position: { lat: mapCenter.lat - 0.006, lng: mapCenter.lng + 0.01 }
-      }
-    ],
-    [mapCenter.lat, mapCenter.lng]
-  );
-
-  const handleZoom = (delta: number): void => {
-    const next = clampZoom(zoom + delta);
-    setZoom(next);
-    onZoomChange?.(next);
-  };
-
-  const handleRotate = (): void => {
-    const next = (bearing + 45) % 360;
-    setBearing(next);
-    onBearingChange?.(next);
-  };
-
-  const handleMapRecenter = (): void => {
-    setRecenterKey((prev) => prev + 1);
-    onRecenter?.();
-  };
-
-  const handleLayerCycle = (): void => {
-    const currentIndex = LAYER_ORDER.indexOf(layer);
-    const next = LAYER_ORDER[(currentIndex + 1) % LAYER_ORDER.length] ?? "default";
-    setLayer(next);
-    onLayerChange?.(next);
-  };
-
   const canShowBack = showBackButton ?? isRideMapRoute;
   const canShowSos = (showSosButton ?? isRideMapRoute) && Boolean(onSos ?? isRideMapRoute);
-  const canShowFeatureControls = showFeatureControls ?? isRideMapRoute;
 
   const topInsetSx = {
     xs: "calc(env(safe-area-inset-top, 0px) + 12px)",
@@ -207,7 +145,16 @@ export default function MapShell({
       onBack();
       return;
     }
-    navigate(-1);
+    const fallbackRoute = resolveFallbackRoute(location.pathname);
+    const hasInAppHistory =
+      typeof window !== "undefined" &&
+      ((typeof window.history.state?.idx === "number" && window.history.state.idx > 0) ||
+        (typeof document !== "undefined" && document.referrer.startsWith(window.location.origin)));
+    if (hasInAppHistory) {
+      navigate(-1);
+      return;
+    }
+    navigate(fallbackRoute, { replace: true });
   };
 
   const handleSos = (): void => {
@@ -270,10 +217,10 @@ export default function MapShell({
           dropoffLocation={dropoffLocation}
           driverLocation={driverLocation}
           riderLocation={riderLocation}
-          alerts={alerts.length ? alerts : fallbackAlerts}
+          alerts={alerts}
           routePolyline={routePolyline}
-          showTraffic={trafficEnabled}
-          showAlerts={incidentsEnabled}
+          showTraffic={false}
+          showAlerts={false}
           onMarkerClick={onMarkerClick}
           onMapClick={onMapClick}
           onLocationSelect={onLocationSelect}
@@ -317,7 +264,11 @@ export default function MapShell({
             {
               position: "absolute",
               inset: 0,
-              zIndex: 2
+              zIndex: 2,
+              pointerEvents: "none",
+              "& button, & [role='button'], & a, & input, & textarea, & select, & .map-clickable": {
+                pointerEvents: "auto"
+              }
             },
             ...(Array.isArray(overlaysSx) ? overlaysSx : overlaysSx ? [overlaysSx] : [])
           ]}
@@ -386,216 +337,17 @@ export default function MapShell({
         </Button>
       )}
 
-      {showControls && (
-        <>
-          <Stack
-            spacing={0.75}
-            sx={{
-              position: "absolute",
-              top: canShowSos
-                ? { xs: "calc(env(safe-area-inset-top, 0px) + 58px)", md: 60 }
-                : topInsetSx,
-              right: rightInsetSx,
-              zIndex: 5
-            }}
-          >
-            <Tooltip title="Zoom in">
-              <IconButton
-                size="small"
-                aria-label="Map Zoom In"
-                onClick={() => handleZoom(1)}
-                sx={controlSx}
-              >
-                <AddRoundedIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Zoom out">
-              <IconButton
-                size="small"
-                aria-label="Map Zoom Out"
-                onClick={() => handleZoom(-1)}
-                sx={controlSx}
-              >
-                <RemoveRoundedIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title={`Layer: ${layer}`}>
-              <IconButton
-                size="small"
-                aria-label="Map Layer"
-                onClick={handleLayerCycle}
-                sx={controlSx}
-              >
-                <LayersRoundedIcon sx={{ fontSize: 17 }} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Rotate bearing">
-              <IconButton
-                size="small"
-                aria-label="Map Bearing"
-                onClick={handleRotate}
-                sx={controlSx}
-              >
-                <ExploreRoundedIcon sx={{ fontSize: 17 }} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Recenter">
-              <IconButton
-                size="small"
-                aria-label="Map Recenter"
-                onClick={handleMapRecenter}
-                sx={controlSx}
-              >
-                <MyLocationRoundedIcon sx={{ fontSize: 17 }} />
-              </IconButton>
-            </Tooltip>
-          </Stack>
-
-          <Box
-            sx={{
-              position: "absolute",
-              right: rightInsetSx,
-              bottom: 14,
-              zIndex: 5,
-              px: 1.1,
-              py: 0.6,
-              borderRadius: "var(--evz-radius-pill)",
-              border: "1px solid var(--evz-map-overlay-border)",
-              bgcolor: "var(--evz-map-overlay-bg)",
-              backdropFilter: "blur(6px)",
-              boxShadow: uiTokens.elevation.card,
-              display: { xs: "none", sm: "block" }
-            }}
-          >
-            <Typography
-              variant="caption"
-              sx={{
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
-                color: "var(--evz-map-control-icon-muted)"
-              }}
-            >
-              Z{zoom} · {layer} · T:{trafficEnabled ? "on" : "off"} · A:{incidentsEnabled ? "on" : "off"} · {bearing}deg
-            </Typography>
-          </Box>
-
-          <Box
-            sx={{
-              position: "absolute",
-              left: leftInsetSx,
-              right: rightInsetSx,
-              bottom: 12,
-              zIndex: 5,
-              px: 1.1,
-              py: 0.7,
-              borderRadius: "14px",
-              border: "1px solid var(--evz-map-overlay-border)",
-              bgcolor: "var(--evz-map-overlay-bg)",
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
-              boxShadow: uiTokens.elevation.card,
-              display: { xs: "block", sm: "none" }
-            }}
-          >
-            <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" alignItems="center">
-              <Typography sx={mobileInfoLabelSx}>Zoom {zoom}</Typography>
-              <Typography sx={mobileInfoLabelSx}>{layer}</Typography>
-              <Typography sx={mobileInfoLabelSx}>{bearing}deg</Typography>
-            </Stack>
-          </Box>
-        </>
-      )}
-
-      {canShowFeatureControls && (
-        <Stack
-          direction="row"
-          spacing={0.75}
-          sx={{
-            position: "absolute",
-            left: leftInsetSx,
-            right: { xs: rightInsetSx, sm: "auto" },
-            bottom: { xs: 54, sm: 14 },
-            zIndex: 5,
-            flexWrap: { xs: "nowrap", sm: "wrap" },
-            maxWidth: { xs: "none", sm: "76%" },
-            overflowX: { xs: "auto", sm: "visible" },
-            overflowY: "hidden",
-            pr: { xs: 0.25, sm: 0 },
-            scrollbarWidth: "none",
-            "&::-webkit-scrollbar": {
-              display: "none"
-            }
-          }}
-        >
-          <Button
-            size="small"
-            startIcon={<TrafficRoundedIcon sx={{ fontSize: 14 }} />}
-            onClick={() => setTrafficEnabled((prev) => !prev)}
-            sx={featureButtonSx(trafficEnabled)}
-          >
-            Traffic
-          </Button>
-          <Button
-            size="small"
-            startIcon={<WarningAmberRoundedIcon sx={{ fontSize: 14 }} />}
-            onClick={() => setIncidentsEnabled((prev) => !prev)}
-            sx={featureButtonSx(incidentsEnabled)}
-          >
-            Alerts
-          </Button>
-        </Stack>
-      )}
+      {/* Map option clusters intentionally removed globally.
+          Native Leaflet gestures are used for zoom and pan on desktop/mobile. */}
     </Box>
   );
 }
 
-const controlSx: SxProps<Theme> = {
-  width: 34,
-  height: 34,
-  borderRadius: "var(--evz-radius-md)",
-  border: "1px solid var(--evz-map-control-border)",
-  bgcolor: "var(--evz-map-control-bg)",
-  color: "var(--evz-map-control-icon)",
-  boxShadow: uiTokens.elevation.card,
-  "&:hover": {
-    bgcolor: "var(--evz-map-overlay-bg)",
-    borderColor: "var(--evz-border-brand)",
-    color: uiTokens.colors.brand
-  }
-};
-
-const mobileInfoLabelSx: SxProps<Theme> = {
-  px: 0.85,
-  py: 0.35,
-  borderRadius: "999px",
-  bgcolor: "rgba(255,255,255,0.82)",
-  color: "var(--evz-map-control-icon-muted)",
-  fontSize: 10,
-  fontWeight: 700,
-  lineHeight: 1,
-  textTransform: "uppercase",
-  letterSpacing: "0.04em"
-};
-
-const featureButtonSx = (active: boolean): SxProps<Theme> => ({
-  minHeight: 32,
-  px: 1.2,
-  flexShrink: 0,
-  borderRadius: "999px",
-  textTransform: "none",
-  fontSize: 11,
-  fontWeight: 700,
-  lineHeight: 1,
-  backdropFilter: "blur(6px)",
-  WebkitBackdropFilter: "blur(6px)",
-  border: "1px solid",
-  borderColor: active ? "rgba(3,205,140,0.55)" : "var(--evz-map-control-border)",
-  bgcolor: active ? "rgba(3,205,140,0.2)" : "var(--evz-map-control-bg)",
-  color: active ? "var(--evz-brand-green)" : "var(--evz-map-control-icon-muted)",
-  "&:hover": {
-    borderColor: active ? "rgba(3,205,140,0.7)" : "rgba(148,163,184,0.9)",
-    bgcolor: active ? "rgba(3,205,140,0.26)" : "var(--evz-map-overlay-bg)"
-  }
-});
+function resolveFallbackRoute(pathname: string): string {
+  if (pathname.startsWith("/rides")) return "/rides/enter";
+  if (pathname.startsWith("/deliveries")) return "/deliveries";
+  if (pathname.startsWith("/rental")) return "/rental";
+  if (pathname.startsWith("/tours")) return "/tours";
+  if (pathname.startsWith("/ambulance")) return "/ambulance";
+  return "/home";
+}

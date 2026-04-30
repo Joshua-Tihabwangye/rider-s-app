@@ -63,8 +63,8 @@ export interface LeafletMapViewProps {
 const MAP_ATTRIBUTION = "&copy; OpenStreetMap contributors &copy; CARTO";
 
 const TILE_LAYERS: Record<LeafletMapLayerMode, string> = {
-  default: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-  transit: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+  default: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+  transit: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
   terrain: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   satellite: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
 };
@@ -190,9 +190,16 @@ export default function LeafletMapView({
         center={[center.lat, center.lng]}
         zoom={zoom}
         zoomControl={false}
+        dragging
+        scrollWheelZoom
+        touchZoom
+        doubleClickZoom
+        boxZoom
+        minZoom={3}
+        maxZoom={20}
         style={{ width: "100%", height: "100%" }}
       >
-        <TileLayer attribution={MAP_ATTRIBUTION} url={TILE_LAYERS[layer]} />
+        <TileLayer attribution={MAP_ATTRIBUTION} detectRetina url={TILE_LAYERS[layer]} />
         <MapSyncController center={center} zoom={zoom} recenterKey={recenterKey} />
         <MapEventBridge
           onMapClick={onMapClick}

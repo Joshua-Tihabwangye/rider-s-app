@@ -19,15 +19,6 @@ interface AuthContextValue extends AuthState {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 // ─── Helpers ─────────────────────────────────────────────────────────
-function loadPersistedUser(): User | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_USER);
-    return raw ? (JSON.parse(raw) as User) : null;
-  } catch {
-    return null;
-  }
-}
-
 function persistSession(user: User, token: string): void {
   localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
   localStorage.setItem(STORAGE_KEY_TOKEN, token);
@@ -48,12 +39,12 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
   const [loading, setLoading] = useState(true); // true while hydrating
   const [error, setError] = useState<string | null>(null);
 
-  // Hydrate from localStorage on mount
+  // Force sign-in as the first page on each fresh app load.
+  // We intentionally clear any previously persisted session so users
+  // always land on /auth/sign-in before accessing protected screens.
   useEffect(() => {
-    const persisted = loadPersistedUser();
-    if (persisted) {
-      setUser(persisted);
-    }
+    clearSession();
+    setUser(null);
     setLoading(false);
   }, []);
 

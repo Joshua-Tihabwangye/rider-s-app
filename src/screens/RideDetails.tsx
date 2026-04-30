@@ -67,7 +67,7 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
           position: "relative",
           borderRadius: uiTokens.radius.lg,
           overflow: "hidden",
-          height: 180,
+          height: { xs: 250, md: 180 },
           mb: uiTokens.spacing.xl
         }}
       >
@@ -79,13 +79,13 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
             { lat: 0.346, lng: 32.577 },
             { lat: 0.358, lng: 32.591 }
           ]}
-          className="evz-map-static"
         />
         <Box
           sx={{
             position: "absolute",
             inset: 0,
             opacity: 0.22,
+            pointerEvents: "none",
             backgroundImage:
               "linear-gradient(to right, rgba(148,163,184,0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.5) 1px, transparent 1px)",
             backgroundSize: "34px 34px"
@@ -97,7 +97,8 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
             position: "absolute",
             left: "18%",
             bottom: "22%",
-            transform: "translate(-50%, -50%)"
+            transform: "translate(-50%, -50%)",
+            pointerEvents: "none"
           }}
         >
           <Box
@@ -117,7 +118,8 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
             position: "absolute",
             right: "18%",
             top: "30%",
-            transform: "translate(50%, -50%)"
+            transform: "translate(50%, -50%)",
+            pointerEvents: "none"
           }}
         >
           <PlaceRoundedIcon

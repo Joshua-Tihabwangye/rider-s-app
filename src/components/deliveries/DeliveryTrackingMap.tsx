@@ -24,7 +24,7 @@ interface DeliveryTrackingMapProps {
   showControls?: boolean;
 }
 
-const STANDARD_DELIVERY_MAP_HEIGHT = "clamp(252px, 42vh, 360px)";
+const STANDARD_DELIVERY_MAP_HEIGHT = "clamp(320px, 56vh, 460px)";
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
