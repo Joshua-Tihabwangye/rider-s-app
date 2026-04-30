@@ -105,6 +105,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
     navigate("/rides/rating/driver", {
       state: {
         tripCompleted: true,
+        returnTo: "/rides/trip/completed",
         driverName,
         driverRating
       }

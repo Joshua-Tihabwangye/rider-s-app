@@ -32,6 +32,7 @@ import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
 import StarHalfRoundedIcon from "@mui/icons-material/StarHalfRounded";
 import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
+import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -695,7 +696,7 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }: C
               <PlaceRoundedIcon sx={{ fontSize: 14, color: "#F97316" }} />
               <Typography
                 variant="caption"
-                sx={{ fontSize: 11, color: (theme) => theme.palette.text.secondary }}
+                sx={{ fontSize: 11, color: "text.secondary" }}
               >
                 {address}
               </Typography>
@@ -705,7 +706,7 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }: C
         <ArrowForwardIosRoundedIcon
           sx={{
             fontSize: 14,
-            color: (theme) => theme.palette.text.secondary,
+            color: "text.secondary",
             opacity: 0.5,
             position: "absolute",
             right: 12,
@@ -914,8 +915,12 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     }
   };
 
-  const quickActions = [
-    { key: "book-someone", label: "Book for someone" }
+  const quickActions: Array<{ key: string; label: string; icon: React.ReactElement }> = [
+    {
+      key: "book-someone",
+      label: "Book for someone",
+      icon: <PersonRoundedIcon sx={{ fontSize: 16 }} />
+    }
   ];
 
   const topMapBleedSx = {

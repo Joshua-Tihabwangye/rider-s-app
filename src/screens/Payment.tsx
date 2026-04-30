@@ -102,7 +102,7 @@ function PaymentMethodSelectionScreen(): React.JSX.Element {
   const theme = useTheme();
   const rideData = ((location.state as Record<string, unknown> | null) ?? {});
 
-  const [selected, setSelected] = useState<PaymentMethodId | null>(PAYMENT_METHODS[0].id);
+  const [selected, setSelected] = useState<PaymentMethodId | null>(PAYMENT_METHODS[0]?.id ?? null);
   const fare = resolveRideFare(rideData);
 
   const handleGatewaySelect = (gatewayId: PaymentMethodId): void => {

@@ -368,7 +368,13 @@ export default function DeliveryNew(): React.JSX.Element {
       return;
     }
     const nextStops = [...draftStops];
-    [nextStops[index], nextStops[targetIndex]] = [nextStops[targetIndex], nextStops[index]];
+    const currentStop = nextStops[index];
+    const targetStop = nextStops[targetIndex];
+    if (!currentStop || !targetStop) {
+      return;
+    }
+    nextStops[index] = targetStop;
+    nextStops[targetIndex] = currentStop;
     updateDraft({ stops: nextStops, routeMode: nextStops.length > 1 ? "multi_stop" : draft.routeMode });
   };
 

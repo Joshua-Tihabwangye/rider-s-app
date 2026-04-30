@@ -424,6 +424,9 @@ function applyMultiStopStatusUpdate(order: DeliveryOrder, nextStatus: DeliverySt
 
   if (activeIndex >= 0) {
     const activeStop = stops[activeIndex];
+    if (!activeStop) {
+      return order;
+    }
     if (nextStatus === "delivered") {
       activeStop.status = "delivered";
       activeStop.completedAt = activeStop.completedAt ?? now;
@@ -465,7 +468,7 @@ function applyMultiStopStatusUpdate(order: DeliveryOrder, nextStatus: DeliverySt
   }
 
   const routeSummary = summarizeRoute(stops);
-  const resolvedStatus =
+  const resolvedStatus: DeliveryStatus =
     routeSummary.remainingStops === 0
       ? routeSummary.failedStops > 0 || routeSummary.skippedStops > 0
         ? "partially_completed"
@@ -473,7 +476,7 @@ function applyMultiStopStatusUpdate(order: DeliveryOrder, nextStatus: DeliverySt
       : nextStatus === "delivered" || nextStatus === "failed"
         ? "in_transit"
         : nextStatus;
-  const updatedOrder = {
+  const updatedOrder: DeliveryOrder = {
     ...order,
     status: resolvedStatus,
     stops,

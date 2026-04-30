@@ -432,7 +432,7 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
 
   useEffect(() => {
     if (!years.includes(selectedYear)) {
-      setSelectedYear(years[0]);
+      setSelectedYear(years[0] ?? new Date().getFullYear());
     }
   }, [selectedYear, years]);
 

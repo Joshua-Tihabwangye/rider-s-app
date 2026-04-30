@@ -64,5 +64,17 @@ export function resolveRideFare(rideData: Record<string, unknown>): string {
 }
 
 export function getPaymentMethodById(id: string | undefined): PaymentMethod {
-  return PAYMENT_METHODS.find((method) => method.id === id) ?? PAYMENT_METHODS[0];
+  return (
+    PAYMENT_METHODS.find((method) => method.id === id) ?? {
+      id: "wallet",
+      name: "EVzone wallet",
+      detail: "Instant debit from wallet balance",
+      accent: "#10B981",
+      icon: <AccountBalanceWalletRoundedIcon sx={{ fontSize: 22 }} />,
+      gatewayTitle: "Confirm EVzone wallet debit",
+      gatewayDescription: "Review the ride amount, confirm your wallet balance, and approve the debit.",
+      submitLabel: "Pay with EVzone wallet",
+      processingLabel: "Wallet debit approved"
+    }
+  );
 }

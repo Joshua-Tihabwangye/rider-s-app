@@ -150,6 +150,7 @@ function SelectYourRideScreen(): React.JSX.Element {
   const { ride, actions } = useAppData();
   const [selectedRide, setSelectedRide] = useState(ride.request.serviceLevel ?? ride.options[0]?.id ?? "");
   const [rideType, setRideType] = useState(ride.request.serviceClass ?? "standard");
+  type ServiceClass = "standard" | "premium";
 
   useEffect(() => {
     if (ride.request.serviceLevel && ride.request.serviceLevel !== selectedRide) {
@@ -157,7 +158,7 @@ function SelectYourRideScreen(): React.JSX.Element {
     }
   }, [ride.request.serviceLevel, selectedRide]);
   
-  const handleRideTypeSelect = (newType: string): void => {
+  const handleRideTypeSelect = (newType: ServiceClass): void => {
     setRideType(newType);
     actions.updateRideRequest({ serviceClass: newType });
   };
@@ -178,7 +179,7 @@ function SelectYourRideScreen(): React.JSX.Element {
     const selectedRideOption = ride.options.find((opt) => opt.id === selectedRide);
     const fare = selectedRideOption?.fare || ride.activeTrip?.fareEstimate || "UGX 40,365";
     const estimatedEtaMinutes =
-      Number.parseInt(selectedRideOption?.eta.replace(/[^0-9]/g, ""), 10) || ride.activeTrip?.etaMinutes || 0;
+      Number.parseInt(selectedRideOption?.eta?.replace(/[^0-9]/g, "") ?? "", 10) || ride.activeTrip?.etaMinutes || 0;
     
     actions.updateRideTrip({
       fareEstimate: fare,

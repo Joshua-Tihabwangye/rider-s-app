@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import L, { type DivIcon } from "leaflet";
+import L from "leaflet";
 import {
   Circle,
   MapContainer,
@@ -73,7 +73,7 @@ const TILE_LAYERS: Record<LeafletMapLayerMode, string> = {
 const LAYER_ORDER: LeafletMapLayerMode[] = ["default", "transit", "terrain", "satellite"];
 const routeCache = new Map<string, MapPoint[]>();
 
-function createDotIcon(color: string): DivIcon {
+function createDotIcon(color: string) {
   return L.divIcon({
     className: "evz-leaflet-dot-marker",
     html: `<span style="display:block;width:14px;height:14px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 2px 8px rgba(15,23,42,0.35);"></span>`,
@@ -186,12 +186,12 @@ function MapEventBridge({
   onZoomChange?: (zoom: number) => void;
 }): null {
   useMapEvents({
-    click(event) {
+    click(event: { latlng: { lat: number; lng: number } }) {
       const point = { lat: event.latlng.lat, lng: event.latlng.lng };
       onMapClick?.(point);
       onLocationSelect?.(point);
     },
-    zoomend(event) {
+    zoomend(event: { target: { getZoom: () => number } }) {
       onZoomChange?.(event.target.getZoom());
     }
   });

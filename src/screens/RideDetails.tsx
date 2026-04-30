@@ -20,6 +20,7 @@ import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { useAppData } from "../contexts/AppDataContext";
 import LeafletMapView from "../components/maps/LeafletMapView";
+import { uiTokens } from "../design/tokens";
 
 function RideDetailsPreConfirmScreen(): React.JSX.Element {
   const navigate = useNavigate();
