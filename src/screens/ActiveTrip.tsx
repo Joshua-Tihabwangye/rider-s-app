@@ -252,22 +252,6 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           }}
         />
 
-        {/* Route line - connecting pickup to destination */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: "18%",
-            bottom: "25%",
-            width: "64%",
-            height: 4,
-            bgcolor: "#1E3A5F",
-            borderRadius: uiTokens.radius.sm,
-            transform: "rotate(-25deg)",
-            transformOrigin: "left center",
-            zIndex: 1
-          }}
-        />
-
         {/* Vehicle icon moving along route with white circle below */}
         <Box
           sx={{

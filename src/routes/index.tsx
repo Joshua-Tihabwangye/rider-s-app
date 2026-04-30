@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute";
+import { useAuth } from "../contexts/AuthContext";
 import SignIn from "../screens/auth/SignIn";
 import SignUp from "../screens/auth/SignUp";
 import ForgotPassword from "../screens/auth/ForgotPassword";
@@ -123,7 +124,7 @@ export default function AppRouter(): React.JSX.Element {
 	return (
 		<Routes>
 			{/* ── Landing ───────────────────────────────────────── */}
-			<Route path="/" element={<Navigate to="/auth/sign-in" replace />} />
+			<Route path="/" element={<AuthAwareRedirect />} />
 
 			{/* ── Auth (public) ─────────────────────────────────── */}
 			<Route path="auth/sign-in" element={<SignIn />} />
@@ -325,7 +326,7 @@ export default function AppRouter(): React.JSX.Element {
 			</Route>
 
 			{/* Fallback */}
-			<Route path="*" element={<Navigate to="/auth/sign-in" replace />} />
+			<Route path="*" element={<AuthAwareRedirect />} />
 		</Routes>
 	);
 }
@@ -336,4 +337,10 @@ export default function AppRouter(): React.JSX.Element {
  */
 function ProtectedOutlet(): React.JSX.Element {
 	return <Outlet />;
+}
+
+function AuthAwareRedirect(): React.JSX.Element {
+	const { isAuthenticated, loading } = useAuth();
+	if (loading) return <></>;
+	return <Navigate to={isAuthenticated ? "/home" : "/auth/sign-in"} replace />;
 }

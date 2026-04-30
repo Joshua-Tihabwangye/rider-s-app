@@ -362,24 +362,6 @@ function TripInProgressWithDriverScreen(): React.JSX.Element {
           <MyLocationRoundedIcon sx={{ fontSize: 9, color: "#FFFFFF" }} />
         </Box>
 
-        {/* Route line - connecting pickup (bottom-left) to destination (top-right) */}
-        {/* Line from (15%, 78% from top) to (85%, 18% from top) */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: "15%",
-            bottom: "22%",
-            width: "70%",
-            height: 5,
-            bgcolor: "#1E3A5F",
-            borderRadius: 3,
-            transform: "rotate(-40deg)",
-            transformOrigin: "left center",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
-            zIndex: 2
-          }}
-        />
-
         {/* Vehicle icon on route line - positioned directly ON the line */}
         <Box
           sx={{

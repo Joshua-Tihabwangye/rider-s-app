@@ -13,8 +13,7 @@ import {
   Chip,
   Avatar,
   Autocomplete,
-  CircularProgress,
-  keyframes
+  CircularProgress
 } from "@mui/material";
 
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
@@ -46,29 +45,13 @@ import MapShell from "../components/maps/MapShell";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import type { RideState } from "../store/types";
+import {
+  calculateRoute,
+  searchPlaces,
+  type Coordinates,
+  type PlaceSuggestion
+} from "../services/maps";
 
-
-// Pulse animation for location marker
-const pulse = keyframes`
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.5);
-    opacity: 0.5;
-  }
-  100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-`;
-
-// Type definitions
-interface Coordinates {
-  lat: number;
-  lng: number;
-}
 
 interface SavedLocation {
   id: string;
@@ -79,16 +62,10 @@ interface SavedLocation {
   icon: React.ReactElement;
 }
 
-interface PlaceSuggestion {
-  description: string;
-  placeId: string;
-  coordinates: Coordinates;
-}
-
 interface RouteData {
   distance: string;
   duration: string;
-  polyline: Array<{ x: number; y: number }>;
+  path: Coordinates[];
   fare?: string;
 }
 
@@ -144,45 +121,6 @@ interface RideInsightRoute {
   distance: string;
   timestamp: string;
 }
-
-// Mock Google Places API autocomplete service
-const searchPlaces = async (query: string): Promise<PlaceSuggestion[]> => {
-  if (!query || query.length < 2) return [];
-  
-  // In production, this would call Google Places API
-  // Mock suggestions based on query
-  const mockSuggestions = [
-    { description: `${query} Street, Kampala`, placeId: "1", coordinates: { lat: 0.3476, lng: 32.5825 } },
-    { description: `${query} Market, Kampala`, placeId: "2", coordinates: { lat: 0.3136, lng: 32.5811 } },
-    { description: `${query} Mall, Kampala`, placeId: "3", coordinates: { lat: 0.3200, lng: 32.5900 } },
-    { description: `${query} Hospital, Kampala`, placeId: "4", coordinates: { lat: 0.3300, lng: 32.6000 } },
-    { description: `${query} Airport, Entebbe`, placeId: "5", coordinates: { lat: 0.0422, lng: 32.4435 } }
-  ];
-  
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return mockSuggestions.filter(s => 
-    s.description.toLowerCase().includes(query.toLowerCase())
-  );
-};
-
-// Mock route calculation service
-const calculateRoute = async (_origin: Coordinates, _destination: Coordinates): Promise<RouteData> => {
-  // In production, this would use Google Directions API
-  await new Promise(resolve => setTimeout(resolve, 200));
-  return {
-    distance: "6.2 km",
-    duration: "15 min",
-    polyline: [
-      { x: 24, y: 60 }, // Start (current location)
-      { x: 30, y: 50 },
-      { x: 40, y: 40 },
-      { x: 50, y: 35 },
-      { x: 65, y: 30 },
-      { x: 75, y: 26 }  // End (destination)
-    ]
-  };
-};
 
 function normalizeKey(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
@@ -896,9 +834,18 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       const calculateRoutePreview = async () => {
         try {
           const route = await calculateRoute(currentLocation, destinationCoords);
-          setRouteData(route);
+          if (!route) {
+            setRouteData(null);
+            return;
+          }
+          setRouteData({
+            distance: `${route.distanceKm.toFixed(1)} km`,
+            duration: `${Math.max(1, Math.round(route.durationMin))} min`,
+            path: route.path
+          });
         } catch (error) {
           console.error("Error calculating route:", error);
+          setRouteData(null);
         }
       };
       calculateRoutePreview();
@@ -1031,10 +978,13 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   };
 
   const handlePlaceSelect = async (place: string | PlaceSuggestion): Promise<void> => {
+    let typedCoordinates: Coordinates | null = null;
     if (typeof place === "string") {
-      // User typed a custom address
       setWhereTo(place);
-      setDestinationCoords({ lat: 0.3476, lng: 32.5825 }); // Default coords
+      const suggestions = await searchPlaces(place);
+      const first = suggestions[0];
+      typedCoordinates = first?.coordinates ?? { lat: 0.3476, lng: 32.5825 };
+      setDestinationCoords(typedCoordinates);
     } else {
       // Selected from autocomplete
       setWhereTo(place.description);
@@ -1048,7 +998,10 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         state: {
           pickup: currentLocation ? "Current location" : "Entebbe International Airport",
           destination: typeof place === "string" ? place : place.description,
-          destinationCoords: typeof place === "string" ? { lat: 0.3476, lng: 32.5825 } : place.coordinates,
+          destinationCoords:
+            typeof place === "string"
+              ? typedCoordinates ?? { lat: 0.3476, lng: 32.5825 }
+              : place.coordinates,
           isSharedRide: isSharedRideMode // Pass shared ride mode to details screen
         }
       });
@@ -1068,100 +1021,16 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           showControls
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
           mapCenter={destinationCoords ?? currentLocation ?? { lat: 0.3476, lng: 32.5825 }}
+          routePolyline={routeData?.path ?? []}
           mapMarkers={[
             ...(currentLocation
-              ? [{ id: "current-location", position: currentLocation, label: "Current location", color: "#03CD8C" }]
+              ? [{ id: "current-location", position: currentLocation, label: "Current location" }]
               : []),
             ...(destinationCoords
               ? [{ id: "destination", position: destinationCoords, label: "Destination", color: "#F77F00" }]
               : [])
           ]}
         >
-          {/* Route preview line */}
-          {routeData && routeData.polyline && (
-            <svg
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                pointerEvents: "none"
-              }}
-            >
-              <polyline
-                points={routeData.polyline.map((p: { x: number; y: number }) => `${p.x},${p.y}`).join(" ")}
-                fill="none"
-                stroke="#03CD8C"
-                strokeWidth="0.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeDasharray="2,2"
-                opacity={0.8}
-              />
-            </svg>
-          )}
-
-          {/* Current location marker (blue pin) */}
-          <Box
-            sx={{
-              position: "absolute",
-              left: routeData?.polyline?.[0]?.x ? `${routeData.polyline[0].x}%` : "24%",
-              top: routeData?.polyline?.[0]?.y ? `${routeData.polyline[0].y}%` : "60%",
-              transform: "translate(-50%, -50%)",
-              zIndex: 2
-            }}
-          >
-            <Box sx={{ position: "relative" }}>
-              <Box
-                sx={{
-                  width: 14,
-                  height: 14,
-                  borderRadius: "50%",
-                  bgcolor: uiTokens.map.markerStart,
-                  border: "2px solid white",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
-                }}
-              />
-              <Box
-                sx={{
-                  position: "absolute",
-                  inset: -8,
-                  borderRadius: "50%",
-                  border: "1px solid rgba(59,130,246,0.5)",
-                  animation: `${pulse} 2s infinite`
-                }}
-              />
-            </Box>
-          </Box>
-
-          {/* Destination marker (green pin) - appears when a place is selected */}
-          {(selectedPlace || destinationCoords) && routeData && (
-            <Box
-              sx={{
-                position: "absolute",
-                left: routeData.polyline && routeData.polyline.length > 0 && routeData.polyline[routeData.polyline.length - 1]?.x 
-                  ? `${routeData.polyline[routeData.polyline.length - 1]!.x}%` 
-                  : "75%",
-                top: routeData.polyline && routeData.polyline.length > 0 && routeData.polyline[routeData.polyline.length - 1]?.y 
-                  ? `${routeData.polyline[routeData.polyline.length - 1]!.y}%` 
-                  : "26%",
-                transform: "translate(-50%, -50%)",
-                zIndex: 2
-              }}
-            >
-              <PlaceRoundedIcon
-                sx={{
-                  fontSize: 28,
-                  color: uiTokens.map.markerEnd,
-                  filter: "drop-shadow(0 4px 8px rgba(15,23,42,0.9))"
-                }}
-              />
-            </Box>
-          )}
-
           {/* Route info overlay */}
           {routeData && (
             <Box

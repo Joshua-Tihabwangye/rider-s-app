@@ -100,19 +100,6 @@ function DriverHasArrivedScreen(): React.JSX.Element {
           >
             <DirectionsCarFilledRoundedIcon sx={{ fontSize: 30, color: "#03CD8C" }} />
           </Box>
-          <Box
-            sx={{
-              position: "absolute",
-              left: "22%",
-              top: "54%",
-              width: "50%",
-              height: 4,
-              borderRadius: 2,
-              bgcolor: "rgba(15,23,42,0.65)",
-              transform: "rotate(-18deg)",
-              transformOrigin: "left center"
-            }}
-          />
         </MapShell>
       </Box>
 

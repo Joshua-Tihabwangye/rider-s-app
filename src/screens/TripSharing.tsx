@@ -266,23 +266,6 @@ function SharingPassengersScreen(): React.JSX.Element {
           Bwebajja
         </Typography>
 
-        {/* Route line - showing trip route */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: "15%",
-            bottom: "25%",
-            width: "60%",
-            height: 4,
-            bgcolor: "#1E3A5F",
-            borderRadius: 2,
-            transform: "rotate(-35deg)",
-            transformOrigin: "left center",
-            opacity: 0.7,
-            zIndex: 2
-          }}
-        />
-
         {/* Pickup marker (green) - bottom-left */}
         <Box
           sx={{

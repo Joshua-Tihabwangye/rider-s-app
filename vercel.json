@@ -5,6 +5,14 @@
   "framework": null,
   "rewrites": [
     {
+      "source": "/api/osrm/:path*",
+      "destination": "https://router.project-osrm.org/:path*"
+    },
+    {
+      "source": "/api/osm/:path*",
+      "destination": "https://nominatim.openstreetmap.org/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

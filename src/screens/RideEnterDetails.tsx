@@ -40,6 +40,7 @@ import TripTypeModal from "../components/TripTypeModal";
 import AddStopModal from "../components/AddStopModal";
 import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
 import { useAppData } from "../contexts/AppDataContext";
+import { searchPlaces as searchMapPlaces } from "../services/maps";
 
 interface SearchResult {
 	id: string;
@@ -66,44 +67,17 @@ function normalizeRideType(value: unknown): string {
 		: "Personal";
 }
 
-// Mock service for location search
 const searchLocations = async (query: string): Promise<SearchResult[]> => {
 	if (!query || query.length < 3) return [];
-
-	await new Promise((resolve) => setTimeout(resolve, 300));
-
-	const mockResults: SearchResult[] = [
-		{
-			id: "1",
-			name: `${query} City`,
-			subtext: `${query}, Uganda`,
-			distance: "2.3 km",
-			type: "recent",
-			coordinates: { lat: 0.3476, lng: 32.5825 },
-		},
-		{
-			id: "2",
-			name: `${query} Market`,
-			subtext: `${query}, Uganda`,
-			distance: "3.3 km",
-			type: "location",
-			coordinates: { lat: 0.3136, lng: 32.5811 },
-		},
-		{
-			id: "3",
-			name: `${query} Street`,
-			subtext: `${query}, Uganda`,
-			distance: "5.1 km",
-			type: "location",
-			coordinates: { lat: 0.32, lng: 32.59 },
-		},
-	];
-
-	return mockResults.filter(
-		(r) =>
-			r.name.toLowerCase().includes(query.toLowerCase()) ||
-			r.subtext.toLowerCase().includes(query.toLowerCase()),
-	);
+	const suggestions = await searchMapPlaces(query);
+	return suggestions.map((item, index) => ({
+		id: `live-${item.placeId}-${index}`,
+		name: item.description.split(",")[0]?.trim() || item.description,
+		subtext: item.description,
+		distance: "Live result",
+		type: "location",
+		coordinates: item.coordinates,
+	}));
 };
 
 // Mock recent searches
@@ -591,22 +565,6 @@ function EnterDestinationScreen(): React.JSX.Element {
 								: "linear-gradient(160deg, #1B2D3E 0%, #223A4F 25%, #1A2533 25%, #1A2533 100%)",
 					}}
 				>
-					<Box
-						sx={{
-							position: "absolute",
-							top: "58%",
-							left: "18%",
-							width: "64%",
-							height: 4,
-							borderRadius: 999,
-							bgcolor:
-								theme.palette.mode === "light"
-									? "rgba(15,23,42,0.7)"
-									: "rgba(209,213,219,0.75)",
-							transform: "rotate(-24deg)",
-							transformOrigin: "left center",
-						}}
-					/>
 					<Box
 						sx={{
 							position: "absolute",

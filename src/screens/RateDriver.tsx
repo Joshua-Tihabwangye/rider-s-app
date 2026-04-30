@@ -119,24 +119,6 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
         }}
         />
 
-        {/* Faded route line */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: "15%",
-            bottom: "25%",
-            width: "60%",
-            height: 3,
-            bgcolor: "#1E3A5F",
-            borderRadius: 2,
-            transform: "rotate(-35deg)",
-            transformOrigin: "left center",
-            opacity: 0.4,
-            zIndex: 2,
-            pointerEvents: "none"
-          }}
-        />
-
         {/* Driver's last known position marker */}
         <Box
           sx={{

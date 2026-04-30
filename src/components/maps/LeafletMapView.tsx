@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import L, { type DivIcon } from "leaflet";
 import {
   Circle,
@@ -58,6 +58,8 @@ export interface LeafletMapViewProps {
   className?: string;
   height?: string | number;
   recenterKey?: number;
+  showViewSwitcher?: boolean;
+  showCurrentLocationMarker?: boolean;
 }
 
 const MAP_ATTRIBUTION = "&copy; OpenStreetMap contributors &copy; CARTO";
@@ -68,6 +70,8 @@ const TILE_LAYERS: Record<LeafletMapLayerMode, string> = {
   terrain: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   satellite: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
 };
+const LAYER_ORDER: LeafletMapLayerMode[] = ["default", "transit", "terrain", "satellite"];
+const routeCache = new Map<string, MapPoint[]>();
 
 function createDotIcon(color: string): DivIcon {
   return L.divIcon({
@@ -82,6 +86,58 @@ function resolveAlertColor(alert: LeafletAlertMarker): string {
   if (alert.severity === "high") return "#dc2626";
   if (alert.severity === "medium") return "#f59e0b";
   return "#0ea5e9";
+}
+
+function isValidPoint(point: MapPoint | null | undefined): point is MapPoint {
+  return Boolean(
+    point &&
+      typeof point.lat === "number" &&
+      Number.isFinite(point.lat) &&
+      typeof point.lng === "number" &&
+      Number.isFinite(point.lng)
+  );
+}
+
+async function fetchRoutedPath(points: MapPoint[], signal?: AbortSignal): Promise<MapPoint[] | null> {
+  const valid = points.filter(isValidPoint);
+  if (valid.length < 2) return null;
+
+  const waypoints = valid.map((point) => `${point.lng},${point.lat}`).join(";");
+  const cacheKey = waypoints;
+  const cached = routeCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const url = `/api/osrm/route/v1/driving/${waypoints}?overview=full&geometries=geojson&steps=false`;
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Accept: "application/json"
+    },
+    signal
+  });
+  if (!response.ok) return null;
+
+  const payload = (await response.json()) as {
+    code?: string;
+    routes?: Array<{
+      geometry?: {
+        coordinates?: [number, number][];
+      };
+    }>;
+  };
+
+  const coordinates = payload.routes?.[0]?.geometry?.coordinates;
+  if (!coordinates?.length) return null;
+
+  const routedPath = coordinates
+    .map(([lng, lat]) => ({ lat, lng }))
+    .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
+
+  if (!routedPath.length) return null;
+  routeCache.set(cacheKey, routedPath);
+  return routedPath;
 }
 
 function syntheticTrafficPolyline(center: MapPoint): MapPoint[][] {
@@ -162,8 +218,43 @@ export default function LeafletMapView({
   onZoomChange,
   className,
   height = "100%",
-  recenterKey = 0
+  recenterKey = 0,
+  showViewSwitcher = true,
+  showCurrentLocationMarker = true
 }: LeafletMapViewProps): React.JSX.Element {
+  const [activeLayer, setActiveLayer] = useState<LeafletMapLayerMode>(layer);
+  const [resolvedRoute, setResolvedRoute] = useState<MapPoint[]>(routePolyline);
+
+  useEffect(() => {
+    setActiveLayer(layer);
+  }, [layer]);
+
+  useEffect(() => {
+    const validRoute = routePolyline.filter(isValidPoint);
+    if (validRoute.length < 2) {
+      setResolvedRoute(validRoute);
+      return;
+    }
+
+    const controller = new AbortController();
+    let mounted = true;
+
+    fetchRoutedPath(validRoute, controller.signal)
+      .then((path) => {
+        if (!mounted) return;
+        setResolvedRoute(path && path.length > 1 ? path : validRoute);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setResolvedRoute(validRoute);
+      });
+
+    return () => {
+      mounted = false;
+      controller.abort();
+    };
+  }, [routePolyline]);
+
   const combinedMarkers = useMemo(() => {
     const items: LeafletMapMarker[] = [...markers];
     if (pickupLocation) {
@@ -181,11 +272,79 @@ export default function LeafletMapView({
     return items;
   }, [driverLocation, dropoffLocation, markers, pickupLocation, riderLocation]);
 
+  const currentLocationMarker = useMemo(() => {
+    const existingCurrent = combinedMarkers.find(
+      (marker) =>
+        marker.id.toLowerCase().includes("current") ||
+        marker.label?.toLowerCase().includes("current")
+    );
+
+    if (existingCurrent) {
+      return existingCurrent.position;
+    }
+    if (isValidPoint(riderLocation)) {
+      return riderLocation;
+    }
+    if (isValidPoint(pickupLocation)) {
+      return pickupLocation;
+    }
+    return center;
+  }, [center, combinedMarkers, pickupLocation, riderLocation]);
+
+  const hasExplicitCurrentMarker = useMemo(
+    () =>
+      combinedMarkers.some(
+        (marker) =>
+          marker.id.toLowerCase().includes("current") ||
+          marker.label?.toLowerCase().includes("current")
+      ),
+    [combinedMarkers]
+  );
+
+  const cycleLayer = (): void => {
+    const currentIndex = LAYER_ORDER.indexOf(activeLayer);
+    const nextLayer = LAYER_ORDER[(currentIndex + 1) % LAYER_ORDER.length] ?? "default";
+    setActiveLayer(nextLayer);
+  };
+
+  const routePositions = useMemo(
+    () => resolvedRoute.map((point) => [point.lat, point.lng] as [number, number]),
+    [resolvedRoute]
+  );
+
   return (
     <div
       className={className}
       style={{ position: "absolute", inset: 0, width: "100%", height, zIndex: 0 }}
     >
+      {showViewSwitcher && (
+        <button
+          type="button"
+          aria-label="Change map view"
+          onClick={cycleLayer}
+          style={{
+            position: "absolute",
+            right: "calc(env(safe-area-inset-right, 0px) + 12px)",
+            top: "calc(env(safe-area-inset-top, 0px) + 68px)",
+            zIndex: 500,
+            border: "1px solid rgba(148,163,184,0.55)",
+            borderRadius: 12,
+            background: "rgba(255,255,255,0.92)",
+            color: "#0f172a",
+            fontSize: 11,
+            fontWeight: 700,
+            lineHeight: 1,
+            padding: "8px 10px",
+            whiteSpace: "nowrap",
+            minWidth: "max-content",
+            overflow: "visible",
+            cursor: "pointer",
+            backdropFilter: "blur(6px)"
+          }}
+        >
+          View: {activeLayer}
+        </button>
+      )}
       <MapContainer
         center={[center.lat, center.lng]}
         zoom={zoom}
@@ -199,7 +358,7 @@ export default function LeafletMapView({
         maxZoom={20}
         style={{ width: "100%", height: "100%" }}
       >
-        <TileLayer attribution={MAP_ATTRIBUTION} detectRetina url={TILE_LAYERS[layer]} />
+        <TileLayer attribution={MAP_ATTRIBUTION} detectRetina url={TILE_LAYERS[activeLayer]} />
         <MapSyncController center={center} zoom={zoom} recenterKey={recenterKey} />
         <MapEventBridge
           onMapClick={onMapClick}
@@ -207,9 +366,9 @@ export default function LeafletMapView({
           onZoomChange={onZoomChange}
         />
 
-        {routePolyline.length > 1 && (
+        {routePositions.length > 1 && (
           <Polyline
-            positions={routePolyline.map((point) => [point.lat, point.lng])}
+            positions={routePositions}
             pathOptions={{ color: "#1e3a5f", weight: 4, opacity: 0.8 }}
           />
         )}
@@ -249,11 +408,25 @@ export default function LeafletMapView({
             </React.Fragment>
           ))}
 
+        {showCurrentLocationMarker && !hasExplicitCurrentMarker && (
+          <Marker position={[currentLocationMarker.lat, currentLocationMarker.lng]}>
+            <Popup>Current location</Popup>
+          </Marker>
+        )}
+
         {combinedMarkers.map((marker) => (
           <Marker
             key={marker.id}
             position={[marker.position.lat, marker.position.lng]}
-            icon={marker.color ? createDotIcon(marker.color) : undefined}
+            {...(() => {
+              const isCurrentLocationMarker =
+                marker.id.toLowerCase().includes("current") ||
+                marker.label?.toLowerCase().includes("current");
+              if (isCurrentLocationMarker || !marker.color) {
+                return {};
+              }
+              return { icon: createDotIcon(marker.color) };
+            })()}
             eventHandlers={{
               click: () => onMarkerClick?.(marker.id)
             }}

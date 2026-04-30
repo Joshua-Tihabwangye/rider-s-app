@@ -112,19 +112,6 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
           >
             <DirectionsCarFilledRoundedIcon sx={{ fontSize: 30, color: "#FFFFFF" }} />
           </Box>
-          <Box
-            sx={{
-              position: "absolute",
-              left: "23%",
-              top: "56%",
-              width: "48%",
-              height: 4,
-              borderRadius: 2,
-              bgcolor: "rgba(15,23,42,0.65)",
-              transform: "rotate(-16deg)",
-              transformOrigin: "left center"
-            }}
-          />
         </MapShell>
       </Box>
 

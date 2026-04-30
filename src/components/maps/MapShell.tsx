@@ -114,6 +114,19 @@ export default function MapShell({
     return MAP_HEIGHT_PRESETS[preset];
   }, [height, preset]);
 
+  const effectiveRoutePolyline = useMemo(() => {
+    if (routePolyline.length > 1) {
+      return routePolyline;
+    }
+    if (pickupLocation && dropoffLocation) {
+      return [pickupLocation, dropoffLocation];
+    }
+    if (mapMarkers.length > 1) {
+      return [mapMarkers[0]!.position, mapMarkers[mapMarkers.length - 1]!.position];
+    }
+    return [];
+  }, [dropoffLocation, mapMarkers, pickupLocation, routePolyline]);
+
   const canShowBack = showBackButton ?? isRideMapRoute;
   const canShowSos = (showSosButton ?? isRideMapRoute) && Boolean(onSos ?? isRideMapRoute);
 
@@ -218,7 +231,7 @@ export default function MapShell({
           driverLocation={driverLocation}
           riderLocation={riderLocation}
           alerts={alerts}
-          routePolyline={routePolyline}
+          routePolyline={effectiveRoutePolyline}
           showTraffic={false}
           showAlerts={false}
           onMarkerClick={onMarkerClick}
