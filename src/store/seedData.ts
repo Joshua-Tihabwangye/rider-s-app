@@ -310,7 +310,19 @@ const SEED_RIDE_OPTIONS: RideOption[] = [
 export const SEED_RIDE_STATE: RideState = {
   request: SEED_RIDE_REQUEST,
   activeTrip: null,
-  temporaryStop: { status: 'idle', requestNote: '' },
+  temporaryStop: {
+    status: "idle",
+    requestNote: "",
+    requestId: null,
+    requestedAt: null,
+    confirmedAt: null,
+    resumedAt: null,
+    pauseStartedAt: null,
+    continuePromptDueAt: null,
+    continuePromptShownAt: null,
+    totalPausedDurationMs: 0,
+    timerPaused: false
+  },
   safetyCheck: { status: 'idle' },
   history: [],
   savedPlaces: [

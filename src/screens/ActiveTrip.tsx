@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
+  Chip,
   IconButton,
   Typography,
   Card,
@@ -29,49 +30,142 @@ import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 
+const TRIP_SIMULATION_DURATION_MS = 90_000;
+const AUTO_ADD_STOP_TRIGGER_MS = 15_000;
+const START_PROGRESS_PERCENT = 40;
+const START_DISTANCE_KM = 22;
+
+function formatElapsedDuration(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return [hours, minutes, seconds].map((value) => value.toString().padStart(2, "0")).join(":");
+}
+
+function formatRemainingDuration(ms: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+}
+
 function TripInProgressBasicScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { ride, actions } = useAppData();
   const activeTrip = ride.activeTrip;
   const temporaryStop = ride.temporaryStop;
   const safetyCheck = ride.safetyCheck;
-  const [progress, setProgress] = useState(40); // 40% of trip completed
-  const [eta, setEta] = useState({ hours: 1, minutes: 20 });
-  const [distanceCovered, setDistanceCovered] = useState(22);
+  const [clockNowMs, setClockNowMs] = useState(() => Date.now());
+  const [showContinueTripDialog, setShowContinueTripDialog] = useState(false);
+  const [hasAutoSimulatedStopRequest, setHasAutoSimulatedStopRequest] = useState(false);
   const totalDistance = 54;
-  const totalTime = "2 hr 20 mins";
   const totalFare = activeTrip?.fareEstimate ?? "UGX 20,565";
+  const totalFareDisplay = totalFare.trim().toUpperCase().startsWith("UGX ") ? totalFare : `UGX ${totalFare}`;
+  const isTripPaused = temporaryStop?.timerPaused || activeTrip?.status === "paused_at_stop";
+  const isAddStopRequested = temporaryStop?.status === "add_stop_requested";
 
-  // Simulate trip progress
   useEffect(() => {
-    actions.setRideStatus("in_progress");
-    const interval = setInterval(() => {
-      if (temporaryStop?.status === "temporarily_stopped") return;
-      setProgress((prev) => {
-        if (prev < 95) {
-          return prev + 0.5;
-        }
-        return prev;
-      });
-      setDistanceCovered((prev) => {
-        if (prev < totalDistance) {
-          return prev + 0.2;
-        }
-        return prev;
-      });
-      // Update ETA
-      setEta((prev) => {
-        if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1 };
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59 };
-        }
-        return prev;
-      });
-    }, 5000); // Update every 5 seconds
+    if (!activeTrip?.startedAt) {
+      actions.updateRideTrip({ startedAt: new Date().toISOString() });
+      return;
+    }
+    if (activeTrip.status === "paused_at_stop" || activeTrip.status === "add_stop_requested") {
+      return;
+    }
+    if (activeTrip.status !== "ongoing") {
+      actions.setRideStatus("ongoing");
+    }
+  }, [actions, activeTrip?.startedAt, activeTrip?.status]);
 
-    return () => clearInterval(interval);
-  }, [actions.setRideStatus]);
+  useEffect(() => {
+    if (isTripPaused) return undefined;
+    const interval = window.setInterval(() => {
+      setClockNowMs(Date.now());
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [isTripPaused]);
+
+  useEffect(() => {
+    setHasAutoSimulatedStopRequest(false);
+  }, [activeTrip?.id]);
+
+  useEffect(() => {
+    setClockNowMs(Date.now());
+  }, [isTripPaused, temporaryStop?.totalPausedDurationMs, activeTrip?.startedAt]);
+
+  const tripStartMs = useMemo(() => {
+    if (!activeTrip?.startedAt) return clockNowMs;
+    const parsed = new Date(activeTrip.startedAt).getTime();
+    return Number.isFinite(parsed) ? parsed : clockNowMs;
+  }, [activeTrip?.startedAt, clockNowMs]);
+
+  const tripElapsedMs = useMemo(() => {
+    const pausedTotalMs = temporaryStop?.totalPausedDurationMs ?? 0;
+    if (isTripPaused && temporaryStop?.pauseStartedAt) {
+      const pauseStartMs = new Date(temporaryStop.pauseStartedAt).getTime();
+      if (Number.isFinite(pauseStartMs)) {
+        return Math.max(0, pauseStartMs - tripStartMs - pausedTotalMs);
+      }
+    }
+    return Math.max(0, clockNowMs - tripStartMs - pausedTotalMs);
+  }, [clockNowMs, isTripPaused, temporaryStop?.pauseStartedAt, temporaryStop?.totalPausedDurationMs, tripStartMs]);
+
+  const tripElapsedLabel = formatElapsedDuration(tripElapsedMs);
+  const simProgressRatio = Math.min(1, tripElapsedMs / TRIP_SIMULATION_DURATION_MS);
+  const progress = START_PROGRESS_PERCENT + simProgressRatio * (100 - START_PROGRESS_PERCENT);
+  const distanceCovered = START_DISTANCE_KM + simProgressRatio * (totalDistance - START_DISTANCE_KM);
+  const remainingSimulationMs = Math.max(0, TRIP_SIMULATION_DURATION_MS - tripElapsedMs);
+  const remainingSimulationLabel = formatRemainingDuration(remainingSimulationMs);
+
+  useEffect(() => {
+    if (!activeTrip?.id) return;
+    if (hasAutoSimulatedStopRequest) return;
+    if (temporaryStop?.status !== "idle") return;
+    if (tripElapsedMs < AUTO_ADD_STOP_TRIGGER_MS) return;
+    actions.simulateDriverAddStopRequest("Your driver has requested to add a temporary stop.");
+    setHasAutoSimulatedStopRequest(true);
+  }, [actions, activeTrip?.id, hasAutoSimulatedStopRequest, temporaryStop?.status, tripElapsedMs]);
+
+  useEffect(() => {
+    if (!activeTrip?.id) return;
+    if (isTripPaused || isAddStopRequested) return;
+    if (tripElapsedMs < TRIP_SIMULATION_DURATION_MS) return;
+    navigate("/rides/trip/completed", {
+      replace: true,
+      state: {
+        duration: "1 min 30 sec",
+        estimatedTime: "1 min 30 sec",
+        totalFare: totalFareDisplay,
+        fare: totalFareDisplay,
+        distance: `${totalDistance} km`
+      }
+    });
+  }, [activeTrip?.id, isAddStopRequested, isTripPaused, navigate, totalDistance, totalFareDisplay, tripElapsedMs]);
+
+  useEffect(() => {
+    if (!isTripPaused) {
+      setShowContinueTripDialog(false);
+      return undefined;
+    }
+    const dueAt = temporaryStop?.continuePromptDueAt;
+    if (!dueAt || temporaryStop?.continuePromptShownAt) return undefined;
+
+    const dueMs = new Date(dueAt).getTime();
+    if (!Number.isFinite(dueMs)) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      setShowContinueTripDialog(true);
+      actions.markTemporaryStopContinuePromptShown();
+    }, Math.max(0, dueMs - Date.now()));
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    actions,
+    isTripPaused,
+    temporaryStop?.continuePromptDueAt,
+    temporaryStop?.continuePromptShownAt
+  ]);
 
   const handleRating = () => {
     navigate("/rides/rating");
@@ -81,20 +175,11 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     navigate("/rides/trip/share");
   };
 
-  const handlePayNow = () => {
-    // Navigate to payment method selection for trip payment simulation
-    navigate("/rides/payment", {
-      state: {
-        from: "/rides/trip",
-        fare: totalFare,
-        tripId: activeTrip?.id
-      }
-    });
-  };
+  const handleMapRecenter = () => undefined;
 
-  const handleMapRecenter = () => {
-    setProgress(40);
-    setEta({ hours: 1, minutes: 20 });
+  const handleContinueTrip = () => {
+    actions.resumeTripAfterTemporaryStop();
+    setShowContinueTripDialog(false);
   };
 
   const topMapBleedSx = {
@@ -259,7 +344,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             left: `${18 + (progress / 100) * 64}%`,
             bottom: `${25 - (progress / 100) * 47}%`,
             transform: "translate(-50%, 50%)",
-            animation: "moveCar 2s ease-in-out infinite",
+            animation: isTripPaused ? "none" : "moveCar 2s ease-in-out infinite",
             "@keyframes moveCar": {
               "0%, 100%": { transform: "translate(-50%, 50%) translateX(0)" },
               "50%": { transform: "translate(-50%, 50%) translateX(3px)" }
@@ -309,6 +394,28 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             SOS
           </Button>
         </Box>
+        {isTripPaused && (
+          <Box
+            sx={{
+              mt: 1.25,
+              p: 1.5,
+              borderRadius: uiTokens.radius.sm,
+              bgcolor: "#FEF3C7",
+              border: "1px solid #F59E0B"
+            }}
+          >
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+              <Chip
+                size="small"
+                label="Paused at stop"
+                sx={{ bgcolor: "#F59E0B", color: "#FFFFFF", fontWeight: 700 }}
+              />
+            </Stack>
+            <Typography variant="body2" sx={{ fontSize: 13, color: "#78350F", mb: 1 }}>
+              Trip paused at stop. Waiting for the driver to continue the ride.
+            </Typography>
+          </Box>
+        )}
       </Box>
 
 
@@ -394,8 +501,8 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                   mb: uiTokens.spacing.md
                 }}
               >
-                You will reach your destination in {eta.hours} hr and {eta.minutes} mins.
-              </Typography>
+                  Estimated remaining trip simulation time: {remainingSimulationLabel}
+                </Typography>
 
               {/* Progress bar with car icon */}
               <Box sx={{ position: "relative", mb: uiTokens.spacing.xxs }}>
@@ -454,10 +561,10 @@ function TripInProgressBasicScreen(): React.JSX.Element {
               </Box>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography variant="body2" sx={{ color: (theme) => theme.palette.text.secondary, fontSize: 13 }}>
-                  Total Time
+                  Trip Timer
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 13 }}>
-                  {totalTime}
+                  {tripElapsedLabel}
                 </Typography>
               </Box>
             </Stack>
@@ -495,51 +602,75 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                     color: (theme) => theme.palette.text.primary
                   }}
                 >
-                  UGX {totalFare}
+                  {totalFareDisplay}
                 </Typography>
               </Box>
-              <Button
-                variant="contained"
-                onClick={handlePayNow}
-                sx={{
-                  borderRadius: uiTokens.radius.xl,
-                  px: uiTokens.spacing.xl,
-                  py: uiTokens.spacing.sm,
-                  fontSize: 14,
-                  fontWeight: 600,
-                  textTransform: "none",
-                  bgcolor: "#22c55e",
-                  color: "#FFFFFF",
-                  "&:hover": {
-                    bgcolor: "#16A34A"
-                  }
-                }}
-              >
-                Pay Now
-              </Button>
+              <Typography variant="caption" sx={{ color: (theme) => theme.palette.text.secondary }}>
+                Payment will be available after trip completion.
+              </Typography>
             </Box>
           </CardContent>
         </Card>
       </Box>
 
-      {/* Temporary Stop Confirmation Dialog */}
-      <Dialog open={temporaryStop?.status === "stop_requested"} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#F00' }}>
-          <PauseCircleIcon sx={{ color: '#F59E0B' }}/>
-          <Typography variant="h6" fontWeight="bold">Temporary Stop Requested</Typography>
+      {/* Add Stop Request Dialog */}
+      <Dialog open={isAddStopRequested} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
+        <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <PauseCircleIcon sx={{ color: "#F59E0B" }} />
+          <Typography variant="h6" fontWeight="bold">Driver requested a stop</Typography>
         </DialogTitle>
         <DialogContent>
-          <Typography>{temporaryStop?.requestNote || "Your driver has requested a brief stop."}</Typography>
+          <Typography>
+            {temporaryStop?.requestNote ||
+              "Your driver has requested to add a temporary stop. If you confirm, your trip timer will pause until you continue the trip."}
+          </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-             Trip timer will be paused automatically if you accept.
+            If you confirm, your timer and trip progress will pause immediately.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => actions.respondToTemporaryStopRequest('decline')} color="inherit">Decline</Button>
-          <Button onClick={() => actions.respondToTemporaryStopRequest('confirm')} variant="contained" color="warning" sx={{ borderRadius: uiTokens.radius.xl }}>Confirm Stop</Button>
+          <Button
+            onClick={() => actions.respondToTemporaryStopRequest("decline")}
+            sx={{ color: "#B45309", textTransform: "none" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => actions.respondToTemporaryStopRequest("confirm")}
+            variant="contained"
+            sx={{ borderRadius: uiTokens.radius.xl, textTransform: "none", bgcolor: "#22c55e", "&:hover": { bgcolor: "#16A34A" } }}
+          >
+            Confirm stop
+          </Button>
         </DialogActions>
       </Dialog>
-      
+
+      {/* Continue Trip Request Dialog */}
+      <Dialog
+        open={showContinueTripDialog && isTripPaused}
+        onClose={() => setShowContinueTripDialog(false)}
+        PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}
+      >
+        <DialogTitle>
+          <Typography variant="h6" fontWeight="bold">Driver requested to continue trip</Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Typography>Your driver is ready to continue the trip. Do you want to continue now?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowContinueTripDialog(false)} sx={{ color: "#B45309", textTransform: "none" }}>
+            Not continuing
+          </Button>
+          <Button
+            onClick={handleContinueTrip}
+            variant="contained"
+            sx={{ borderRadius: uiTokens.radius.xl, textTransform: "none", bgcolor: "#22c55e", "&:hover": { bgcolor: "#16A34A" } }}
+          >
+            Continue trip
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Safety Check Dialog */}
       <Dialog open={safetyCheck?.status === "safety_check_pending"} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
