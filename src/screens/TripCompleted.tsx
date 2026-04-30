@@ -143,20 +143,6 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
             sx={{
               position: "absolute",
               top: "58%",
-              left: "16%",
-              width: "68%",
-              height: 4,
-              borderRadius: 999,
-              bgcolor: "rgba(15,23,42,0.7)",
-              transform: "rotate(-24deg)",
-              transformOrigin: "left center"
-            }}
-          />
-
-          <Box
-            sx={{
-              position: "absolute",
-              top: "58%",
               left: "18%",
               width: 18,
               height: 18,

@@ -124,19 +124,6 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
           >
             <DirectionsCarFilledRoundedIcon sx={{ fontSize: 28, color: "#F97316" }} />
           </Box>
-          <Box
-            sx={{
-              position: "absolute",
-              left: "22%",
-              top: "54%",
-              width: "54%",
-              height: 4,
-              borderRadius: 2,
-              bgcolor: "rgba(15,23,42,0.65)",
-              transform: "rotate(-18deg)",
-              transformOrigin: "left center"
-            }}
-          />
         </MapShell>
       </Box>
 

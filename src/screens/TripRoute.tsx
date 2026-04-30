@@ -94,21 +94,6 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
         showBackButton
         canvasSx={{ background: uiTokens.map.canvasEmphasis }}
       >
-        {/* Route line */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: "55%",
-            left: "20%",
-            width: "60%",
-            height: 4,
-            bgcolor: uiTokens.map.route,
-            borderRadius: "var(--evz-radius-pill)",
-            transform: "rotate(-20deg)",
-            transformOrigin: "left center"
-          }}
-        />
-
         {/* Pickup location marker (green) */}
         <Box
           sx={{

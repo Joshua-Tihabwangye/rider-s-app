@@ -252,20 +252,6 @@ function SelectYourRideScreen(): React.JSX.Element {
           <Box
             sx={{
               position: "absolute",
-              top: "60%",
-              left: "15%",
-              width: "70%",
-              height: 3,
-              bgcolor: "#424242",
-              borderRadius: 2,
-              transform: "rotate(-25deg)",
-              transformOrigin: "left center",
-              zIndex: 1
-            }}
-          />
-          <Box
-            sx={{
-              position: "absolute",
               top: "58%",
               left: "18%",
               width: 18,

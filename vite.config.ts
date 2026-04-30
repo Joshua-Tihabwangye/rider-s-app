@@ -23,6 +23,32 @@ export default defineConfig({
         '**/rider (1)/**',
       ],
     },
+    proxy: {
+      "/api/osrm": {
+        target: "https://router.project-osrm.org",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/osrm/, "")
+      },
+      "/api/osm": {
+        target: "https://nominatim.openstreetmap.org",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/osm/, "")
+      }
+    }
+  },
+  preview: {
+    proxy: {
+      "/api/osrm": {
+        target: "https://router.project-osrm.org",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/osrm/, "")
+      },
+      "/api/osm": {
+        target: "https://nominatim.openstreetmap.org",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/osm/, "")
+      }
+    }
   },
   build: {
     outDir: 'build',

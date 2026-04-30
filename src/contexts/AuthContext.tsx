@@ -39,19 +39,60 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
   const [loading, setLoading] = useState(true); // true while hydrating
   const [error, setError] = useState<string | null>(null);
 
-  // Force sign-in as the first page on each fresh app load.
-  // We intentionally clear any previously persisted session so users
-  // always land on /auth/sign-in before accessing protected screens.
+  // Hydrate auth session from localStorage on app load.
   useEffect(() => {
-    clearSession();
-    setUser(null);
-    setLoading(false);
+    try {
+      const storedUser = localStorage.getItem(STORAGE_KEY_USER);
+      const storedToken = localStorage.getItem(STORAGE_KEY_TOKEN);
+
+      if (!storedUser || !storedToken) {
+        clearSession();
+        setUser(null);
+        return;
+      }
+
+      const parsedUser = JSON.parse(storedUser) as User;
+      if (!parsedUser || typeof parsedUser !== "object" || !("id" in parsedUser)) {
+        clearSession();
+        setUser(null);
+        return;
+      }
+
+      setUser(parsedUser);
+    } catch {
+      clearSession();
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const storedToken = localStorage.getItem(STORAGE_KEY_TOKEN);
+    if (!storedToken) {
+      setUser(null);
+      clearSession();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      clearSession();
+      return;
+    }
+    const token = localStorage.getItem(STORAGE_KEY_TOKEN);
+    if (token) {
+      persistSession(user, token);
+    }
+  }, [loading, user]);
 
   const handleAuthSuccess = useCallback((authUser: User, token: string) => {
     setUser(authUser);
     setError(null);
     persistSession(authUser, token);
+    setLoading(false);
   }, []);
 
   const signIn = useCallback(async (credentials: SignInCredentials) => {

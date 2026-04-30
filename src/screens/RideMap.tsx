@@ -12,34 +12,9 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import MapShell from "../components/maps/MapShell";
 import { uiTokens } from "../design/tokens";
 import type { MapPoint } from "../components/maps/LeafletMapView";
+import { geocodeAddress, reverseGeocode } from "../services/maps";
 
 const KAMPALA_CENTER: MapPoint = { lat: 0.3476, lng: 32.5825 };
-
-const geocodeAddress = async (address: string): Promise<MapPoint> => {
-  await new Promise((resolve) => setTimeout(resolve, 220));
-  const mockLocations: Record<string, MapPoint> = {
-    "kampala city": { lat: 0.3476, lng: 32.5825 },
-    entebbe: { lat: 0.0422, lng: 32.4435 },
-    jinja: { lat: 0.4244, lng: 33.2042 },
-    mbale: { lat: 1.0826, lng: 34.175 }
-  };
-
-  const normalized = address.toLowerCase().trim();
-  for (const [key, point] of Object.entries(mockLocations)) {
-    if (normalized.includes(key)) {
-      return point;
-    }
-  }
-  return KAMPALA_CENTER;
-};
-
-const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
-  await new Promise((resolve) => setTimeout(resolve, 180));
-  if (Math.abs(lat - 0.3476) < 0.12 && Math.abs(lng - 32.5825) < 0.12) {
-    return "Kampala City";
-  }
-  return `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
-};
 
 interface StopState {
   id: string;
@@ -64,8 +39,8 @@ function PickDestinationMapScreen(): React.JSX.Element {
 
   useEffect(() => {
     const timer = window.setTimeout(async () => {
-      const label = await reverseGeocode(coordinates.lat, coordinates.lng);
-      setDestination(label);
+      const label = await reverseGeocode(coordinates);
+      setDestination(label ?? `${coordinates.lat.toFixed(4)}, ${coordinates.lng.toFixed(4)}`);
     }, 420);
     return () => window.clearTimeout(timer);
   }, [coordinates.lat, coordinates.lng]);
@@ -80,8 +55,10 @@ function PickDestinationMapScreen(): React.JSX.Element {
     }
     setIsGeocoding(true);
     const nextPoint = await geocodeAddress(value);
-    setCoordinates(nextPoint);
-    setMapCenter(nextPoint);
+    if (nextPoint) {
+      setCoordinates(nextPoint);
+      setMapCenter(nextPoint);
+    }
     setIsGeocoding(false);
   };
 

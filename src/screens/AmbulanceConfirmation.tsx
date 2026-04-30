@@ -96,19 +96,6 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
           <Box
             sx={{
               position: "absolute",
-              left: "22%",
-              top: "55%",
-              width: "56%",
-              height: 4,
-              borderRadius: 2,
-              bgcolor: "rgba(15,23,42,0.65)",
-              transform: "rotate(-18deg)",
-              transformOrigin: "left center"
-            }}
-          />
-          <Box
-            sx={{
-              position: "absolute",
               left: "42%",
               top: "54%",
               transform: "translate(-50%, -50%)",
