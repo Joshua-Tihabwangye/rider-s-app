@@ -160,7 +160,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         sx={{
           mb: 3,
           borderRadius: 3,
-          height: 170,
+          height: { xs: 250, md: 170 },
           position: "relative",
           overflow: "hidden"
         }}
@@ -173,13 +173,13 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             { lat: 0.348, lng: 32.58 },
             { lat: 0.357, lng: 32.592 }
           ]}
-          className="evz-map-static"
         />
         <Box
           sx={{
             position: "absolute",
             inset: 0,
             opacity: 0.18,
+            pointerEvents: "none",
             backgroundImage:
               "linear-gradient(to right, rgba(148,163,184,0.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.35) 1px, transparent 1px)",
             backgroundSize: "28px 28px"
@@ -190,7 +190,8 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             position: "absolute",
             left: "24%",
             top: "60%",
-            transform: "translate(-50%, -50%)"
+            transform: "translate(-50%, -50%)",
+            pointerEvents: "none"
           }}
         >
           <Box sx={{ position: "relative" }}>
@@ -218,7 +219,8 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             position: "absolute",
             right: "18%",
             top: "26%",
-            transform: "translate(50%, -50%)"
+            transform: "translate(50%, -50%)",
+            pointerEvents: "none"
           }}
         >
           <PlaceRoundedIcon
