@@ -144,7 +144,11 @@ export type RideStatus =
   | "driver_assigned"
   | "driver_on_way"
   | "driver_arrived"
+  | "ongoing"
   | "in_progress"
+  | "add_stop_requested"
+  | "paused_at_stop"
+  | "resumed"
   | "completed"
   | "cancelled";
 
@@ -212,12 +216,21 @@ export interface RideOption {
 }
 
 
-export type ActiveRideStopStatus = "idle" | "stop_requested" | "temporarily_stopped";
+export type ActiveRideStopStatus = "idle" | "add_stop_requested" | "paused_at_stop";
 export type ActiveRideSafetyStatus = "idle" | "safety_check_pending" | "resolved" | "sos_triggered";
 
 export interface ActiveRideTemporaryStopState {
   status: ActiveRideStopStatus;
   requestNote: string;
+  requestId: string | null;
+  requestedAt: string | null;
+  confirmedAt: string | null;
+  resumedAt: string | null;
+  pauseStartedAt: string | null;
+  continuePromptDueAt: string | null;
+  continuePromptShownAt: string | null;
+  totalPausedDurationMs: number;
+  timerPaused: boolean;
 }
 
 export interface ActiveRideSafetyCheckState {

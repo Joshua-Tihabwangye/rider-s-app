@@ -111,6 +111,16 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
     });
   };
 
+  const handlePayNow = () => {
+    navigate("/rides/payment", {
+      state: {
+        from: "/rides/trip/completed",
+        fare: fareDisplay,
+        tripId: activeTrip?.id
+      }
+    });
+  };
+
   const topMapBleedSx = {
     position: "relative",
     width: {
@@ -267,6 +277,20 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
             }}
           >
             Rate driver
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handlePayNow}
+            sx={{
+              mt: 1,
+              borderRadius: uiTokens.radius.xl,
+              textTransform: "none",
+              fontWeight: 700,
+              bgcolor: "#22c55e",
+              "&:hover": { bgcolor: "#16A34A" }
+            }}
+          >
+            Pay now
           </Button>
         </CardContent>
       </Card>

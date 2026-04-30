@@ -197,7 +197,10 @@ interface AppActions {
   resolveSos: (id: string, note?: string) => void;
   dismissReminder: (id: number) => void;
   dismissReminders: (ids: number[]) => void;
+  simulateDriverAddStopRequest: (requestNote?: string) => void;
   respondToTemporaryStopRequest: (decision: "confirm" | "decline") => void;
+  resumeTripAfterTemporaryStop: () => void;
+  markTemporaryStopContinuePromptShown: () => void;
   respondToSafetyCheck: (action: "okay" | "sos") => void;
 }
 
@@ -2340,15 +2343,127 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     dispatch({ type: "delivery/reset-draft" });
   }, []);
 
-
-  const respondToTemporaryStopRequest = useCallback((decision: "confirm" | "decline") => {
-    dispatch({ type: "ride/set-temporary-stop", payload: { status: decision === "confirm" ? "temporarily_stopped" : "idle" } });
+  const simulateDriverAddStopRequest = useCallback((requestNote?: string) => {
+    const nowIso = new Date().toISOString();
+    const requestId = `stop_${Date.now()}`;
+    dispatch({
+      type: "ride/set-temporary-stop",
+      payload: {
+        status: "add_stop_requested",
+        requestNote: requestNote ?? "Your driver has requested to add a temporary stop.",
+        requestId,
+        requestedAt: nowIso,
+        confirmedAt: null,
+        resumedAt: null,
+        pauseStartedAt: null,
+        continuePromptDueAt: null,
+        continuePromptShownAt: null,
+        timerPaused: false
+      }
+    });
+    dispatch({ type: "ride/status", payload: "add_stop_requested" });
     if (state.ride.activeTrip) {
-        setTimeout(() => {
-            window.localStorage.setItem('evzone_active_ride_stop_response', JSON.stringify({ tripId: state.ride.activeTrip!.id, decision, ts: Date.now() }));
-        }, 50);
+      setTimeout(() => {
+        window.localStorage.setItem(
+          "evzone_active_ride_stop_request",
+          JSON.stringify({
+            tripId: state.ride.activeTrip!.id,
+            requestId,
+            requestNote,
+            ts: Date.now()
+          })
+        );
+      }, 50);
     }
   }, [state.ride.activeTrip]);
+
+  const respondToTemporaryStopRequest = useCallback((decision: "confirm" | "decline") => {
+    const nowMs = Date.now();
+    const nowIso = new Date(nowMs).toISOString();
+    if (decision === "confirm") {
+      dispatch({
+        type: "ride/set-temporary-stop",
+        payload: {
+          status: "paused_at_stop",
+          confirmedAt: nowIso,
+          resumedAt: null,
+          pauseStartedAt: nowIso,
+          continuePromptDueAt: new Date(nowMs + 15_000).toISOString(),
+          continuePromptShownAt: null,
+          timerPaused: true
+        }
+      });
+      dispatch({ type: "ride/status", payload: "paused_at_stop" });
+    } else {
+      dispatch({
+        type: "ride/set-temporary-stop",
+        payload: {
+          status: "idle",
+          requestNote: "",
+          continuePromptDueAt: null,
+          continuePromptShownAt: null,
+          timerPaused: false
+        }
+      });
+      dispatch({ type: "ride/status", payload: "ongoing" });
+    }
+    if (state.ride.activeTrip) {
+      setTimeout(() => {
+        window.localStorage.setItem(
+          "evzone_active_ride_stop_response",
+          JSON.stringify({
+            tripId: state.ride.activeTrip!.id,
+            requestId: state.ride.temporaryStop.requestId,
+            decision,
+            ts: nowMs
+          })
+        );
+      }, 50);
+    }
+  }, [state.ride.activeTrip, state.ride.temporaryStop.requestId]);
+
+  const resumeTripAfterTemporaryStop = useCallback(() => {
+    const nowMs = Date.now();
+    const nowIso = new Date(nowMs).toISOString();
+    const pauseStartMs = state.ride.temporaryStop.pauseStartedAt
+      ? new Date(state.ride.temporaryStop.pauseStartedAt).getTime()
+      : Number.NaN;
+    const pausedDeltaMs =
+      state.ride.temporaryStop.timerPaused && Number.isFinite(pauseStartMs)
+        ? Math.max(0, nowMs - pauseStartMs)
+        : 0;
+
+    dispatch({
+      type: "ride/set-temporary-stop",
+      payload: {
+        status: "idle",
+        requestNote: "",
+        resumedAt: nowIso,
+        pauseStartedAt: null,
+        continuePromptDueAt: null,
+        continuePromptShownAt: null,
+        totalPausedDurationMs: state.ride.temporaryStop.totalPausedDurationMs + pausedDeltaMs,
+        timerPaused: false
+      }
+    });
+    dispatch({ type: "ride/status", payload: "ongoing" });
+
+    if (state.ride.activeTrip) {
+      setTimeout(() => {
+        window.localStorage.setItem(
+          "evzone_active_ride_stop_resume",
+          JSON.stringify({ tripId: state.ride.activeTrip!.id, ts: nowMs })
+        );
+      }, 50);
+    }
+  }, [state.ride.activeTrip, state.ride.temporaryStop.pauseStartedAt, state.ride.temporaryStop.timerPaused, state.ride.temporaryStop.totalPausedDurationMs]);
+
+  const markTemporaryStopContinuePromptShown = useCallback(() => {
+    dispatch({
+      type: "ride/set-temporary-stop",
+      payload: { continuePromptShownAt: new Date().toISOString() }
+    });
+  }, []);
 
   const respondToSafetyCheck = useCallback((action: "okay" | "sos") => {
     dispatch({ type: "ride/set-safety-check", payload: { status: action === "sos" ? "sos_triggered" : "resolved" } });
@@ -2362,18 +2477,65 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   useEffect(() => {
     const handleStorageEvent = (e: StorageEvent) => {
       if (!e.newValue || !state.ride.activeTrip) return;
-      
+
       const key = e.key;
-      // We only handle events we care about
       if (!key?.startsWith("evzone_active_ride")) return;
-      
-      const parsed = JSON.parse(e.newValue);
+
+      let parsed: Record<string, unknown> | null = null;
+      try {
+        parsed = JSON.parse(e.newValue) as Record<string, unknown>;
+      } catch {
+        return;
+      }
+
       if (parsed.tripId !== state.ride.activeTrip.id) return;
-      
+
       if (key === "evzone_active_ride_stop_request") {
-        dispatch({ type: "ride/set-temporary-stop", payload: { status: "stop_requested", requestNote: "Driver requests a temporary stop" } });
+        const nowIso = new Date().toISOString();
+        dispatch({
+          type: "ride/set-temporary-stop",
+          payload: {
+            status: "add_stop_requested",
+            requestNote:
+              typeof parsed.requestNote === "string" && parsed.requestNote.trim()
+                ? parsed.requestNote
+                : "Driver requested a stop.",
+            requestId: typeof parsed.requestId === "string" ? parsed.requestId : `stop_${Date.now()}`,
+            requestedAt: nowIso,
+            confirmedAt: null,
+            resumedAt: null,
+            pauseStartedAt: null,
+            continuePromptDueAt: null,
+            continuePromptShownAt: null,
+            timerPaused: false
+          }
+        });
+        dispatch({ type: "ride/status", payload: "add_stop_requested" });
       } else if (key === "evzone_active_ride_stop_resume") {
-        dispatch({ type: "ride/set-temporary-stop", payload: { status: "idle" } });
+        const nowMs = Date.now();
+        const nowIso = new Date(nowMs).toISOString();
+        const pauseStartMs = state.ride.temporaryStop.pauseStartedAt
+          ? new Date(state.ride.temporaryStop.pauseStartedAt).getTime()
+          : Number.NaN;
+        const pausedDeltaMs =
+          state.ride.temporaryStop.timerPaused && Number.isFinite(pauseStartMs)
+            ? Math.max(0, nowMs - pauseStartMs)
+            : 0;
+
+        dispatch({
+          type: "ride/set-temporary-stop",
+          payload: {
+            status: "idle",
+            requestNote: "",
+            resumedAt: nowIso,
+            pauseStartedAt: null,
+            continuePromptDueAt: null,
+            continuePromptShownAt: null,
+            totalPausedDurationMs: state.ride.temporaryStop.totalPausedDurationMs + pausedDeltaMs,
+            timerPaused: false
+          }
+        });
+        dispatch({ type: "ride/status", payload: "ongoing" });
       } else if (key === "evzone_active_ride_safety_check") {
         dispatch({ type: "ride/set-safety-check", payload: { status: "safety_check_pending" } });
       } else if (key === "evzone_active_ride_safety_resume") {
@@ -2384,7 +2546,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     };
     window.addEventListener("storage", handleStorageEvent);
     return () => window.removeEventListener("storage", handleStorageEvent);
-  }, [state.ride.activeTrip]);
+  }, [state.ride.activeTrip, state.ride.temporaryStop.pauseStartedAt, state.ride.temporaryStop.timerPaused, state.ride.temporaryStop.totalPausedDurationMs]);
 
   const createDeliveryOrder = useCallback(() => {
     const orderId = `DLV-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Date.now()
@@ -2992,7 +3154,10 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       resolveSos,
       dismissReminder,
       dismissReminders,
+      simulateDriverAddStopRequest,
       respondToTemporaryStopRequest,
+      resumeTripAfterTemporaryStop,
+      markTemporaryStopContinuePromptShown,
       respondToSafetyCheck,
     }),
     [
@@ -3049,7 +3214,10 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       resolveSos,
       dismissReminder,
       dismissReminders,
+      simulateDriverAddStopRequest,
       respondToTemporaryStopRequest,
+      resumeTripAfterTemporaryStop,
+      markTemporaryStopContinuePromptShown,
       respondToSafetyCheck,
     ]
   );
