@@ -20,6 +20,7 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import PhoneEnabledRoundedIcon from "@mui/icons-material/PhoneEnabledRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
+import LeafletMapView from "../components/maps/LeafletMapView";
 
 
 function AmbulanceLiveTrackingScreen(): React.JSX.Element {
@@ -79,13 +80,19 @@ function AmbulanceLiveTrackingScreen(): React.JSX.Element {
           borderRadius: 3,
           overflow: "hidden",
           height: 220,
-          mb: 2.5,
-          background: (t) =>
-            t.palette.mode === "light"
-              ? "radial-gradient(circle at top, #FECACA 0, #F3F4F6 55%, rgba(3,205,140,0.1) 100%)"
-              : "radial-gradient(circle at top, rgba(185,28,28,0.7), #020617 60%, #020617 100%)"
+          mb: 2.5
         }}
       >
+        <LeafletMapView
+          center={{ lat: 0.3476, lng: 32.5825 }}
+          zoom={12}
+          routePolyline={[
+            { lat: 0.336, lng: 32.56 },
+            { lat: 0.346, lng: 32.575 },
+            { lat: 0.358, lng: 32.592 }
+          ]}
+          className="evz-map-static"
+        />
         <Box
           sx={{
             position: "absolute",

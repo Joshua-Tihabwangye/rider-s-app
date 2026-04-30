@@ -322,6 +322,8 @@ export default function DeliveryTracking(): React.JSX.Element {
             <DeliveryTrackingMap
               pickupLabel={order.pickup.label}
               dropoffLabel={currentStop?.location.label ?? order.dropoff.label}
+              pickupCoordinates={order.pickup.coordinates ?? null}
+              dropoffCoordinates={currentStop?.location.coordinates ?? order.dropoff.coordinates ?? null}
               courierPosition={order.tracking.courierPosition}
               etaLabel={etaLabel}
               statusLabel={statusLabel}

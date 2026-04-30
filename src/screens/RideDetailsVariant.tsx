@@ -18,6 +18,7 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import LeafletMapView from "../components/maps/LeafletMapView";
 
 function RideDetailsVariant2Screen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -127,13 +128,19 @@ function RideDetailsVariant2Screen(): React.JSX.Element {
           borderRadius: 3,
           overflow: "hidden",
           height: 160,
-          mb: 2,
-          background: (t) =>
-            t.palette.mode === "light"
-              ? "radial-gradient(circle at top, rgba(3,205,140,0.15) 0, #E5E7EB 55%, rgba(3,205,140,0.1) 100%)"
-              : "radial-gradient(circle at top, rgba(15,118,205,0.5), #020617 60%, #020617 100%)"
+          mb: 2
         }}
       >
+        <LeafletMapView
+          center={{ lat: 0.3476, lng: 32.5825 }}
+          zoom={12}
+          routePolyline={[
+            { lat: 0.338, lng: 32.563 },
+            { lat: 0.346, lng: 32.577 },
+            { lat: 0.358, lng: 32.591 }
+          ]}
+          className="evz-map-static"
+        />
         <Box
           sx={{
             position: "absolute",

@@ -9,6 +9,8 @@ import MapShell from "../maps/MapShell";
 interface DeliveryTrackingMapProps {
   pickupLabel: string;
   dropoffLabel: string;
+  pickupCoordinates?: { lat: number; lng: number } | null;
+  dropoffCoordinates?: { lat: number; lng: number } | null;
   courierPosition: number;
   etaLabel: string;
   statusLabel: string;
@@ -31,6 +33,8 @@ function clamp(value: number, min: number, max: number): number {
 export default function DeliveryTrackingMap({
   pickupLabel,
   dropoffLabel,
+  pickupCoordinates = null,
+  dropoffCoordinates = null,
   courierPosition,
   etaLabel,
   statusLabel,
@@ -56,6 +60,20 @@ export default function DeliveryTrackingMap({
   const angle = Math.atan2(dy, dx) * (180 / Math.PI);
   const length = Math.sqrt(dx * dx + dy * dy);
 
+  const fallbackCenter = { lat: 0.3476, lng: 32.5825 };
+  const startPoint = pickupCoordinates ?? { lat: 0.3136, lng: 32.5811 };
+  const endPoint = dropoffCoordinates ?? { lat: 0.3476, lng: 32.5825 };
+  const courierGeoPoint = {
+    lat: startPoint.lat + (endPoint.lat - startPoint.lat) * t,
+    lng: startPoint.lng + (endPoint.lng - startPoint.lng) * t
+  };
+  const mapCenter = pickupCoordinates
+    ? {
+        lat: (startPoint.lat + endPoint.lat) / 2,
+        lng: (startPoint.lng + endPoint.lng) / 2
+      }
+    : fallbackCenter;
+
   return (
     <MapShell
       height={height}
@@ -64,6 +82,13 @@ export default function DeliveryTrackingMap({
       showControls={showControls}
       showBackButton={showBackButton}
       onBack={onBack}
+      mapCenter={mapCenter}
+      routePolyline={[startPoint, endPoint]}
+      mapMarkers={[
+        { id: "delivery-pickup", position: startPoint, label: pickupLabel, color: "#22c55e" },
+        { id: "delivery-dropoff", position: endPoint, label: dropoffLabel, color: "#0284c7" },
+        { id: "delivery-courier", position: courierGeoPoint, label: "Courier", color: "#0ea5e9" }
+      ]}
       canvasSx={{
         background:
           "radial-gradient(circle at 25% 15%, rgba(3,205,140,0.2), rgba(236,253,245,0.95) 40%, rgba(226,232,240,0.9) 100%)"

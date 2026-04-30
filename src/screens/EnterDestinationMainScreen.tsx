@@ -18,6 +18,7 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
+import LeafletMapView from "../components/maps/LeafletMapView";
 
 interface CommonPlaceCardProps {
   icon: React.ReactElement;
@@ -161,13 +162,19 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           borderRadius: 3,
           height: 170,
           position: "relative",
-          overflow: "hidden",
-          background: (theme) =>
-            theme.palette.mode === "light"
-              ? "radial-gradient(circle at top, rgba(3,205,140,0.15) 0, #EFF6FF 55%, #DBEAFE 100%)"
-              : "radial-gradient(circle at top, rgba(15,118,205,0.6), rgba(15,23,42,1))"
+          overflow: "hidden"
         }}
       >
+        <LeafletMapView
+          center={{ lat: 0.3476, lng: 32.5825 }}
+          zoom={12}
+          routePolyline={[
+            { lat: 0.339, lng: 32.568 },
+            { lat: 0.348, lng: 32.58 },
+            { lat: 0.357, lng: 32.592 }
+          ]}
+          className="evz-map-static"
+        />
         <Box
           sx={{
             position: "absolute",

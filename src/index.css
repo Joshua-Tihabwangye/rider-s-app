@@ -276,3 +276,7 @@ body,
     scroll-behavior: auto !important;
   }
 }
+
+.evz-map-static .leaflet-container {
+  pointer-events: none;
+}

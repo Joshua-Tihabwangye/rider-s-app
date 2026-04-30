@@ -21,8 +21,14 @@ import TrafficRoundedIcon from "@mui/icons-material/TrafficRounded";
 import { useLocation, useNavigate } from "react-router-dom";
 import { uiTokens } from "../../design/tokens";
 import { MAP_HEIGHT_PRESETS, MapHeightPreset } from "./mapPresets";
+import LeafletMapView, {
+  type LeafletAlertMarker,
+  type LeafletMapLayerMode,
+  type LeafletMapMarker,
+  type MapPoint
+} from "./LeafletMapView";
 
-type MapLayerMode = "default" | "transit" | "terrain" | "satellite";
+type MapLayerMode = LeafletMapLayerMode;
 
 interface MapShellProps {
   children?: React.ReactNode;
@@ -41,18 +47,31 @@ interface MapShellProps {
   onZoomChange?: (zoom: number) => void;
   onBearingChange?: (bearing: number) => void;
   onLayerChange?: (layer: MapLayerMode) => void;
+  onMapClick?: (point: MapPoint) => void;
+  onLocationSelect?: (point: MapPoint) => void;
+  onMarkerClick?: (markerId: string) => void;
   initialZoom?: number;
   initialBearing?: number;
   initialLayer?: MapLayerMode;
+  mapCenter?: MapPoint;
+  mapMarkers?: LeafletMapMarker[];
+  pickupLocation?: MapPoint | null;
+  dropoffLocation?: MapPoint | null;
+  driverLocation?: MapPoint | null;
+  riderLocation?: MapPoint | null;
+  alerts?: LeafletAlertMarker[];
+  routePolyline?: MapPoint[];
   sx?: SxProps<Theme>;
   canvasSx?: SxProps<Theme>;
   overlaysSx?: SxProps<Theme>;
   canvasRef?: React.Ref<HTMLDivElement>;
   canvasProps?: Omit<BoxProps, "sx" | "children" | "ref">;
   fullBleed?: boolean;
+  interactive?: boolean;
 }
 
 const LAYER_ORDER: MapLayerMode[] = ["default", "transit", "terrain", "satellite"];
+const KAMPALA_CENTER: MapPoint = { lat: 0.3476, lng: 32.5825 };
 
 function clampZoom(zoom: number): number {
   return Math.max(1, Math.min(22, zoom));
@@ -64,7 +83,7 @@ export default function MapShell({
   preset = "full",
   height,
   rounded = false,
-  showGrid = true,
+  showGrid = false,
   showControls = true,
   showBackButton,
   showSosButton,
@@ -75,15 +94,27 @@ export default function MapShell({
   onZoomChange,
   onBearingChange,
   onLayerChange,
+  onMapClick,
+  onLocationSelect,
+  onMarkerClick,
   initialZoom = 13,
   initialBearing = 0,
   initialLayer = "default",
+  mapCenter = KAMPALA_CENTER,
+  mapMarkers = [],
+  pickupLocation = null,
+  dropoffLocation = null,
+  driverLocation = null,
+  riderLocation = null,
+  alerts = [],
+  routePolyline = [],
   sx,
   canvasSx,
   overlaysSx,
   canvasRef,
   canvasProps,
-  fullBleed = true
+  fullBleed = true,
+  interactive = true
 }: MapShellProps): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
@@ -93,6 +124,7 @@ export default function MapShell({
   const [layer, setLayer] = useState<MapLayerMode>(initialLayer);
   const [trafficEnabled, setTrafficEnabled] = useState<boolean>(true);
   const [incidentsEnabled, setIncidentsEnabled] = useState<boolean>(true);
+  const [recenterKey, setRecenterKey] = useState<number>(0);
 
   const resolvedHeight = useMemo(() => {
     if (height !== undefined) {
@@ -100,6 +132,24 @@ export default function MapShell({
     }
     return MAP_HEIGHT_PRESETS[preset];
   }, [height, preset]);
+
+  const fallbackAlerts = useMemo<LeafletAlertMarker[]>(
+    () => [
+      {
+        id: "map_shell_alert_1",
+        label: "Traffic incident",
+        severity: "high",
+        position: { lat: mapCenter.lat + 0.007, lng: mapCenter.lng - 0.009 }
+      },
+      {
+        id: "map_shell_alert_2",
+        label: "Road alert",
+        severity: "medium",
+        position: { lat: mapCenter.lat - 0.006, lng: mapCenter.lng + 0.01 }
+      }
+    ],
+    [mapCenter.lat, mapCenter.lng]
+  );
 
   const handleZoom = (delta: number): void => {
     const next = clampZoom(zoom + delta);
@@ -111,6 +161,11 @@ export default function MapShell({
     const next = (bearing + 45) % 360;
     setBearing(next);
     onBearingChange?.(next);
+  };
+
+  const handleMapRecenter = (): void => {
+    setRecenterKey((prev) => prev + 1);
+    onRecenter?.();
   };
 
   const handleLayerCycle = (): void => {
@@ -206,6 +261,30 @@ export default function MapShell({
           ...(Array.isArray(canvasSx) ? canvasSx : canvasSx ? [canvasSx] : [])
         ]}
       >
+        <LeafletMapView
+          center={mapCenter}
+          zoom={zoom}
+          layer={layer}
+          markers={mapMarkers}
+          pickupLocation={pickupLocation}
+          dropoffLocation={dropoffLocation}
+          driverLocation={driverLocation}
+          riderLocation={riderLocation}
+          alerts={alerts.length ? alerts : fallbackAlerts}
+          routePolyline={routePolyline}
+          showTraffic={trafficEnabled}
+          showAlerts={incidentsEnabled}
+          onMarkerClick={onMarkerClick}
+          onMapClick={onMapClick}
+          onLocationSelect={onLocationSelect}
+          onZoomChange={(nextZoom) => {
+            const clamped = clampZoom(nextZoom);
+            setZoom(clamped);
+            onZoomChange?.(clamped);
+          }}
+          recenterKey={recenterKey}
+          className={interactive ? undefined : "evz-map-static"}
+        />
         {showGrid && (
           <Box
             sx={{
@@ -219,51 +298,20 @@ export default function MapShell({
             }}
           />
         )}
-        {trafficEnabled && (
+        {childrenLayer === "canvas" && children && (
           <Box
             sx={{
               position: "absolute",
               inset: 0,
-              pointerEvents: "none",
-              opacity: 0.4,
-              backgroundImage:
-                "linear-gradient(32deg, transparent 42%, rgba(234,88,12,0.26) 42%, rgba(234,88,12,0.26) 44%, transparent 44%), linear-gradient(148deg, transparent 35%, rgba(245,158,11,0.22) 35%, rgba(245,158,11,0.22) 37%, transparent 37%), linear-gradient(72deg, transparent 58%, rgba(220,38,38,0.22) 58%, rgba(220,38,38,0.22) 60%, transparent 60%)",
-              backgroundSize: "180px 180px, 220px 220px, 200px 200px"
+              zIndex: 2
             }}
-          />
+          >
+            {children}
+          </Box>
         )}
-        {incidentsEnabled && (
-          <>
-            <Box
-              sx={{
-                position: "absolute",
-                left: "22%",
-                top: "34%",
-                width: 10,
-                height: 10,
-                borderRadius: "50%",
-                bgcolor: "rgba(220,38,38,0.88)",
-                boxShadow: "0 0 0 4px rgba(220,38,38,0.18)"
-              }}
-            />
-            <Box
-              sx={{
-                position: "absolute",
-                right: "26%",
-                top: "51%",
-                width: 10,
-                height: 10,
-                borderRadius: "50%",
-                bgcolor: "rgba(245,158,11,0.9)",
-                boxShadow: "0 0 0 4px rgba(245,158,11,0.18)"
-              }}
-            />
-          </>
-        )}
-        {childrenLayer === "canvas" && children}
       </Box>
 
-      {childrenLayer === "overlay" && (
+      {childrenLayer === "overlay" && children && (
         <Box
           sx={[
             {
@@ -395,7 +443,7 @@ export default function MapShell({
               <IconButton
                 size="small"
                 aria-label="Map Recenter"
-                onClick={onRecenter}
+                onClick={handleMapRecenter}
                 sx={controlSx}
               >
                 <MyLocationRoundedIcon sx={{ fontSize: 17 }} />
