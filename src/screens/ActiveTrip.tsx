@@ -614,10 +614,10 @@ function TripInProgressBasicScreen(): React.JSX.Element {
       </Box>
 
       {/* Add Stop Request Dialog */}
-      <Dialog open={isAddStopRequested} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
+      <Dialog open={isAddStopRequested && !safetyCheck?.status} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <PauseCircleIcon sx={{ color: "#F59E0B" }} />
-          <Typography variant="h6" fontWeight="bold">Driver requested a stop</Typography>
+          <Typography fontWeight="bold">Driver requested a stop</Typography>
         </DialogTitle>
         <DialogContent>
           <Typography>
@@ -647,12 +647,12 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
       {/* Continue Trip Request Dialog */}
       <Dialog
-        open={showContinueTripDialog && isTripPaused}
+        open={showContinueTripDialog && isTripPaused && !safetyCheck?.status}
         onClose={() => setShowContinueTripDialog(false)}
         PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}
       >
         <DialogTitle>
-          <Typography variant="h6" fontWeight="bold">Driver requested to continue trip</Typography>
+          <Typography fontWeight="bold">Driver requested to continue trip</Typography>
         </DialogTitle>
         <DialogContent>
           <Typography>Your driver is ready to continue the trip. Do you want to continue now?</Typography>
@@ -671,11 +671,11 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         </DialogActions>
       </Dialog>
 
-      {/* Safety Check Dialog */}
+      {/* Safety Check Dialog - Highest priority, overrides other dialogs */}
       <Dialog open={safetyCheck?.status === "safety_check_pending"} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <AlertTriangleIcon sx={{ color: 'var(--evz-danger)' }}/>
-          <Typography variant="h6" fontWeight="bold">Are you okay?</Typography>
+          <Typography fontWeight="bold">Are you okay?</Typography>
         </DialogTitle>
         <DialogContent>
           <Typography>The vehicle has been stationary for over 20 minutes.</Typography>

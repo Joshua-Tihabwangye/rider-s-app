@@ -47,8 +47,8 @@ export const SEED_USER: User = {
   initials: "RZ"
 };
 
-/** Mock auth token */
-export const SEED_TOKEN = "mock_jwt_token_evzone_rider_001";
+/** Mock auth token - properly formatted JWT for development */
+export const SEED_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c3JfMDAxIiwibmFtZSI6IlJhY2hlbCBab2UiLCJpYXQiOjE3NzYyNTUxMDAsImV4cCI6MTgwNzgyMjMxMH0.mock_signature_for_development_only";
 
 /** Centralized payment methods (replaces hardcoded values in Wallet.tsx) */
 export const SEED_PAYMENT_METHODS: PaymentMethod[] = [

@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
+import { Box, CircularProgress } from "@mui/material";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { useAuth } from "../contexts/AuthContext";
 import SignIn from "../screens/auth/SignIn";
@@ -341,7 +342,24 @@ function ProtectedOutlet(): React.JSX.Element {
 }
 
 function AuthAwareRedirect(): React.JSX.Element {
-	const { isAuthenticated, loading } = useAuth();
-	if (loading) return <></>;
-	return <Navigate to={isAuthenticated ? "/home" : "/auth/sign-in"} replace />;
+ 	const { isAuthenticated, loading } = useAuth();
+
+ 	// Show loading indicator while hydrating auth state
+ 	if (loading) {
+ 		return (
+ 			<Box
+ 				sx={{
+ 					display: "flex",
+ 					alignItems: "center",
+ 					justifyContent: "center",
+ 					height: "100dvh",
+ 					bgcolor: (t) => t.palette.background.default
+ 				}}
+ 			>
+ 				<CircularProgress size={32} sx={{ color: "var(--evz-brand-green)" }} />
+ 			</Box>
+ 		);
+ 	}
+
+ 	return <Navigate to={isAuthenticated ? "/home" : "/auth/sign-in"} replace />;
 }
