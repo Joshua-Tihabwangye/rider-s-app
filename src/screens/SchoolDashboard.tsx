@@ -1,16 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   Box,
-  IconButton,
   Typography,
   Card,
   CardContent,
   Stack,
-  Chip,
   Button,
-  Divider
+  CircularProgress
 } from "@mui/material";
 
 import ScreenScaffold from "../components/ScreenScaffold";
@@ -18,20 +15,35 @@ import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
 
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
-import DirectionsBusFilledRoundedIcon from "@mui/icons-material/DirectionsBusFilled";
-import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
-import NotificationsActiveRoundedIcon from "@mui/icons-material/NotificationsActiveRounded";
-import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
+import LaunchRoundedIcon from "@mui/icons-material/LaunchRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
+import { IconButton } from "@mui/material";
 
-
-function SchoolDashboardHomeScreen(): React.JSX.Element {
+function SchoolGatewayScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const [isRedirecting, setIsRedirecting] = React.useState(false);
+
+  const handleAccessSchoolSystem = () => {
+    setIsRedirecting(true);
+
+    // Simulate connection to external School management system
+    // In a real implementation, this would redirect to the school system
+    // or open it in a new window/tab with proper authentication tokens
+
+    setTimeout(() => {
+      // For demo purposes, show an alert. In production, this would redirect to the actual School system
+      alert("Redirecting to School Management System...\n\nIn a production environment, this would open the dedicated School management system with your EVzone authentication.");
+
+      // Reset loading state
+      setIsRedirecting(false);
+    }, 2000);
+  };
+
   return (
     <ScreenScaffold>
       <SectionHeader
-        title="EVzone School"
-        subtitle="Manage school shuttles and student transport"
+        title="School Management Gateway"
+        subtitle="Access your dedicated School management system"
         leadingAction={
           <Stack direction="row" spacing={uiTokens.spacing.sm} alignItems="center">
             <IconButton
@@ -41,14 +53,14 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
               sx={{
                 borderRadius: uiTokens.radius.xl,
                 bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
+                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.2)",
                 border: (t) =>
                   t.palette.mode === "light"
                     ? "1px solid rgba(209,213,219,0.9)"
                     : "1px solid rgba(51,65,85,0.9)"
               }}
             >
-              <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+              <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18, color: "#FB923C" }} />
             </IconButton>
             <Box
               sx={{
@@ -56,7 +68,7 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
                 height: 40,
                 borderRadius: uiTokens.radius.xl,
                 bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#DBEAFE" : "rgba(15,23,42,0.9)",
+                  t.palette.mode === "light" ? "#DBEAFE" : "rgba(134,239,172,0.2)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center"
@@ -68,257 +80,164 @@ function SchoolDashboardHomeScreen(): React.JSX.Element {
         }
       />
 
-      {/* App handoff card */}
       <Card
         elevation={0}
         sx={{
-          borderRadius: uiTokens.radius.sm,
+          borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
             t.palette.mode === "light"
-              ? "radial-gradient(circle at top, #DBEAFE, #EEF2FF)"
-              : "radial-gradient(circle at top, #020617, #020617)",
+              ? "linear-gradient(145deg, #DBEAFE 0%, #EEF2FF 55%, #FFFFFF 100%)"
+              : "linear-gradient(160deg, #1D4ED8 0%, #1D4ED8 55%, #1D4ED8 100%)",
           border: (t) =>
             t.palette.mode === "light"
-              ? "1px solid rgba(129,140,248,0.7)"
-              : "1px solid rgba(129,140,248,0.9)"
+              ? "1px solid rgba(37,99,235,0.8)"
+              : "1px solid rgba(37,99,235,0.6)",
+          mb: uiTokens.spacing.lg
         }}
       >
-        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
+        <CardContent sx={{ px: { xs: 2, sm: 2.5 }, py: { xs: 2, sm: 2.5 } }}>
           <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: uiTokens.spacing.sm, display: "block" }}
-          >
-            School shuttles live in the EVzone School / Parents app.
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em", mb: uiTokens.spacing.md }}
-          >
-            Open EVzone School to book or track a bus.
-          </Typography>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={uiTokens.spacing.mdPlus}>
-            <Button
-              fullWidth
-              variant="contained"
-              startIcon={<DirectionsBusFilledRoundedIcon sx={{ fontSize: 18 }} />}
-              onClick={() => navigate("/school-handoff")}
-              sx={{
-                borderRadius: uiTokens.radius.xl,
-                py: uiTokens.spacing.md,
-                fontSize: 13,
-                fontWeight: 600,
-                textTransform: "none",
-                bgcolor: "#1D4ED8",
-                color: "#EFF6FF",
-                "&:hover": { bgcolor: "#03CD8C" }
-              }}
-            >
-              Open EVzone School app
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => window.open("https://play.google.com/store/apps/details?id=com.evzone.school", "_blank")}
-              sx={{
-                borderRadius: uiTokens.radius.xl,
-                py: uiTokens.spacing.md,
-                fontSize: 13,
-                textTransform: "none"
-              }}
-            >
-              Get the app
-            </Button>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      {/* Children & routes summary */}
-      <Card
-        elevation={0}
-        sx={{
-          borderRadius: uiTokens.radius.sm,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{ mb: uiTokens.spacing.smPlus }}
-          >
-            <Stack direction="row" spacing={0.75} alignItems="center">
-              <PeopleAltRoundedIcon
-                sx={{ fontSize: 18, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Children & routes
-              </Typography>
-            </Stack>
-            <Typography
-              variant="caption"
-              onClick={() => navigate("/school-handoff")}
-              sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, cursor: "pointer" }}
-            >
-              Manage in EVzone School
-            </Typography>
-          </Stack>
-          <Divider sx={{ mb: 1, borderColor: (t) => t.palette.divider }} />
-
-          {[0, 1].map((i) => (
-            <Box
-              key={i}
-              onClick={() => navigate("/school-handoff")}
-              sx={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                py: 0.6,
-                "&:not(:last-of-type)": {
-                  borderBottom: (t) => `1px dashed ${t.palette.divider}`
-                }
-              }}
-            >
-              <Box>
-                <Typography
-                  variant="body2"
-                  sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
-                >
-                  {i === 0 ? "Ava Namaganda" : "Noah Kato"}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-                >
-                  {i === 0 ? "Morning: Kansanga → Greenhill" : "Evening: City centre → Home"}
-                </Typography>
-              </Box>
-              <Chip
-                size="small"
-                label={i === 0 ? "Onboard" : "Arriving soon"}
-                sx={{
-                  borderRadius: uiTokens.radius.xl,
-                  fontSize: 10,
-                  height: 22,
-                  bgcolor: (t) =>
-                    i === 0
-                      ? t.palette.mode === "light"
-                        ? "rgba(34,197,94,0.12)"
-                        : "rgba(34,197,94,0.2)"
-                      : t.palette.mode === "light"
-                      ? "rgba(56,189,248,0.12)"
-                      : "rgba(56,189,248,0.2)",
-                  color: (t) =>
-                    i === 0
-                      ? t.palette.mode === "light"
-                        ? "#16A34A"
-                        : "#22C55E"
-                      : t.palette.mode === "light"
-                      ? "#03CD8C"
-                      : "#38BDF8"
-                }}
-              />
-            </Box>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* Alerts & notifications */}
-      <Card
-        elevation={0}
-        sx={{
-          borderRadius: uiTokens.radius.sm,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.lg }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{ mb: 1 }}
-          >
-            <Stack direction="row" spacing={0.75} alignItems="center">
-              <NotificationsActiveRoundedIcon
-                sx={{ fontSize: 18, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Shuttle notifications
-              </Typography>
-            </Stack>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, cursor: "pointer" }}
-            >
-              Open EVzone School
-            </Typography>
-          </Stack>
-          <Divider sx={{ mb: 1, borderColor: (t) => t.palette.divider }} />
-
-          <Box
+            variant="h6"
             sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              py: 0.4
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
+              mb: uiTokens.spacing.md,
+              fontSize: { xs: 20, sm: 22 }
             }}
           >
+            EVzone School Management
+          </Typography>
+
+          <Typography
+            variant="body2"
+            sx={{
+              mb: uiTokens.spacing.lg,
+              color: (t) => t.palette.text.secondary,
+              lineHeight: 1.5
+            }}
+          >
+            Access our dedicated School management system for comprehensive school transport management,
+            student tracking, route planning, and parent communication tools.
+          </Typography>
+
+          <Stack spacing={uiTokens.spacing.md}>
             <Box>
               <Typography
-                variant="body2"
-                sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
+                variant="subtitle2"
+                sx={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  mb: uiTokens.spacing.xs,
+                  color: (t) => t.palette.text.primary
+                }}
               >
-                Morning shuttle – Greenhill
+                ✨ What you can manage in the School system:
               </Typography>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-              >
-                ETA 10–15 min • Last stop before school
-              </Typography>
+              <Stack spacing={0.5}>
+                <Typography variant="body2" sx={{ fontSize: 13, color: (t) => t.palette.text.secondary }}>
+                  • Student profiles and transportation needs
+                </Typography>
+                <Typography variant="body2" sx={{ fontSize: 13, color: (t) => t.palette.text.secondary }}>
+                  • Shuttle routes and scheduling
+                </Typography>
+                <Typography variant="body2" sx={{ fontSize: 13, color: (t) => t.palette.text.secondary }}>
+                  • Real-time bus tracking and notifications
+                </Typography>
+                <Typography variant="body2" sx={{ fontSize: 13, color: (t) => t.palette.text.secondary }}>
+                  • Fee management and payment processing
+                </Typography>
+                <Typography variant="body2" sx={{ fontSize: 13, color: (t) => t.palette.text.secondary }}>
+                  • Parent communication and alerts
+                </Typography>
+              </Stack>
             </Box>
-            <ArrowForwardIosRoundedIcon
-              sx={{ fontSize: 14, color: (t) => t.palette.text.secondary }}
-            />
-          </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: uiTokens.radius.xl,
+          bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)"),
+          border: (t) =>
+            t.palette.mode === "light"
+              ? "1px solid rgba(203,213,225,0.9)"
+              : "1px solid rgba(51,65,85,0.9)"
+        }}
+      >
+        <CardContent sx={{ px: { xs: 2, sm: 2.5 }, py: { xs: 2, sm: 2.5 } }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              fontSize: 14,
+              fontWeight: 600,
+              mb: uiTokens.spacing.md,
+              color: (t) => t.palette.text.primary
+            }}
+          >
+            🚀 Ready to manage school transport?
+          </Typography>
+
+          <Typography
+            variant="body2"
+            sx={{
+              mb: uiTokens.spacing.lg,
+              color: (t) => t.palette.text.secondary,
+              lineHeight: 1.5
+            }}
+          >
+            Your EVzone account will be automatically linked to the School management system,
+            giving you seamless access to all school transport management tools and real-time updates.
+          </Typography>
+
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleAccessSchoolSystem}
+            disabled={isRedirecting}
+            startIcon={isRedirecting ? <CircularProgress size={16} /> : <LaunchRoundedIcon />}
+            sx={{
+              borderRadius: uiTokens.radius.xl,
+              py: 1.2,
+              fontSize: 14,
+              fontWeight: 600,
+              textTransform: "none",
+              bgcolor: "#1D4ED8",
+              color: "#FFFFFF",
+              boxShadow: "0 8px 24px rgba(29,78,216,0.3)",
+              "&:hover": {
+                bgcolor: "#1E40AF",
+                boxShadow: "0 12px 32px rgba(29,78,216,0.4)"
+              },
+              "&:disabled": {
+                bgcolor: "#94A3B8",
+                color: "#FFFFFF"
+              }
+            }}
+          >
+            {isRedirecting ? "Connecting..." : "Access School Management System"}
+          </Button>
         </CardContent>
       </Card>
 
       <Typography
         variant="caption"
-        sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, mt: 1, display: "block" }}
+        sx={{
+          fontSize: 10.5,
+          color: (t) => t.palette.text.secondary,
+          mt: uiTokens.spacing.md,
+          display: "block",
+          textAlign: "center"
+        }}
       >
-        EVzone School keeps all child profiles, shuttle routes and transport alerts
-        inside the dedicated School / Parents experience. This dashboard just gives
-        you a quick overview and a fast way to jump into the School app.
+        The School dashboard serves as your gateway to comprehensive school transport management.
+        All student data, routes, and communications are handled securely within the dedicated School management system.
       </Typography>
     </ScreenScaffold>
   );
 }
 
 export default function SchoolDashboard(): React.JSX.Element {
-  return (
-    <>
-
-        <SchoolDashboardHomeScreen />
-      
-    </>
-  );
+  return <SchoolGatewayScreen />;
 }

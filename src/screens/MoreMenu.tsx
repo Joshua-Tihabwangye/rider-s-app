@@ -46,9 +46,9 @@ const ACCOUNT_ITEMS: MenuItem[] = [
   },
   {
     icon: <SchoolRoundedIcon />,
-    label: "School Shuttles",
-    description: "Book and track school shuttles",
-    route: "/school-handoff"
+    label: "School Management",
+    description: "Access school transport management system",
+    route: "/school"
   }
 ];
 

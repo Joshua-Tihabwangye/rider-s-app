@@ -76,31 +76,28 @@ import RentalPaymentVerify from "../screens/RentalPaymentVerify";
 import RentalPaymentSuccess from "../screens/RentalPaymentSuccess";
 import RentalPaymentFailed from "../screens/RentalPaymentFailed";
 import RentalPaymentReceipt from "../screens/RentalPaymentReceipt";
-import TourDetail from "../screens/TourDetail";
-import TourDates from "../screens/TourDates";
-import TourSummary from "../screens/TourSummary";
-import TourConfirmation from "../screens/TourConfirmation";
-import TourHistory from "../screens/TourHistory";
-import TourPaymentWallet from "../screens/TourPaymentWallet";
-import TourPaymentCard from "../screens/TourPaymentCard";
-import TourPaymentMobileMoney from "../screens/TourPaymentMobileMoney";
-import TourPaymentVerify from "../screens/TourPaymentVerify";
-import TourPaymentProcessing from "../screens/TourPaymentProcessing";
-import TourPaymentFailed from "../screens/TourPaymentFailed";
-import TourPaymentReceipt from "../screens/TourPaymentReceipt";
+import ToursDashboard from "../screens/ToursDashboard";
+import Profile from "../screens/Profile";
+
+// Missing imports for various screens
+import SchoolDashboard from "../screens/SchoolDashboard";
+import AllHistory from "../screens/AllHistory";
+import RidesDashboard from "../screens/RidesDashboard";
+import RidePromotions from "../screens/RidePromotions";
+import DeliveryDashboard from "../screens/DeliveryDashboard";
+import RentalDashboard from "../screens/RentalDashboard";
+import RentalHistoryDetail from "../screens/RentalHistoryDetail";
+import AmbulanceDashboard from "../screens/AmbulanceDashboard";
 import AmbulanceLocation from "../screens/AmbulanceLocation";
 import AmbulanceDestination from "../screens/AmbulanceDestination";
 import AmbulanceConfirmation from "../screens/AmbulanceConfirmation";
 import AmbulanceHistory from "../screens/AmbulanceHistory";
 import AmbulanceHistoryDetail from "../screens/AmbulanceHistoryDetail";
-import SchoolHandoff from "../screens/SchoolHandoff";
-import RentalHistoryDetail from "../screens/RentalHistoryDetail";
-import AllHistory from "../screens/AllHistory";
 import Wallet from "../screens/Wallet";
 import {
-	WalletTransferMethodScreen,
-	WalletTransferSelectionScreen,
-	WalletTransferSuccessScreen
+  WalletTransferMethodScreen,
+  WalletTransferSelectionScreen,
+  WalletTransferSuccessScreen
 } from "../screens/WalletTransferFlow";
 import MoreMenu from "../screens/MoreMenu";
 import Settings from "../screens/Settings";
@@ -109,17 +106,6 @@ import SecuritySettings from "../screens/SecuritySettings";
 import PrivacySettings from "../screens/PrivacySettings";
 import Help from "../screens/Help";
 import About from "../screens/About";
-import RidesDashboard from "../screens/RidesDashboard";
-import DeliveryDashboard from "../screens/DeliveryDashboard";
-import RentalDashboard from "../screens/RentalDashboard";
-import ToursDashboard from "../screens/ToursDashboard";
-import AmbulanceDashboard from "../screens/AmbulanceDashboard";
-import SchoolDashboard from "../screens/SchoolDashboard";
-import SchoolFees from "../screens/SchoolFees";
-import RidePromotions from "../screens/RidePromotions";
-import ToursNew from "../screens/ToursNew";
-import ToursHomeEntryScreen from "../screens/ToursHomeEntryScreen";
-import Profile from "../screens/Profile";
 
 export default function AppRouter(): React.JSX.Element {
 	const location = useLocation();
@@ -137,9 +123,6 @@ export default function AppRouter(): React.JSX.Element {
 			<Route element={<ProtectedRoute><ProtectedOutlet /></ProtectedRoute>}>
 				{/* Home & Global */}
 				<Route path="home" element={<Home />} />
-				<Route path="school-handoff" element={<SchoolDashboard />} />
-				<Route path="school-handoff/fees" element={<SchoolFees />} />
-				<Route path="school-handoff/details" element={<SchoolHandoff />} />
 				<Route path="history/all" element={<AllHistory />} />
 				{/* Rides */}
 				<Route path="rides">
@@ -278,23 +261,6 @@ export default function AppRouter(): React.JSX.Element {
 					{/* Tours */}
 					<Route path="tours">
 						<Route index element={<ToursDashboard />} />
-						<Route path="available" element={<ToursHomeEntryScreen />} />
-						<Route path="new" element={<ToursNew />} />
-						<Route path=":tourId" element={<TourDetail />} />
-						<Route path=":tourId/dates" element={<TourDates />} />
-						<Route path=":tourId/summary" element={<TourSummary />} />
-						<Route path="payment/wallet" element={<TourPaymentWallet />} />
-						<Route path="payment/processing" element={<TourPaymentProcessing />} />
-						<Route path="payment/card" element={<TourPaymentCard />} />
-						<Route path="payment/mobile-money" element={<TourPaymentMobileMoney />} />
-						<Route path="payment/verify" element={<TourPaymentVerify />} />
-						<Route path="payment/failed" element={<TourPaymentFailed />} />
-						<Route path="payment/receipt/:transactionId" element={<TourPaymentReceipt />} />
-						<Route
-							path=":tourId/confirmation"
-							element={<TourConfirmation />}
-						/>
-						<Route path="history" element={<TourHistory />} />
 					</Route>
 				{/* Ambulance */}
 				<Route path="ambulance">
@@ -324,6 +290,7 @@ export default function AppRouter(): React.JSX.Element {
 				</Route>
 				<Route path="help" element={<Help />} />
 				<Route path="about" element={<About />} />
+				{/* School */}
 				<Route path="school" element={<SchoolDashboard />} />
 			</Route>
 

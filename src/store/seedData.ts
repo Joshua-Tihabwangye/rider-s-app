@@ -112,17 +112,17 @@ export const SEED_REMINDERS: Reminder[] = [
     id: 4,
     category: "wallet",
     title: "Bus fees due",
-    description: "School bus fees are due soon. Pay now to avoid late penalties.",
-    actionRoute: "/school-handoff/fees?status=pending&pay=1",
-    ctaLabel: "Pay now"
+    description: "School bus fees are due soon. Access the School management system to pay.",
+    actionRoute: "/school",
+    ctaLabel: "Access School System"
   },
   {
     id: 5,
     category: "wallet",
     title: "Bus fees overdue",
-    description: "Outstanding bus fees are overdue. Clear the overdue balance now.",
-    actionRoute: "/school-handoff/fees?status=overdue&pay=1",
-    ctaLabel: "Pay overdue"
+    description: "Outstanding bus fees are overdue. Access the School management system to clear balance.",
+    actionRoute: "/school",
+    ctaLabel: "Access School System"
   }
 ];
 
