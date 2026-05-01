@@ -214,26 +214,44 @@ function mapMockPlacesToSuggestions(places: MockPlaceEntry[]): PlaceSuggestion[]
 
 export async function searchPlaces(query: string): Promise<PlaceSuggestion[]> {
   const term = normalizeQuery(query);
-  if (term.length < 2) return [];
+  if (term.length < 3) return [];
 
-  await new Promise((resolve) => window.setTimeout(resolve, 180));
+  try {
+    // Use Nominatim geocoding API for real place search
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(term)}&countrycodes=UG&limit=5&addressdetails=1`,
+      {
+        method: "GET",
+        headers: {
+          "User-Agent": "EVzone Rider App"
+        }
+      }
+    );
 
-  if (term.includes("mall")) {
-    return mapMockPlacesToSuggestions(getMockGroup("mall"));
-  }
-  if (term.includes("market")) {
-    return mapMockPlacesToSuggestions(getMockGroup("market"));
-  }
-  if (term.includes("church")) {
-    return mapMockPlacesToSuggestions(getMockGroup("church"));
-  }
-  if (term.includes("hospital")) {
-    return mapMockPlacesToSuggestions(getMockGroup("hospital"));
-  }
-  if (term.includes("school")) {
-    return mapMockPlacesToSuggestions(getMockGroup("school"));
-  }
+    if (!response.ok) {
+      console.warn("Nominatim API request failed, falling back to mock data");
+      return getFallbackPlaces(term);
+    }
 
+    const data = await response.json();
+
+    const suggestions: PlaceSuggestion[] = data.map((item: any, index: number) => ({
+      description: item.display_name,
+      placeId: `nominatim-${item.place_id}-${index}`,
+      coordinates: {
+        lat: parseFloat(item.lat),
+        lng: parseFloat(item.lon)
+      }
+    }));
+
+    return suggestions;
+  } catch (error) {
+    console.warn("Failed to fetch from Nominatim API, falling back to mock data:", error);
+    return getFallbackPlaces(term);
+  }
+}
+
+function getFallbackPlaces(term: string): PlaceSuggestion[] {
   const matches = flattenMockPlaces().filter((place) => {
     const haystack = normalizeQuery(`${place.name} ${place.address}`);
     return haystack.includes(term);

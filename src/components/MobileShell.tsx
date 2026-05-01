@@ -118,6 +118,29 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
   const location = useLocation();
   const navigate = useNavigate();
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const [isKeyboardVisible, setIsKeyboardVisible] = React.useState(false);
+
+  // Detect keyboard visibility using visual viewport
+  React.useEffect(() => {
+    const handleViewportChange = () => {
+      if (window.visualViewport) {
+        const viewportHeight = window.visualViewport.height;
+        const windowHeight = window.innerHeight;
+        // Consider keyboard visible if viewport height is significantly smaller than window height
+        const keyboardThreshold = windowHeight * 0.7; // 70% of window height
+        setIsKeyboardVisible(viewportHeight < keyboardThreshold);
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportChange);
+      handleViewportChange(); // Initial check
+
+      return () => {
+        window.visualViewport?.removeEventListener('resize', handleViewportChange);
+      };
+    }
+  }, []);
 
   // Use useLayoutEffect for scroll reset to prevent visual flicker
   React.useLayoutEffect(() => {
@@ -207,7 +230,9 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
                 width: 0,
                 height: 0
               },
-              pb: `calc(${TAB_BAR_HEIGHT}px + env(safe-area-inset-bottom) + 16px)`,
+              pb: isKeyboardVisible
+                ? `calc(env(safe-area-inset-bottom) + 16px)`
+                : `calc(${TAB_BAR_HEIGHT}px + env(safe-area-inset-bottom) + 16px)`,
               pl: "max(0px, env(safe-area-inset-left))",
               pr: "max(0px, env(safe-area-inset-right))"
             }}
@@ -231,73 +256,75 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
             </Box>
           </Box>
 
-          <Box
-            sx={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 1200,
-              pb: "max(0px, env(safe-area-inset-bottom))"
-            }}
-          >
-             <Paper
-               elevation={0}
-               role="navigation"
-               data-nav="true"
-               sx={{
-                 mx: 0,
-                 borderRadius: 0,
-                 bgcolor: "var(--evz-shell-nav-bg, #ffffff)",
-                 backdropFilter: "blur(22px)",
-                 borderTop: "1px solid var(--evz-shell-nav-border, rgba(0,0,0,0.1))",
-                 boxShadow: "var(--evz-shell-nav-shadow, 0 -1px 3px rgba(0,0,0,0.1))"
-               }}
-             >
-               <BottomNavigation
-                 value={navValue}
-                 onChange={handleTabChange}
-                 showLabels
+          {!isKeyboardVisible && (
+            <Box
+              sx={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 1200,
+                pb: "max(0px, env(safe-area-inset-bottom))"
+              }}
+            >
+               <Paper
+                 elevation={0}
                  role="navigation"
                  data-nav="true"
                  sx={{
-                   height: TAB_BAR_HEIGHT,
-                   bgcolor: "transparent",
-                   px: 0.5,
-                   "& .MuiBottomNavigationAction-root": {
-                     color: "var(--evz-shell-nav-icon, #6b7280)",
-                     minWidth: 0,
-                     minHeight: 56,
-                     py: 0.75,
-                     "&.Mui-selected": {
-                       color: "var(--evz-shell-nav-icon-active, #03cd8c)"
-                     }
-                   },
-                   "& .MuiBottomNavigationAction-label": {
-                     fontSize: 11,
-                     mt: 0.25,
-                     lineHeight: 1.2,
-                     "&.Mui-selected": {
-                       fontSize: 11,
-                       fontWeight: 600
-                     }
-                   },
-                   "& .MuiSvgIcon-root": {
-                     fontSize: 24
-                   }
+                   mx: 0,
+                   borderRadius: 0,
+                   bgcolor: "var(--evz-shell-nav-bg, #ffffff)",
+                   backdropFilter: "blur(22px)",
+                   borderTop: "1px solid var(--evz-shell-nav-border, rgba(0,0,0,0.1))",
+                   boxShadow: "var(--evz-shell-nav-shadow, 0 -1px 3px rgba(0,0,0,0.1))"
                  }}
                >
-                {NAV_TABS.map((tab) => (
-                  <BottomNavigationAction
-                    key={tab.value}
-                    value={tab.value}
-                    label={tab.label}
-                    icon={tab.icon}
-                  />
-                ))}
-              </BottomNavigation>
-            </Paper>
-          </Box>
+                 <BottomNavigation
+                   value={navValue}
+                   onChange={handleTabChange}
+                   showLabels
+                   role="navigation"
+                   data-nav="true"
+                   sx={{
+                     height: TAB_BAR_HEIGHT,
+                     bgcolor: "transparent",
+                     px: 0.5,
+                     "& .MuiBottomNavigationAction-root": {
+                       color: "var(--evz-shell-nav-icon, #6b7280)",
+                       minWidth: 0,
+                       minHeight: 56,
+                       py: 0.75,
+                       "&.Mui-selected": {
+                         color: "var(--evz-shell-nav-icon-active, #03cd8c)"
+                       }
+                     },
+                     "& .MuiBottomNavigationAction-label": {
+                       fontSize: 11,
+                       mt: 0.25,
+                       lineHeight: 1.2,
+                       "&.Mui-selected": {
+                         fontSize: 11,
+                         fontWeight: 600
+                       }
+                     },
+                     "& .MuiSvgIcon-root": {
+                       fontSize: 24
+                     }
+                   }}
+                 >
+                  {NAV_TABS.map((tab) => (
+                    <BottomNavigationAction
+                      key={tab.value}
+                      value={tab.value}
+                      label={tab.label}
+                      icon={tab.icon}
+                    />
+                  ))}
+                </BottomNavigation>
+              </Paper>
+            </Box>
+          )}
         </Box>
       </Box>
     </ShellContext.Provider>
