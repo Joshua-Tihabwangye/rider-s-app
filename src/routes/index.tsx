@@ -80,7 +80,7 @@ import ToursDashboard from "../screens/ToursDashboard";
 import Profile from "../screens/Profile";
 
 // Missing imports for various screens
-import SchoolDashboard from "../screens/SchoolDashboard";
+import SchoolManagementGateway from "../screens/SchoolManagementGateway";
 import AllHistory from "../screens/AllHistory";
 import RidesDashboard from "../screens/RidesDashboard";
 import RidePromotions from "../screens/RidePromotions";
@@ -291,7 +291,7 @@ export default function AppRouter(): React.JSX.Element {
 				<Route path="help" element={<Help />} />
 				<Route path="about" element={<About />} />
 				{/* School */}
-				<Route path="school" element={<SchoolDashboard />} />
+				<Route path="school" element={<SchoolManagementGateway />} />
 			</Route>
 
 			{/* Fallback */}
