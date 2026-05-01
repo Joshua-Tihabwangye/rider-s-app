@@ -52,42 +52,64 @@ const NAV_TABS: NavTab[] = [
   }
 ];
 
+// Optimized route to tab mapping for O(1) lookup
+const ROUTE_TO_TAB_MAP: Record<string, string> = {
+  // Home routes
+  "/": "home",
+  "/home": "home",
+  "/rides/booking/confirmation": "home",
+  
+  // Wallet routes
+  "/wallet": "wallet",
+  
+  // Settings routes
+  "/settings": "settings",
+  
+  // More routes (everything else)
+  "/rides": "more",
+  "/deliveries": "more",
+  "/rental": "more",
+  "/tours": "more",
+  "/ambulance": "more",
+  "/more": "more",
+  "/history": "more",
+  "/school-handoff": "more",
+  "/help": "more",
+  "/about": "more",
+  "/school": "more",
+  "/manager": "more"
+};
+
 const ShellContext = React.createContext<boolean>(false);
 
 export function useMobileShellContext(): boolean {
   return React.useContext(ShellContext);
 }
 
+/**
+ * Efficiently determines the active tab based on the current pathname
+ * Uses a map lookup for O(1) performance instead of O(n) if/else chain
+ */
 function getActiveTab(pathname: string): string {
-  if (pathname === "/" || pathname === "/home" || pathname === "/rides/booking/confirmation") {
-    return "home";
+  // Validate input to prevent potential issues
+  if (typeof pathname !== "string") {
+    console.warn("getActiveTab received non-string pathname:", pathname);
+    return "home"; // fallback to home
   }
-
-  if (pathname.startsWith("/wallet")) {
-    return "wallet";
+  
+  // Check for exact matches first
+  if (ROUTE_TO_TAB_MAP[pathname]) {
+    return ROUTE_TO_TAB_MAP[pathname];
   }
-
-  if (pathname.startsWith("/settings")) {
-    return "settings";
+  
+  // Check for prefix matches for dynamic routes
+  for (const [routePrefix, tabValue] of Object.entries(ROUTE_TO_TAB_MAP)) {
+    if (pathname.startsWith(routePrefix) && routePrefix.endsWith("/")) {
+      return tabValue;
+    }
   }
-
-  if (
-    pathname.startsWith("/rides") ||
-    pathname.startsWith("/deliveries") ||
-    pathname.startsWith("/rental") ||
-    pathname.startsWith("/tours") ||
-    pathname.startsWith("/ambulance") ||
-    pathname.startsWith("/more") ||
-    pathname.startsWith("/history") ||
-    pathname.startsWith("/school-handoff") ||
-    pathname.startsWith("/help") ||
-    pathname.startsWith("/about") ||
-    pathname.startsWith("/school") ||
-    pathname.startsWith("/manager")
-  ) {
-    return "more";
-  }
-
+  
+  // Default fallback
   return "home";
 }
 
@@ -97,9 +119,14 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
   const navigate = useNavigate();
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
 
-  React.useEffect(() => {
+  // Use useLayoutEffect for scroll reset to prevent visual flicker
+  React.useLayoutEffect(() => {
     // Ensure route transitions always repaint fresh content from top.
-    scrollContainerRef.current?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    try {
+      scrollContainerRef.current?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    } catch (error) {
+      console.error("Failed to reset scroll position:", error);
+    }
   }, [location.pathname, location.search, location.key]);
 
   // Don't render the shell chrome on auth pages
@@ -112,9 +139,16 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
   const navValue = getActiveTab(location.pathname);
 
   const handleTabChange = (_event: React.SyntheticEvent, value: string): void => {
-    const target = NAV_TABS.find((tab) => tab.value === value);
-    if (target) {
-      navigate(target.route);
+    try {
+      const target = NAV_TABS.find((tab) => tab.value === value);
+      if (target) {
+        navigate(target.route);
+      } else {
+        console.warn(`Attempted to navigate to invalid tab value: ${value}`);
+      }
+    } catch (error) {
+      console.error("Navigation error:", error);
+      // Optionally show user feedback here
     }
   };
 
@@ -156,6 +190,7 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
               flexShrink: 0
             }}
           />
+  
 
           <Box
             ref={scrollContainerRef}
@@ -206,52 +241,52 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
               pb: "max(0px, env(safe-area-inset-bottom))"
             }}
           >
-            <Paper
-              elevation={0}
-              role="navigation"
-              data-nav="true"
-              sx={{
-                mx: 0,
-                borderRadius: 0,
-                bgcolor: "var(--evz-shell-nav-bg)",
-                backdropFilter: "blur(22px)",
-                borderTop: "1px solid var(--evz-shell-nav-border)",
-                boxShadow: "var(--evz-shell-nav-shadow)"
-              }}
-            >
-              <BottomNavigation
-                value={navValue}
-                onChange={handleTabChange}
-                showLabels
-                role="navigation"
-                data-nav="true"
-                sx={{
-                  height: TAB_BAR_HEIGHT,
-                  bgcolor: "transparent",
-                  px: 0.5,
-                  "& .MuiBottomNavigationAction-root": {
-                    color: "var(--evz-shell-nav-icon)",
-                    minWidth: 0,
-                    minHeight: 56,
-                    py: 0.75,
-                    "&.Mui-selected": {
-                      color: "var(--evz-shell-nav-icon-active)"
-                    }
-                  },
-                  "& .MuiBottomNavigationAction-label": {
-                    fontSize: 11,
-                    mt: 0.25,
-                    lineHeight: 1.2,
-                    "&.Mui-selected": {
-                      fontSize: 11,
-                      fontWeight: 600
-                    }
-                  },
-                  "& .MuiSvgIcon-root": {
-                    fontSize: 24
-                  }
-                }}
-              >
+             <Paper
+               elevation={0}
+               role="navigation"
+               data-nav="true"
+               sx={{
+                 mx: 0,
+                 borderRadius: 0,
+                 bgcolor: "var(--evz-shell-nav-bg, #ffffff)",
+                 backdropFilter: "blur(22px)",
+                 borderTop: "1px solid var(--evz-shell-nav-border, rgba(0,0,0,0.1))",
+                 boxShadow: "var(--evz-shell-nav-shadow, 0 -1px 3px rgba(0,0,0,0.1))"
+               }}
+             >
+               <BottomNavigation
+                 value={navValue}
+                 onChange={handleTabChange}
+                 showLabels
+                 role="navigation"
+                 data-nav="true"
+                 sx={{
+                   height: TAB_BAR_HEIGHT,
+                   bgcolor: "transparent",
+                   px: 0.5,
+                   "& .MuiBottomNavigationAction-root": {
+                     color: "var(--evz-shell-nav-icon, #6b7280)",
+                     minWidth: 0,
+                     minHeight: 56,
+                     py: 0.75,
+                     "&.Mui-selected": {
+                       color: "var(--evz-shell-nav-icon-active, #03cd8c)"
+                     }
+                   },
+                   "& .MuiBottomNavigationAction-label": {
+                     fontSize: 11,
+                     mt: 0.25,
+                     lineHeight: 1.2,
+                     "&.Mui-selected": {
+                       fontSize: 11,
+                       fontWeight: 600
+                     }
+                   },
+                   "& .MuiSvgIcon-root": {
+                     fontSize: 24
+                   }
+                 }}
+               >
                 {NAV_TABS.map((tab) => (
                   <BottomNavigationAction
                     key={tab.value}
