@@ -208,6 +208,13 @@ interface AppDataContextValue extends AppState {
   /** Mobile money detail string derived from user phone */
   mobileMoneyDetail: string;
   actions: AppActions;
+  // Memoized selectors for performance
+  selectors: {
+    isAuthenticated: boolean;
+    hasActiveTrip: boolean;
+    hasActiveDelivery: boolean;
+    walletBalanceFormatted: string;
+  };
 }
 
 const AppDataContext = createContext<AppDataContextValue | undefined>(undefined);
@@ -3240,6 +3247,13 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     });
   }, [state.paymentMethods, user]);
 
+  const selectors = useMemo(() => ({
+    isAuthenticated: !!user,
+    hasActiveTrip: !!state.ride.activeTrip,
+    hasActiveDelivery: !!state.delivery.activeOrder,
+    walletBalanceFormatted: `UGX ${Math.round(state.walletBalance).toLocaleString()}`
+  }), [user, state.ride.activeTrip, state.delivery.activeOrder, state.walletBalance]);
+
   const value = useMemo<AppDataContextValue>(
     () => ({
       ...state,
@@ -3247,9 +3261,10 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       transactions: state.transactions as WalletTransaction[],
       reminders: state.reminders as Reminder[],
       mobileMoneyDetail,
-      actions
+      actions,
+      selectors
     }),
-    [state, paymentMethods, mobileMoneyDetail, actions]
+    [state, paymentMethods, mobileMoneyDetail, actions, selectors]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

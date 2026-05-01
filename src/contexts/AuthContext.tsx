@@ -20,13 +20,64 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 function persistSession(user: User, token: string): void {
-  localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
-  localStorage.setItem(STORAGE_KEY_TOKEN, token);
+  try {
+    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+    localStorage.setItem(STORAGE_KEY_TOKEN, token);
+  } catch (error) {
+    console.error("Failed to persist session:", error);
+  }
 }
 
 function clearSession(): void {
-  localStorage.removeItem(STORAGE_KEY_USER);
-  localStorage.removeItem(STORAGE_KEY_TOKEN);
+  try {
+    localStorage.removeItem(STORAGE_KEY_USER);
+    localStorage.removeItem(STORAGE_KEY_TOKEN);
+  } catch (error) {
+    console.error("Failed to clear session:", error);
+  }
+}
+
+function isValidJWT(token: string): boolean {
+  try {
+    // Basic JWT structure validation (header.payload.signature)
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      // For development, allow non-standard tokens that start with our mock prefix
+      if (token.startsWith('mock_jwt_token_')) {
+        console.log("Allowing development mock token");
+        return true;
+      }
+      console.log("Invalid JWT structure - not 3 parts");
+      return false;
+    }
+
+    // Check if header and payload are valid base64 and JSON
+    let header, payload;
+    try {
+      header = JSON.parse(atob(parts[0]));
+      payload = JSON.parse(atob(parts[1]));
+    } catch (decodeError) {
+      console.log("Invalid JWT base64 encoding:", decodeError);
+      return false;
+    }
+
+    // Check if token has not expired (with 5 minute grace period)
+    if (payload.exp && payload.exp * 1000 < (Date.now() - 300000)) {
+      console.log("JWT token expired");
+      return false;
+    }
+
+    // Basic structure validation
+    if (!header.alg || !payload.iat) {
+      console.log("Missing required JWT fields");
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.log("JWT validation error:", error);
+    return false;
+  }
 }
 
 // ─── Provider ────────────────────────────────────────────────────────
@@ -41,30 +92,43 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
 
   // Hydrate auth session from localStorage on app load.
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem(STORAGE_KEY_USER);
-      const storedToken = localStorage.getItem(STORAGE_KEY_TOKEN);
+    const hydrateAuth = async () => {
+      try {
+        const storedUser = localStorage.getItem(STORAGE_KEY_USER);
+        const storedToken = localStorage.getItem(STORAGE_KEY_TOKEN);
 
-      if (!storedUser || !storedToken) {
+        if (!storedUser || !storedToken) {
+          clearSession();
+          setUser(null);
+          return;
+        }
+
+        // Sanitize JSON parsing to prevent prototype pollution
+        const parsedUser = JSON.parse(storedUser);
+        if (!parsedUser || typeof parsedUser !== "object" || Array.isArray(parsedUser) || !("id" in parsedUser)) {
+          clearSession();
+          setUser(null);
+          return;
+        }
+
+        // Validate token format and expiration
+        if (!isValidJWT(storedToken)) {
+          clearSession();
+          setUser(null);
+          return;
+        }
+
+        setUser(parsedUser as User);
+      } catch (error) {
+        console.error("Failed to parse stored auth data:", error);
         clearSession();
         setUser(null);
-        return;
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const parsedUser = JSON.parse(storedUser) as User;
-      if (!parsedUser || typeof parsedUser !== "object" || !("id" in parsedUser)) {
-        clearSession();
-        setUser(null);
-        return;
-      }
-
-      setUser(parsedUser);
-    } catch {
-      clearSession();
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
+    hydrateAuth();
   }, []);
 
   useEffect(() => {
@@ -102,7 +166,9 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
       const response = await authService.signIn(credentials);
       handleAuthSuccess(response.user, response.token);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign in failed.");
+      // Sanitize error messages to prevent information leakage
+      const errorMessage = err instanceof Error ? err.message : "An error occurred";
+      setError(errorMessage.length > 100 ? "Sign in failed. Please try again." : errorMessage);
     } finally {
       setLoading(false);
     }
@@ -115,7 +181,9 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
       const response = await authService.signUp(payload);
       handleAuthSuccess(response.user, response.token);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign up failed.");
+      // Sanitize error messages to prevent information leakage
+      const errorMessage = err instanceof Error ? err.message : "An error occurred";
+      setError(errorMessage.length > 100 ? "Sign up failed. Please try again." : errorMessage);
     } finally {
       setLoading(false);
     }
