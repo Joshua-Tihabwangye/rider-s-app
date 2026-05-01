@@ -26,6 +26,11 @@ function isFiniteCoordinate(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
 
+function isValidUgandaCoordinate(lat: number, lng: number): boolean {
+  // Uganda geographic bounds (approximate)
+  return lat >= -1.5 && lat <= 4.3 && lng >= 29.5 && lng <= 35.0;
+}
+
 function normalizeQuery(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -217,9 +222,10 @@ export async function searchPlaces(query: string): Promise<PlaceSuggestion[]> {
   if (term.length < 3) return [];
 
   try {
-    // Use Nominatim geocoding API for real place search
+    // Enhanced Nominatim geocoding API for better key location capture
+    // Increase limit, add deduplication, and better search parameters for key GPS locations
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(term)}&countrycodes=UG&limit=5&addressdetails=1`,
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(term)}&countrycodes=UG&limit=15&addressdetails=1&dedupe=1&bounded=1&viewbox=29.5,4.3,35.0,-1.5&extratags=1&namedetails=1`,
       {
         method: "GET",
         headers: {
@@ -235,14 +241,65 @@ export async function searchPlaces(query: string): Promise<PlaceSuggestion[]> {
 
     const data = await response.json();
 
-    const suggestions: PlaceSuggestion[] = data.map((item: any, index: number) => ({
-      description: item.display_name,
-      placeId: `nominatim-${item.place_id}-${index}`,
-      coordinates: {
-        lat: parseFloat(item.lat),
-        lng: parseFloat(item.lon)
+    // Filter and prioritize results - prefer key GPS locations with higher importance and valid coordinates
+    const validResults = data
+      .filter((item: any) => {
+        const lat = parseFloat(item.lat);
+        const lng = parseFloat(item.lon);
+        // Validate coordinates are finite numbers and within Uganda bounds
+        const isValidCoord = isFiniteCoordinate(lat) && isFiniteCoordinate(lng) && isValidUgandaCoordinate(lat, lng);
+
+        // Also check if it's a meaningful place (has a proper name, not just coordinates)
+        const hasMeaningfulName = item.display_name && item.display_name.length > 10;
+
+        return isValidCoord && hasMeaningfulName;
+      })
+      .sort((a: any, b: any) => {
+        // Primary sort: importance (higher importance = more key locations)
+        const aImportance = parseFloat(a.importance) || 0;
+        const bImportance = parseFloat(b.importance) || 0;
+        if (aImportance !== bImportance) return bImportance - aImportance;
+
+        // Secondary sort: prefer key place types that are GPS-located landmarks
+        const keyPlaceTypes = ['amenity', 'tourism', 'leisure', 'historic', 'shop', 'place'];
+        const aTypeScore = keyPlaceTypes.includes(a.class) ? 2 : (a.class === 'highway' ? 1 : 0);
+        const bTypeScore = keyPlaceTypes.includes(b.class) ? 2 : (b.class === 'highway' ? 1 : 0);
+        if (aTypeScore !== bTypeScore) return bTypeScore - aTypeScore;
+
+        // Tertiary sort: prefer places with more detailed names
+        const aNameLength = (a.display_name || '').length;
+        const bNameLength = (b.display_name || '').length;
+        return bNameLength - aNameLength;
+      })
+      .slice(0, 8); // Limit to top 8 key results
+
+    const suggestions: PlaceSuggestion[] = validResults.map((item: any, index: number) => {
+      // Create more meaningful descriptions for key GPS locations
+      let description = item.display_name;
+
+      // If we have namedetails, try to construct a better description
+      if (item.namedetails && item.namedetails.name) {
+        const name = item.namedetails.name;
+        const addressParts = [];
+
+        if (item.address) {
+          if (item.address.city) addressParts.push(item.address.city);
+          if (item.address.state) addressParts.push(item.address.state);
+          if (item.address.country) addressParts.push(item.address.country);
+        }
+
+        description = addressParts.length > 0 ? `${name}, ${addressParts.join(', ')}` : name;
       }
-    }));
+
+      return {
+        description,
+        placeId: `nominatim-${item.place_id}-${index}`,
+        coordinates: {
+          lat: parseFloat(item.lat),
+          lng: parseFloat(item.lon)
+        }
+      };
+    });
 
     return suggestions;
   } catch (error) {

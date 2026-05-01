@@ -39,7 +39,7 @@ import TripTypeModal from "../components/TripTypeModal";
 import AddStopModal from "../components/AddStopModal";
 import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
 import { useAppData } from "../contexts/AppDataContext";
-import { searchPlaces as searchMapPlaces } from "../services/maps";
+import { searchPlaces as searchMapPlaces, calculateRoute, geocodeAddress } from "../services/maps";
 
 interface SearchResult {
 	id: string;
@@ -70,14 +70,21 @@ function normalizeRideType(value: unknown): RideTypeOption {
 const searchLocations = async (query: string): Promise<SearchResult[]> => {
 	if (!query || query.length < 3) return [];
 	const suggestions = await searchMapPlaces(query);
-	return suggestions.map((item, index) => ({
-		id: `live-${item.placeId}-${index}`,
-		name: item.description.split(",")[0]?.trim() || item.description,
-		subtext: item.description,
-		distance: "Live result",
-		type: "location",
-		coordinates: item.coordinates,
-	}));
+	return suggestions.map((item, index) => {
+		// Extract meaningful name from description for key GPS locations
+		const descriptionParts = item.description.split(",");
+		const primaryName = descriptionParts[0]?.trim() || item.description;
+		const locationDetails = descriptionParts.slice(1).join(",").trim();
+
+		return {
+			id: `live-${item.placeId}-${index}`,
+			name: primaryName,
+			subtext: locationDetails || item.description,
+			distance: "GPS location",
+			type: "location",
+			coordinates: item.coordinates,
+		};
+	});
 };
 
 // Mock recent searches
@@ -113,8 +120,32 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [pickup, setPickup] = useState(
 		initialState.pickup || ride.request.origin?.label || "Current location",
 	);
+	const [pickupCoords, setPickupCoords] = useState(
+		initialState.pickupCoords || ride.request.origin?.coordinates || { lat: 0.3476, lng: 32.5825 }, // Default to Kampala center
+	);
+
+	// Geocode pickup location if it's not "Current location"
+	useEffect(() => {
+		const geocodePickup = async () => {
+			if (pickup && pickup !== "Current location" && !pickupCoords) {
+				try {
+					const coords = await geocodeAddress(pickup);
+					if (coords) {
+						setPickupCoords(coords);
+					}
+				} catch (error) {
+					console.error("Failed to geocode pickup location:", error);
+				}
+			}
+		};
+
+		geocodePickup();
+	}, [pickup, pickupCoords]);
 	const [destination, setDestination] = useState(
 		initialState.destination || ride.request.destination?.label || "",
+	);
+	const [destinationCoords, setDestinationCoords] = useState(
+		initialState.destinationCoords || ride.request.destination?.coordinates || null,
 	);
 	const [passengers, setPassengers] = useState(initialState.passengers || ride.request.passengers || 1);
 	const [customPassengers, setCustomPassengers] = useState("");
@@ -148,6 +179,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 		useState<HTMLElement | null>(null);
 	const [showError, setShowError] = useState(false);
 	const [showSwitchRiderModal, setShowSwitchRiderModal] = useState(false);
+	const [routePolyline, setRoutePolyline] = useState<{ lat: number; lng: number }[]>([]);
+	const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
 	const [showTripTypeModal, setShowTripTypeModal] = useState(false);
 	const [showAddStopModal, setShowAddStopModal] = useState(false);
 	const [selectedContact, setSelectedContact] = useState(
@@ -179,14 +212,40 @@ function EnterDestinationScreen(): React.JSX.Element {
 	);
 	const MAX_STOPS = 6; // Allow up to 6 stops in multi-stop mode
 
+	// Calculate route when both pickup and destination have coordinates
+	useEffect(() => {
+		const calculateAndSetRoute = async () => {
+			if (pickupCoords && destinationCoords) {
+				setIsCalculatingRoute(true);
+				try {
+					const route = await calculateRoute(pickupCoords, destinationCoords);
+					if (route) {
+						setRoutePolyline(route.path);
+					} else {
+						setRoutePolyline([]);
+					}
+				} catch (error) {
+					console.error("Failed to calculate route:", error);
+					setRoutePolyline([]);
+				}
+				setIsCalculatingRoute(false);
+			} else {
+				setRoutePolyline([]);
+			}
+		};
+
+		calculateAndSetRoute();
+	}, [pickupCoords, destinationCoords]);
+
 	// Update destination when returning from map screen
 	useEffect(() => {
 		if (initialState.fromMap && initialState.destination) {
 			setDestination(initialState.destination);
+			setDestinationCoords(initialState.destinationCoords || null);
 			setSearchQuery("");
 			setShowSearchResults(false);
 		}
-	}, [initialState.fromMap, initialState.destination]);
+	}, [initialState.fromMap, initialState.destination, initialState.destinationCoords]);
 
 	// Update schedule when returning from schedule screen
 	useEffect(() => {
@@ -318,6 +377,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 
 	const handleDestinationSelect = (result: SearchResult): void => {
 		setDestination(result.name);
+		setDestinationCoords(result.coordinates);
 		setSearchQuery("");
 		setShowSearchResults(false);
 		setShowError(false);
@@ -325,8 +385,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 
 	const handleSwitchLocations = () => {
 		const tempPickup = pickup;
+		const tempPickupCoords = pickupCoords;
 		setPickup(destination);
+		setPickupCoords(destinationCoords);
 		setDestination(tempPickup);
+		setDestinationCoords(tempPickupCoords);
 	};
 
 	const handleScheduleSelect = (option: string): void => {
@@ -413,7 +476,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 		// Use rider data from modal if provided, otherwise use current state
 		const baseState = riderData || {
 			pickup,
+			pickupCoords,
 			destination,
+			destinationCoords,
 			passengers,
 			rideType,
 			tripType,
@@ -558,6 +623,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 				<MapShell
 					showControls={false}
 					sx={{ height: { xs: "50dvh", md: "56vh" } }}
+					pickupLocation={pickupCoords}
+					dropoffLocation={destinationCoords}
+					routePolyline={routePolyline}
 					canvasSx={{
 						background:
 							theme.palette.mode === "light"
