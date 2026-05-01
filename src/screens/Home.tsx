@@ -62,8 +62,8 @@ const SERVICE_ACTIONS: ServiceAction[] = [
   },
   {
     title: "School",
-    description: "Manage your school shuttle rides",
-    route: "/school-handoff",
+    description: "Access school transport management",
+    route: "/school",
     icon: <SchoolRoundedIcon sx={{ fontSize: 20 }} />
   },
   {

@@ -186,7 +186,7 @@ export default function SchoolFees(): React.JSX.Element {
         if (reminder.category !== "wallet") {
           return false;
         }
-        if (!reminder.actionRoute.includes("/school-handoff/fees")) {
+        if (!reminder.actionRoute.includes("/school")) {
           return false;
         }
         if (statusFilter === "overdue") {

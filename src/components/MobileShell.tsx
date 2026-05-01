@@ -73,7 +73,7 @@ const ROUTE_TO_TAB_MAP: Record<string, string> = {
   "/ambulance": "more",
   "/more": "more",
   "/history": "more",
-  "/school-handoff": "more",
+
   "/help": "more",
   "/about": "more",
   "/school": "more",

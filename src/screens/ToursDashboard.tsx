@@ -1,66 +1,49 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
-  IconButton,
   Typography,
   Card,
   CardContent,
   Stack,
   Button,
-  Divider
+  CircularProgress
 } from "@mui/material";
 
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
-import { useAppData } from "../contexts/AppDataContext";
 
 import TourRoundedIcon from "@mui/icons-material/TourRounded";
-import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
-import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
-import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
+import LaunchRoundedIcon from "@mui/icons-material/LaunchRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
+import { IconButton } from "@mui/material";
 
-
-function ToursDashboardHomeScreen(): React.JSX.Element {
-  const greenAction = "#22C55E";
-  const orangeButton = "#FDBA74";
-  const orangeButtonHover = "#FB923C";
-  const orangeButtonText = "#7C2D12";
+function ToursGatewayScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const { tours, actions } = useAppData();
-  const featuredTour = tours.tours[0];
-  const upcomingTours = tours.tours.slice(0, 3);
+  const [isRedirecting, setIsRedirecting] = React.useState(false);
 
-  const handleBookFeatured = () => {
-    if (featuredTour) {
-      actions.selectTour(featuredTour.id);
-      navigate(`/tours/${featuredTour.id}/dates`);
-    }
-  };
+  const handleAccessTourApp = () => {
+    setIsRedirecting(true);
 
-  const handleViewDetails = () => {
-    if (featuredTour) {
-      actions.selectTour(featuredTour.id);
-      navigate(`/tours/${featuredTour.id}`);
-    }
-  };
+    // Simulate connection to external Tour and Travel app
+    // In a real implementation, this would redirect to the external app
+    // or open it in a new window/tab with proper authentication tokens
 
-  const handleCreateCustom = () => {
-    navigate("/tours/new");
-  };
+    setTimeout(() => {
+      // For demo purposes, show an alert. In production, this would redirect to the actual Tour app
+      alert("Redirecting to Tour and Travel Application...\n\nIn a production environment, this would open the dedicated Tour and Travel app with your EVzone authentication.");
 
-  const handleBrowseAllTours = () => {
-    navigate("/tours/available");
+      // Reset loading state
+      setIsRedirecting(false);
+    }, 2000);
   };
 
   return (
     <ScreenScaffold>
       <SectionHeader
-        title="Tours & charters"
-        subtitle="Browse EV tours, day trips & weekend getaways"
+        title="Tour & Travel Gateway"
+        subtitle="Access your dedicated Tour and Travel experience"
         leadingAction={
           <Stack direction="row" spacing={uiTokens.spacing.sm} alignItems="center">
             <IconButton
@@ -97,308 +80,161 @@ function ToursDashboardHomeScreen(): React.JSX.Element {
         }
       />
 
-      <Button
-        fullWidth
-        variant="contained"
-        onClick={handleBrowseAllTours}
-        endIcon={<ArrowForwardIosRoundedIcon sx={{ fontSize: 14 }} />}
-        sx={{
-          borderRadius: uiTokens.radius.xl,
-          py: 1.2,
-          justifyContent: "space-between",
-          textTransform: "none",
-          fontSize: 14,
-          fontWeight: 700,
-          bgcolor: orangeButton,
-          color: orangeButtonText,
-          boxShadow: "0 14px 28px rgba(21,128,61,0.22)",
-          "&:hover": { bgcolor: orangeButtonHover }
-        }}
-      >
-        Browse all tours
-      </Button>
-
-      <Box
-        sx={{
-          display: "grid",
-          gap: 1.5,
-          gridTemplateColumns: { xs: "1fr", md: "1.35fr 1fr" }
-        }}
-      >
-        <Card
-          elevation={0}
-          sx={{
-            borderRadius: uiTokens.radius.xl,
-            bgcolor: (t) =>
-              t.palette.mode === "light"
-                ? "linear-gradient(145deg, #E0F2FE 0%, #EEF2FF 55%, #FFFFFF 100%)"
-                : "linear-gradient(160deg, #22C55E 0%, #22C55E 55%, #22C55E 100%)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(125,211,252,0.8)"
-                : "1px solid rgba(56,189,248,0.6)"
-          }}
-        >
-          <CardContent sx={{ px: { xs: 1.5, sm: 1.9 }, py: { xs: 1.5, sm: 1.9 } }}>
-            <Typography
-              variant="caption"
-              sx={{
-                fontSize: 11,
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                color: (t) => t.palette.text.secondary,
-                mb: 0.8,
-                display: "block"
-              }}
-            >
-              Featured this weekend
-            </Typography>
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: 800, letterSpacing: "-0.02em", mb: 0.5, fontSize: { xs: 22, sm: 24 } }}
-            >
-              {featuredTour?.title ?? "EV Day Trip"}
-            </Typography>
-            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.75 }}>
-              <PlaceRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                {featuredTour ? `${featuredTour.location} • ${featuredTour.duration} • EV transport included` : "Tour details"}
-              </Typography>
-            </Stack>
-            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1.25 }}>
-              <CalendarMonthRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                {featuredTour ? `${featuredTour.scheduleLabel} • ${featuredTour.seatsLeft} spots left` : "Schedule"}
-              </Typography>
-            </Stack>
-
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.1}>
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={handleBookFeatured}
-                sx={{
-                  borderRadius: uiTokens.radius.xl,
-                  py: 0.95,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  textTransform: "none",
-                  bgcolor: orangeButton,
-                  color: orangeButtonText,
-                  "&:hover": { bgcolor: orangeButtonHover }
-                }}
-              >
-                Book this tour
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={handleViewDetails}
-                sx={{
-                  borderRadius: uiTokens.radius.xl,
-                  py: 0.95,
-                  fontSize: 13,
-                  textTransform: "none",
-                  color: greenAction,
-                  borderColor: greenAction,
-                  "&:hover": {
-                    borderColor: greenAction,
-                    bgcolor: "rgba(34,197,94,0.08)"
-                  }
-                }}
-              >
-                View details
-              </Button>
-            </Stack>
-          </CardContent>
-        </Card>
-
-        <Card
-          elevation={0}
-          sx={{
-            borderRadius: uiTokens.radius.xl,
-            bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)"),
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(203,213,225,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
-          }}
-        >
-          <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.5, sm: 1.75 } }}>
-            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-              Plan your own trip
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 0.4, mb: 1.2, fontWeight: 600 }}>
-              Custom tour or private charter
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, mb: 1.2, display: "block" }}
-            >
-              Build a tailored EV-powered itinerary for your dates, route and group size.
-            </Typography>
-            <Stack spacing={1}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={handleCreateCustom}
-                sx={{
-                  borderRadius: uiTokens.radius.xl,
-                  py: 0.85,
-                  fontSize: 13,
-                  textTransform: "none",
-                  color: greenAction,
-                  borderColor: greenAction,
-                  "&:hover": {
-                    borderColor: greenAction,
-                    bgcolor: "rgba(34,197,94,0.08)"
-                  }
-                }}
-              >
-                Build custom tour
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => navigate("/tours/new", { state: { mode: "quote" } })}
-                sx={{
-                  borderRadius: uiTokens.radius.xl,
-                  py: 0.85,
-                  fontSize: 13,
-                  textTransform: "none",
-                  borderStyle: "dotted",
-                  color: greenAction,
-                  borderColor: greenAction,
-                  "&:hover": {
-                    borderColor: greenAction,
-                    bgcolor: "rgba(34,197,94,0.08)"
-                  }
-                }}
-              >
-                Request quote
-              </Button>
-            </Stack>
-          </CardContent>
-        </Card>
-      </Box>
-
-      {/* Upcoming tours list */}
       <Card
         elevation={0}
         sx={{
           borderRadius: uiTokens.radius.xl,
           bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)",
+            t.palette.mode === "light"
+              ? "linear-gradient(145deg, #E0F2FE 0%, #EEF2FF 55%, #FFFFFF 100%)"
+              : "linear-gradient(160deg, #22C55E 0%, #22C55E 55%, #22C55E 100%)",
           border: (t) =>
             t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
+              ? "1px solid rgba(125,211,252,0.8)"
+              : "1px solid rgba(56,189,248,0.6)",
+          mb: uiTokens.spacing.lg
+        }}
+      >
+        <CardContent sx={{ px: { xs: 2, sm: 2.5 }, py: { xs: 2, sm: 2.5 } }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
+              mb: uiTokens.spacing.md,
+              fontSize: { xs: 20, sm: 22 }
+            }}
+          >
+            EVzone Tour & Travel
+          </Typography>
+
+          <Typography
+            variant="body2"
+            sx={{
+              mb: uiTokens.spacing.lg,
+              color: (t) => t.palette.text.secondary,
+              lineHeight: 1.5
+            }}
+          >
+            Access our dedicated Tour and Travel application for comprehensive EV-powered travel experiences.
+            Book guided tours, day trips, safaris, and custom charters with seamless integration to your EVzone account.
+          </Typography>
+
+          <Stack spacing={uiTokens.spacing.md}>
+            <Box>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  mb: uiTokens.spacing.xs,
+                  color: (t) => t.palette.text.primary
+                }}
+              >
+                ✨ What you can do in the Tour app:
+              </Typography>
+              <Stack spacing={0.5}>
+                <Typography variant="body2" sx={{ fontSize: 13, color: (t) => t.palette.text.secondary }}>
+                  • Browse curated EV tours and experiences
+                </Typography>
+                <Typography variant="body2" sx={{ fontSize: 13, color: (t) => t.palette.text.secondary }}>
+                  • Book private charters and group tours
+                </Typography>
+                <Typography variant="body2" sx={{ fontSize: 13, color: (t) => t.palette.text.secondary }}>
+                  • Manage your bookings and itineraries
+                </Typography>
+                <Typography variant="body2" sx={{ fontSize: 13, color: (t) => t.palette.text.secondary }}>
+                  • Access exclusive EV travel deals
+                </Typography>
+              </Stack>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: uiTokens.radius.xl,
+          bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(134,239,172,0.16)"),
+          border: (t) =>
+            t.palette.mode === "light"
+              ? "1px solid rgba(203,213,225,0.9)"
               : "1px solid rgba(51,65,85,0.9)"
         }}
       >
-        <CardContent sx={{ px: { xs: 1.5, sm: 1.75 }, py: { xs: 1.5, sm: 1.7 } }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{ mb: 1 }}
+        <CardContent sx={{ px: { xs: 2, sm: 2.5 }, py: { xs: 2, sm: 2.5 } }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              fontSize: 14,
+              fontWeight: 600,
+              mb: uiTokens.spacing.md,
+              color: (t) => t.palette.text.primary
+            }}
           >
-            <Typography
-              variant="subtitle2"
-              sx={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.01em" }}
-            >
-              Your upcoming tours
-            </Typography>
-            <Button
-              onClick={() => navigate("/tours/history")}
-              sx={{
-                minWidth: "auto",
-                px: 0,
-                py: 0,
-                fontSize: 11,
-                textTransform: "none",
-                color: (t) => t.palette.text.secondary
-              }}
-            >
-              View all
-            </Button>
-          </Stack>
-          <Divider sx={{ mb: 1, borderColor: (t) => t.palette.divider }} />
+            🚀 Ready to explore?
+          </Typography>
 
-          {upcomingTours.map((tour) => (
-            <Box
-              key={tour.id}
-              onClick={() => {
-                actions.selectTour(tour.id);
-                navigate(`/tours/${tour.id}`);
-              }}
-              sx={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                py: 0.6,
-                "&:not(:last-of-type)": {
-                  borderBottom: (t) => `1px dashed ${t.palette.divider}`
-                }
-              }}
-            >
-              <Box>
-                <Typography
-                  variant="body2"
-                  sx={{ fontSize: 12.5, fontWeight: 500, letterSpacing: "-0.01em" }}
-                >
-                  {tour.title}
-                </Typography>
-                <Stack direction="row" spacing={0.75} alignItems="center">
-                  <CalendarMonthRoundedIcon
-                    sx={{ fontSize: 15, color: (t) => t.palette.text.secondary }}
-                  />
-                  <Typography
-                    variant="caption"
-                    sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-                  >
-                    {tour.scheduleLabel}
-                  </Typography>
-                </Stack>
-                <Stack direction="row" spacing={0.75} alignItems="center">
-                  <PeopleAltRoundedIcon
-                    sx={{ fontSize: 15, color: (t) => t.palette.text.secondary }}
-                  />
-                  <Typography
-                    variant="caption"
-                    sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-                  >
-                    {tours.booking.guests} guests
-                  </Typography>
-                </Stack>
-              </Box>
-              <ArrowForwardIosRoundedIcon
-                sx={{ fontSize: 14, color: (t) => t.palette.text.secondary }}
-              />
-            </Box>
-          ))}
+          <Typography
+            variant="body2"
+            sx={{
+              mb: uiTokens.spacing.lg,
+              color: (t) => t.palette.text.secondary,
+              lineHeight: 1.5
+            }}
+          >
+            Your EVzone account will be automatically linked to the Tour and Travel app,
+            giving you seamless access to all your preferences and payment methods.
+          </Typography>
+
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleAccessTourApp}
+            disabled={isRedirecting}
+            startIcon={isRedirecting ? <CircularProgress size={16} /> : <LaunchRoundedIcon />}
+            sx={{
+              borderRadius: uiTokens.radius.xl,
+              py: 1.2,
+              fontSize: 14,
+              fontWeight: 600,
+              textTransform: "none",
+              bgcolor: "#22C55E",
+              color: "#FFFFFF",
+              boxShadow: "0 8px 24px rgba(34,197,94,0.3)",
+              "&:hover": {
+                bgcolor: "#16A34A",
+                boxShadow: "0 12px 32px rgba(34,197,94,0.4)"
+              },
+              "&:disabled": {
+                bgcolor: "#94A3B8",
+                color: "#FFFFFF"
+              }
+            }}
+          >
+            {isRedirecting ? "Connecting..." : "Access Tour & Travel App"}
+          </Button>
         </CardContent>
       </Card>
 
       <Typography
         variant="caption"
-        sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary, mt: 1, display: "block" }}
+        sx={{
+          fontSize: 10.5,
+          color: (t) => t.palette.text.secondary,
+          mt: uiTokens.spacing.md,
+          display: "block",
+          textAlign: "center"
+        }}
       >
-        Use the tours dashboard to quickly find and manage EV-powered experiences,
-        from same-day outings to multi-day safaris, all linked to your EVzone
-        account and payment methods.
+        The Tours dashboard serves as your gateway to comprehensive EV-powered travel experiences.
+        All bookings and preferences are synchronized with your EVzone account.
       </Typography>
     </ScreenScaffold>
   );
 }
 
 export default function ToursDashboard(): React.JSX.Element {
-  return (
-    <>
-
-        <ToursDashboardHomeScreen />
-      
-    </>
-  );
+  return <ToursGatewayScreen />;
 }
