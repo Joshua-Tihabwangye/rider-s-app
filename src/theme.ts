@@ -64,28 +64,28 @@ export const createEvzoneTheme = (mode: PaletteMode = "light"): Theme =>
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: "var(--evz-radius-lg)"
+            borderRadius: "var(--evz-radius-lg, 4px)"
           }
         }
       },
       MuiPaper: {
         styleOverrides: {
           root: {
-            borderRadius: "var(--evz-radius-lg)"
+            borderRadius: "var(--evz-radius-lg, 4px)"
           }
         }
       },
       MuiButton: {
         styleOverrides: {
           root: {
-            borderRadius: "var(--evz-radius-md)"
+            borderRadius: "var(--evz-radius-md, 3px)"
           }
         }
       },
       MuiChip: {
         styleOverrides: {
           root: {
-            borderRadius: "var(--evz-radius-pill)"
+            borderRadius: "var(--evz-radius-pill, 5px)"
           }
         }
       },
@@ -93,7 +93,7 @@ export const createEvzoneTheme = (mode: PaletteMode = "light"): Theme =>
         styleOverrides: {
           root: {
             "& .MuiInputBase-root": {
-              borderRadius: "var(--evz-radius-md)"
+              borderRadius: "var(--evz-radius-md, 3px)"
             }
           }
         }
@@ -101,28 +101,28 @@ export const createEvzoneTheme = (mode: PaletteMode = "light"): Theme =>
       MuiIconButton: {
         styleOverrides: {
           root: {
-            borderRadius: "var(--evz-radius-md)"
+            borderRadius: "var(--evz-radius-md, 3px)"
           }
         }
       },
       MuiListItemButton: {
         styleOverrides: {
           root: {
-            borderRadius: "var(--evz-radius-md)"
+            borderRadius: "var(--evz-radius-md, 3px)"
           }
         }
       },
       MuiBottomNavigation: {
         styleOverrides: {
           root: {
-            borderRadius: "var(--evz-radius-xl)"
+            borderRadius: "var(--evz-radius-xl, 5px)"
           }
         }
       },
       MuiBottomNavigationAction: {
         styleOverrides: {
           root: {
-            borderRadius: "var(--evz-radius-lg)"
+            borderRadius: "var(--evz-radius-lg, 4px)"
           }
         }
       }
