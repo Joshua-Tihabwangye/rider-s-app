@@ -23,12 +23,14 @@ import ScreenScaffold from "../components/ScreenScaffold";
 import MapShell from "../components/maps/MapShell";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { normalizeRoute } from "../utils/mapRoutes";
 
 function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
-  const { ride, actions } = useAppData();
+  const { ride, sharedLocationState, actions } = useAppData();
   const activeTrip = ride.activeTrip;
+  const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
 
   const routeState = (location.state as Record<string, unknown> | null) ?? null;
 
@@ -145,83 +147,15 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
         <MapShell
           showControls={false}
           sx={{ height: { xs: "44dvh", md: "52vh" } }}
+          pickupLocation={sharedLocationState.pickupCoords}
+          dropoffLocation={sharedLocationState.destinationCoords}
+          driverLocation={sharedLocationState.destinationCoords}
+          routePolyline={routePolyline}
           canvasSx={{
             background:
               "linear-gradient(160deg, #D6E9FF 0%, #E5F3FF 22%, #F5EED9 22%, #F5EED9 100%)"
           }}
-        >
-          <Box
-            sx={{
-              position: "absolute",
-              top: "58%",
-              left: "18%",
-              width: 18,
-              height: 18,
-              borderRadius: "50%",
-              bgcolor: "#22C55E",
-              border: "3px solid rgba(255,255,255,0.95)",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.22)",
-              transform: "translate(-50%, -50%)"
-            }}
-          />
-
-          <Box
-            sx={{
-              position: "absolute",
-              top: "33%",
-              right: "15%",
-              width: 20,
-              height: 20,
-              borderRadius: "50%",
-              bgcolor: "#F97316",
-              border: "3px solid rgba(255,255,255,0.95)",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.22)",
-              transform: "translate(50%, -50%)"
-            }}
-          />
-
-          {stopovers.map((_, index) => {
-            const ratio = (index + 1) / (stopovers.length + 1);
-            return (
-              <Box
-                key={`stop-marker-${index}`}
-                sx={{
-                  position: "absolute",
-                  left: `${22 + ratio * 48}%`,
-                  top: `${56 - ratio * 20}%`,
-                  width: 12,
-                  height: 12,
-                  borderRadius: "50%",
-                  bgcolor: "#0EA5E9",
-                  border: "2px solid rgba(255,255,255,0.95)",
-                  boxShadow: "0 3px 8px rgba(0,0,0,0.2)",
-                  transform: "translate(-50%, -50%)"
-                }}
-              />
-            );
-          })}
-
-          <Box
-            sx={{
-              position: "absolute",
-              left: "44%",
-              top: "47%",
-              transform: "translate(-50%, -50%)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              zIndex: 3
-            }}
-          >
-            <DirectionsCarFilledRoundedIcon
-              sx={{
-                fontSize: 30,
-                color: "#03CD8C",
-                filter: "drop-shadow(0 3px 8px rgba(0,0,0,0.24))"
-              }}
-            />
-          </Box>
-        </MapShell>
+        />
       </Box>
 
       <Card

@@ -22,18 +22,34 @@ import MapShell from "../components/maps/MapShell";
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 
 function SearchingForDriverScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
-  const { actions } = useAppData();
+  const { sharedLocationState, actions } = useAppData();
   const [dots, setDots] = useState(".");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [searchTime, setSearchTime] = useState(0);
+  const [driverProgress, setDriverProgress] = useState(0);
+  const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
+  const routeReady =
+    Boolean(sharedLocationState.pickupCoords) &&
+    Boolean(sharedLocationState.destinationCoords) &&
+    routePolyline.length > 1;
+
+  // Calculate driver location along the route
+  const driverLocation = React.useMemo(() => {
+    return getApproachPoint(routePolyline, driverProgress);
+  }, [routePolyline, driverProgress]);
 
   useEffect(() => {
     actions.setRideStatus("searching");
   }, [actions.setRideStatus]);
+
+  useEffect(() => {
+    actions.updateSharedLocationState({ driverLocation });
+  }, [actions, driverLocation]);
 
   useEffect(() => {
     console.debug("[SearchingDriver] mounted", location.pathname);
@@ -43,18 +59,24 @@ function SearchingForDriverScreen(): React.JSX.Element {
   }, [location.pathname]);
 
   useEffect(() => {
+    if (!routeReady) {
+      return undefined;
+    }
     const interval = setInterval(() => {
       setDots((prev) => (prev.length >= 4 ? "." : `${prev}.`));
       setSearchTime((prev) => prev + 1);
+      // Simulate driver approaching pickup location
+      setDriverProgress((prev) => Math.min(prev + 0.02, 0.8)); // Move 2% closer each second, stop at 80%
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [routeReady]);
 
   useEffect(() => {
+    if (!routeReady) return;
     if (searchTime < 8) return;
     actions.setRideStatus("driver_on_way");
     navigate("/rides/driver-on-way");
-  }, [actions.setRideStatus, navigate, searchTime]);
+  }, [actions.setRideStatus, navigate, routeReady, searchTime]);
 
   const topMapBleedSx = {
     position: "relative",
@@ -80,35 +102,12 @@ function SearchingForDriverScreen(): React.JSX.Element {
           preset="compact"
           sx={{ height: { xs: "52dvh", md: "54vh" } }}
           showControls={false}
+          pickupLocation={sharedLocationState.pickupCoords}
+          dropoffLocation={sharedLocationState.destinationCoords}
+          driverLocation={driverLocation}
+          routePolyline={sharedLocationState.routePolyline}
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
         >
-          <Box
-            sx={{
-              position: "absolute",
-              left: "18%",
-              bottom: "22%",
-              width: 14,
-              height: 14,
-              borderRadius: "50%",
-              bgcolor: "#22c55e",
-              border: "2px solid #ffffff"
-            }}
-          />
-          <Box
-            sx={{
-              position: "absolute",
-              left: "44%",
-              top: "50%",
-              transform: "translate(-50%, -50%)",
-              animation: "carPulse 1.8s ease-in-out infinite",
-              "@keyframes carPulse": {
-                "0%, 100%": { transform: "translate(-50%, -50%) scale(1)" },
-                "50%": { transform: "translate(-50%, -50%) scale(1.1)" }
-              }
-            }}
-          >
-            <LocalTaxiRoundedIcon sx={{ fontSize: 28, color: "#F97316" }} />
-          </Box>
           <Chip
             size="small"
             icon={<RefreshRoundedIcon sx={{ fontSize: 14 }} />}
@@ -136,7 +135,9 @@ function SearchingForDriverScreen(): React.JSX.Element {
           Searching for driver{dots}
         </Typography>
         <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-          Matching you with the nearest available EV driver.
+          {routeReady
+            ? "Matching you with the nearest available EV driver."
+            : "Select pickup and destination first."}
         </Typography>
       </Box>
 
@@ -156,10 +157,12 @@ function SearchingForDriverScreen(): React.JSX.Element {
             <CircularProgress size={20} thickness={5} />
             <Box>
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                Searching nearby drivers
+                {routeReady ? "Searching nearby drivers" : "Route unavailable"}
               </Typography>
               <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                Hold on while we find the closest available driver.
+                {routeReady
+                  ? "Hold on while we find the closest available driver."
+                  : "Go back and confirm both pickup and destination coordinates."}
               </Typography>
             </Box>
           </Stack>
@@ -168,9 +171,9 @@ function SearchingForDriverScreen(): React.JSX.Element {
 
       <Button
         fullWidth
-        variant="outlined"
+        variant={routeReady ? "outlined" : "contained"}
         size="small"
-        onClick={() => setShowCancelDialog(true)}
+        onClick={() => (routeReady ? setShowCancelDialog(true) : navigate("/rides/enter/details"))}
         sx={{
           borderRadius: uiTokens.radius.xl,
           py: 0.9,
@@ -178,7 +181,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
           textTransform: "none"
         }}
       >
-        Cancel request
+        {routeReady ? "Cancel request" : "Back to trip setup"}
       </Button>
 
       <Dialog

@@ -18,7 +18,8 @@ import type {
   AmbulanceState,
   AmbulanceRequest,
   SosState,
-  RideOption
+  RideOption,
+  SharedLocationState
 } from "./types";
 import {
   applySettlementForDeliveryStatus,
@@ -1144,4 +1145,15 @@ export const SEED_SOS_STATE: SosState = {
   activeEventId: null,
   events: [],
   emergencyServicesNumber: "112"
+};
+
+/** Shared location state */
+export const SEED_SHARED_LOCATION_STATE: SharedLocationState = {
+  pickupCoords: null,
+  destinationCoords: null,
+  routePolyline: [],
+  riderLocation: null,
+  driverLocation: null,
+  deliveryPickupCoords: null,
+  deliveryDropoffCoords: null
 };

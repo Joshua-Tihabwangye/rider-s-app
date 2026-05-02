@@ -26,7 +26,7 @@ import { useAppData } from "../contexts/AppDataContext";
 
 function DriverHasArrivedScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const { ride, actions } = useAppData();
+  const { ride, sharedLocationState, actions } = useAppData();
   const activeTrip = ride.activeTrip;
   const driver = activeTrip?.driver;
   const vehicle = activeTrip?.vehicle;
@@ -35,13 +35,14 @@ function DriverHasArrivedScreen(): React.JSX.Element {
 
   useEffect(() => {
     actions.setRideStatus("driver_arrived");
+    actions.updateSharedLocationState({ driverLocation: sharedLocationState.pickupCoords ?? null });
     const verificationTimer = window.setTimeout(() => {
       actions.setRideStatus("in_progress");
       navigate("/rides/trip", { replace: true, state: { fromDriverVerification: true } });
     }, 15000);
 
     return () => window.clearTimeout(verificationTimer);
-  }, [actions.setRideStatus, navigate]);
+  }, [actions, navigate, sharedLocationState.pickupCoords]);
 
   const topMapBleedSx = {
     position: "relative",
@@ -73,34 +74,12 @@ function DriverHasArrivedScreen(): React.JSX.Element {
           preset="compact"
           sx={{ height: { xs: "52dvh", md: "54vh" } }}
           showControls={false}
+          pickupLocation={sharedLocationState.pickupCoords}
+          dropoffLocation={sharedLocationState.destinationCoords}
+          driverLocation={sharedLocationState.pickupCoords}
+          routePolyline={sharedLocationState.routePolyline}
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
-        >
-          <Box
-            sx={{
-              position: "absolute",
-              left: "18%",
-              bottom: "22%",
-              transform: "translate(-50%, -50%)"
-            }}
-          >
-            <PlaceRoundedIcon sx={{ fontSize: 28, color: "#22c55e" }} />
-          </Box>
-          <Box
-            sx={{
-              position: "absolute",
-              left: "42%",
-              top: "52%",
-              transform: "translate(-50%, -50%)",
-              animation: "arrivedPulse 1.8s ease-in-out infinite",
-              "@keyframes arrivedPulse": {
-                "0%, 100%": { transform: "translate(-50%, -50%) scale(1)" },
-                "50%": { transform: "translate(-50%, -50%) scale(1.08)" }
-              }
-            }}
-          >
-            <DirectionsCarFilledRoundedIcon sx={{ fontSize: 30, color: "#03CD8C" }} />
-          </Box>
-        </MapShell>
+        />
       </Box>
 
       <Box sx={{ pt: 0.5 }}>

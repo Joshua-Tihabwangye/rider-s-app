@@ -21,15 +21,19 @@ import DriverChatRoom from "../components/DriverChatRoom";
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 
 function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const { ride, actions } = useAppData();
+  const { ride, sharedLocationState, actions } = useAppData();
   const activeTrip = ride.activeTrip;
   const driver = activeTrip?.driver;
   const vehicle = activeTrip?.vehicle;
   const [arrivalTime, setArrivalTime] = useState(activeTrip?.etaMinutes ?? 5);
   const [chatOpen, setChatOpen] = useState(false);
+  const [driverProgress, setDriverProgress] = useState(0.82);
+  const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
+  const driverLocation = getApproachPoint(routePolyline, driverProgress);
 
   useEffect(() => {
     actions.setRideStatus("driver_on_way");
@@ -40,10 +44,15 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
         }
         return 0;
       });
+      setDriverProgress((prev) => Math.min(prev + 0.035, 1));
     }, 1000);
 
     return () => clearInterval(interval);
   }, [actions.setRideStatus]);
+
+  useEffect(() => {
+    actions.updateSharedLocationState({ driverLocation });
+  }, [actions, driverLocation]);
 
   const handleAccept = () => {
     actions.setRideStatus("driver_arrived");
@@ -85,34 +94,12 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
           preset="compact"
           sx={{ height: { xs: "52dvh", md: "54vh" } }}
           showControls={false}
+          pickupLocation={sharedLocationState.pickupCoords}
+          dropoffLocation={sharedLocationState.destinationCoords}
+          driverLocation={driverLocation}
+          routePolyline={routePolyline}
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
-        >
-          <Box
-            sx={{
-              position: "absolute",
-              left: "20%",
-              bottom: "24%",
-              transform: "translate(-50%, -50%)"
-            }}
-          >
-            <PlaceRoundedIcon sx={{ fontSize: 26, color: "#22c55e" }} />
-          </Box>
-          <Box
-            sx={{
-              position: "absolute",
-              left: "46%",
-              top: "53%",
-              transform: "translate(-50%, -50%)",
-              animation: "moveCar 2.2s ease-in-out infinite",
-              "@keyframes moveCar": {
-                "0%, 100%": { transform: "translate(-50%, -50%) translateX(0)" },
-                "50%": { transform: "translate(-50%, -50%) translateX(8px)" }
-              }
-            }}
-          >
-            <DirectionsCarFilledRoundedIcon sx={{ fontSize: 30, color: "#FFFFFF" }} />
-          </Box>
-        </MapShell>
+        />
       </Box>
 
       <Box sx={{ pt: 0.5 }}>

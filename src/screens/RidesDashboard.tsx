@@ -722,7 +722,7 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }: C
 function EnterDestinationMainScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
-  const { ride } = useAppData();
+  const { ride, sharedLocationState, actions } = useAppData();
   
   // Check if this is a shared ride mode from query parameter
   const searchParams = new URLSearchParams(location.search);
@@ -734,7 +734,9 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const [whereTo, setWhereTo] = useState("");
   const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(
+    sharedLocationState.riderLocation ?? sharedLocationState.pickupCoords ?? ride.request.origin?.coordinates ?? null
+  );
   const [routeData, setRouteData] = useState<RouteData | null>(null);
   const [destinationCoords, setDestinationCoords] = useState<Coordinates | null>(null);
   const [dismissedUpcomingRideIds, setDismissedUpcomingRideIds] = useState<string[]>([]);
@@ -770,9 +772,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               });
             },
             (error) => {
-              // Silently handle geolocation errors
-              // Fallback to default location (Kampala)
-              setCurrentLocation({ lat: 0.3476, lng: 32.5825 });
+              setCurrentLocation(null);
             },
             {
               enableHighAccuracy: false,
@@ -781,8 +781,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             }
           );
         } else {
-          // Permission denied or blocked - use default location
-          setCurrentLocation({ lat: 0.3476, lng: 32.5825 });
+          setCurrentLocation(null);
         }
       }).catch(() => {
         // Permissions API not supported - try anyway but with error handling
@@ -794,8 +793,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             });
           },
           () => {
-            // Fallback to default location
-            setCurrentLocation({ lat: 0.3476, lng: 32.5825 });
+            setCurrentLocation(null);
           },
           {
             enableHighAccuracy: false,
@@ -814,8 +812,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           });
         },
         () => {
-          // Fallback to default location
-          setCurrentLocation({ lat: 0.3476, lng: 32.5825 });
+          setCurrentLocation(null);
         },
         {
           enableHighAccuracy: false,
@@ -824,10 +821,26 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         }
       );
     } else {
-      // Fallback to default location
-      setCurrentLocation({ lat: 0.3476, lng: 32.5825 });
+      setCurrentLocation(null);
     }
   }, []);
+
+  useEffect(() => {
+    if (!currentLocation) {
+      return;
+    }
+    actions.updateRideRequest({
+      origin: {
+        label: ride.request.origin?.label || "Current location",
+        address: ride.request.origin?.address || "Your current location",
+        coordinates: currentLocation
+      }
+    });
+    actions.updateSharedLocationState({
+      riderLocation: currentLocation,
+      pickupCoords: currentLocation
+    });
+  }, [actions, currentLocation, ride.request.origin?.address, ride.request.origin?.label]);
 
   // Calculate route when destination is selected
   useEffect(() => {
@@ -837,6 +850,13 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           const route = await calculateRoute(currentLocation, destinationCoords);
           if (!route) {
             setRouteData(null);
+            actions.updateSharedLocationState({
+              pickupCoords: currentLocation,
+              destinationCoords,
+              routePolyline: [],
+              routeDistanceKm: null,
+              routeDurationMin: null
+            });
             return;
           }
           setRouteData({
@@ -844,16 +864,35 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             duration: `${Math.max(1, Math.round(route.durationMin))} min`,
             path: route.path
           });
+          actions.updateSharedLocationState({
+            pickupCoords: currentLocation,
+            destinationCoords,
+            routePolyline: route.path,
+            routeDistanceKm: route.distanceKm,
+            routeDurationMin: route.durationMin
+          });
         } catch (error) {
           console.error("Error calculating route:", error);
           setRouteData(null);
+          actions.updateSharedLocationState({
+            pickupCoords: currentLocation,
+            destinationCoords,
+            routePolyline: [],
+            routeDistanceKm: null,
+            routeDurationMin: null
+          });
         }
       };
       calculateRoutePreview();
     } else {
       setRouteData(null);
+      actions.updateSharedLocationState({
+        routePolyline: [],
+        routeDistanceKm: null,
+        routeDurationMin: null
+      });
     }
-  }, [destinationCoords, currentLocation]);
+  }, [actions, destinationCoords, currentLocation]);
 
 
   const handleCommuteRequest = (commute: Commute): void => {
@@ -861,9 +900,9 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     navigate("/rides/enter/details", {
       state: {
         pickup: commute.origin.address,
+        pickupCoords: commute.origin.coordinates,
         destination: commute.destination.address,
         destinationCoords: commute.destination.coordinates,
-        originCoords: commute.origin.coordinates,
         isCommute: true,
         commute: commute,
         driver: commute.driver,
@@ -947,12 +986,32 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       setWhereTo(location.address);
       setDestinationCoords(location.coordinates);
       setHelperState("idle");
+      actions.updateRideRequest({
+        origin: currentLocation
+          ? {
+              label: "Current location",
+              address: "Your current location",
+              coordinates: currentLocation
+            }
+          : ride.request.origin,
+        destination: {
+          label: location.label,
+          address: location.address,
+          coordinates: location.coordinates
+        }
+      });
+      actions.updateSharedLocationState({
+        pickupCoords: currentLocation ?? null,
+        destinationCoords: location.coordinates,
+        riderLocation: currentLocation ?? null
+      });
       
       // Navigate to Enter Destination screen (RA05) after a brief delay to show route preview
       setTimeout(() => {
         navigate("/rides/enter/details", {
           state: {
-            pickup: currentLocation ? "Current location" : "Entebbe International Airport",
+            pickup: currentLocation ? "Current location" : ride.request.origin?.label || "",
+            pickupCoords: currentLocation ?? null,
             destination: location.address,
             destinationCoords: location.coordinates,
             placeType: place
@@ -988,7 +1047,11 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       setWhereTo(place);
       const suggestions = await searchPlaces(place);
       const first = suggestions[0];
-      typedCoordinates = first?.coordinates ?? { lat: 0.3476, lng: 32.5825 };
+      typedCoordinates = first?.coordinates ?? null;
+      if (!typedCoordinates) {
+        setHelperState("search-no-match");
+        return;
+      }
       setDestinationCoords(typedCoordinates);
     } else {
       // Selected from autocomplete
@@ -996,17 +1059,41 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       setDestinationCoords(place.coordinates);
     }
     setPlaceSuggestions([]);
+    const selectedDestination = typeof place === "string"
+      ? {
+          label: place.split(",")[0]?.trim() || place,
+          address: place,
+          coordinates: typedCoordinates ?? undefined
+        }
+      : {
+          label: place.description.split(",")[0]?.trim() || place.description,
+          address: place.description,
+          coordinates: place.coordinates
+        };
+    actions.updateRideRequest({
+      origin: currentLocation
+        ? {
+            label: "Current location",
+            address: "Your current location",
+            coordinates: currentLocation
+          }
+        : ride.request.origin,
+      destination: selectedDestination
+    });
+    actions.updateSharedLocationState({
+      pickupCoords: currentLocation ?? null,
+      destinationCoords: selectedDestination.coordinates ?? null,
+      riderLocation: currentLocation ?? null
+    });
     
     // Navigate to Enter Destination screen (RA05) after route calculation
     setTimeout(() => {
       navigate("/rides/enter/details", {
         state: {
-          pickup: currentLocation ? "Current location" : "Entebbe International Airport",
+          pickup: currentLocation ? "Current location" : ride.request.origin?.label || "",
+          pickupCoords: currentLocation ?? null,
           destination: typeof place === "string" ? place : place.description,
-          destinationCoords:
-            typeof place === "string"
-              ? typedCoordinates ?? { lat: 0.3476, lng: 32.5825 }
-              : place.coordinates,
+          destinationCoords: selectedDestination.coordinates ?? null,
           isSharedRide: isSharedRideMode // Pass shared ride mode to details screen
         }
       });

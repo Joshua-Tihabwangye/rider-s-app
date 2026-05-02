@@ -1,16 +1,16 @@
 import React from "react";
 import { Box, Chip, Typography } from "@mui/material";
 import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
-import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import MapShell from "../maps/MapShell";
+import { getPointAtProgress, normalizeRoute } from "../../utils/mapRoutes";
 
 interface DeliveryTrackingMapProps {
   pickupLabel: string;
   dropoffLabel: string;
   pickupCoordinates?: { lat: number; lng: number } | null;
   dropoffCoordinates?: { lat: number; lng: number } | null;
+  routePolyline?: Array<{ lat: number; lng: number }>;
   courierPosition: number;
   etaLabel: string;
   statusLabel: string;
@@ -35,6 +35,7 @@ export default function DeliveryTrackingMap({
   dropoffLabel,
   pickupCoordinates = null,
   dropoffCoordinates = null,
+  routePolyline = [],
   courierPosition,
   etaLabel,
   statusLabel,
@@ -47,26 +48,11 @@ export default function DeliveryTrackingMap({
   onBack,
   showControls = false
 }: DeliveryTrackingMapProps): React.JSX.Element {
-  const start = { x: 16, y: 78 };
-  const end = { x: 84, y: 24 };
-  const t = clamp(courierPosition, 0, 1);
-  const courier = {
-    x: start.x + (end.x - start.x) * t,
-    y: start.y + (end.y - start.y) * t
-  };
-
-  const dx = end.x - start.x;
-  const dy = end.y - start.y;
-  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-  const length = Math.sqrt(dx * dx + dy * dy);
-
   const fallbackCenter = { lat: 0.3476, lng: 32.5825 };
   const startPoint = pickupCoordinates ?? { lat: 0.3136, lng: 32.5811 };
   const endPoint = dropoffCoordinates ?? { lat: 0.3476, lng: 32.5825 };
-  const courierGeoPoint = {
-    lat: startPoint.lat + (endPoint.lat - startPoint.lat) * t,
-    lng: startPoint.lng + (endPoint.lng - startPoint.lng) * t
-  };
+  const resolvedRoute = normalizeRoute(routePolyline);
+  const courierGeoPoint = getPointAtProgress(resolvedRoute, clamp(courierPosition, 0, 1), startPoint, endPoint);
   const mapCenter = pickupCoordinates
     ? {
         lat: (startPoint.lat + endPoint.lat) / 2,
@@ -83,12 +69,10 @@ export default function DeliveryTrackingMap({
       showBackButton={showBackButton}
       onBack={onBack}
       mapCenter={mapCenter}
-      routePolyline={[startPoint, endPoint]}
-      mapMarkers={[
-        { id: "delivery-pickup", position: startPoint, label: pickupLabel, color: "#22c55e" },
-        { id: "delivery-dropoff", position: endPoint, label: dropoffLabel, color: "#0284c7" },
-        { id: "delivery-courier", position: courierGeoPoint, label: "Courier", color: "#0ea5e9" }
-      ]}
+      pickupLocation={startPoint}
+      dropoffLocation={endPoint}
+      driverLocation={courierGeoPoint}
+      routePolyline={resolvedRoute.length > 1 ? resolvedRoute : [startPoint, endPoint]}
       canvasSx={{
         background:
           "radial-gradient(circle at 25% 15%, rgba(3,205,140,0.2), rgba(236,253,245,0.95) 40%, rgba(226,232,240,0.9) 100%)"
@@ -105,57 +89,8 @@ export default function DeliveryTrackingMap({
         }}
       />
 
-      <Box
-        sx={{
-          position: "absolute",
-          left: `${start.x}%`,
-          top: `${start.y}%`,
-          width: `${length}%`,
-          height: 3,
-          transformOrigin: "0 50%",
-          transform: `translate(0, -50%) rotate(${angle}deg)`,
-          bgcolor: "rgba(15,23,42,0.75)",
-          borderRadius: 999
-        }}
-      />
-
-      <Box sx={{ position: "absolute", left: `${start.x}%`, top: `${start.y}%`, transform: "translate(-50%, -50%)" }}>
+      <Box sx={{ position: "absolute", left: 18, bottom: 18, transform: "translate(0, 0)" }}>
         <MyLocationRoundedIcon sx={{ fontSize: 22, color: "#22c55e" }} />
-      </Box>
-
-      {stopLabels.length > 1 &&
-        stopLabels.map((label, index) => {
-          const ratio = (index + 1) / stopLabels.length;
-          const marker = {
-            x: start.x + (end.x - start.x) * ratio,
-            y: start.y + (end.y - start.y) * ratio
-          };
-          const isCompleted = index < completedStops;
-          return (
-            <Box
-              key={`${label}_${index}`}
-              sx={{ position: "absolute", left: `${marker.x}%`, top: `${marker.y}%`, transform: "translate(-50%, -50%)" }}
-            >
-              <Box
-                sx={{
-                  width: 14,
-                  height: 14,
-                  borderRadius: "50%",
-                  bgcolor: isCompleted ? "#16a34a" : "#e2e8f0",
-                  border: `2px solid ${isCompleted ? "#166534" : "#64748b"}`,
-                  boxShadow: "0 4px 10px rgba(15,23,42,0.16)"
-                }}
-              />
-            </Box>
-          );
-        })}
-
-      <Box sx={{ position: "absolute", left: `${courier.x}%`, top: `${courier.y}%`, transform: "translate(-50%, -50%)" }}>
-        <LocalShippingRoundedIcon sx={{ fontSize: 28, color: "#0ea5e9", filter: "drop-shadow(0 6px 12px rgba(15,23,42,0.45))" }} />
-      </Box>
-
-      <Box sx={{ position: "absolute", left: `${end.x}%`, top: `${end.y}%`, transform: "translate(-50%, -50%)" }}>
-        <PlaceRoundedIcon sx={{ fontSize: 30, color: "#0284c7" }} />
       </Box>
 
       <Box

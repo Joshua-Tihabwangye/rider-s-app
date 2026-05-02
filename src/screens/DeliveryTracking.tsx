@@ -51,6 +51,7 @@ import {
   getDeliveryOrderModeSummary,
   getDeliveryOrderModeTone
 } from "../features/delivery/orderMode";
+import { calculateRoute } from "../services/maps";
 
 function formatDateTime(value?: string): string {
   if (!value) {
@@ -126,6 +127,7 @@ export default function DeliveryTracking(): React.JSX.Element {
   const [scheduleDraft, setScheduleDraft] = useState("");
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("Plan changed");
+  const [routePolyline, setRoutePolyline] = useState<Array<{ lat: number; lng: number }>>([]);
   const mapRef = useRef<HTMLDivElement | null>(null);
   const timelineRef = useRef<HTMLDivElement | null>(null);
 
@@ -138,6 +140,13 @@ export default function DeliveryTracking(): React.JSX.Element {
 
   const timeline = useMemo(() => (order ? getTimelineView(order.status) : []), [order]);
   const nextStatus = order ? getNextDeliveryStatus(order.status) : null;
+  const currentStop = useMemo(
+    () =>
+      order?.stops.find((stop) => stop.id === order.routeSummary.currentStopId) ??
+      order?.stops.find((stop) => ["arriving", "queued", "pending", "rescheduled"].includes(stop.status)) ??
+      order?.stops[order.stops.length - 1],
+    [order]
+  );
 
   useEffect(() => {
     if (!orderId) {
@@ -158,6 +167,40 @@ export default function DeliveryTracking(): React.JSX.Element {
     }
     setScheduleDraft(toDateTimeLocalValue(order.scheduleTime));
   }, [order]);
+
+  useEffect(() => {
+    const pickupCoordinates = order?.pickup.coordinates;
+    const dropoffCoordinates = currentStop?.location.coordinates ?? order?.dropoff.coordinates;
+
+    if (!pickupCoordinates || !dropoffCoordinates) {
+      setRoutePolyline([]);
+      actions.updateSharedLocationState({
+        deliveryPickupCoords: pickupCoordinates ?? null,
+        deliveryDropoffCoords: dropoffCoordinates ?? null
+      });
+      return;
+    }
+
+    let ignore = false;
+    void calculateRoute(pickupCoordinates, dropoffCoordinates).then((route) => {
+      if (ignore) {
+        return;
+      }
+      const nextRoute = route?.path ?? [];
+      setRoutePolyline(nextRoute);
+      actions.updateSharedLocationState({
+        deliveryPickupCoords: pickupCoordinates,
+        deliveryDropoffCoords: dropoffCoordinates,
+        routePolyline: nextRoute,
+        routeDistanceKm: route?.distanceKm ?? null,
+        routeDurationMin: route?.durationMin ?? null
+      });
+    });
+
+    return () => {
+      ignore = true;
+    };
+  }, [actions, currentStop?.location.coordinates, order?.dropoff.coordinates, order?.pickup.coordinates]);
 
   if (!order) {
     return (
@@ -207,10 +250,6 @@ export default function DeliveryTracking(): React.JSX.Element {
   const scheduleCancellation = calculateScheduledCancellationFee(order);
   const canEditSchedule = canEditScheduledOrder(order);
   const canCancelSchedule = canCancelScheduledOrder(order);
-  const currentStop =
-    order.stops.find((stop) => stop.id === order.routeSummary.currentStopId) ??
-    order.stops.find((stop) => ["arriving", "queued", "pending", "rescheduled"].includes(stop.status)) ??
-    order.stops[order.stops.length - 1];
   const stopSummaryLabel =
     order.routeMode === "multi_stop" && order.routeSummary.totalStops > 1
       ? `${order.routeSummary.completedStops}/${order.routeSummary.totalStops} stops complete`
@@ -324,6 +363,7 @@ export default function DeliveryTracking(): React.JSX.Element {
               dropoffLabel={currentStop?.location.label ?? order.dropoff.label}
               pickupCoordinates={order.pickup.coordinates ?? null}
               dropoffCoordinates={currentStop?.location.coordinates ?? order.dropoff.coordinates ?? null}
+              routePolyline={routePolyline}
               courierPosition={order.tracking.courierPosition}
               etaLabel={etaLabel}
               statusLabel={statusLabel}

@@ -29,11 +29,17 @@ import MapShell from "../components/maps/MapShell";
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { getPointAtProgress, normalizeRoute } from "../utils/mapRoutes";
 
 const TRIP_SIMULATION_DURATION_MS = 90_000;
 const AUTO_ADD_STOP_TRIGGER_MS = 15_000;
 const START_PROGRESS_PERCENT = 40;
 const START_DISTANCE_KM = 22;
+
+function parseDistanceKm(value?: string): number {
+  const parsed = Number.parseFloat((value ?? "").replace(/[^\d.]/g, ""));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
 
 function formatElapsedDuration(ms: number): string {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -52,18 +58,34 @@ function formatRemainingDuration(ms: number): string {
 
 function TripInProgressBasicScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const { ride, actions } = useAppData();
+  const { ride, sharedLocationState, actions } = useAppData();
   const activeTrip = ride.activeTrip;
   const temporaryStop = ride.temporaryStop;
   const safetyCheck = ride.safetyCheck;
   const [clockNowMs, setClockNowMs] = useState(() => Date.now());
   const [showContinueTripDialog, setShowContinueTripDialog] = useState(false);
   const [hasAutoSimulatedStopRequest, setHasAutoSimulatedStopRequest] = useState(false);
-  const totalDistance = 54;
-  const totalFare = activeTrip?.fareEstimate ?? "UGX 20,565";
-  const totalFareDisplay = totalFare.trim().toUpperCase().startsWith("UGX ") ? totalFare : `UGX ${totalFare}`;
-  const isTripPaused = temporaryStop?.timerPaused || activeTrip?.status === "paused_at_stop";
-  const isAddStopRequested = temporaryStop?.status === "add_stop_requested";
+  const [driverProgress, setDriverProgress] = useState(0);
+  const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
+  const isTripPaused =
+    temporaryStop?.status === "paused_at_stop";
+  const isAddStopRequested =
+    temporaryStop?.status === "add_stop_requested";
+  const totalDistance =
+    sharedLocationState.routeDistanceKm ??
+    parseDistanceKm(activeTrip?.distance) ??
+    START_DISTANCE_KM;
+  const totalFareDisplay = activeTrip?.fareEstimate || "UGX 0";
+
+  // Calculate driver location along the route
+  const driverLocation = React.useMemo(() => {
+    return getPointAtProgress(
+      routePolyline,
+      driverProgress,
+      sharedLocationState.pickupCoords ?? null,
+      sharedLocationState.destinationCoords ?? null
+    );
+  }, [driverProgress, routePolyline, sharedLocationState.destinationCoords, sharedLocationState.pickupCoords]);
 
   useEffect(() => {
     if (!activeTrip?.startedAt) {
@@ -82,9 +104,18 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     if (isTripPaused) return undefined;
     const interval = window.setInterval(() => {
       setClockNowMs(Date.now());
+      // Simulate driver movement along route (1% progress per second)
+      setDriverProgress((prev) => Math.min(prev + 0.01, 1.0));
     }, 1000);
     return () => window.clearInterval(interval);
   }, [isTripPaused]);
+
+  useEffect(() => {
+    actions.updateSharedLocationState({
+      driverLocation,
+      riderLocation: driverLocation ?? sharedLocationState.pickupCoords ?? null
+    });
+  }, [actions, driverLocation, sharedLocationState.pickupCoords]);
 
   useEffect(() => {
     setHasAutoSimulatedStopRequest(false);
@@ -206,176 +237,14 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           preset="full"
           sx={{ height: { xs: "56dvh", md: "60vh" } }}
           showControls={false}
+          pickupLocation={sharedLocationState.pickupCoords}
+          dropoffLocation={sharedLocationState.destinationCoords}
+          driverLocation={driverLocation}
+          riderLocation={driverLocation}
+          routePolyline={routePolyline}
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
           onRecenter={handleMapRecenter}
-        >
-          {/* Map Labels - Landmarks */}
-          <Typography
-            sx={{
-              position: "absolute",
-              top: "12%",
-              left: "50%",
-              transform: "translateX(-50%)",
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#03CD8C"
-            }}
-          >
-            Lake Victoria Hotel
-          </Typography>
-
-        <Typography
-          sx={{
-            position: "absolute",
-            top: "8%",
-            left: "15%",
-            fontSize: 10,
-            fontWeight: 500,
-            color: "#03CD8C"
-          }}
-        >
-          Entebbe
-        </Typography>
-
-        <Typography
-          sx={{
-            position: "absolute",
-            bottom: "25%",
-            right: "20%",
-            fontSize: 9,
-            fontWeight: 500,
-            color: "#03CD8C"
-          }}
-        >
-          aero beach
-        </Typography>
-
-        {/* Landmark Icons */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: "15%",
-            right: "18%",
-            width: 28,
-            height: 28,
-            borderRadius: "50%",
-            bgcolor: "#EC4899",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
-          }}
-        >
-          <HotelRoundedIcon sx={{ fontSize: 16, color: "#FFFFFF" }} />
-        </Box>
-
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: "30%",
-            left: "25%",
-            width: 24,
-            height: 24,
-            borderRadius: "50%",
-            bgcolor: "#F59E0B",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
-          }}
-        >
-          <RestaurantRoundedIcon sx={{ fontSize: 14, color: "#FFFFFF" }} />
-        </Box>
-
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: "22%",
-            right: "22%",
-            width: 24,
-            height: 24,
-            borderRadius: "50%",
-            bgcolor: "#06B6D4",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
-          }}
-        >
-          <BeachAccessRoundedIcon sx={{ fontSize: 14, color: "#FFFFFF" }} />
-        </Box>
-
-        {/* Pickup location marker (green) */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: "18%",
-            bottom: "25%",
-            width: 16,
-            height: 16,
-            borderRadius: "50%",
-            bgcolor: "#22c55e",
-            border: "3px solid white",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-            zIndex: 2
-          }}
         />
-
-        {/* Destination marker (orange dot) */}
-        <Box
-          sx={{
-            position: "absolute",
-            right: "18%",
-            top: "28%",
-            width: 16,
-            height: 16,
-            borderRadius: "50%",
-            bgcolor: "#F59E0B",
-            border: "2px solid white",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-            zIndex: 2
-          }}
-        />
-
-        {/* Vehicle icon moving along route with white circle below */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: `${18 + (progress / 100) * 64}%`,
-            bottom: `${25 - (progress / 100) * 47}%`,
-            transform: "translate(-50%, 50%)",
-            animation: isTripPaused ? "none" : "moveCar 2s ease-in-out infinite",
-            "@keyframes moveCar": {
-              "0%, 100%": { transform: "translate(-50%, 50%) translateX(0)" },
-              "50%": { transform: "translate(-50%, 50%) translateX(3px)" }
-            },
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            zIndex: 3
-          }}
-        >
-          <DirectionsCarFilledRoundedIcon
-            sx={{
-              fontSize: 32,
-              color: "#03CD8C",
-              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
-            }}
-          />
-          {/* White circle below car */}
-          <Box
-            sx={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              bgcolor: "#FFFFFF",
-              mt: 0.5,
-              boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
-            }}
-          />
-        </Box>
-
-        </MapShell>
       </Box>
       <Box sx={{ pt: 2, pb: 1, px: 2 }}>
         <Typography variant="h5" sx={{ fontWeight: 800, color: 'var(--evz-text-main, #0f172a)' }}>
@@ -383,7 +252,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {activeTrip?.routeSummary ?? "Trip in progress"}
+            {routePolyline.length > 1 ? activeTrip?.routeSummary ?? "Trip in progress" : "Select pickup and destination first."}
           </Typography>
           <Button
             size="small"
@@ -696,18 +565,4 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   );
 }
 
-export default function RiderScreen25TripInProgressBasicCanvas_v2() {
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (theme) => theme.palette.background.default
-      }}
-    >
-
-        <TripInProgressBasicScreen />
-      
-    </Box>
-  );
-}
+export default TripInProgressBasicScreen;

@@ -177,7 +177,13 @@ function RideDetailsScreen(): React.JSX.Element {
         </IconButton>
       </Box>
 
-      <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.lg, pb: uiTokens.spacing.xxl }}>
+      <Box
+        sx={{
+          px: uiTokens.spacing.xl,
+          pt: uiTokens.spacing.lg,
+          pb: "calc(96px + env(safe-area-inset-bottom, 0px))"
+        }}
+      >
         {/* Trip Summary Section */}
       <Card
         elevation={0}
@@ -650,7 +656,7 @@ function RideDetailsScreen(): React.JSX.Element {
       <Box
         sx={{
           position: "fixed",
-          bottom: 0,
+          bottom: "env(safe-area-inset-bottom, 0px)",
           left: 0,
           right: 0,
           bgcolor: contentBg,
@@ -677,7 +683,7 @@ function RideDetailsScreen(): React.JSX.Element {
           <HomeRoundedIcon sx={{ fontSize: 24 }} />
         </IconButton>
         <IconButton
-          onClick={() => navigate("/rides/history")}
+          onClick={() => navigate("/rides/history/past")}
           sx={{
             color: accentGreen,
             "&:hover": {
