@@ -40,7 +40,8 @@ import type {
   AmbulanceRequest,
   SosState,
   SosStatus,
-  SosEvent
+  SosEvent,
+  SharedLocationState
 } from "../store/types";
 import { useAuth } from "./AuthContext";
 import type { DeliveryRealtimePatch } from "../features/delivery/realtime";
@@ -92,7 +93,8 @@ import {
   SEED_RENTAL_STATE,
   SEED_TOURS_STATE,
   SEED_AMBULANCE_STATE,
-  SEED_SOS_STATE
+  SEED_SOS_STATE,
+  SEED_SHARED_LOCATION_STATE
 } from "../store/seedData";
 
 interface AppState extends AppData {
@@ -120,7 +122,7 @@ interface AppActions {
   setActiveTrip: (trip: RideTrip | null) => void;
   updateDeliveryDraft: (patch: Partial<DeliveryDraft>) => void;
   resetDeliveryDraft: () => void;
-  createDeliveryOrder: () => DeliveryOrder | null;
+  createDeliveryOrder: (draftOverride?: DeliveryDraft) => DeliveryOrder | null;
   setActiveDelivery: (order: DeliveryOrder | null) => void;
   setActiveDeliveryById: (orderId: string) => void;
   updateDeliveryOrderStatus: (orderId: string, status: DeliveryStatus, note?: string) => void;
@@ -202,6 +204,7 @@ interface AppActions {
   resumeTripAfterTemporaryStop: () => void;
   markTemporaryStopContinuePromptShown: () => void;
   respondToSafetyCheck: (action: "okay" | "sos") => void;
+  updateSharedLocationState: (patch: Partial<SharedLocationState>) => void;
 }
 
 interface AppDataContextValue extends AppState {
@@ -232,7 +235,8 @@ const initialState: AppState = {
   rental: SEED_RENTAL_STATE,
   tours: SEED_TOURS_STATE,
   ambulance: SEED_AMBULANCE_STATE,
-  sos: SEED_SOS_STATE
+  sos: SEED_SOS_STATE,
+  sharedLocationState: SEED_SHARED_LOCATION_STATE
 };
 
 type AppAction =
@@ -247,7 +251,10 @@ type AppAction =
   | { type: "ride/set-active"; payload: RideTrip | null }
   | { type: "delivery/draft"; payload: Partial<DeliveryDraft> }
   | { type: "delivery/reset-draft" }
-  | { type: "delivery/create-order"; payload: { orderId: string; senderName: string; senderPhone: string } }
+  | {
+      type: "delivery/create-order";
+      payload: { orderId: string; senderName: string; senderPhone: string; draftOverride?: DeliveryDraft };
+    }
   | { type: "delivery/active"; payload: DeliveryOrder | null }
   | { type: "delivery/active-by-id"; payload: string }
   | { type: "delivery/status"; payload: { orderId: string; status: DeliveryStatus; note?: string } }
@@ -322,7 +329,8 @@ type AppAction =
   | { type: "reminder/dismiss"; payload: number }
   | { type: "reminder/dismiss-many"; payload: number[] }
   | { type: "ride/set-temporary-stop"; payload: Partial<import("../store/types").ActiveRideTemporaryStopState> }
-  | { type: "ride/set-safety-check"; payload: Partial<import("../store/types").ActiveRideSafetyCheckState> };
+  | { type: "ride/set-safety-check"; payload: Partial<import("../store/types").ActiveRideSafetyCheckState> }
+  | { type: "location/update"; payload: Partial<SharedLocationState> };
 function updateEmergencyContactsDefault(contacts: EmergencyContact[], id: string): EmergencyContact[] {
   return contacts.map((contact) => ({
     ...contact,
@@ -678,9 +686,10 @@ function upsertTourBooking(bookings: TourBooking[], booking: TourBooking): TourB
 
 function createDeliveryOrderFromDraft(
   state: AppState,
-  payload: { orderId: string; senderName: string; senderPhone: string }
+  payload: { orderId: string; senderName: string; senderPhone: string },
+  draftOverride?: DeliveryDraft
 ): DeliveryOrder | null {
-  const { draft } = state.delivery;
+  const draft = draftOverride ?? state.delivery.draft;
   const draftStops = deriveDraftStops(draft).filter(
     (stop) =>
       stop.location?.address?.trim() &&
@@ -945,7 +954,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         }
       };
     case "delivery/create-order": {
-      const order = createDeliveryOrderFromDraft(state, action.payload);
+      const order = createDeliveryOrderFromDraft(state, action.payload, action.payload.draftOverride);
       if (!order) {
         return state;
       }
@@ -2295,6 +2304,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
           safetyCheck: { ...state.ride.safetyCheck, ...action.payload }
         }
       };
+    case "location/update":
+      return {
+        ...state,
+        sharedLocationState: { ...state.sharedLocationState, ...action.payload }
+      };
     default:
       return state;
   }
@@ -2343,6 +2357,10 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
   const setActiveTrip = useCallback((trip: RideTrip | null) => {
     dispatch({ type: "ride/set-active", payload: trip });
+  }, []);
+
+  const updateSharedLocationState = useCallback((patch: Partial<SharedLocationState>) => {
+    dispatch({ type: "location/update", payload: patch });
   }, []);
 
   const updateDeliveryDraft = useCallback((patch: Partial<DeliveryDraft>) => {
@@ -2558,17 +2576,17 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     return () => window.removeEventListener("storage", handleStorageEvent);
   }, [state.ride.activeTrip, state.ride.temporaryStop.pauseStartedAt, state.ride.temporaryStop.timerPaused, state.ride.temporaryStop.totalPausedDurationMs]);
 
-  const createDeliveryOrder = useCallback(() => {
+  const createDeliveryOrder = useCallback((draftOverride?: DeliveryDraft) => {
     const orderId = `DLV-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Date.now()
       .toString()
       .slice(-4)}`;
     const senderName = user?.fullName ?? "Rider";
     const senderPhone = user?.phone ?? "+256 700 000 000";
-    const previewOrder = createDeliveryOrderFromDraft(state, { orderId, senderName, senderPhone });
+    const previewOrder = createDeliveryOrderFromDraft(state, { orderId, senderName, senderPhone }, draftOverride);
     if (!previewOrder) {
       return null;
     }
-    dispatch({ type: "delivery/create-order", payload: { orderId, senderName, senderPhone } });
+    dispatch({ type: "delivery/create-order", payload: { orderId, senderName, senderPhone, draftOverride } });
     return previewOrder;
   }, [state, user?.fullName, user?.phone]);
 
@@ -3169,6 +3187,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       resumeTripAfterTemporaryStop,
       markTemporaryStopContinuePromptShown,
       respondToSafetyCheck,
+      updateSharedLocationState,
     }),
     [
       updateSettings,

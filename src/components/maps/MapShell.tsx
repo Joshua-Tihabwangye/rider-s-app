@@ -41,6 +41,7 @@ interface MapShellProps {
   onMapClick?: (point: MapPoint) => void;
   onLocationSelect?: (point: MapPoint) => void;
   onMarkerClick?: (markerId: string) => void;
+  resizeKey?: string | number;
   initialZoom?: number;
   initialBearing?: number;
   initialLayer?: MapLayerMode;
@@ -82,6 +83,7 @@ export default function MapShell({
   onMapClick,
   onLocationSelect,
   onMarkerClick,
+  resizeKey = 0,
   initialZoom = 13,
   initialLayer = "default",
   mapCenter = KAMPALA_CENTER,
@@ -243,6 +245,7 @@ export default function MapShell({
             onZoomChange?.(clamped);
           }}
           recenterKey={recenterKey}
+          resizeKey={resizeKey}
           className={interactive ? undefined : "evz-map-static"}
         />
         {showGrid && (

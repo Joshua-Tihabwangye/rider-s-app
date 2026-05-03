@@ -174,7 +174,7 @@ function SelectYourRideScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const { ride, actions } = useAppData();
+  const { ride, sharedLocationState, actions } = useAppData();
   const { updateRideRequest, updateRideTrip, setRideStatus } = actions;
   type ServiceClass = "standard" | "premium";
   const tripData = (location.state as Record<string, unknown> | null) ?? {};
@@ -186,6 +186,7 @@ function SelectYourRideScreen(): React.JSX.Element {
   );
   const [selectedRide, setSelectedRide] = useState(ride.request.serviceLevel ?? ride.options[0]?.id ?? "");
   const [rideType, setRideType] = useState<ServiceClass>(ride.request.serviceClass ?? "standard");
+  const [selectionError, setSelectionError] = useState("");
   const ridePricing = useMemo<Record<string, RideOptionPricing>>(() => {
     return ride.options.reduce<Record<string, RideOptionPricing>>((acc, option) => {
       const baseFareAmount = parseUGXAmount(option.fare);
@@ -252,6 +253,10 @@ function SelectYourRideScreen(): React.JSX.Element {
   };
   
   const handleConfirm = () => {
+    if (!sharedLocationState.pickupCoords || !sharedLocationState.destinationCoords) {
+      setSelectionError("Select pickup and destination first.");
+      return;
+    }
     const effectiveSelectedRide = selectedRide || rideOptionsWithPricing[0]?.id || "";
     if (!effectiveSelectedRide) return;
     const selectedRideOption = rideOptionsWithPricing.find((opt) => opt.id === effectiveSelectedRide);
@@ -266,9 +271,16 @@ function SelectYourRideScreen(): React.JSX.Element {
         : `${ride.activeTrip?.etaMinutes ?? 0} mins`;
     
     updateRideTrip({
+      pickup: ride.request.origin,
+      dropoff: ride.request.destination,
       fareEstimate: fare,
       etaMinutes: estimatedEtaMinutes,
-      distance: distanceLabel
+      distance: distanceLabel,
+      routeSummary: `${ride.request.origin?.label ?? "Pickup"} → ${ride.request.destination?.label ?? "Destination"}`
+    });
+    actions.updateSharedLocationState({
+      riderLocation: sharedLocationState.pickupCoords,
+      driverLocation: null
     });
     setRideStatus("searching");
     if (typeof window !== "undefined") {
@@ -323,40 +335,15 @@ function SelectYourRideScreen(): React.JSX.Element {
         <MapShell
           showControls={false}
           sx={{ height: { xs: "62dvh", md: "55vh" } }}
+          pickupLocation={sharedLocationState.pickupCoords}
+          dropoffLocation={sharedLocationState.destinationCoords}
+          routePolyline={sharedLocationState.routePolyline}
           canvasSx={{
             background: theme.palette.mode === "light"
               ? "#F5F5DC"
               : "linear-gradient(135deg, #0f1e2e 0%, #1a2d3e 50%, #0f1e2e 100%)"
           }}
-        >
-          <Box
-            sx={{
-              position: "absolute",
-              top: "20%",
-              right: "5%",
-              width: "30%",
-              height: "40%",
-              bgcolor: "rgba(3,205,140,0.15)",
-              borderRadius: "50%",
-              opacity: 0.6
-            }}
-          />
-          <Box
-            sx={{
-              position: "absolute",
-              top: "58%",
-              left: "18%",
-              width: 18,
-              height: 18,
-              borderRadius: "50%",
-              bgcolor: "#4CAF50",
-              border: "3px solid #FFFFFF",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
-              zIndex: 2,
-              transform: "translate(-50%, -50%)"
-            }}
-          />
-        </MapShell>
+        />
       </Box>
 
       <Box sx={{ px: 0.5 }}>
@@ -366,6 +353,11 @@ function SelectYourRideScreen(): React.JSX.Element {
         >
           Select your ride
         </Typography>
+        {selectionError ? (
+          <Typography variant="caption" sx={{ color: "#DC2626", display: "block" }}>
+            {selectionError}
+          </Typography>
+        ) : null}
       </Box>
 
       <Card

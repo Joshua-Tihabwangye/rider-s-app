@@ -18,11 +18,13 @@ import {
 	Menu,
 	CircularProgress,
 	Alert,
+	Collapse,
 } from "@mui/material";
 
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
+import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
@@ -111,7 +113,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const theme = useTheme();
-	const { ride, actions } = useAppData();
+	const { ride, sharedLocationState, actions } = useAppData();
+	const { updateSharedLocationState } = actions;
 
 	// Get initial values from navigation state
 	const initialState = location.state || {};
@@ -121,17 +124,27 @@ function EnterDestinationScreen(): React.JSX.Element {
 		initialState.pickup || ride.request.origin?.label || "Current location",
 	);
 	const [pickupCoords, setPickupCoords] = useState(
-		initialState.pickupCoords || ride.request.origin?.coordinates || { lat: 0.3476, lng: 32.5825 }, // Default to Kampala center
+		initialState.pickupCoords ||
+			sharedLocationState.pickupCoords ||
+			ride.request.origin?.coordinates ||
+			null,
 	);
 
 	// Geocode pickup location if it's not "Current location"
 	useEffect(() => {
 		const geocodePickup = async () => {
+			if (pickup === "Current location" && sharedLocationState.riderLocation && !pickupCoords) {
+				setPickupCoords(sharedLocationState.riderLocation);
+				updateSharedLocationState({ pickupCoords: sharedLocationState.riderLocation });
+				return;
+			}
 			if (pickup && pickup !== "Current location" && !pickupCoords) {
 				try {
 					const coords = await geocodeAddress(pickup);
 					if (coords) {
 						setPickupCoords(coords);
+						// Update shared state with pickup coordinates
+						updateSharedLocationState({ pickupCoords: coords });
 					}
 				} catch (error) {
 					console.error("Failed to geocode pickup location:", error);
@@ -140,12 +153,15 @@ function EnterDestinationScreen(): React.JSX.Element {
 		};
 
 		geocodePickup();
-	}, [pickup, pickupCoords]);
+	}, [pickup, pickupCoords, sharedLocationState.riderLocation, updateSharedLocationState]);
 	const [destination, setDestination] = useState(
 		initialState.destination || ride.request.destination?.label || "",
 	);
 	const [destinationCoords, setDestinationCoords] = useState(
-		initialState.destinationCoords || ride.request.destination?.coordinates || null,
+		initialState.destinationCoords ||
+			sharedLocationState.destinationCoords ||
+			ride.request.destination?.coordinates ||
+			null,
 	);
 	const [passengers, setPassengers] = useState(initialState.passengers || ride.request.passengers || 1);
 	const [customPassengers, setCustomPassengers] = useState("");
@@ -178,9 +194,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [scheduleMenuAnchor, setScheduleMenuAnchor] =
 		useState<HTMLElement | null>(null);
 	const [showError, setShowError] = useState(false);
+	const [errorMessage, setErrorMessage] = useState("");
 	const [showSwitchRiderModal, setShowSwitchRiderModal] = useState(false);
 	const [routePolyline, setRoutePolyline] = useState<{ lat: number; lng: number }[]>([]);
 	const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
+	const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
 	const [showTripTypeModal, setShowTripTypeModal] = useState(false);
 	const [showAddStopModal, setShowAddStopModal] = useState(false);
 	const [selectedContact, setSelectedContact] = useState(
@@ -221,21 +239,48 @@ function EnterDestinationScreen(): React.JSX.Element {
 					const route = await calculateRoute(pickupCoords, destinationCoords);
 					if (route) {
 						setRoutePolyline(route.path);
+						// Update shared location state with route
+						updateSharedLocationState({
+							pickupCoords,
+							destinationCoords,
+							routePolyline: route.path,
+							routeDistanceKm: route.distanceKm,
+							routeDurationMin: route.durationMin
+						});
 					} else {
 						setRoutePolyline([]);
+						updateSharedLocationState({
+							pickupCoords,
+							destinationCoords,
+							routePolyline: [],
+							routeDistanceKm: null,
+							routeDurationMin: null
+						});
 					}
 				} catch (error) {
 					console.error("Failed to calculate route:", error);
 					setRoutePolyline([]);
+					updateSharedLocationState({
+						pickupCoords,
+						destinationCoords,
+						routePolyline: [],
+						routeDistanceKm: null,
+						routeDurationMin: null
+					});
 				}
 				setIsCalculatingRoute(false);
 			} else {
 				setRoutePolyline([]);
+				updateSharedLocationState({
+					routePolyline: [],
+					routeDistanceKm: null,
+					routeDurationMin: null
+				});
 			}
 		};
 
 		calculateAndSetRoute();
-	}, [pickupCoords, destinationCoords]);
+	}, [pickupCoords, destinationCoords, updateSharedLocationState]);
 
 	// Update destination when returning from map screen
 	useEffect(() => {
@@ -244,8 +289,14 @@ function EnterDestinationScreen(): React.JSX.Element {
 			setDestinationCoords(initialState.destinationCoords || null);
 			setSearchQuery("");
 			setShowSearchResults(false);
+			// Update shared state with destination coordinates from map picker
+			if (initialState.destinationCoords) {
+				updateSharedLocationState({
+					destinationCoords: initialState.destinationCoords
+				});
+			}
 		}
-	}, [initialState.fromMap, initialState.destination, initialState.destinationCoords]);
+	}, [initialState.fromMap, initialState.destination, initialState.destinationCoords, updateSharedLocationState]);
 
 	// Update schedule when returning from schedule screen
 	useEffect(() => {
@@ -274,11 +325,15 @@ function EnterDestinationScreen(): React.JSX.Element {
 	useEffect(() => {
 		const originLocation =
 			pickup.trim().length > 0
-				? { label: pickup, address: pickup }
+				? { label: pickup, address: pickup, coordinates: pickupCoords ?? undefined }
 				: null;
 		const destinationLocation =
 			destination.trim().length > 0
-				? { label: destination, address: destination }
+				? {
+						label: destination,
+						address: destination,
+						coordinates: destinationCoords ?? undefined,
+				  }
 				: null;
 		const stopLocations = stops
 			.filter((stop) => stop.value.trim().length > 0)
@@ -342,10 +397,13 @@ function EnterDestinationScreen(): React.JSX.Element {
 
 	const canContinue = isMultiStopMode
 		? pickup.trim() !== "" &&
+			Boolean(pickupCoords) &&
 			stops.some((stop: Stop) => stop.value.trim() !== "") &&
 			(tripType !== "Round Trip" || (returnDate && returnTime))
 		: pickup.trim() !== "" &&
+			Boolean(pickupCoords) &&
 			destination.trim() !== "" &&
+			Boolean(destinationCoords) &&
 			(tripType !== "Round Trip" || (returnDate && returnTime));
 	const hasBookForSomeoneDetails =
 		bookedPersonName.trim().length > 1 && bookedPersonPhone.trim().length >= 7;
@@ -378,9 +436,15 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const handleDestinationSelect = (result: SearchResult): void => {
 		setDestination(result.name);
 		setDestinationCoords(result.coordinates);
+		// Update shared location state
+		updateSharedLocationState({
+			destinationCoords: result.coordinates,
+			routePolyline: [] // Will be recalculated
+		});
 		setSearchQuery("");
 		setShowSearchResults(false);
 		setShowError(false);
+		setErrorMessage("");
 	};
 
 	const handleSwitchLocations = () => {
@@ -390,6 +454,14 @@ function EnterDestinationScreen(): React.JSX.Element {
 		setPickupCoords(destinationCoords);
 		setDestination(tempPickup);
 		setDestinationCoords(tempPickupCoords);
+
+		// Update shared state with swapped coordinates
+		updateSharedLocationState({
+			pickupCoords: destinationCoords,
+			destinationCoords: tempPickupCoords
+		});
+		setShowError(false);
+		setErrorMessage("");
 	};
 
 	const handleScheduleSelect = (option: string): void => {
@@ -453,6 +525,16 @@ function EnterDestinationScreen(): React.JSX.Element {
 		} | null = null,
 	): void => {
 		if (!canSubmit) {
+			const missingCoordinates =
+				!pickupCoords ||
+				(!isMultiStopMode && !destinationCoords);
+			setErrorMessage(
+				missingCoordinates
+					? "Select pickup and destination first."
+					: isBookingForSomeone
+						? "Please complete destination plus person name and phone number before continuing."
+						: "Please select a destination before continuing.",
+			);
 			setShowError(true);
 			return;
 		}
@@ -600,6 +682,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 			: theme.palette.background.paper;
 	const accentGreen = "#03CD8C";
 	const lightGreen = "rgba(3,205,140,0.1)"; // Light green for active passenger selection
+	const mobileBottomNavReservePx = 88;
+	const mapViewportMinHeight = {
+		xs: `calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${mobileBottomNavReservePx}px)`,
+		md: `calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${mobileBottomNavReservePx}px)`,
+	} as const;
 	const topMapBleedSx = {
 		position: "relative",
 		width: {
@@ -614,15 +701,39 @@ function EnterDestinationScreen(): React.JSX.Element {
 			xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
 			md: "calc(var(--rider-shell-content-px-md, 24px) * -1)",
 		},
-		overflow: "hidden",
+		overflow: "visible",
 	} as const;
 
 	return (
-		<ScreenScaffold disableTopPadding>
-			<Box sx={topMapBleedSx}>
+		<ScreenScaffold
+			disableTopPadding
+			disableBottomPadding
+			contentSx={{
+				minHeight: mapViewportMinHeight,
+				gap: 0,
+				pb: 0,
+			}}
+		>
+			<Box
+				sx={{
+					...topMapBleedSx,
+					display: "flex",
+					flexDirection: "column",
+					flex: isPanelCollapsed ? 1 : "0 0 auto",
+					minHeight: isPanelCollapsed ? 0 : undefined,
+				}}
+			>
 				<MapShell
 					showControls={false}
-					sx={{ height: { xs: "50dvh", md: "56vh" } }}
+					resizeKey={isPanelCollapsed ? "collapsed" : "expanded"}
+					sx={{
+						height: isPanelCollapsed
+							? "100%"
+							: { xs: "50dvh", md: "56vh" },
+						minHeight: isPanelCollapsed ? 0 : { xs: 320, md: 360 },
+						flex: isPanelCollapsed ? 1 : "0 0 auto",
+						transition: "height 0.32s ease, min-height 0.32s ease"
+					}}
 					pickupLocation={pickupCoords}
 					dropoffLocation={destinationCoords}
 					routePolyline={routePolyline}
@@ -632,39 +743,46 @@ function EnterDestinationScreen(): React.JSX.Element {
 								? "linear-gradient(160deg, #D6E9FF 0%, #E5F3FF 22%, #F5EED9 22%, #F5EED9 100%)"
 								: "linear-gradient(160deg, #1B2D3E 0%, #223A4F 25%, #1A2533 25%, #1A2533 100%)",
 					}}
+				/>
+				<IconButton
+					onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
+					sx={{
+						position: "absolute",
+						left: "50%",
+						bottom: isPanelCollapsed ? 12 : -20,
+						transform: "translateX(-50%)",
+						zIndex: 6,
+						width: 42,
+						height: 42,
+						borderRadius: "50%",
+						backgroundColor: theme.palette.mode === "light"
+							? "rgba(255,255,255,0.9)"
+							: "rgba(0,0,0,0.7)",
+						border: theme.palette.mode === "light"
+							? "1px solid rgba(0,0,0,0.1)"
+							: "1px solid rgba(255,255,255,0.1)",
+						backdropFilter: "blur(8px)",
+						boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+						transition: "all 0.3s ease",
+						"&:hover": {
+							backgroundColor: theme.palette.mode === "light"
+								? "rgba(255,255,255,1)"
+								: "rgba(0,0,0,0.8)",
+						}
+					}}
 				>
-					<Box
-						sx={{
-							position: "absolute",
-							top: "56.5%",
-							left: "21%",
-							width: 18,
-							height: 18,
-							borderRadius: "50%",
-							bgcolor: "#22C55E",
-							border: "3px solid rgba(255,255,255,0.95)",
-							boxShadow: "0 4px 10px rgba(0,0,0,0.22)",
-							transform: "translate(-50%, -50%)",
-						}}
-					/>
-					<Box
-						sx={{
-							position: "absolute",
-							top: "34%",
-							right: "17%",
-							width: 20,
-							height: 20,
-							borderRadius: "50%",
-							bgcolor: "#F97316",
-							border: "3px solid rgba(255,255,255,0.95)",
-							boxShadow: "0 4px 10px rgba(0,0,0,0.22)",
-							transform: "translate(50%, -50%)",
-						}}
-					/>
-				</MapShell>
+					{isPanelCollapsed ? (
+						<KeyboardArrowUpRoundedIcon sx={{ color: theme.palette.text.primary }} />
+					) : (
+						<KeyboardArrowDownRoundedIcon sx={{ color: theme.palette.text.primary }} />
+					)}
+				</IconButton>
 			</Box>
+
 			{/* Trip Setup Card - Neutral Background */}
-			<Card
+			<Collapse in={!isPanelCollapsed} timeout={320} unmountOnExit>
+				<Box sx={{ pt: 4 }}>
+				<Card
 				elevation={0}
 				sx={{
 					borderRadius: 3,
@@ -685,7 +803,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 									size="small"
 									variant="outlined"
 									value={pickup}
-									onChange={(e) => setPickup(e.target.value)}
+										onChange={(e) => setPickup(e.target.value)}
+										onFocus={() => {
+											setShowError(false);
+											setErrorMessage("");
+										}}
 									InputProps={{
 										startAdornment: (
 											<InputAdornment position="start">
@@ -769,6 +891,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 											setDestination(e.target.value);
 											setSearchQuery(e.target.value);
 											setShowError(false);
+											setErrorMessage("");
 										}}
 										onFocus={() => {
 											if (searchQuery.length === 0) {
@@ -816,6 +939,13 @@ function EnterDestinationScreen(): React.JSX.Element {
 															setShowSearchResults(
 																false,
 															);
+															setDestinationCoords(null);
+															updateSharedLocationState({
+																destinationCoords: null,
+																routePolyline: [],
+																routeDistanceKm: null,
+																routeDurationMin: null
+															});
 														}}
 														sx={{
 															color: theme.palette
@@ -1204,108 +1334,6 @@ function EnterDestinationScreen(): React.JSX.Element {
 					</CardContent>
 				</Card>
 
-			{isBookingForSomeone && (
-				<Card
-					elevation={0}
-					sx={{
-						borderRadius: 2,
-						bgcolor: contentBg,
-						border:
-							theme.palette.mode === "light"
-								? "1px solid rgba(0,0,0,0.1)"
-								: "1px solid rgba(255,255,255,0.1)"
-					}}
-				>
-					<CardContent sx={{ px: 2, py: 1.5 }}>
-						<Stack
-							direction={{ xs: "column", sm: "row" }}
-							spacing={1}
-							justifyContent="space-between"
-							alignItems={{ xs: "flex-start", sm: "center" }}
-							sx={{ mb: 1.2 }}
-						>
-							<Typography
-								variant="subtitle2"
-								sx={{ fontWeight: 600, color: theme.palette.text.primary }}
-							>
-								Person details
-							</Typography>
-							<PhoneBookPickerButton
-								size="small"
-								variant="outlined"
-								onContactPicked={(contact) => {
-									setBookedPersonName(contact.name);
-									setBookedPersonPhone(contact.phone);
-								}}
-								sx={{ textTransform: "none", borderRadius: 5 }}
-							>
-								Add from phone book
-							</PhoneBookPickerButton>
-						</Stack>
-						<Stack spacing={1.25}>
-							<TextField
-								fullWidth
-								size="small"
-								label="Person’s name"
-								value={bookedPersonName}
-								onChange={(e) => setBookedPersonName(e.target.value)}
-								InputProps={{
-									startAdornment: (
-										<InputAdornment position="start">
-											<PersonRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
-										</InputAdornment>
-									)
-								}}
-								sx={{
-									"& .MuiOutlinedInput-root": {
-										borderRadius: 2,
-										bgcolor:
-											theme.palette.mode === "light"
-												? "rgba(0,0,0,0.02)"
-												: "rgba(255,255,255,0.05)",
-										"& fieldset": {
-											borderColor:
-												theme.palette.mode === "light"
-													? "rgba(0,0,0,0.15)"
-													: "rgba(255,255,255,0.2)"
-										}
-									}
-								}}
-							/>
-							<TextField
-								fullWidth
-								size="small"
-								label="Person’s phone number"
-								value={bookedPersonPhone}
-								onChange={(e) => setBookedPersonPhone(e.target.value)}
-								InputProps={{
-									startAdornment: (
-										<InputAdornment position="start">
-											<PhoneIphoneRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
-										</InputAdornment>
-									)
-								}}
-								sx={{
-									"& .MuiOutlinedInput-root": {
-										borderRadius: 2,
-										bgcolor:
-											theme.palette.mode === "light"
-												? "rgba(0,0,0,0.02)"
-												: "rgba(255,255,255,0.05)",
-										"& fieldset": {
-											borderColor:
-												theme.palette.mode === "light"
-													? "rgba(0,0,0,0.15)"
-													: "rgba(255,255,255,0.2)"
-										}
-									}
-								}}
-							/>
-						</Stack>
-					</CardContent>
-				</Card>
-			)}
-
 
 			{/* Lower Section Cards */}
 				{/* Error Alert */}
@@ -1315,9 +1343,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 						sx={{ mb: 2 }}
 						onClose={() => setShowError(false)}
 					>
-						{isBookingForSomeone
-							? "Please complete destination plus person name and phone number before continuing."
-							: "Please select a destination before continuing."}
+						{errorMessage ||
+							(isBookingForSomeone
+								? "Please complete destination plus person name and phone number before continuing."
+								: "Please select a destination before continuing.")}
 					</Alert>
 				)}
 
@@ -1747,9 +1776,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 										/>
 									</IconButton>
 								</Box>
-							</CardContent>
-						</Card>
-					)}
+					</CardContent>
+				</Card>
+			)}
 
 					{/* Passenger Selection */}
 					<Card
@@ -2107,6 +2136,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 					Continue
 				</Button>
 			</Box>
+				</Box>
+			</Collapse>
 
 			{/* Schedule Menu */}
 			<Menu

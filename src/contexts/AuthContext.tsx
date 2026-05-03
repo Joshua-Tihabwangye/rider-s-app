@@ -54,8 +54,13 @@ function isValidJWT(token: string): boolean {
     // Check if header and payload are valid base64 and JSON
     let header, payload;
     try {
-      header = JSON.parse(atob(parts[0]));
-      payload = JSON.parse(atob(parts[1]));
+      const encodedHeader = parts[0];
+      const encodedPayload = parts[1];
+      if (!encodedHeader || !encodedPayload) {
+        return false;
+      }
+      header = JSON.parse(atob(encodedHeader));
+      payload = JSON.parse(atob(encodedPayload));
     } catch (decodeError) {
       console.log("Invalid JWT base64 encoding:", decodeError);
       return false;

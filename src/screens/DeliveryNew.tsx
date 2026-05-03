@@ -34,6 +34,7 @@ import { useAppData } from "../contexts/AppDataContext";
 import type { DeliveryDraft, DeliveryOrderMode, RideLocation } from "../store/types";
 import { DEFAULT_DELIVERY_SCHEDULE_POLICY } from "../features/delivery/schedulePolicy";
 import { createEmptyDeliveryDraftStop, deriveDraftStops } from "../features/delivery/multiStop";
+import { geocodeAddress } from "../services/maps";
 import {
   DELIVERY_ORDER_MODE_OPTIONS,
   getDeliveryOrderModeLabel,
@@ -75,8 +76,7 @@ function toLocation(address: string): RideLocation | null {
 
   return {
     label: trimmed.split(",")[0]?.trim() || trimmed,
-    address: trimmed,
-    coordinates: { lat: 0.3136, lng: 32.5811 }
+    address: trimmed
   };
 }
 
@@ -298,6 +298,67 @@ export default function DeliveryNew(): React.JSX.Element {
     actions.updateDeliveryDraft(patch);
   };
 
+  const resolveLocationCoordinates = async (location: RideLocation | null): Promise<RideLocation | null> => {
+    if (!location?.address?.trim()) {
+      return location;
+    }
+    if (location.coordinates) {
+      return location;
+    }
+    const coordinates = await geocodeAddress(location.address);
+    if (!coordinates) {
+      return location;
+    }
+    return { ...location, coordinates };
+  };
+
+  const resolveDraftRouteCoordinates = async (): Promise<DeliveryDraft | null> => {
+    const resolvedPickup = await resolveLocationCoordinates(draft.pickup);
+    const resolvedStops = await Promise.all(
+      draftStops.map(async (stop) => {
+        const resolvedLocation = await resolveLocationCoordinates(stop.location);
+        return {
+          ...stop,
+          location: resolvedLocation,
+          recipient: stop.recipient
+            ? {
+                ...stop.recipient,
+                address: stop.recipient.address || resolvedLocation?.address || ""
+              }
+            : stop.recipient
+        };
+      })
+    );
+
+    const finalStop = resolvedStops[resolvedStops.length - 1] ?? null;
+    const hasMissingCoordinates =
+      !resolvedPickup?.coordinates ||
+      resolvedStops.some((stop) => !stop.location?.coordinates);
+
+    const resolvedDraft: DeliveryDraft = {
+      ...draft,
+      pickup: resolvedPickup,
+      stops: resolvedStops,
+      dropoff: finalStop?.location ?? null,
+      recipient: finalStop?.recipient ?? null
+    };
+
+    updateDraft(resolvedDraft);
+
+    actions.updateSharedLocationState({
+      deliveryPickupCoords: resolvedPickup?.coordinates ?? null,
+      deliveryDropoffCoords: finalStop?.location?.coordinates ?? null
+    });
+
+    if (hasMissingCoordinates) {
+      setSubmitError("Select pickup and destination first.");
+      setShowStepValidation(true);
+      return null;
+    }
+
+    return resolvedDraft;
+  };
+
   const updateOrderModeConfig = (patch: OrderModeConfigPatch): void => {
     updateDraft({
       orderModeConfig: {
@@ -416,11 +477,16 @@ export default function DeliveryNew(): React.JSX.Element {
     });
   };
 
-  const handleNext = (): void => {
+  const handleNext = async (): Promise<void> => {
     if (!canProceed(activeStep, draft)) {
       setShowStepValidation(true);
       setSubmitError(getStepValidationHint(activeStep, draft, onlinePaymentMethods.length));
       return;
+    }
+    if (activeStep === 0) {
+      if (!(await resolveDraftRouteCoordinates())) {
+        return;
+      }
     }
     setShowStepValidation(false);
     setSubmitError("");
@@ -433,15 +499,20 @@ export default function DeliveryNew(): React.JSX.Element {
     setActiveStep((prev) => Math.max(prev - 1, 0));
   };
 
-  const handleConfirm = (): void => {
+  const handleConfirm = async (): Promise<void> => {
     setSubmitError("");
+    const resolvedDraft = await resolveDraftRouteCoordinates();
+    if (!resolvedDraft) {
+      setActiveStep(0);
+      return;
+    }
     if (draft.paymentOption === "prepayment" && !draft.paymentPrepaid) {
       setActiveStep(5);
       setShowStepValidation(true);
       setSubmitError("Complete online payment before confirming delivery.");
       return;
     }
-    const order = actions.createDeliveryOrder();
+    const order = actions.createDeliveryOrder(resolvedDraft);
     if (!order) {
       setSubmitError("Pickup, destination, parcel, and recipient details are required for every stop.");
       return;

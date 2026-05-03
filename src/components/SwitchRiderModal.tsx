@@ -86,8 +86,8 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }: SwitchRiderMo
   const [passengers, setPassengers] = useState<number>(tripData?.passengers || 1);
   
   // Get trip details from props
-  const pickup = tripData?.pickup || "Entebbe International Airport";
-  const destination = tripData?.destination || "Kampala City";
+  const pickup = tripData?.pickup || "Pickup location";
+  const destination = tripData?.destination || "Destination";
   const schedule = tripData?.schedule || "";
   const scheduleTime = tripData?.scheduleTime || "";
   const isScheduled = tripData?.isScheduled || false;

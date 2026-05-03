@@ -15,6 +15,7 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import { searchPlaces } from "../services/maps";
 
 interface Coordinates {
   lat: number;
@@ -46,68 +47,19 @@ interface AddStopModalProps {
   currentStopCount: number;
 }
 
-// Mock recent searches - would come from API/localStorage
-const getRecentSearches = (): Location[] => [
-  {
-    id: "recent-1",
-    name: "Kampala City",
-    address: "Kampala, Uganda",
-    distance: "1.1 km",
-    coordinates: { lat: 0.3476, lng: 32.5825 },
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
-  },
-  {
-    id: "recent-2",
-    name: "Kampala City",
-    address: "Kampala, Uganda",
-    distance: "2.3 km",
-    coordinates: { lat: 0.3476, lng: 32.5825 },
-    timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000) // 5 hours ago
-  },
-  {
-    id: "recent-3",
-    name: "Kampala City",
-    address: "Kampala, Uganda",
-    distance: "3.5 km",
-    coordinates: { lat: 0.3476, lng: 32.5825 },
-    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000) // 1 day ago
-  }
-];
+const getRecentSearches = (): Location[] => [];
 
-// Mock search function - would use location API
 const searchLocations = async (query: string): Promise<Location[]> => {
   if (!query || query.length < 2) return [];
-  
-  await new Promise(resolve => setTimeout(resolve, 300));
-  
-  const mockResults: Location[] = [
-    {
-      id: "search-1",
-      name: `${query} City`,
-      address: `${query}, Uganda`,
-      distance: "2.3 km",
-      coordinates: { lat: 0.3476, lng: 32.5825 }
-    },
-    {
-      id: "search-2",
-      name: `${query} Market`,
-      address: `${query}, Uganda`,
-      distance: "3.3 km",
-      coordinates: { lat: 0.3136, lng: 32.5811 }
-    },
-    {
-      id: "search-3",
-      name: `${query} Street`,
-      address: `${query}, Uganda`,
-      distance: "5.1 km",
-      coordinates: { lat: 0.3200, lng: 32.5900 }
-    }
-  ];
-  
-  return mockResults.filter(r => 
-    r.name?.toLowerCase().includes(query.toLowerCase()) ||
-    r.address?.toLowerCase().includes(query.toLowerCase())
-  );
+
+  const results = await searchPlaces(query);
+  return results.map((result, index) => ({
+    id: `${result.placeId}-${index}`,
+    name: result.description.split(",")[0]?.trim() || result.description,
+    address: result.description,
+    distance: "GPS location",
+    coordinates: result.coordinates
+  }));
 };
 
 function AddStopModal({ open, onClose, onSelectStop, currentStopCount }: AddStopModalProps): React.JSX.Element {
@@ -482,4 +434,3 @@ function AddStopModal({ open, onClose, onSelectStop, currentStopCount }: AddStop
 }
 
 export default AddStopModal;
-

@@ -78,6 +78,7 @@ export interface AppData {
   paymentMethods: PaymentMethod[];
   transactions: WalletTransaction[];
   reminders: Reminder[];
+  sharedLocationState: SharedLocationState;
 }
 
 /** Saved place for quick access */
@@ -1078,4 +1079,22 @@ export interface SosState {
   activeEventId?: string | null;
   events: SosEvent[];
   emergencyServicesNumber: string;
+}
+
+/** Shared location state for maps across all screens */
+export interface MapPoint {
+  lat: number;
+  lng: number;
+}
+
+export interface SharedLocationState {
+  pickupCoords?: MapPoint | null;
+  destinationCoords?: MapPoint | null;
+  routePolyline?: MapPoint[];
+  routeDistanceKm?: number | null;
+  routeDurationMin?: number | null;
+  riderLocation?: MapPoint | null;
+  driverLocation?: MapPoint | null;
+  deliveryPickupCoords?: MapPoint | null;
+  deliveryDropoffCoords?: MapPoint | null;
 }
