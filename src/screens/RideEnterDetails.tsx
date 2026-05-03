@@ -18,6 +18,7 @@ import {
 	Menu,
 	CircularProgress,
 	Alert,
+	Collapse,
 } from "@mui/material";
 
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
@@ -681,6 +682,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 			: theme.palette.background.paper;
 	const accentGreen = "#03CD8C";
 	const lightGreen = "rgba(3,205,140,0.1)"; // Light green for active passenger selection
+	const mobileBottomNavReservePx = 88;
+	const mapViewportMinHeight = {
+		xs: `calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${mobileBottomNavReservePx}px)`,
+		md: `calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${mobileBottomNavReservePx}px)`,
+	} as const;
 	const topMapBleedSx = {
 		position: "relative",
 		width: {
@@ -695,19 +701,38 @@ function EnterDestinationScreen(): React.JSX.Element {
 			xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
 			md: "calc(var(--rider-shell-content-px-md, 24px) * -1)",
 		},
-		overflow: "hidden",
+		overflow: "visible",
 	} as const;
 
 	return (
-		<ScreenScaffold disableTopPadding>
-			<Box sx={topMapBleedSx}>
+		<ScreenScaffold
+			disableTopPadding
+			disableBottomPadding
+			contentSx={{
+				minHeight: mapViewportMinHeight,
+				gap: 0,
+				pb: 0,
+			}}
+		>
+			<Box
+				sx={{
+					...topMapBleedSx,
+					display: "flex",
+					flexDirection: "column",
+					flex: isPanelCollapsed ? 1 : "0 0 auto",
+					minHeight: isPanelCollapsed ? 0 : undefined,
+				}}
+			>
 				<MapShell
 					showControls={false}
+					resizeKey={isPanelCollapsed ? "collapsed" : "expanded"}
 					sx={{
 						height: isPanelCollapsed
-							? { xs: "70dvh", md: "75vh" }
+							? "100%"
 							: { xs: "50dvh", md: "56vh" },
-						transition: "height 0.3s ease"
+						minHeight: isPanelCollapsed ? 0 : { xs: 320, md: 360 },
+						flex: isPanelCollapsed ? 1 : "0 0 auto",
+						transition: "height 0.32s ease, min-height 0.32s ease"
 					}}
 					pickupLocation={pickupCoords}
 					dropoffLocation={destinationCoords}
@@ -719,20 +744,16 @@ function EnterDestinationScreen(): React.JSX.Element {
 								: "linear-gradient(160deg, #1B2D3E 0%, #223A4F 25%, #1A2533 25%, #1A2533 100%)",
 					}}
 				/>
-			</Box>
-
-			{/* Collapsible Panel Arrow */}
-			<Box
-				sx={{
-					display: "flex",
-					justifyContent: "center",
-					py: 1,
-					pb: isPanelCollapsed ? 0 : 1,
-				}}
-			>
 				<IconButton
 					onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
 					sx={{
+						position: "absolute",
+						left: "50%",
+						bottom: isPanelCollapsed ? 12 : -20,
+						transform: "translateX(-50%)",
+						zIndex: 6,
+						width: 42,
+						height: 42,
 						borderRadius: "50%",
 						backgroundColor: theme.palette.mode === "light"
 							? "rgba(255,255,255,0.9)"
@@ -759,8 +780,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 			</Box>
 
 			{/* Trip Setup Card - Neutral Background */}
-			{!isPanelCollapsed && (
-				<>
+			<Collapse in={!isPanelCollapsed} timeout={320} unmountOnExit>
+				<Box sx={{ pt: 4 }}>
 				<Card
 				elevation={0}
 				sx={{
@@ -2115,8 +2136,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 					Continue
 				</Button>
 			</Box>
-				</>
-			)}
+				</Box>
+			</Collapse>
 
 			{/* Schedule Menu */}
 			<Menu

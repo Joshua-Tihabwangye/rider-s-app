@@ -58,6 +58,7 @@ export interface LeafletMapViewProps {
   className?: string;
   height?: string | number;
   recenterKey?: number;
+  resizeKey?: number | string;
   showViewSwitcher?: boolean;
   showCurrentLocationMarker?: boolean;
 }
@@ -216,6 +217,26 @@ function MapEventBridge({
   return null;
 }
 
+function MapResizeController({ resizeKey }: { resizeKey: number | string }): null {
+  const map = useMap();
+
+  React.useEffect(() => {
+    const rafId = window.requestAnimationFrame(() => {
+      map.invalidateSize({ animate: false, pan: false });
+    });
+    const timeoutId = window.setTimeout(() => {
+      map.invalidateSize({ animate: false, pan: false });
+    }, 320);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [map, resizeKey]);
+
+  return null;
+}
+
 export default function LeafletMapView({
   center,
   zoom = 13,
@@ -237,6 +258,7 @@ export default function LeafletMapView({
   className,
   height = "100%",
   recenterKey = 0,
+  resizeKey = 0,
   showViewSwitcher = true,
   showCurrentLocationMarker = true
 }: LeafletMapViewProps): React.JSX.Element {
@@ -379,6 +401,7 @@ export default function LeafletMapView({
       >
         <TileLayer attribution={MAP_ATTRIBUTION} detectRetina url={TILE_LAYERS[activeLayer]} />
         <MapSyncController center={center} zoom={zoom} recenterKey={recenterKey} />
+        <MapResizeController resizeKey={resizeKey} />
         <MapEventBridge
           onMapClick={onMapClick}
           onLocationSelect={onLocationSelect}
