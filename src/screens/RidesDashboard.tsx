@@ -2,8 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
-  TextField,
-  InputAdornment,
   Typography,
   Card,
   CardContent,
@@ -11,12 +9,9 @@ import {
   Tab,
   Stack,
   Chip,
-  Avatar,
-  Autocomplete,
-  CircularProgress
+  Avatar
 } from "@mui/material";
 
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
@@ -43,12 +38,12 @@ import ActionGrid from "../components/primitives/ActionGrid";
 import InfoCard from "../components/primitives/InfoCard";
 import SectionHeader from "../components/primitives/SectionHeader";
 import MapShell from "../components/maps/MapShell";
+import LocationAutocompleteField from "../components/location/LocationAutocompleteField";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import type { RideState } from "../store/types";
 import {
   calculateRoute,
-  searchPlaces,
   type Coordinates,
   type PlaceSuggestion
 } from "../services/maps";
@@ -735,8 +730,6 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const [selectedPlace, setSelectedPlace] = useState<string | PlaceSuggestion | null>(null);
   const [selectedAutocompleteOption, setSelectedAutocompleteOption] = useState<PlaceSuggestion | null>(null);
   const [whereTo, setWhereTo] = useState("");
-  const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [locationPermission, setLocationPermission] = useState<LocationPermissionState>("prompt");
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(
     sharedLocationState.riderLocation ?? sharedLocationState.pickupCoords ?? ride.request.origin?.coordinates ?? null
@@ -1013,66 +1006,17 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     }
   };
 
-  const handlePlaceSearch = async (query: string): Promise<void> => {
-    setWhereTo(query);
-    setHelperState("search");
-    setSelectedPlace(null);
-    setSelectedAutocompleteOption(null);
-    
-    if (query && query.length >= 2) {
-      setLoadingSuggestions(true);
-      try {
-        const suggestions = await searchPlaces(query);
-        setPlaceSuggestions(suggestions);
-      } catch (error) {
-        console.error("Error searching places:", error);
-      } finally {
-        setLoadingSuggestions(false);
-      }
-    } else {
-      setPlaceSuggestions([]);
-    }
-  };
-
-  const handlePlaceSelect = async (place: string | PlaceSuggestion): Promise<void> => {
-    let typedCoordinates: Coordinates | null = null;
-    if (typeof place === "string") {
-      setWhereTo(place);
-      const suggestions = await searchPlaces(place);
-      const first = suggestions[0];
-      typedCoordinates = first?.coordinates ?? null;
-      if (!typedCoordinates) {
-        setHelperState("search-no-match");
-        return;
-      }
-      setSelectedAutocompleteOption(first ?? null);
-      setSelectedPlace(
-        first ?? {
-          placeId: `typed-${place.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-          description: place,
-          coordinates: typedCoordinates
-        }
-      );
-      setDestinationCoords(typedCoordinates);
-    } else {
-      // Selected from autocomplete
-      setWhereTo(place.description);
-      setSelectedAutocompleteOption(place);
-      setSelectedPlace(place);
-      setDestinationCoords(place.coordinates);
-    }
-    setPlaceSuggestions([]);
-    const selectedDestination = typeof place === "string"
-      ? {
-          label: place.split(",")[0]?.trim() || place,
-          address: place,
-          coordinates: typedCoordinates ?? undefined
-        }
-      : {
-          label: place.description.split(",")[0]?.trim() || place.description,
-          address: place.description,
-          coordinates: place.coordinates
-        };
+  const handlePlaceSelect = async (place: PlaceSuggestion): Promise<void> => {
+    setWhereTo(place.description);
+    setSelectedAutocompleteOption(place);
+    setSelectedPlace(place);
+    setDestinationCoords(place.coordinates);
+    const selectedDestination = {
+      label: place.description.split(",")[0]?.trim() || place.description,
+      address: place.description,
+      coordinates: place.coordinates,
+      placeId: place.placeId
+    };
     actions.updateRideRequest({
       origin: currentLocation
         ? {
@@ -1096,7 +1040,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         state: {
           pickup: currentLocation ? "Current location" : ride.request.origin?.label || "",
           pickupCoords: currentLocation ?? null,
-          destination: typeof place === "string" ? place : place.description,
+          destination: place.description,
           destinationCoords: selectedDestination.coordinates ?? null,
           isSharedRide: isSharedRideMode // Pass shared ride mode to details screen
         }
@@ -1133,21 +1077,20 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             <Box
               sx={{
                 position: "absolute",
-                bottom: 8,
-                left: 8,
-                right: 8,
+                bottom: { xs: 14, md: 18 },
+                left: { xs: 14, md: 18 },
                 bgcolor: "var(--evz-map-overlay-bg)",
                 border: "1px solid var(--evz-map-overlay-border)",
-                borderRadius: "var(--evz-radius-md)",
-                px: 1.5,
-                py: 1,
-                display: "flex",
-                justifyContent: "space-between",
+                borderRadius: 999,
+                px: 1.4,
+                py: 0.8,
+                display: "inline-flex",
                 alignItems: "center",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                boxShadow: "0 6px 18px rgba(15,23,42,0.2)",
+                zIndex: 8
               }}
             >
-              <Typography variant="caption" sx={{ fontSize: 10, fontWeight: 600 }}>
+              <Typography variant="caption" sx={{ fontSize: 12, fontWeight: 700, lineHeight: 1 }}>
                 {routeData.distance} • {routeData.duration}
               </Typography>
             </Box>
@@ -1170,87 +1113,43 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         }}
       >
 
-        {/* Search with Autocomplete */}
-        <Autocomplete
-          freeSolo
-          disablePortal
-          options={placeSuggestions}
-          getOptionLabel={(option) => 
-            typeof option === "string" ? option : option.description
-          }
-          isOptionEqualToValue={(option, value) =>
-            typeof value !== "string" && option.placeId === value.placeId
-          }
-          loading={loadingSuggestions}
-          value={selectedAutocompleteOption}
-          inputValue={whereTo}
-          onInputChange={(_event: React.SyntheticEvent, newValue: string, reason) => {
-            if (reason === "reset") return;
-            handlePlaceSearch(newValue);
-          }}
-          onChange={(_event: React.SyntheticEvent, newValue: string | PlaceSuggestion | null) => {
-            if (newValue) {
-              handlePlaceSelect(newValue);
+        <LocationAutocompleteField
+          value={whereTo}
+          onValueChange={(nextValue) => {
+            setWhereTo(nextValue);
+            setHelperState("search");
+            setSelectedPlace(null);
+            setSelectedAutocompleteOption(null);
+            if (!nextValue.trim()) {
+              setDestinationCoords(null);
             }
           }}
-          slotProps={{
-            popper: {
-              sx: { zIndex: 1400 }
+          onSelectLocation={(selection) => {
+            void handlePlaceSelect({
+              description: selection.address,
+              placeId: selection.placeId || `local-${selection.address}`,
+              coordinates: selection.coordinates
+            });
+          }}
+          placeholder="Where to?"
+          nearbyCoordinates={currentLocation}
+          sx={{
+            mb: 2,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: uiTokens.radius.xl,
+              bgcolor: (theme) =>
+                theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
+              "& fieldset": {
+                borderColor: (theme) =>
+                  theme.palette.mode === "light"
+                    ? "rgba(209,213,219,0.9)"
+                    : "rgba(51,65,85,0.9)"
+              },
+              "&:hover fieldset": {
+                borderColor: "primary.main"
+              }
             }
           }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              fullWidth
-              size="small"
-              placeholder="Where to?"
-              variant="outlined"
-              InputProps={{
-                ...params.InputProps,
-                startAdornment: (
-                  <>
-                    <InputAdornment position="start">
-                      <SearchRoundedIcon sx={{ fontSize: 20, color: "text.secondary" }} />
-                    </InputAdornment>
-                    {params.InputProps.startAdornment}
-                  </>
-                ),
-                endAdornment: (
-                  <>
-                    {loadingSuggestions ? <CircularProgress color="inherit" size={20} /> : null}
-                    {params.InputProps.endAdornment}
-                  </>
-                )
-              }}
-              sx={{
-                mb: 2,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: uiTokens.radius.xl,
-                  bgcolor: (theme) =>
-                    theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
-                  "& fieldset": {
-                    borderColor: (theme) =>
-                      theme.palette.mode === "light"
-                        ? "rgba(209,213,219,0.9)"
-                        : "rgba(51,65,85,0.9)"
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "primary.main"
-                  }
-                }
-              }}
-            />
-          )}
-          renderOption={(props, option) => (
-            <Box component="li" {...props} key={typeof option === "string" ? option : option.placeId}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
-                <PlaceRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
-                <Typography variant="body2">
-                  {typeof option === "string" ? option : option.description}
-                </Typography>
-              </Box>
-            </Box>
-          )}
         />
         {(locationPermission === "denied" || locationPermission === "unsupported") && (
           <Typography

@@ -15,7 +15,7 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
-import { searchPlaces } from "../services/maps";
+import { useLocationAutocomplete } from "../hooks/useLocationAutocomplete";
 
 interface Coordinates {
   lat: number;
@@ -49,44 +49,29 @@ interface AddStopModalProps {
 
 const getRecentSearches = (): Location[] => [];
 
-const searchLocations = async (query: string): Promise<Location[]> => {
-  if (!query || query.length < 2) return [];
-
-  const results = await searchPlaces(query);
-  return results.map((result, index) => ({
+function AddStopModal({ open, onClose, onSelectStop, currentStopCount }: AddStopModalProps): React.JSX.Element {
+  const [query, setQuery] = useState<string>("");
+  const [recentSearches, setRecentSearches] = useState<Location[]>([]);
+  const { suggestions, loading } = useLocationAutocomplete({
+    query,
+    minQueryLength: 2,
+    debounceMs: 280,
+    enabled: open
+  });
+  const searchResults: Location[] = suggestions.map((result, index) => ({
     id: `${result.placeId}-${index}`,
     name: result.description.split(",")[0]?.trim() || result.description,
     address: result.description,
     distance: "GPS location",
     coordinates: result.coordinates
   }));
-};
-
-function AddStopModal({ open, onClose, onSelectStop, currentStopCount }: AddStopModalProps): React.JSX.Element {
-  const [query, setQuery] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<Location[]>([]);
-  const [loadingSearch, setLoadingSearch] = useState<boolean>(false);
-  const [recentSearches, setRecentSearches] = useState<Location[]>([]);
 
   useEffect(() => {
     if (open) {
       setRecentSearches(getRecentSearches());
       setQuery("");
-      setSearchResults([]);
     }
   }, [open]);
-
-  useEffect(() => {
-    if (query.length >= 2) {
-      setLoadingSearch(true);
-      searchLocations(query).then(results => {
-        setSearchResults(results);
-        setLoadingSearch(false);
-      });
-    } else {
-      setSearchResults([]);
-    }
-  }, [query]);
 
   const handleSelectLocation = (location: Location): void => {
     // Save to recent searches (would be done via API/localStorage)
@@ -102,13 +87,12 @@ function AddStopModal({ open, onClose, onSelectStop, currentStopCount }: AddStop
 
   const handleClose = (): void => {
     setQuery("");
-    setSearchResults([]);
     onClose();
   };
 
   const showRecentSearches = query.length === 0 && recentSearches.length > 0;
   const showSearchResults = query.length >= 2 && searchResults.length > 0;
-  const showEmptyState = query.length >= 2 && searchResults.length === 0 && !loadingSearch;
+  const showEmptyState = query.length >= 2 && searchResults.length === 0 && !loading;
 
   return (
     <Drawer
@@ -400,7 +384,7 @@ function AddStopModal({ open, onClose, onSelectStop, currentStopCount }: AddStop
         )}
 
         {/* Loading State */}
-        {loadingSearch && (
+        {loading && (
           <Box sx={{ textAlign: "center", py: 4 }}>
             <Typography
               variant="body2"

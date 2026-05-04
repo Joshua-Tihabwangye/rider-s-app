@@ -157,6 +157,7 @@ export interface RideLocation {
   label: string;
   address: string;
   coordinates?: { lat: number; lng: number };
+  placeId?: string;
 }
 
 export interface RideRequest {

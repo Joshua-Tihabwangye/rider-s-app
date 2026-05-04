@@ -1,11 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  
   Box,
   IconButton,
-  TextField,
-  InputAdornment,
   Typography,
   Card,
   CardContent,
@@ -17,10 +14,10 @@ import {
 } from "@mui/material";
 
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
+import LocationAutocompleteField from "../components/location/LocationAutocompleteField";
 
 function CommuteCard(): React.JSX.Element {
   const navigate = useNavigate();
@@ -219,15 +216,6 @@ function DailyCommutesScreen(): React.JSX.Element {
     setTab(value);
   };
 
-  const handleSearchSubmit = (
-    e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLInputElement>
-  ): void => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate("/rides/enter", { state: { searchQuery: searchQuery.trim() } });
-    }
-  };
-
   return (
     <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
       <Box
@@ -263,25 +251,18 @@ function DailyCommutesScreen(): React.JSX.Element {
         <Box sx={{ width: 32 }} />
       </Box>
 
-      <TextField
-        fullWidth
-        size="small"
-        placeholder="Where to?"
-        variant="outlined"
+      <LocationAutocompleteField
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        onKeyDown={(e: any) => {
-          if (e.key === "Enter") {
-            handleSearchSubmit(e);
-          }
+        onValueChange={setSearchQuery}
+        onSelectLocation={(selection) => {
+          navigate("/rides/enter/details", {
+            state: {
+              destination: selection.address,
+              destinationCoords: selection.coordinates
+            }
+          });
         }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchRoundedIcon sx={{ fontSize: 20, color: "text.secondary" }} />
-            </InputAdornment>
-          )
-        }}
+        placeholder="Where to?"
         sx={{
           mb: 2,
           "& .MuiOutlinedInput-root": {
