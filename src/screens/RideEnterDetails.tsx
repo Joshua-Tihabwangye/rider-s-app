@@ -16,7 +16,6 @@ import {
 	MenuItem,
 	FormControl,
 	Menu,
-	CircularProgress,
 	Alert,
 	Collapse,
 } from "@mui/material";
@@ -40,18 +39,10 @@ import SwitchRiderModal from "../components/SwitchRiderModal";
 import TripTypeModal from "../components/TripTypeModal";
 import AddStopModal from "../components/AddStopModal";
 import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
+import LocationAutocompleteField from "../components/location/LocationAutocompleteField";
 import { useAppData } from "../contexts/AppDataContext";
-import { searchPlaces as searchMapPlaces, calculateRoute, geocodeAddress } from "../services/maps";
+import { calculateRoute, geocodeAddress } from "../services/maps";
 import { getLocationPermissionState, watchLiveLocation } from "../services/location";
-
-interface SearchResult {
-	id: string;
-	name: string;
-	subtext: string;
-	distance: string;
-	type: string;
-	coordinates: { lat: number; lng: number };
-}
 
 interface Stop {
 	id: string;
@@ -70,45 +61,6 @@ function normalizeRideType(value: unknown): RideTypeOption {
 		: "Personal";
 }
 
-const searchLocations = async (query: string): Promise<SearchResult[]> => {
-	if (!query || query.length < 3) return [];
-	const suggestions = await searchMapPlaces(query);
-	return suggestions.map((item, index) => {
-		// Extract meaningful name from description for key GPS locations
-		const descriptionParts = item.description.split(",");
-		const primaryName = descriptionParts[0]?.trim() || item.description;
-		const locationDetails = descriptionParts.slice(1).join(",").trim();
-
-		return {
-			id: `live-${item.placeId}-${index}`,
-			name: primaryName,
-			subtext: locationDetails || item.description,
-			distance: "GPS location",
-			type: "location",
-			coordinates: item.coordinates,
-		};
-	});
-};
-
-// Mock recent searches
-const getRecentSearches = (): SearchResult[] => [
-	{
-		id: "recent-1",
-		name: "Kampala City",
-		subtext: "Kampala, Uganda",
-		distance: "2.3 km",
-		type: "recent",
-		coordinates: { lat: 0.3476, lng: 32.5825 },
-	},
-	{
-		id: "recent-2",
-		name: "Entebbe International Airport",
-		subtext: "Entebbe, Uganda",
-		distance: "35.2 km",
-		type: "recent",
-		coordinates: { lat: 0.0422, lng: 32.4435 },
-	},
-];
 
 function EnterDestinationScreen(): React.JSX.Element {
 	const navigate = useNavigate();
@@ -188,10 +140,6 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [returnDateTime, setReturnDateTime] = useState(
 		initialState.returnDateTime || null,
 	);
-	const [searchQuery, setSearchQuery] = useState<string>("");
-	const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-	const [loadingSearch, setLoadingSearch] = useState<boolean>(false);
-	const [showSearchResults, setShowSearchResults] = useState(false);
 	const [scheduleMenuAnchor, setScheduleMenuAnchor] =
 		useState<HTMLElement | null>(null);
 	const [showError, setShowError] = useState(false);
@@ -336,8 +284,6 @@ function EnterDestinationScreen(): React.JSX.Element {
 		if (initialState.fromMap && initialState.destination) {
 			setDestination(initialState.destination);
 			setDestinationCoords(initialState.destinationCoords || null);
-			setSearchQuery("");
-			setShowSearchResults(false);
 			// Update shared state with destination coordinates from map picker
 			if (initialState.destinationCoords) {
 				updateSharedLocationState({
@@ -457,47 +403,6 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const hasBookForSomeoneDetails =
 		bookedPersonName.trim().length > 1 && bookedPersonPhone.trim().length >= 7;
 	const canSubmit = canContinue && (!isBookingForSomeone || hasBookForSomeoneDetails);
-
-	// Load recent searches on mount
-	useEffect(() => {
-		const recent = getRecentSearches();
-		setSearchResults(recent);
-	}, []);
-
-	// Search locations when query changes
-	useEffect(() => {
-		if (searchQuery.length >= 3) {
-			setLoadingSearch(true);
-			searchLocations(searchQuery).then((results) => {
-				setSearchResults(results);
-				setLoadingSearch(false);
-				setShowSearchResults(true);
-			});
-		} else if (searchQuery.length === 0) {
-			setSearchResults(getRecentSearches());
-			setShowSearchResults(false);
-		} else {
-			setSearchResults(getRecentSearches());
-			setShowSearchResults(false);
-		}
-	}, [searchQuery]);
-
-	const handleDestinationSelect = (result: SearchResult): void => {
-		setDestination(result.name);
-		setDestinationCoords(result.coordinates);
-		setRouteAlternatives([]);
-		// Update shared location state
-		updateSharedLocationState({
-			destinationCoords: result.coordinates,
-			routePolyline: [], // Will be recalculated
-			routeAlternativePolylines: []
-		});
-		setSearchQuery("");
-		setShowSearchResults(false);
-		setSearchResults([]);
-		setShowError(false);
-		setErrorMessage("");
-	};
 
 	const handleSwitchLocations = () => {
 		const tempPickup = pickup;
@@ -934,121 +839,112 @@ function EnterDestinationScreen(): React.JSX.Element {
 										alignItems: "flex-start",
 									}}
 								>
-									<TextField
-										fullWidth
-										size="small"
-										variant="outlined"
-										placeholder="Destination place"
+									<LocationAutocompleteField
 										value={destination}
-										onChange={(e) => {
-											setDestination(e.target.value);
-											setSearchQuery(e.target.value);
+										onValueChange={(nextValue) => {
+											setDestination(nextValue);
+											setShowError(false);
+											setErrorMessage("");
+											if (!nextValue.trim()) {
+												setDestinationCoords(null);
+												updateSharedLocationState({
+													destinationCoords: null,
+													routePolyline: [],
+													routeAlternativePolylines: [],
+													routeDistanceKm: null,
+													routeDurationMin: null
+												});
+											}
+										}}
+										onSelectLocation={(selection) => {
+											setDestination(selection.address);
+											setDestinationCoords(selection.coordinates);
+											setRouteAlternatives([]);
+											updateSharedLocationState({
+												destinationCoords: selection.coordinates,
+												routePolyline: [],
+												routeAlternativePolylines: []
+											});
 											setShowError(false);
 											setErrorMessage("");
 										}}
-										onFocus={() => {
-											if (searchQuery.length === 0) {
-												setSearchResults(
-													getRecentSearches(),
-												);
-											}
-											setShowSearchResults(true);
-										}}
-										InputProps={{
-											startAdornment: (
-												<InputAdornment position="start">
+										placeholder="Destination place"
+										nearbyCoordinates={pickupCoords}
+										textFieldProps={{
+											fullWidth: true,
+											size: "small",
+											variant: "outlined",
+											InputProps: {
+												startAdornment: (
 													<Box
 														sx={{
 															width: 24,
 															height: 24,
 															borderRadius: "50%",
 															bgcolor:
-																theme.palette
-																	.mode ===
-																"light"
-																	? "#9E9E9E"
-																	: "#757575",
+																theme.palette.mode === "light" ? "#9E9E9E" : "#757575",
 															color: "#FFFFFF",
 															display: "flex",
-															alignItems:
-																"center",
-															justifyContent:
-																"center",
+															alignItems: "center",
+															justifyContent: "center",
 															fontSize: 12,
-															fontWeight: 600,
+															fontWeight: 600
 														}}
 													>
 														A
 													</Box>
-												</InputAdornment>
-											),
-											endAdornment: destination && (
-												<InputAdornment position="end">
+												),
+												endAdornment: destination ? (
 													<IconButton
 														size="small"
-															onClick={() => {
-																setDestination("");
-																setSearchQuery("");
-																setShowSearchResults(
-																	false,
-																);
-																setDestinationCoords(null);
-																setSearchResults([]);
-																updateSharedLocationState({
-																	destinationCoords: null,
-																	routePolyline: [],
-																	routeAlternativePolylines: [],
-																	routeDistanceKm: null,
-																	routeDurationMin: null
-																});
-															}}
+														onClick={() => {
+															setDestination("");
+															setDestinationCoords(null);
+															updateSharedLocationState({
+																destinationCoords: null,
+																routePolyline: [],
+																routeAlternativePolylines: [],
+																routeDistanceKm: null,
+																routeDurationMin: null
+															});
+														}}
 														sx={{
-															color: theme.palette
-																.text.secondary,
+															color: theme.palette.text.secondary,
 															"&:hover": {
 																bgcolor:
-																	theme
-																		.palette
-																		.mode ===
-																	"light"
+																	theme.palette.mode === "light"
 																		? "rgba(0,0,0,0.05)"
-																		: "rgba(255,255,255,0.05)",
-															},
+																		: "rgba(255,255,255,0.05)"
+															}
 														}}
 													>
-														<CloseRoundedIcon
-															sx={{
-																fontSize: 18,
-															}}
-														/>
+														<CloseRoundedIcon sx={{ fontSize: 18 }} />
 													</IconButton>
-												</InputAdornment>
-											),
+												) : undefined
+											}
 										}}
 										sx={{
+											flex: 1,
 											"& .MuiOutlinedInput-root": {
 												borderRadius: 5,
 												bgcolor:
-													theme.palette.mode ===
-													"light"
+													theme.palette.mode === "light"
 														? "rgba(0,0,0,0.05)"
 														: "rgba(255,255,255,0.05)",
-												color: theme.palette.text
-													.primary,
+												color: theme.palette.text.primary,
 												"& fieldset": {
 													borderColor:
-														theme.palette.mode ===
-														"light"
+														theme.palette.mode === "light"
 															? "rgba(0,0,0,0.15)"
-															: "rgba(255,255,255,0.2)",
+															: "rgba(255,255,255,0.2)"
 												},
 												"&:hover fieldset": {
-													borderColor: accentGreen,
+													borderColor: accentGreen
 												},
 												"&.Mui-focused fieldset": {
-													borderColor: accentGreen,
-												},
-											},
+													borderColor: accentGreen
+												}
+											}
 										}}
 									/>
 									{/* Date & Time Selector beside destination */}
@@ -1107,186 +1003,124 @@ function EnterDestinationScreen(): React.JSX.Element {
 													alignItems: "center",
 												}}
 											>
-												<TextField
-													fullWidth
-													size="small"
-													variant="outlined"
-													value={stop.value}
-													onChange={(
-														e: React.ChangeEvent<HTMLInputElement>,
-													) => {
-														const newStops = [
-															...stops,
-														];
-														if (newStops[index]) {
-															newStops[
-																index
-															].value =
-																e.target.value;
-															setStops(newStops);
-														}
-													}}
-													placeholder={`Stop ${stop.id}`}
-													InputProps={{
-														startAdornment: (
-															<InputAdornment position="start">
-																{isLast ? (
-																	// Orange pin icon for final stop
-																	<PlaceRoundedIcon
-																		sx={{
-																			fontSize: 20,
-																			color: "#FF9800",
-																		}}
-																	/>
-																) : (
-																	// Letter badge for other stops
-																	<Box
-																		sx={{
-																			width: 24,
-																			height: 24,
-																			borderRadius:
-																				isSquare
-																					? 1
-																					: "50%",
-																			bgcolor:
-																				"rgba(15,23,42,0.9)",
-																			color: "#F9FAFB",
-																			display:
-																				"flex",
-																			alignItems:
-																				"center",
-																			justifyContent:
-																				"center",
-																			fontSize: 12,
-																			fontWeight: 600,
-																		}}
-																	>
-																		{
-																			stop.id
-																		}
-																	</Box>
-																)}
-															</InputAdornment>
-														),
-														endAdornment: (
-															<InputAdornment position="end">
-																<Box
-																	sx={{
-																		display:
-																			"flex",
-																		alignItems:
-																			"center",
-																		gap: 0.5,
-																	}}
-																>
-																	<DragIndicatorRoundedIcon
-																		sx={{
-																			fontSize: 18,
-																			color: theme
-																				.palette
-																				.text
-																				.secondary,
-																			cursor: "grab",
-																			"&:active":
-																				{
-																					cursor: "grabbing",
-																				},
-																		}}
-																	/>
-																	<IconButton
-																		size="small"
-																		onClick={() => {
-																			const newStops =
-																				stops.filter(
-																					(
-																						_: Stop,
-																						i: number,
-																					) =>
-																						i !==
-																						index,
-																				);
-																			// Re-index stops
-																			const reindexed =
-																				newStops.map(
-																					(
-																						s: Stop,
-																						idx: number,
-																					) => ({
-																						...s,
-																						id: String.fromCharCode(
-																							65 +
-																								idx,
-																						),
-																					}),
-																				);
-																			setStops(
-																				reindexed,
-																			);
-																		}}
-																		sx={{
-																			color: theme
-																				.palette
-																				.text
-																				.secondary,
-																			"&:hover":
-																				{
-																					bgcolor:
-																						theme
-																							.palette
-																							.mode ===
-																						"light"
-																							? "rgba(0,0,0,0.05)"
-																							: "rgba(255,255,255,0.05)",
-																				},
-																		}}
-																	>
-																		<CloseRoundedIcon
+													<LocationAutocompleteField
+														value={stop.value}
+														onValueChange={(nextValue) => {
+															const newStops = [...stops];
+															if (newStops[index]) {
+																newStops[index] = {
+																	...newStops[index],
+																	value: nextValue,
+																	address: nextValue || undefined,
+																	coordinates: undefined
+																};
+																setStops(newStops);
+															}
+														}}
+														onSelectLocation={(selection) => {
+															const newStops = [...stops];
+															if (newStops[index]) {
+																newStops[index] = {
+																	...newStops[index],
+																	value: selection.address,
+																	address: selection.address,
+																	coordinates: selection.coordinates
+																};
+																setStops(newStops);
+															}
+														}}
+														placeholder={`Stop ${stop.id}`}
+														nearbyCoordinates={pickupCoords}
+														textFieldProps={{
+															fullWidth: true,
+															size: "small",
+															variant: "outlined",
+															InputProps: {
+																startAdornment: (
+																	isLast ? (
+																		<PlaceRoundedIcon
+																			sx={{ fontSize: 20, color: "#FF9800" }}
+																		/>
+																	) : (
+																		<Box
+																			sx={{
+																				width: 24,
+																				height: 24,
+																				borderRadius: isSquare ? 1 : "50%",
+																				bgcolor: "rgba(15,23,42,0.9)",
+																				color: "#F9FAFB",
+																				display: "flex",
+																				alignItems: "center",
+																				justifyContent: "center",
+																				fontSize: 12,
+																				fontWeight: 600
+																			}}
+																		>
+																			{stop.id}
+																		</Box>
+																	)
+																),
+																endAdornment: (
+																	<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+																		<DragIndicatorRoundedIcon
 																			sx={{
 																				fontSize: 18,
+																				color: theme.palette.text.secondary,
+																				cursor: "grab",
+																				"&:active": {
+																					cursor: "grabbing"
+																				}
 																			}}
 																		/>
-																	</IconButton>
-																</Box>
-															</InputAdornment>
-														),
-													}}
-													sx={{
-														"& .MuiOutlinedInput-root":
-															{
+																		<IconButton
+																			size="small"
+																			onClick={() => {
+																				const newStops = stops.filter((_: Stop, i: number) => i !== index);
+																				const reindexed = newStops.map((s: Stop, idx: number) => ({
+																					...s,
+																					id: String.fromCharCode(65 + idx)
+																				}));
+																				setStops(reindexed);
+																			}}
+																			sx={{
+																				color: theme.palette.text.secondary,
+																				"&:hover": {
+																					bgcolor:
+																						theme.palette.mode === "light"
+																							? "rgba(0,0,0,0.05)"
+																							: "rgba(255,255,255,0.05)"
+																				}
+																			}}
+																		>
+																			<CloseRoundedIcon sx={{ fontSize: 18 }} />
+																		</IconButton>
+																	</Box>
+																)
+															}
+														}}
+														sx={{
+															"& .MuiOutlinedInput-root": {
 																borderRadius: 5,
 																bgcolor:
-																	theme
-																		.palette
-																		.mode ===
-																	"light"
+																	theme.palette.mode === "light"
 																		? "rgba(0,0,0,0.05)"
 																		: "rgba(255,255,255,0.05)",
-																color: theme
-																	.palette
-																	.text
-																	.primary,
+																color: theme.palette.text.primary,
 																"& fieldset": {
 																	borderColor:
-																		theme
-																			.palette
-																			.mode ===
-																		"light"
+																		theme.palette.mode === "light"
 																			? "rgba(0,0,0,0.15)"
-																			: "rgba(255,255,255,0.2)",
+																			: "rgba(255,255,255,0.2)"
 																},
-																"&:hover fieldset":
-																	{
-																		borderColor:
-																			accentGreen,
-																	},
-																"&.Mui-focused fieldset":
-																	{
-																		borderColor:
-																			accentGreen,
-																	},
-															},
-													}}
-												/>
+																"&:hover fieldset": {
+																	borderColor: accentGreen
+																},
+																"&.Mui-focused fieldset": {
+																	borderColor: accentGreen
+																}
+															}
+														}}
+													/>
 											</Box>
 										);
 									})}
@@ -1995,134 +1829,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 					</Card>
 				</Stack>
 
-				{/* Search Results */}
-				{showSearchResults && searchResults.length > 0 && (
-					<Box sx={{ mb: 2 }}>
-						<Typography
-							variant="subtitle2"
-							sx={{
-								fontWeight: 600,
-								mb: 1.5,
-								color: theme.palette.text.primary,
-								fontSize: 14,
-							}}
-						>
-							Search results
-						</Typography>
-						<Stack spacing={1}>
-							{searchResults.map((result: SearchResult) => (
-									<Card
-										key={result.id}
-										elevation={0}
-										onMouseDown={(event) => event.preventDefault()}
-										onClick={() =>
-											handleDestinationSelect(result)
-										}
-									sx={{
-										borderRadius: 2,
-										bgcolor:
-											theme.palette.mode === "light"
-												? "#FFFFFF"
-												: contentBg,
-										border:
-											theme.palette.mode === "light"
-												? "1px solid rgba(0,0,0,0.1)"
-												: "1px solid rgba(255,255,255,0.1)",
-										cursor: "pointer",
-										"&:hover": {
-											bgcolor:
-												theme.palette.mode === "light"
-													? "#F5F5F5"
-													: "rgba(255,255,255,0.05)",
-										},
-									}}
-								>
-									<CardContent sx={{ px: 2, py: 1.5 }}>
-										<Box
-											sx={{
-												display: "flex",
-												alignItems: "center",
-												gap: 1.5,
-											}}
-										>
-											<Box
-												sx={{
-													display: "flex",
-													alignItems: "center",
-													gap: 1,
-													minWidth: 80,
-												}}
-											>
-												{result.type === "recent" ? (
-													<AccessTimeRoundedIcon
-														sx={{
-															color: theme.palette
-																.text.secondary,
-															fontSize: 20,
-														}}
-													/>
-												) : (
-													<PlaceRoundedIcon
-														sx={{
-															color: theme.palette
-																.text.secondary,
-															fontSize: 20,
-														}}
-													/>
-												)}
-												<Typography
-													variant="caption"
-													sx={{
-														color: theme.palette
-															.text.secondary,
-														fontSize: 12,
-													}}
-												>
-													{result.distance}
-												</Typography>
-											</Box>
-											<Box sx={{ flex: 1 }}>
-												<Typography
-													variant="body2"
-													sx={{
-														fontWeight: 600,
-														color: theme.palette
-															.text.primary,
-														mb: 0.25,
-													}}
-												>
-													{result.name}
-												</Typography>
-												<Typography
-													variant="caption"
-													sx={{
-														color: theme.palette
-															.text.secondary,
-													}}
-												>
-													{result.subtext}
-												</Typography>
-											</Box>
-										</Box>
-									</CardContent>
-								</Card>
-							))}
-						</Stack>
-						{loadingSearch && (
-							<Box
-								sx={{
-									display: "flex",
-									justifyContent: "center",
-									py: 2,
-								}}
-							>
-								<CircularProgress size={24} />
-							</Box>
-						)}
-					</Box>
-				)}
-
-			{/* Inline Action Section */}
+				{/* Inline Action Section */}
 			<Box
 				sx={{
 					mt: 2,

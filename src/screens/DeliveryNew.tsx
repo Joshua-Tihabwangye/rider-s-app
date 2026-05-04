@@ -29,6 +29,7 @@ import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import AppCard from "../components/primitives/AppCard";
 import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
+import LocationAutocompleteField from "../components/location/LocationAutocompleteField";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import type { DeliveryDraft, DeliveryOrderMode, RideLocation } from "../store/types";
@@ -204,7 +205,7 @@ export default function DeliveryNew(): React.JSX.Element {
   const navigate = useNavigate();
   const theme = useTheme();
   const isPhone = useMediaQuery(theme.breakpoints.down("sm"));
-  const { delivery, paymentMethods, actions } = useAppData();
+  const { delivery, paymentMethods, actions, sharedLocationState } = useAppData();
   const [activeStep, setActiveStep] = useState<number>(0);
   const [submitError, setSubmitError] = useState<string>("");
   const [showStepValidation, setShowStepValidation] = useState(false);
@@ -619,16 +620,34 @@ export default function DeliveryNew(): React.JSX.Element {
                   ? "One pickup, many dropoffs. Add, duplicate, remove, and reorder stops before payment."
                   : "Fast path for one recipient and one destination."}
               </Typography>
-              <TextField
-                label="Pickup location"
+              <LocationAutocompleteField
                 value={draft.pickup?.address ?? ""}
-                onChange={(event) => updateDraft({ pickup: toLocation(event.target.value) })}
+                onValueChange={(value) => {
+                  const next = toLocation(value);
+                  updateDraft({
+                    pickup: next ? { ...next, coordinates: undefined, placeId: undefined } : null
+                  });
+                }}
+                onSelectLocation={(selection) =>
+                  updateDraft({
+                    pickup: {
+                      label: selection.label,
+                      address: selection.address,
+                      coordinates: selection.coordinates,
+                      placeId: selection.placeId
+                    }
+                  })
+                }
+                label="Pickup location"
                 placeholder="e.g. Plot 14, Nakasero Rd, Kampala"
-                size="small"
-                fullWidth
-                required
-                error={pickupMissing}
-                helperText={pickupMissing ? "Pickup location is required." : " "}
+                nearbyCoordinates={sharedLocationState.riderLocation ?? sharedLocationState.pickupCoords ?? null}
+                textFieldProps={{
+                  size: "small",
+                  fullWidth: true,
+                  required: true,
+                  error: pickupMissing,
+                  helperText: pickupMissing ? "Pickup location is required." : " "
+                }}
               />
               <Stack spacing={1.2}>
                 {draftStops.map((stop, index) => (
@@ -665,27 +684,52 @@ export default function DeliveryNew(): React.JSX.Element {
                       </Stack>
                     </Stack>
 
-                    <TextField
-                      label={draft.routeMode === "multi_stop" ? `Destination ${index + 1}` : "Dropoff location"}
+                    <LocationAutocompleteField
                       value={stop.location?.address ?? ""}
-                      onChange={(event) =>
+                      onValueChange={(value) =>
                         updateStop(index, (currentStop) => ({
                           ...currentStop,
-                          location: toLocation(event.target.value),
+                          location: (() => {
+                            const nextLocation = toLocation(value);
+                            return nextLocation
+                              ? { ...nextLocation, coordinates: undefined, placeId: undefined }
+                              : null;
+                          })(),
                           recipient: currentStop.recipient
                             ? {
                                 ...currentStop.recipient,
-                                address: currentStop.recipient.address || event.target.value
+                                address: currentStop.recipient.address || value
                               }
                             : currentStop.recipient
                         }))
                       }
+                      onSelectLocation={(selection) =>
+                        updateStop(index, (currentStop) => ({
+                          ...currentStop,
+                          location: {
+                            label: selection.label,
+                            address: selection.address,
+                            coordinates: selection.coordinates,
+                            placeId: selection.placeId
+                          },
+                          recipient: currentStop.recipient
+                            ? {
+                                ...currentStop.recipient,
+                                address: currentStop.recipient.address || selection.address
+                              }
+                            : currentStop.recipient
+                        }))
+                      }
+                      label={draft.routeMode === "multi_stop" ? `Destination ${index + 1}` : "Dropoff location"}
                       placeholder="e.g. 12, JJ Apartments, New Street, Kampala"
-                      size="small"
-                      fullWidth
-                      required
-                      error={missingRouteStopIndexes.includes(index)}
-                      helperText={missingRouteStopIndexes.includes(index) ? "Destination address is required." : " "}
+                      nearbyCoordinates={draft.pickup?.coordinates ?? sharedLocationState.riderLocation ?? null}
+                      textFieldProps={{
+                        size: "small",
+                        fullWidth: true,
+                        required: true,
+                        error: missingRouteStopIndexes.includes(index),
+                        helperText: missingRouteStopIndexes.includes(index) ? "Destination address is required." : " "
+                      }}
                     />
                   </AppCard>
                 ))}

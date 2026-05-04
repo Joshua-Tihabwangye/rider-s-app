@@ -4,15 +4,15 @@ import {
   Box,
   Button,
   IconButton,
-  TextField,
   Typography,
   useTheme
 } from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import MapShell from "../components/maps/MapShell";
+import LocationAutocompleteField from "../components/location/LocationAutocompleteField";
 import { uiTokens } from "../design/tokens";
 import type { MapPoint } from "../components/maps/LeafletMapView";
-import { geocodeAddress, reverseGeocode } from "../services/maps";
+import { reverseGeocode } from "../services/maps";
 
 const KAMPALA_CENTER: MapPoint = { lat: 0.3476, lng: 32.5825 };
 
@@ -44,23 +44,6 @@ function PickDestinationMapScreen(): React.JSX.Element {
     }, 420);
     return () => window.clearTimeout(timer);
   }, [coordinates.lat, coordinates.lng]);
-
-  const handleDestinationChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ): Promise<void> => {
-    const value = event.target.value;
-    setDestination(value);
-    if (value.trim().length < 3) {
-      return;
-    }
-    setIsGeocoding(true);
-    const nextPoint = await geocodeAddress(value);
-    if (nextPoint) {
-      setCoordinates(nextPoint);
-      setMapCenter(nextPoint);
-    }
-    setIsGeocoding(false);
-  };
 
   const handleConfirm = (): void => {
     if (
@@ -145,14 +128,22 @@ function PickDestinationMapScreen(): React.JSX.Element {
           </Typography>
         </Box>
 
-        <TextField
-          fullWidth
-          size="small"
-          variant="outlined"
+        <LocationAutocompleteField
           value={destination}
-          onChange={handleDestinationChange}
+          onValueChange={setDestination}
+          onSelectLocation={(selection) => {
+            setDestination(selection.address);
+            setCoordinates(selection.coordinates);
+            setMapCenter(selection.coordinates);
+          }}
           placeholder="Kampala City"
+          nearbyCoordinates={coordinates}
           disabled={isGeocoding}
+          textFieldProps={{
+            fullWidth: true,
+            size: "small",
+            variant: "outlined"
+          }}
           sx={{
             "& .MuiOutlinedInput-root": {
               borderRadius: uiTokens.radius.xl,

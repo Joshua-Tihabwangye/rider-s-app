@@ -16,37 +16,16 @@ import {
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-
-const MOCK_RESULTS = [
-	{
-		primary: "Bugolobi Village",
-		secondary: "Spring Road, Kampala",
-	},
-	{
-		primary: "Acacia Mall",
-		secondary: "Kisakye Road, Kololo",
-	},
-	{
-		primary: "Nsambya Hospital",
-		secondary: "Nsambya Road, Kampala",
-	},
-	{
-		primary: "Kansanga Market",
-		secondary: "Ggaba Road, Kampala",
-	},
-];
+import { useLocationAutocomplete } from "../hooks/useLocationAutocomplete";
 
 function AddStopSearchResultsScreen(): React.JSX.Element {
 	const [query, setQuery] = useState("");
 	const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-
-	const filtered = !query
-		? MOCK_RESULTS
-		: MOCK_RESULTS.filter(
-				(r) =>
-					r.primary.toLowerCase().includes(query.toLowerCase()) ||
-					r.secondary.toLowerCase().includes(query.toLowerCase()),
-			);
+	const { suggestions } = useLocationAutocomplete({
+		query,
+		minQueryLength: 2,
+		debounceMs: 280
+	});
 
 	return (
 		<Box
@@ -201,7 +180,7 @@ function AddStopSearchResultsScreen(): React.JSX.Element {
 
 				{/* Results list */}
 				<Box sx={{ flex: 1, overflowY: "auto" }}>
-					{filtered.length === 0 ? (
+					{suggestions.length === 0 ? (
 						<Typography
 							variant="caption"
 							sx={{
@@ -216,11 +195,11 @@ function AddStopSearchResultsScreen(): React.JSX.Element {
 						</Typography>
 					) : (
 						<List disablePadding>
-							{filtered.map((r, index) => {
+							{suggestions.map((place, index) => {
 								const isSelected = selectedIndex === index;
 								return (
 									<ListItemButton
-										key={index}
+										key={place.placeId}
 										onClick={() => setSelectedIndex(index)}
 										sx={{
 											px: 2.5,
@@ -256,7 +235,7 @@ function AddStopSearchResultsScreen(): React.JSX.Element {
 																"-0.01em",
 														}}
 													>
-														{r.primary}
+														{place.description.split(",")[0]?.trim() || place.description}
 													</Typography>
 												</Box>
 											}
@@ -270,7 +249,7 @@ function AddStopSearchResultsScreen(): React.JSX.Element {
 																.secondary,
 													}}
 												>
-													{r.secondary}
+													{place.description}
 												</Typography>
 											}
 										/>
