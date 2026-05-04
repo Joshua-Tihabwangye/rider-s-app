@@ -152,6 +152,8 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
           driverLocation={sharedLocationState.destinationCoords}
           routePolyline={routePolyline}
           routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
+          routeDistanceKm={sharedLocationState.routeDistanceKm}
+          routeDurationMin={sharedLocationState.routeDurationMin}
           canvasSx={{
             background:
               "linear-gradient(160deg, #D6E9FF 0%, #E5F3FF 22%, #F5EED9 22%, #F5EED9 100%)"

@@ -92,6 +92,7 @@ function TripInProgressExpandedDetailsScreen(): React.JSX.Element {
         preset="full"
         onBack={() => navigate(-1)}
         showBackButton
+        routeInfoLabel={`${Math.max(0, totalDistance - distanceCovered).toFixed(1)} km remaining • ETA ${eta.hours}h ${eta.minutes}m`}
         canvasSx={{ background: uiTokens.map.canvasEmphasis }}
       >
         {/* Pickup location marker (green) */}

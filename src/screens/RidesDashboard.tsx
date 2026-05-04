@@ -1063,6 +1063,8 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           mapCenter={destinationCoords ?? currentLocation ?? { lat: 0.3476, lng: 32.5825 }}
           routePolyline={routeData?.path ?? []}
           routeAlternativePolylines={routeData?.alternatives ?? []}
+          routeDistanceKm={sharedLocationState.routeDistanceKm}
+          routeDurationMin={sharedLocationState.routeDurationMin}
           mapMarkers={[
             ...(currentLocation
               ? [{ id: "current-location", position: currentLocation, label: "Current location" }]
@@ -1071,31 +1073,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               ? [{ id: "destination", position: destinationCoords, label: "Destination", color: "#F77F00" }]
               : [])
           ]}
-        >
-          {/* Route info overlay */}
-          {routeData && (
-            <Box
-              sx={{
-                position: "absolute",
-                bottom: { xs: 14, md: 18 },
-                left: { xs: 14, md: 18 },
-                bgcolor: "var(--evz-map-overlay-bg)",
-                border: "1px solid var(--evz-map-overlay-border)",
-                borderRadius: 999,
-                px: 1.4,
-                py: 0.8,
-                display: "inline-flex",
-                alignItems: "center",
-                boxShadow: "0 6px 18px rgba(15,23,42,0.2)",
-                zIndex: 8
-              }}
-            >
-              <Typography variant="caption" sx={{ fontSize: 12, fontWeight: 700, lineHeight: 1 }}>
-                {routeData.distance} • {routeData.duration}
-              </Typography>
-            </Box>
-          )}
-        </MapShell>
+        />
       </Box>
 
       <SectionHeader

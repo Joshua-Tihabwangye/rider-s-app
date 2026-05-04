@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -17,7 +17,6 @@ import {
 	FormControl,
 	Menu,
 	Alert,
-	Collapse,
 } from "@mui/material";
 
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
@@ -59,6 +58,81 @@ function normalizeRideType(value: unknown): RideTypeOption {
 	return VALID_RIDE_TYPES.includes(raw as RideTypeOption)
 		? (raw as RideTypeOption)
 		: "Personal";
+}
+
+interface SmoothHeightPanelProps {
+	open: boolean;
+	children: React.ReactNode;
+}
+
+function SmoothHeightPanel({
+	open,
+	children,
+}: SmoothHeightPanelProps): React.JSX.Element {
+	const contentRef = useRef<HTMLDivElement | null>(null);
+	const rafRef = useRef<number | null>(null);
+	const [height, setHeight] = useState<string>(open ? "auto" : "0px");
+	const [opacity, setOpacity] = useState(open ? 1 : 0);
+
+	useLayoutEffect(() => {
+		const node = contentRef.current;
+		if (!node) return;
+		if (rafRef.current !== null) {
+			window.cancelAnimationFrame(rafRef.current);
+		}
+
+		if (open) {
+			const currentHeight = node.getBoundingClientRect().height;
+			const targetHeight = node.scrollHeight;
+			setHeight(`${currentHeight}px`);
+			rafRef.current = window.requestAnimationFrame(() => {
+				setOpacity(1);
+				setHeight(`${targetHeight}px`);
+			});
+			return;
+		}
+
+		const currentHeight = node.getBoundingClientRect().height;
+		setHeight(`${currentHeight}px`);
+		rafRef.current = window.requestAnimationFrame(() => {
+			setHeight("0px");
+			setOpacity(0);
+		});
+	}, [open]);
+
+	useEffect(() => {
+		return () => {
+			if (rafRef.current !== null) {
+				window.cancelAnimationFrame(rafRef.current);
+			}
+		};
+	}, []);
+
+	return (
+		<Box
+			onTransitionEnd={(event) => {
+				if (
+					event.target !== event.currentTarget ||
+					event.propertyName !== "height"
+				) {
+					return;
+				}
+				if (open) {
+					setHeight("auto");
+				}
+			}}
+			sx={{
+				height,
+				opacity,
+				overflow: "hidden",
+				transition:
+					"height 320ms ease-in-out, opacity 220ms ease-in-out",
+				willChange: "height, opacity",
+			}}
+		>
+			<Box ref={contentRef}>{children}</Box>
+		</Box>
+	);
 }
 
 
@@ -639,10 +713,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 			: theme.palette.background.paper;
 	const accentGreen = "#03CD8C";
 	const lightGreen = "rgba(3,205,140,0.1)"; // Light green for active passenger selection
-	const mobileBottomNavReservePx = 88;
-	const mapViewportMinHeight = {
-		xs: `calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${mobileBottomNavReservePx}px)`,
-		md: `calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${mobileBottomNavReservePx}px)`,
+	const mapNormalHeight = { xs: "46dvh", md: "52vh" } as const;
+	const mapExpandedHeight = {
+		xs: "calc(78dvh - env(safe-area-inset-bottom, 0px))",
+		md: "76vh",
 	} as const;
 	const topMapBleedSx = {
 		position: "relative",
@@ -662,54 +736,52 @@ function EnterDestinationScreen(): React.JSX.Element {
 	} as const;
 
 	return (
-		<ScreenScaffold
-			disableTopPadding
-			disableBottomPadding
-			contentSx={{
-				minHeight: mapViewportMinHeight,
-				gap: 0,
-				pb: 0,
-			}}
-		>
-			<Box
-				sx={{
-					...topMapBleedSx,
-					display: "flex",
-					flexDirection: "column",
-					flex: isPanelCollapsed ? 1 : "0 0 auto",
-					minHeight: isPanelCollapsed ? 0 : undefined,
+			<ScreenScaffold
+				disableTopPadding
+				disableBottomPadding
+				contentSx={{
+					gap: 0,
+					pb: { xs: "calc(8px + env(safe-area-inset-bottom, 0px))", md: 1 },
 				}}
 			>
-				<MapShell
-					showControls={false}
-					resizeKey={isPanelCollapsed ? "collapsed" : "expanded"}
+				<Box
 					sx={{
-						height: isPanelCollapsed
-							? "100%"
-							: { xs: "50dvh", md: "56vh" },
-						minHeight: isPanelCollapsed ? 0 : { xs: 320, md: 360 },
-						flex: isPanelCollapsed ? 1 : "0 0 auto",
-						transition: "height 0.32s ease, min-height 0.32s ease"
+						...topMapBleedSx,
+						display: "flex",
+						flexDirection: "column",
+						flex: "0 0 auto",
 					}}
-						pickupLocation={pickupCoords}
-						dropoffLocation={destinationCoords}
-						routePolyline={routePolyline}
-						routeAlternativePolylines={routeAlternatives}
-					canvasSx={{
-						background:
-							theme.palette.mode === "light"
+				>
+						<MapShell
+							showControls={false}
+							resizeKey={isPanelCollapsed ? "collapsed" : "expanded"}
+							sx={{
+								height: isPanelCollapsed ? mapExpandedHeight : mapNormalHeight,
+								minHeight: { xs: 320, md: 360 },
+								flex: "0 0 auto",
+								transition: "height 320ms ease-in-out"
+							}}
+								pickupLocation={pickupCoords}
+								dropoffLocation={destinationCoords}
+							routePolyline={routePolyline}
+							routeAlternativePolylines={routeAlternatives}
+							routeDistanceKm={sharedLocationState.routeDistanceKm}
+							routeDurationMin={sharedLocationState.routeDurationMin}
+						canvasSx={{
+							background:
+								theme.palette.mode === "light"
 								? "linear-gradient(160deg, #D6E9FF 0%, #E5F3FF 22%, #F5EED9 22%, #F5EED9 100%)"
 								: "linear-gradient(160deg, #1B2D3E 0%, #223A4F 25%, #1A2533 25%, #1A2533 100%)",
 					}}
 				/>
-				<IconButton
-					onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
-					sx={{
-						position: "absolute",
-						left: "50%",
-						bottom: isPanelCollapsed ? 12 : -20,
-						transform: "translateX(-50%)",
-						zIndex: 6,
+					<IconButton
+						onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
+						sx={{
+							position: "absolute",
+							left: "50%",
+							bottom: isPanelCollapsed ? 12 : -18,
+							transform: "translateX(-50%)",
+							zIndex: 6,
 						width: 42,
 						height: 42,
 						borderRadius: "50%",
@@ -735,11 +807,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 						<KeyboardArrowDownRoundedIcon sx={{ color: theme.palette.text.primary }} />
 					)}
 				</IconButton>
-			</Box>
+				</Box>
 
-			{/* Trip Setup Card - Neutral Background */}
-			<Collapse in={!isPanelCollapsed} timeout={320} unmountOnExit>
-				<Box sx={{ pt: 4 }}>
+				{/* Trip Setup Card - Neutral Background */}
+				<SmoothHeightPanel open={!isPanelCollapsed}>
+					<Box sx={{ pt: 4 }}>
 				<Card
 				elevation={0}
 				sx={{
@@ -1899,8 +1971,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 					Continue
 				</Button>
 			</Box>
-				</Box>
-			</Collapse>
+					</Box>
+			</SmoothHeightPanel>
 
 			{/* Schedule Menu */}
 			<Menu
