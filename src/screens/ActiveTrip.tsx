@@ -243,6 +243,8 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           riderLocation={driverLocation}
           routePolyline={routePolyline}
           routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
+          routeDistanceKm={sharedLocationState.routeDistanceKm}
+          routeDurationMin={sharedLocationState.routeDurationMin}
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
           onRecenter={handleMapRecenter}
         />

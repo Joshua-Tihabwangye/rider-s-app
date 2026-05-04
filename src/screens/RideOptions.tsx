@@ -339,6 +339,8 @@ function SelectYourRideScreen(): React.JSX.Element {
           dropoffLocation={sharedLocationState.destinationCoords}
           routePolyline={sharedLocationState.routePolyline}
           routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
+          routeDistanceKm={sharedLocationState.routeDistanceKm}
+          routeDurationMin={sharedLocationState.routeDurationMin}
           canvasSx={{
             background: theme.palette.mode === "light"
               ? "#F5F5DC"

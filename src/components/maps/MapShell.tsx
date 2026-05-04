@@ -54,6 +54,10 @@ interface MapShellProps {
   alerts?: LeafletAlertMarker[];
   routePolyline?: MapPoint[];
   routeAlternativePolylines?: MapPoint[][];
+  routeDistanceKm?: number | null;
+  routeDurationMin?: number | null;
+  routeInfoLabel?: string | null;
+  showRouteInfo?: boolean;
   sx?: SxProps<Theme>;
   canvasSx?: SxProps<Theme>;
   overlaysSx?: SxProps<Theme>;
@@ -67,6 +71,48 @@ const KAMPALA_CENTER: MapPoint = { lat: 0.3476, lng: 32.5825 };
 
 function clampZoom(zoom: number): number {
   return Math.max(1, Math.min(22, zoom));
+}
+
+function toRadians(value: number): number {
+  return (value * Math.PI) / 180;
+}
+
+function distanceKm(a: MapPoint, b: MapPoint): number {
+  const earthRadiusKm = 6371;
+  const dLat = toRadians(b.lat - a.lat);
+  const dLng = toRadians(b.lng - a.lng);
+  const lat1 = toRadians(a.lat);
+  const lat2 = toRadians(b.lat);
+  const sinLat = Math.sin(dLat / 2);
+  const sinLng = Math.sin(dLng / 2);
+  const h = sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLng * sinLng;
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+function computeRouteDistanceKm(route: MapPoint[]): number {
+  if (route.length < 2) return 0;
+  let total = 0;
+  for (let index = 1; index < route.length; index += 1) {
+    const prev = route[index - 1];
+    const next = route[index];
+    if (!prev || !next) continue;
+    total += distanceKm(prev, next);
+  }
+  return total;
+}
+
+function formatDistanceLabel(valueKm: number): string {
+  if (valueKm >= 100) return `${Math.round(valueKm)} km`;
+  if (valueKm >= 10) return `${valueKm.toFixed(1)} km`;
+  return `${valueKm.toFixed(2)} km`;
+}
+
+function formatDurationLabel(valueMin: number): string {
+  if (valueMin < 60) return `${Math.max(1, Math.round(valueMin))} min`;
+  const hours = Math.floor(valueMin / 60);
+  const minutes = Math.round(valueMin % 60);
+  if (minutes <= 0) return `${hours} hr`;
+  return `${hours} hr ${minutes} min`;
 }
 
 export default function MapShell({
@@ -96,6 +142,10 @@ export default function MapShell({
   alerts = [],
   routePolyline = [],
   routeAlternativePolylines = [],
+  routeDistanceKm = null,
+  routeDurationMin = null,
+  routeInfoLabel = null,
+  showRouteInfo = true,
   sx,
   canvasSx,
   overlaysSx,
@@ -133,6 +183,25 @@ export default function MapShell({
 
   const canShowBack = showBackButton ?? isRideMapRoute;
   const canShowSos = (showSosButton ?? isRideMapRoute) && Boolean(onSos ?? isRideMapRoute);
+  const computedRouteDistanceKm = useMemo(
+    () => computeRouteDistanceKm(effectiveRoutePolyline),
+    [effectiveRoutePolyline]
+  );
+  const effectiveRouteDistanceKm = useMemo(() => {
+    if (typeof routeDistanceKm === "number" && Number.isFinite(routeDistanceKm) && routeDistanceKm > 0) {
+      return routeDistanceKm;
+    }
+    return computedRouteDistanceKm > 0 ? computedRouteDistanceKm : null;
+  }, [computedRouteDistanceKm, routeDistanceKm]);
+  const routeInfoText = useMemo(() => {
+    if (routeInfoLabel?.trim()) return routeInfoLabel.trim();
+    if (!effectiveRouteDistanceKm) return null;
+    const distanceText = formatDistanceLabel(effectiveRouteDistanceKm);
+    if (typeof routeDurationMin === "number" && Number.isFinite(routeDurationMin) && routeDurationMin > 0) {
+      return `${distanceText} • ${formatDurationLabel(routeDurationMin)}`;
+    }
+    return distanceText;
+  }, [effectiveRouteDistanceKm, routeDurationMin, routeInfoLabel]);
 
   const topInsetSx = {
     xs: "calc(env(safe-area-inset-top, 0px) + 12px)",
@@ -156,6 +225,10 @@ export default function MapShell({
         xs: "calc(env(safe-area-inset-right, 0px) + 12px)",
         md: 14
       };
+  const bottomInsetSx = {
+    xs: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
+    md: 14
+  } as const;
 
   const handleBack = (): void => {
     if (onBack) {
@@ -358,6 +431,40 @@ export default function MapShell({
 
       {/* Map option clusters intentionally removed globally.
           Native Leaflet gestures are used for zoom and pan on desktop/mobile. */}
+
+      {showRouteInfo && routeInfoText && effectiveRoutePolyline.length > 1 && (
+        <Box
+          sx={{
+            position: "absolute",
+            left: leftInsetSx,
+            bottom: bottomInsetSx,
+            zIndex: 6,
+            px: 1.6,
+            py: 1,
+            borderRadius: "999px",
+            bgcolor: "rgba(2,6,23,0.88)",
+            border: "1px solid rgba(52,211,153,0.45)",
+            boxShadow: "0 10px 24px rgba(2,6,23,0.3)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            pointerEvents: "none"
+          }}
+        >
+          <Box
+            component="span"
+            sx={{
+              fontSize: 14,
+              fontWeight: 800,
+              letterSpacing: "0.01em",
+              lineHeight: 1.1,
+              color: "#ECFDF5",
+              whiteSpace: "nowrap"
+            }}
+          >
+            {routeInfoText}
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 }
