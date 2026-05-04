@@ -44,10 +44,8 @@ function isValidJWT(token: string): boolean {
     if (parts.length !== 3) {
       // For development, allow non-standard tokens that start with our mock prefix
       if (token.startsWith('mock_jwt_token_')) {
-        console.log("Allowing development mock token");
         return true;
       }
-      console.log("Invalid JWT structure - not 3 parts");
       return false;
     }
 
@@ -61,26 +59,22 @@ function isValidJWT(token: string): boolean {
       }
       header = JSON.parse(atob(encodedHeader));
       payload = JSON.parse(atob(encodedPayload));
-    } catch (decodeError) {
-      console.log("Invalid JWT base64 encoding:", decodeError);
+    } catch {
       return false;
     }
 
     // Check if token has not expired (with 5 minute grace period)
     if (payload.exp && payload.exp * 1000 < (Date.now() - 300000)) {
-      console.log("JWT token expired");
       return false;
     }
 
     // Basic structure validation
     if (!header.alg || !payload.iat) {
-      console.log("Missing required JWT fields");
       return false;
     }
 
     return true;
-  } catch (error) {
-    console.log("JWT validation error:", error);
+  } catch {
     return false;
   }
 }

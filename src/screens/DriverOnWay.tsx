@@ -98,6 +98,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
           dropoffLocation={sharedLocationState.destinationCoords}
           driverLocation={driverLocation}
           routePolyline={routePolyline}
+          routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
         />
       </Box>

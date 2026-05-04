@@ -53,6 +53,7 @@ interface MapShellProps {
   riderLocation?: MapPoint | null;
   alerts?: LeafletAlertMarker[];
   routePolyline?: MapPoint[];
+  routeAlternativePolylines?: MapPoint[][];
   sx?: SxProps<Theme>;
   canvasSx?: SxProps<Theme>;
   overlaysSx?: SxProps<Theme>;
@@ -94,6 +95,7 @@ export default function MapShell({
   riderLocation = null,
   alerts = [],
   routePolyline = [],
+  routeAlternativePolylines = [],
   sx,
   canvasSx,
   overlaysSx,
@@ -234,6 +236,7 @@ export default function MapShell({
           riderLocation={riderLocation}
           alerts={alerts}
           routePolyline={effectiveRoutePolyline}
+          alternativePolylines={routeAlternativePolylines}
           showTraffic={false}
           showAlerts={false}
           onMarkerClick={onMarkerClick}

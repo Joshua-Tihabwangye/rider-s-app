@@ -1152,6 +1152,7 @@ export const SEED_SHARED_LOCATION_STATE: SharedLocationState = {
   pickupCoords: null,
   destinationCoords: null,
   routePolyline: [],
+  routeAlternativePolylines: [],
   riderLocation: null,
   driverLocation: null,
   deliveryPickupCoords: null,

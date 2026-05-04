@@ -3098,7 +3098,18 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       return;
     }
 
-    const ws = new WebSocket(wsUrl);
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(wsUrl);
+      if (parsedUrl.protocol !== "ws:" && parsedUrl.protocol !== "wss:") {
+        throw new Error("Unsupported websocket protocol");
+      }
+    } catch {
+      dispatch({ type: "delivery/ws-connected", payload: false });
+      return;
+    }
+
+    const ws = new WebSocket(parsedUrl.toString());
 
     ws.onopen = () => {
       dispatch({ type: "delivery/ws-connected", payload: true });

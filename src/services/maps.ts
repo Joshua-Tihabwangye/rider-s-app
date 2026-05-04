@@ -13,6 +13,7 @@ export interface RouteResult {
   distanceKm: number;
   durationMin: number;
   path: Coordinates[];
+  alternativePaths: Coordinates[][];
 }
 
 interface MockPlaceEntry {
@@ -225,11 +226,11 @@ export async function searchPlaces(query: string): Promise<PlaceSuggestion[]> {
     // Enhanced Nominatim geocoding API for better key location capture
     // Increase limit, add deduplication, and better search parameters for key GPS locations
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(term)}&countrycodes=UG&limit=15&addressdetails=1&dedupe=1&bounded=1&viewbox=29.5,4.3,35.0,-1.5&extratags=1&namedetails=1`,
+      `/api/osm/search?format=json&q=${encodeURIComponent(term)}&countrycodes=UG&limit=15&addressdetails=1&dedupe=1&bounded=1&viewbox=29.5,4.3,35.0,-1.5&extratags=1&namedetails=1`,
       {
         method: "GET",
         headers: {
-          "User-Agent": "EVzone Rider App"
+          Accept: "application/json"
         }
       }
     );
@@ -352,17 +353,28 @@ export async function calculateRoute(origin: Coordinates, destination: Coordinat
   if (!isFiniteCoordinate(origin.lat) || !isFiniteCoordinate(origin.lng)) return null;
   if (!isFiniteCoordinate(destination.lat) || !isFiniteCoordinate(destination.lng)) return null;
 
-  const response = await fetch(
-    `/api/osrm/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&steps=false`,
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/json"
-      }
+  const requestRoute = async (alternatives: boolean): Promise<Response | null> => {
+    try {
+      return await fetch(
+        `/api/osrm/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&steps=false&alternatives=${alternatives ? "true" : "false"}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json"
+          }
+        }
+      );
+    } catch {
+      return null;
     }
-  );
+  };
 
-  if (!response.ok) return null;
+  let response = await requestRoute(true);
+  if (!response || !response.ok) {
+    response = await requestRoute(false);
+  }
+
+  if (!response || !response.ok) return null;
 
   const payload = (await response.json()) as {
     routes?: Array<{
@@ -374,18 +386,21 @@ export async function calculateRoute(origin: Coordinates, destination: Coordinat
     }>;
   };
 
-  const route = payload.routes?.[0];
-  if (!route?.geometry?.coordinates?.length) return null;
-
-  const path = route.geometry.coordinates
-    .map(([lng, lat]) => ({ lat, lng }))
-    .filter((point) => isFiniteCoordinate(point.lat) && isFiniteCoordinate(point.lng));
-
-  if (!path.length) return null;
+  const rawRoutes = payload.routes ?? [];
+  const mappedRoutes = rawRoutes
+    .map((candidate) =>
+      (candidate.geometry?.coordinates ?? [])
+        .map(([lng, lat]) => ({ lat, lng }))
+        .filter((point) => isFiniteCoordinate(point.lat) && isFiniteCoordinate(point.lng))
+    )
+    .filter((candidatePath) => candidatePath.length > 0);
+  const path = mappedRoutes[0];
+  if (!path?.length) return null;
 
   return {
-    distanceKm: (route.distance ?? 0) / 1000,
-    durationMin: (route.duration ?? 0) / 60,
-    path
+    distanceKm: (rawRoutes[0]?.distance ?? 0) / 1000,
+    durationMin: (rawRoutes[0]?.duration ?? 0) / 60,
+    path,
+    alternativePaths: mappedRoutes.slice(1)
   };
 }
