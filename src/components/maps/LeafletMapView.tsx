@@ -46,6 +46,7 @@ export interface LeafletMapViewProps {
   riderLocation?: MapPoint | null;
   alerts?: LeafletAlertMarker[];
   routePolyline?: MapPoint[];
+  alternativePolylines?: MapPoint[][];
   showTraffic?: boolean;
   showAlerts?: boolean;
   showSOS?: boolean;
@@ -76,6 +77,8 @@ const routeCache = new Map<string, MapPoint[]>();
 const EMPTY_MARKERS: LeafletMapMarker[] = [];
 const EMPTY_ALERTS: LeafletAlertMarker[] = [];
 const EMPTY_ROUTE: MapPoint[] = [];
+const EMPTY_ALTERNATIVE_ROUTES: MapPoint[][] = [];
+const MAX_OSRM_WAYPOINTS = 6;
 
 function createDotIcon(color: string) {
   return L.divIcon({
@@ -120,6 +123,7 @@ function areRoutesEqual(a: MapPoint[], b: MapPoint[]): boolean {
 async function fetchRoutedPath(points: MapPoint[], signal?: AbortSignal): Promise<MapPoint[] | null> {
   const valid = points.filter(isValidPoint);
   if (valid.length < 2) return null;
+  if (valid.length > MAX_OSRM_WAYPOINTS) return valid;
 
   const waypoints = valid.map((point) => `${point.lng},${point.lat}`).join(";");
   const cacheKey = waypoints;
@@ -237,6 +241,38 @@ function MapResizeController({ resizeKey }: { resizeKey: number | string }): nul
   return null;
 }
 
+function MapFitBoundsController({
+  focusPoints,
+  routePolyline
+}: {
+  focusPoints: MapPoint[];
+  routePolyline: MapPoint[];
+}): null {
+  const map = useMap();
+  const lastBoundsKeyRef = React.useRef("");
+
+  React.useEffect(() => {
+    const points = [...routePolyline, ...focusPoints].filter(isValidPoint);
+    if (points.length < 2) return;
+    const boundsKey = points
+      .map((point) => `${point.lat.toFixed(5)},${point.lng.toFixed(5)}`)
+      .join("|");
+    if (lastBoundsKeyRef.current === boundsKey) return;
+    lastBoundsKeyRef.current = boundsKey;
+
+    const bounds = L.latLngBounds(points.map((point) => [point.lat, point.lng] as [number, number]));
+    if (!bounds.isValid()) return;
+
+    map.fitBounds(bounds, {
+      padding: [40, 40],
+      maxZoom: 16,
+      animate: true
+    });
+  }, [focusPoints, map, routePolyline]);
+
+  return null;
+}
+
 export default function LeafletMapView({
   center,
   zoom = 13,
@@ -248,6 +284,7 @@ export default function LeafletMapView({
   riderLocation = null,
   alerts = EMPTY_ALERTS,
   routePolyline = EMPTY_ROUTE,
+  alternativePolylines = EMPTY_ALTERNATIVE_ROUTES,
   showTraffic = false,
   showAlerts = false,
   children,
@@ -272,6 +309,10 @@ export default function LeafletMapView({
   useEffect(() => {
     const validRoute = routePolyline.filter(isValidPoint);
     if (validRoute.length < 2) {
+      setResolvedRoute((previous) => (areRoutesEqual(previous, validRoute) ? previous : validRoute));
+      return;
+    }
+    if (validRoute.length > MAX_OSRM_WAYPOINTS) {
       setResolvedRoute((previous) => (areRoutesEqual(previous, validRoute) ? previous : validRoute));
       return;
     }
@@ -352,6 +393,18 @@ export default function LeafletMapView({
     () => resolvedRoute.map((point) => [point.lat, point.lng] as [number, number]),
     [resolvedRoute]
   );
+  const alternativeRoutePositions = useMemo(
+    () =>
+      alternativePolylines
+        .map((route) => route.filter(isValidPoint))
+        .filter((route) => route.length > 1)
+        .map((route) => route.map((point) => [point.lat, point.lng] as [number, number])),
+    [alternativePolylines]
+  );
+  const fitFocusPoints = useMemo(
+    () => combinedMarkers.map((marker) => marker.position),
+    [combinedMarkers]
+  );
 
   return (
     <div
@@ -402,17 +455,32 @@ export default function LeafletMapView({
         <TileLayer attribution={MAP_ATTRIBUTION} detectRetina url={TILE_LAYERS[activeLayer]} />
         <MapSyncController center={center} zoom={zoom} recenterKey={recenterKey} />
         <MapResizeController resizeKey={resizeKey} />
+        <MapFitBoundsController focusPoints={fitFocusPoints} routePolyline={resolvedRoute} />
         <MapEventBridge
           onMapClick={onMapClick}
           onLocationSelect={onLocationSelect}
           onZoomChange={onZoomChange}
         />
 
-        {routePositions.length > 1 && (
+        {alternativeRoutePositions.map((positions, index) => (
           <Polyline
-            positions={routePositions}
-            pathOptions={{ color: "#1e3a5f", weight: 4, opacity: 0.8 }}
+            key={`alternative-route-${index}`}
+            positions={positions}
+            pathOptions={{ color: "#64748b", weight: 4, opacity: 0.35, dashArray: "8 10" }}
           />
+        ))}
+
+        {routePositions.length > 1 && (
+          <>
+            <Polyline
+              positions={routePositions}
+              pathOptions={{ color: "#0f172a", weight: 8, opacity: 0.2 }}
+            />
+            <Polyline
+              positions={routePositions}
+              pathOptions={{ color: "#1d4ed8", weight: 5, opacity: 0.95 }}
+            />
+          </>
         )}
 
         {showTraffic && (

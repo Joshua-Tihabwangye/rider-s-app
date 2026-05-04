@@ -106,6 +106,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
           dropoffLocation={sharedLocationState.destinationCoords}
           driverLocation={driverLocation}
           routePolyline={sharedLocationState.routePolyline}
+          routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
         >
           <Chip

@@ -78,6 +78,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
           dropoffLocation={sharedLocationState.destinationCoords}
           driverLocation={sharedLocationState.pickupCoords}
           routePolyline={sharedLocationState.routePolyline}
+          routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
         />
       </Box>

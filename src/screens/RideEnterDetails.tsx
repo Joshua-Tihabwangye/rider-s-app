@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -42,6 +42,7 @@ import AddStopModal from "../components/AddStopModal";
 import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
 import { useAppData } from "../contexts/AppDataContext";
 import { searchPlaces as searchMapPlaces, calculateRoute, geocodeAddress } from "../services/maps";
+import { getLocationPermissionState, watchLiveLocation } from "../services/location";
 
 interface SearchResult {
 	id: string;
@@ -197,10 +198,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [errorMessage, setErrorMessage] = useState("");
 	const [showSwitchRiderModal, setShowSwitchRiderModal] = useState(false);
 	const [routePolyline, setRoutePolyline] = useState<{ lat: number; lng: number }[]>([]);
+	const [routeAlternatives, setRouteAlternatives] = useState<Array<{ lat: number; lng: number }[]>>([]);
 	const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
 	const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
 	const [showTripTypeModal, setShowTripTypeModal] = useState(false);
 	const [showAddStopModal, setShowAddStopModal] = useState(false);
+	const lastRouteQueryRef = useRef<{ key: string; at: number } | null>(null);
 	const [selectedContact, setSelectedContact] = useState(
 		initialState.selectedContact || ride.request.riderContact || null,
 	);
@@ -233,54 +236,100 @@ function EnterDestinationScreen(): React.JSX.Element {
 	// Calculate route when both pickup and destination have coordinates
 	useEffect(() => {
 		const calculateAndSetRoute = async () => {
-			if (pickupCoords && destinationCoords) {
-				setIsCalculatingRoute(true);
-				try {
-					const route = await calculateRoute(pickupCoords, destinationCoords);
-					if (route) {
-						setRoutePolyline(route.path);
-						// Update shared location state with route
-						updateSharedLocationState({
-							pickupCoords,
-							destinationCoords,
-							routePolyline: route.path,
-							routeDistanceKm: route.distanceKm,
-							routeDurationMin: route.durationMin
-						});
+				if (pickupCoords && destinationCoords) {
+					const routeKey = `${pickupCoords.lat.toFixed(5)},${pickupCoords.lng.toFixed(5)}->${destinationCoords.lat.toFixed(5)},${destinationCoords.lng.toFixed(5)}`;
+					const now = Date.now();
+					if (lastRouteQueryRef.current?.key === routeKey && now - lastRouteQueryRef.current.at < 10000) {
+						return;
+					}
+					lastRouteQueryRef.current = { key: routeKey, at: now };
+					setIsCalculatingRoute(true);
+					try {
+						const route = await calculateRoute(pickupCoords, destinationCoords);
+						if (route) {
+							setRoutePolyline(route.path);
+							setRouteAlternatives(route.alternativePaths);
+							// Update shared location state with route
+							updateSharedLocationState({
+								pickupCoords,
+								destinationCoords,
+								routePolyline: route.path,
+								routeAlternativePolylines: route.alternativePaths,
+								routeDistanceKm: route.distanceKm,
+								routeDurationMin: route.durationMin
+							});
 					} else {
+						lastRouteQueryRef.current = null;
 						setRoutePolyline([]);
+						setRouteAlternatives([]);
+							updateSharedLocationState({
+								pickupCoords,
+								destinationCoords,
+								routePolyline: [],
+								routeAlternativePolylines: [],
+								routeDistanceKm: null,
+								routeDurationMin: null
+							});
+						}
+					} catch (error) {
+						console.error("Failed to calculate route:", error);
+						setRoutePolyline([]);
+						setRouteAlternatives([]);
 						updateSharedLocationState({
 							pickupCoords,
 							destinationCoords,
 							routePolyline: [],
+							routeAlternativePolylines: [],
 							routeDistanceKm: null,
 							routeDurationMin: null
 						});
 					}
-				} catch (error) {
-					console.error("Failed to calculate route:", error);
+					setIsCalculatingRoute(false);
+				} else {
 					setRoutePolyline([]);
+					setRouteAlternatives([]);
 					updateSharedLocationState({
-						pickupCoords,
-						destinationCoords,
 						routePolyline: [],
+						routeAlternativePolylines: [],
 						routeDistanceKm: null,
 						routeDurationMin: null
 					});
 				}
-				setIsCalculatingRoute(false);
-			} else {
-				setRoutePolyline([]);
-				updateSharedLocationState({
-					routePolyline: [],
-					routeDistanceKm: null,
-					routeDurationMin: null
-				});
-			}
 		};
 
 		calculateAndSetRoute();
 	}, [pickupCoords, destinationCoords, updateSharedLocationState]);
+
+	useEffect(() => {
+		let mounted = true;
+		let dispose = () => {};
+
+		getLocationPermissionState().then((permission) => {
+			if (!mounted || pickup !== "Current location") return;
+			if (permission === "denied" || permission === "unsupported") return;
+
+			dispose = watchLiveLocation(
+				(coords) => {
+					setPickupCoords(coords);
+					updateSharedLocationState({
+						riderLocation: coords,
+						pickupCoords: coords
+					});
+				},
+				() => {},
+				{
+					enableHighAccuracy: false,
+					timeoutMs: 10000,
+					maximumAgeMs: 15000
+				}
+			);
+		});
+
+		return () => {
+			mounted = false;
+			dispose();
+		};
+	}, [pickup, updateSharedLocationState]);
 
 	// Update destination when returning from map screen
 	useEffect(() => {
@@ -436,13 +485,16 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const handleDestinationSelect = (result: SearchResult): void => {
 		setDestination(result.name);
 		setDestinationCoords(result.coordinates);
+		setRouteAlternatives([]);
 		// Update shared location state
 		updateSharedLocationState({
 			destinationCoords: result.coordinates,
-			routePolyline: [] // Will be recalculated
+			routePolyline: [], // Will be recalculated
+			routeAlternativePolylines: []
 		});
 		setSearchQuery("");
 		setShowSearchResults(false);
+		setSearchResults([]);
 		setShowError(false);
 		setErrorMessage("");
 	};
@@ -734,9 +786,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 						flex: isPanelCollapsed ? 1 : "0 0 auto",
 						transition: "height 0.32s ease, min-height 0.32s ease"
 					}}
-					pickupLocation={pickupCoords}
-					dropoffLocation={destinationCoords}
-					routePolyline={routePolyline}
+						pickupLocation={pickupCoords}
+						dropoffLocation={destinationCoords}
+						routePolyline={routePolyline}
+						routeAlternativePolylines={routeAlternatives}
 					canvasSx={{
 						background:
 							theme.palette.mode === "light"
@@ -933,20 +986,22 @@ function EnterDestinationScreen(): React.JSX.Element {
 												<InputAdornment position="end">
 													<IconButton
 														size="small"
-														onClick={() => {
-															setDestination("");
-															setSearchQuery("");
-															setShowSearchResults(
-																false,
-															);
-															setDestinationCoords(null);
-															updateSharedLocationState({
-																destinationCoords: null,
-																routePolyline: [],
-																routeDistanceKm: null,
-																routeDurationMin: null
-															});
-														}}
+															onClick={() => {
+																setDestination("");
+																setSearchQuery("");
+																setShowSearchResults(
+																	false,
+																);
+																setDestinationCoords(null);
+																setSearchResults([]);
+																updateSharedLocationState({
+																	destinationCoords: null,
+																	routePolyline: [],
+																	routeAlternativePolylines: [],
+																	routeDistanceKm: null,
+																	routeDurationMin: null
+																});
+															}}
 														sx={{
 															color: theme.palette
 																.text.secondary,
@@ -1956,12 +2011,13 @@ function EnterDestinationScreen(): React.JSX.Element {
 						</Typography>
 						<Stack spacing={1}>
 							{searchResults.map((result: SearchResult) => (
-								<Card
-									key={result.id}
-									elevation={0}
-									onClick={() =>
-										handleDestinationSelect(result)
-									}
+									<Card
+										key={result.id}
+										elevation={0}
+										onMouseDown={(event) => event.preventDefault()}
+										onClick={() =>
+											handleDestinationSelect(result)
+										}
 									sx={{
 										borderRadius: 2,
 										bgcolor:

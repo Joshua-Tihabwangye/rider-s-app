@@ -1091,6 +1091,7 @@ export interface SharedLocationState {
   pickupCoords?: MapPoint | null;
   destinationCoords?: MapPoint | null;
   routePolyline?: MapPoint[];
+  routeAlternativePolylines?: MapPoint[][];
   routeDistanceKm?: number | null;
   routeDurationMin?: number | null;
   riderLocation?: MapPoint | null;

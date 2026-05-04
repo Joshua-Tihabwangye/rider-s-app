@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
@@ -52,6 +52,7 @@ import {
   type Coordinates,
   type PlaceSuggestion
 } from "../services/maps";
+import { getLocationPermissionState, watchLiveLocation, type LocationPermissionState } from "../services/location";
 
 
 interface SavedLocation {
@@ -67,6 +68,7 @@ interface RouteData {
   distance: string;
   duration: string;
   path: Coordinates[];
+  alternatives: Coordinates[][];
   fare?: string;
 }
 
@@ -731,15 +733,18 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const [tab, setTab] = useState("common");
   const [helperState, setHelperState] = useState("idle");
   const [selectedPlace, setSelectedPlace] = useState<string | PlaceSuggestion | null>(null);
+  const [selectedAutocompleteOption, setSelectedAutocompleteOption] = useState<PlaceSuggestion | null>(null);
   const [whereTo, setWhereTo] = useState("");
   const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [locationPermission, setLocationPermission] = useState<LocationPermissionState>("prompt");
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(
     sharedLocationState.riderLocation ?? sharedLocationState.pickupCoords ?? ride.request.origin?.coordinates ?? null
   );
   const [routeData, setRouteData] = useState<RouteData | null>(null);
   const [destinationCoords, setDestinationCoords] = useState<Coordinates | null>(null);
   const [dismissedUpcomingRideIds, setDismissedUpcomingRideIds] = useState<string[]>([]);
+  const lastRouteQueryRef = useRef<{ key: string; at: number } | null>(null);
 
   const insightRoutes = useMemo(() => buildRideInsightRoutes(ride), [ride]);
   const rideInsights = useMemo(() => deriveRideInsights(insightRoutes), [insightRoutes]);
@@ -758,71 +763,44 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     );
   }, [rideInsights.upcoming]);
 
-  // Get current GPS location
+  // Live rider location with permission awareness and battery-safe watch options.
   useEffect(() => {
-    // Check if geolocation is available and permission hasn't been permanently denied
-    if (navigator.geolocation && navigator.permissions) {
-      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
-        if (result.state === 'granted' || result.state === 'prompt') {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              setCurrentLocation({
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-              });
-            },
-            (error) => {
-              setCurrentLocation(null);
-            },
-            {
-              enableHighAccuracy: false,
-              timeout: 5000,
-              maximumAge: 300000 // Cache for 5 minutes
-            }
-          );
-        } else {
-          setCurrentLocation(null);
+    let disposeWatch = () => {};
+    let mounted = true;
+
+    getLocationPermissionState()
+      .then((permission) => {
+        if (!mounted) return;
+        setLocationPermission(permission);
+        if (permission === "denied" || permission === "unsupported") {
+          return;
         }
-      }).catch(() => {
-        // Permissions API not supported - try anyway but with error handling
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            setCurrentLocation({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            });
+
+        disposeWatch = watchLiveLocation(
+          (coords) => {
+            setCurrentLocation(coords);
           },
-          () => {
-            setCurrentLocation(null);
+          (error) => {
+            if (error.code === 1) {
+              setLocationPermission("denied");
+            }
           },
           {
             enableHighAccuracy: false,
-            timeout: 5000,
-            maximumAge: 300000
+            timeoutMs: 10000,
+            maximumAgeMs: 15000
           }
         );
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setLocationPermission("prompt");
       });
-    } else if (navigator.geolocation) {
-      // Geolocation available but Permissions API not supported
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCurrentLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-        },
-        () => {
-          setCurrentLocation(null);
-        },
-        {
-          enableHighAccuracy: false,
-          timeout: 5000,
-          maximumAge: 300000
-        }
-      );
-    } else {
-      setCurrentLocation(null);
-    }
+
+    return () => {
+      mounted = false;
+      disposeWatch();
+    };
   }, []);
 
   useEffect(() => {
@@ -845,6 +823,12 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   // Calculate route when destination is selected
   useEffect(() => {
     if (destinationCoords && currentLocation) {
+      const routeKey = `${currentLocation.lat.toFixed(5)},${currentLocation.lng.toFixed(5)}->${destinationCoords.lat.toFixed(5)},${destinationCoords.lng.toFixed(5)}`;
+      const now = Date.now();
+      if (lastRouteQueryRef.current?.key === routeKey && now - lastRouteQueryRef.current.at < 15000) {
+        return;
+      }
+      lastRouteQueryRef.current = { key: routeKey, at: now };
       const calculateRoutePreview = async () => {
         try {
           const route = await calculateRoute(currentLocation, destinationCoords);
@@ -854,6 +838,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               pickupCoords: currentLocation,
               destinationCoords,
               routePolyline: [],
+              routeAlternativePolylines: [],
               routeDistanceKm: null,
               routeDurationMin: null
             });
@@ -862,12 +847,14 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           setRouteData({
             distance: `${route.distanceKm.toFixed(1)} km`,
             duration: `${Math.max(1, Math.round(route.durationMin))} min`,
-            path: route.path
+            path: route.path,
+            alternatives: route.alternativePaths
           });
           actions.updateSharedLocationState({
             pickupCoords: currentLocation,
             destinationCoords,
             routePolyline: route.path,
+            routeAlternativePolylines: route.alternativePaths,
             routeDistanceKm: route.distanceKm,
             routeDurationMin: route.durationMin
           });
@@ -878,6 +865,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             pickupCoords: currentLocation,
             destinationCoords,
             routePolyline: [],
+            routeAlternativePolylines: [],
             routeDistanceKm: null,
             routeDurationMin: null
           });
@@ -885,9 +873,11 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       };
       calculateRoutePreview();
     } else {
+      lastRouteQueryRef.current = null;
       setRouteData(null);
       actions.updateSharedLocationState({
         routePolyline: [],
+        routeAlternativePolylines: [],
         routeDistanceKm: null,
         routeDurationMin: null
       });
@@ -983,6 +973,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     const location = savedLocations.find(loc => loc.id === place);
     if (location) {
       setSelectedPlace(place);
+      setSelectedAutocompleteOption(null);
       setWhereTo(location.address);
       setDestinationCoords(location.coordinates);
       setHelperState("idle");
@@ -1003,6 +994,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       actions.updateSharedLocationState({
         pickupCoords: currentLocation ?? null,
         destinationCoords: location.coordinates,
+        routeAlternativePolylines: [],
         riderLocation: currentLocation ?? null
       });
       
@@ -1025,6 +1017,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     setWhereTo(query);
     setHelperState("search");
     setSelectedPlace(null);
+    setSelectedAutocompleteOption(null);
     
     if (query && query.length >= 2) {
       setLoadingSuggestions(true);
@@ -1052,10 +1045,20 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         setHelperState("search-no-match");
         return;
       }
+      setSelectedAutocompleteOption(first ?? null);
+      setSelectedPlace(
+        first ?? {
+          placeId: `typed-${place.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+          description: place,
+          coordinates: typedCoordinates
+        }
+      );
       setDestinationCoords(typedCoordinates);
     } else {
       // Selected from autocomplete
       setWhereTo(place.description);
+      setSelectedAutocompleteOption(place);
+      setSelectedPlace(place);
       setDestinationCoords(place.coordinates);
     }
     setPlaceSuggestions([]);
@@ -1083,6 +1086,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     actions.updateSharedLocationState({
       pickupCoords: currentLocation ?? null,
       destinationCoords: selectedDestination.coordinates ?? null,
+      routeAlternativePolylines: [],
       riderLocation: currentLocation ?? null
     });
     
@@ -1114,6 +1118,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
           mapCenter={destinationCoords ?? currentLocation ?? { lat: 0.3476, lng: 32.5825 }}
           routePolyline={routeData?.path ?? []}
+          routeAlternativePolylines={routeData?.alternatives ?? []}
           mapMarkers={[
             ...(currentLocation
               ? [{ id: "current-location", position: currentLocation, label: "Current location" }]
@@ -1168,18 +1173,29 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         {/* Search with Autocomplete */}
         <Autocomplete
           freeSolo
+          disablePortal
           options={placeSuggestions}
           getOptionLabel={(option) => 
             typeof option === "string" ? option : option.description
           }
+          isOptionEqualToValue={(option, value) =>
+            typeof value !== "string" && option.placeId === value.placeId
+          }
           loading={loadingSuggestions}
-          value={whereTo}
-          onInputChange={(_event: React.SyntheticEvent, newValue: string) => {
+          value={selectedAutocompleteOption}
+          inputValue={whereTo}
+          onInputChange={(_event: React.SyntheticEvent, newValue: string, reason) => {
+            if (reason === "reset") return;
             handlePlaceSearch(newValue);
           }}
           onChange={(_event: React.SyntheticEvent, newValue: string | PlaceSuggestion | null) => {
             if (newValue) {
               handlePlaceSelect(newValue);
+            }
+          }}
+          slotProps={{
+            popper: {
+              sx: { zIndex: 1400 }
             }
           }}
           renderInput={(params) => (
@@ -1235,23 +1251,17 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               </Box>
             </Box>
           )}
-          PaperComponent={(props) => (
-            <Box
-              {...props}
-              sx={{
-                mt: 1,
-                borderRadius: uiTokens.radius.xl,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
-                boxShadow: "0 4px 20px rgba(15,23,42,0.15)"
-              }}
-            />
-          )}
         />
+        {(locationPermission === "denied" || locationPermission === "unsupported") && (
+          <Typography
+            variant="caption"
+            sx={{ display: "block", mt: -1, mb: 1.25, color: (t) => t.palette.text.secondary }}
+          >
+            {locationPermission === "denied"
+              ? "Location permission is off. Enable it for live pickup and route accuracy."
+              : "Live location is not supported on this device/browser."}
+          </Typography>
+        )}
       </Box>
 
       <InfoCard title="Quick actions">
@@ -1604,9 +1614,9 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                         flex: 1
                       }}
                     >
-                      To: {typeof selectedPlace === "string" 
-                        ? savedLocations.find(loc => loc.id === selectedPlace)?.label || "Selected destination"
-                        : selectedPlace?.description || "Selected destination"}
+                      To: {typeof selectedPlace === "string"
+                        ? savedLocations.find(loc => loc.id === selectedPlace)?.label || whereTo || "Selected destination"
+                        : selectedPlace?.description || selectedAutocompleteOption?.description || whereTo || "Selected destination"}
                     </Typography>
                   </Stack>
                 </Stack>
@@ -1667,8 +1677,8 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                         state: {
                           pickup: "Current location",
                           destination: typeof selectedPlace === "string"
-                            ? savedLocations.find(loc => loc.id === selectedPlace)?.address || "Selected destination"
-                            : selectedPlace?.description || "Selected destination",
+                            ? savedLocations.find(loc => loc.id === selectedPlace)?.address || whereTo || "Selected destination"
+                            : selectedPlace?.description || selectedAutocompleteOption?.description || whereTo || "Selected destination",
                           pickupCoords: currentLocation,
                           destinationCoords: destinationCoords,
                           routeData: routeData,

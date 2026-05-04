@@ -1,5 +1,6 @@
 import type { AuthProvider, AuthResponse, SignInCredentials, SignUpPayload } from "./types";
 import { SEED_USER, SEED_TOKEN } from "./seedData";
+import { authRateLimiter, checkRateLimit } from "../utils/rateLimit";
 
 /**
  * Simulated network delay to give realistic UX feedback.
@@ -26,6 +27,11 @@ function computeInitials(name: string): string {
  * TODO: Replace with real POST /auth/sign-in
  */
 export async function signIn(credentials: SignInCredentials): Promise<AuthResponse> {
+  const limiterKey = `sign-in:${credentials.email.trim().toLowerCase() || "anonymous"}`;
+  if (!checkRateLimit(authRateLimiter, limiterKey, "sign-in")) {
+    throw new Error("Too many sign in attempts. Please wait a few minutes.");
+  }
+
   await simulateDelay();
 
   // Mock: accept any valid-looking email with any password ≥ 6 chars
@@ -44,6 +50,11 @@ export async function signIn(credentials: SignInCredentials): Promise<AuthRespon
  * TODO: Replace with real POST /auth/sign-up
  */
 export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
+  const limiterKey = `sign-up:${payload.email.trim().toLowerCase() || "anonymous"}`;
+  if (!checkRateLimit(authRateLimiter, limiterKey, "sign-up")) {
+    throw new Error("Too many sign up attempts. Please wait a few minutes.");
+  }
+
   await simulateDelay();
 
   if (!payload.fullName.trim()) {
@@ -67,6 +78,11 @@ export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
  * TODO: Replace with real POST /auth/forgot-password
  */
 export async function forgotPassword(email: string): Promise<{ message: string }> {
+  const limiterKey = `forgot-password:${email.trim().toLowerCase() || "anonymous"}`;
+  if (!checkRateLimit(authRateLimiter, limiterKey, "forgot-password")) {
+    throw new Error("Too many reset requests. Please wait a few minutes.");
+  }
+
   await simulateDelay();
 
   if (!email) {
@@ -81,6 +97,10 @@ export async function forgotPassword(email: string): Promise<{ message: string }
  * TODO: Replace with real OAuth flow per provider
  */
 export async function socialSignIn(provider: AuthProvider): Promise<AuthResponse> {
+  if (!checkRateLimit(authRateLimiter, `social-sign-in:${provider}`, "social-sign-in")) {
+    throw new Error("Too many authentication attempts. Please wait a few minutes.");
+  }
+
   await simulateDelay(1500);
 
   const providerNames: Record<AuthProvider, string> = {

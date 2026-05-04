@@ -77,6 +77,20 @@ import RentalPaymentSuccess from "../screens/RentalPaymentSuccess";
 import RentalPaymentFailed from "../screens/RentalPaymentFailed";
 import RentalPaymentReceipt from "../screens/RentalPaymentReceipt";
 import ToursDashboard from "../screens/ToursDashboard";
+import ToursHomeEntryScreen from "../screens/ToursHomeEntryScreen";
+import ToursNew from "../screens/ToursNew";
+import TourDetail from "../screens/TourDetail";
+import TourDates from "../screens/TourDates";
+import TourSummary from "../screens/TourSummary";
+import TourConfirmation from "../screens/TourConfirmation";
+import TourHistory from "../screens/TourHistory";
+import TourPaymentWallet from "../screens/TourPaymentWallet";
+import TourPaymentCard from "../screens/TourPaymentCard";
+import TourPaymentMobileMoney from "../screens/TourPaymentMobileMoney";
+import TourPaymentProcessing from "../screens/TourPaymentProcessing";
+import TourPaymentVerify from "../screens/TourPaymentVerify";
+import TourPaymentFailed from "../screens/TourPaymentFailed";
+import TourPaymentReceipt from "../screens/TourPaymentReceipt";
 import Profile from "../screens/Profile";
 
 // Missing imports for various screens
@@ -106,6 +120,9 @@ import SecuritySettings from "../screens/SecuritySettings";
 import PrivacySettings from "../screens/PrivacySettings";
 import Help from "../screens/Help";
 import About from "../screens/About";
+import SchoolDashboard from "../screens/SchoolDashboard";
+import SchoolFees from "../screens/SchoolFees";
+import SchoolHandoff from "../screens/SchoolHandoff";
 
 export default function AppRouter(): React.JSX.Element {
 	const location = useLocation();
@@ -150,7 +167,7 @@ export default function AppRouter(): React.JSX.Element {
 					/>
 					<Route path="commutes" element={<Commutes />} />
 					<Route path="upcoming-inline" element={<UpcomingInline />} />
-					<Route path="upcoming" element={<BookingConfirmation />} />
+					<Route path="upcoming" element={<UpcomingRides />} />
 					<Route path="schedule" element={<ScheduleRide />} />
 					<Route path="schedule/summary" element={<ScheduleSummary />} />
 					<Route path="switch-rider" element={<SwitchRider />} />
@@ -261,6 +278,20 @@ export default function AppRouter(): React.JSX.Element {
 					{/* Tours */}
 					<Route path="tours">
 						<Route index element={<ToursDashboard />} />
+						<Route path="available" element={<ToursHomeEntryScreen />} />
+						<Route path="new" element={<ToursNew />} />
+						<Route path="history" element={<TourHistory />} />
+						<Route path=":tourId" element={<TourDetail />} />
+						<Route path=":tourId/dates" element={<TourDates />} />
+						<Route path=":tourId/summary" element={<TourSummary />} />
+						<Route path=":tourId/confirmation" element={<TourConfirmation />} />
+						<Route path="payment/wallet" element={<TourPaymentWallet />} />
+						<Route path="payment/card" element={<TourPaymentCard />} />
+						<Route path="payment/mobile-money" element={<TourPaymentMobileMoney />} />
+						<Route path="payment/processing" element={<TourPaymentProcessing />} />
+						<Route path="payment/verify" element={<TourPaymentVerify />} />
+						<Route path="payment/failed" element={<TourPaymentFailed />} />
+						<Route path="payment/receipt/:transactionId" element={<TourPaymentReceipt />} />
 					</Route>
 				{/* Ambulance */}
 				<Route path="ambulance">
@@ -291,7 +322,16 @@ export default function AppRouter(): React.JSX.Element {
 				<Route path="help" element={<Help />} />
 				<Route path="about" element={<About />} />
 				{/* School */}
-				<Route path="school" element={<SchoolManagementGateway />} />
+				<Route path="school">
+					<Route index element={<SchoolManagementGateway />} />
+					<Route path="dashboard" element={<SchoolDashboard />} />
+					<Route path="fees" element={<SchoolFees />} />
+					<Route path="handoff" element={<SchoolHandoff />} />
+					<Route path="book" element={<SchoolFees />} />
+					<Route path="manage" element={<SchoolDashboard />} />
+					<Route path="schedules" element={<SchoolDashboard />} />
+					<Route path="management-system" element={<SchoolManagementGateway />} />
+				</Route>
 			</Route>
 
 			{/* Fallback */}
