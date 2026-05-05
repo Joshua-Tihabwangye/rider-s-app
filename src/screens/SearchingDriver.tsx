@@ -29,6 +29,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const { sharedLocationState, actions } = useAppData();
+  const { setRideStatus, updateSharedLocationState } = actions;
   const [dots, setDots] = useState(".");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [searchTime, setSearchTime] = useState(0);
@@ -51,12 +52,23 @@ function SearchingForDriverScreen(): React.JSX.Element {
   }, [fallbackRoute, driverProgress]);
 
   useEffect(() => {
-    actions.setRideStatus("searching");
-  }, [actions.setRideStatus]);
+    setRideStatus("searching");
+  }, [setRideStatus]);
 
   useEffect(() => {
-    actions.updateSharedLocationState({ driverLocation });
-  }, [actions, driverLocation]);
+    const previous = sharedLocationState.driverLocation;
+    const next = driverLocation;
+    if (
+      (!previous && !next) ||
+      (previous &&
+        next &&
+        previous.lat === next.lat &&
+        previous.lng === next.lng)
+    ) {
+      return;
+    }
+    updateSharedLocationState({ driverLocation });
+  }, [driverLocation, sharedLocationState.driverLocation, updateSharedLocationState]);
 
   useEffect(() => {
     console.debug("[SearchingDriver] mounted", location.pathname);
@@ -81,9 +93,9 @@ function SearchingForDriverScreen(): React.JSX.Element {
   useEffect(() => {
     if (!routeReady) return;
     if (searchTime < 8) return;
-    actions.setRideStatus("driver_on_way");
+    setRideStatus("driver_on_way");
     navigate("/rides/driver-on-way");
-  }, [actions.setRideStatus, navigate, routeReady, searchTime]);
+  }, [navigate, routeReady, searchTime, setRideStatus]);
 
   const topMapBleedSx = {
     position: "relative",

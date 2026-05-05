@@ -28,6 +28,11 @@ import { useAppData } from "../contexts/AppDataContext";
 function DriverHasArrivedScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { ride, sharedLocationState, actions } = useAppData();
+  const {
+    setRideStatus,
+    updateRideTrip,
+    updateSharedLocationState
+  } = actions;
   const activeTrip = ride.activeTrip;
   const driver = activeTrip?.driver;
   const vehicle = activeTrip?.vehicle;
@@ -35,28 +40,51 @@ function DriverHasArrivedScreen(): React.JSX.Element {
   const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
-    actions.setRideStatus("driver_arrived");
-    actions.updateSharedLocationState({ driverLocation: sharedLocationState.pickupCoords ?? null });
+    if (ride.activeTrip?.status !== "driver_arrived") {
+      setRideStatus("driver_arrived");
+    }
+    const pickupCoords = sharedLocationState.pickupCoords ?? null;
+    const previous = sharedLocationState.driverLocation ?? null;
+    if (
+      !(
+        (!previous && !pickupCoords) ||
+        (previous &&
+          pickupCoords &&
+          previous.lat === pickupCoords.lat &&
+          previous.lng === pickupCoords.lng)
+      )
+    ) {
+      updateSharedLocationState({ driverLocation: pickupCoords });
+    }
     const verificationTimer = window.setTimeout(() => {
       if (ride.activeTrip?.status === "driver_arrived") {
-        actions.updateRideTrip({
+        updateRideTrip({
           startedAt: ride.activeTrip?.startedAt ?? new Date().toISOString(),
           status: "in_progress"
         });
-        actions.setRideStatus("in_progress");
+        setRideStatus("in_progress");
         navigate("/rides/trip", { replace: true, state: { fromDriverVerification: true } });
       }
     }, 15000);
 
     return () => window.clearTimeout(verificationTimer);
-  }, [actions, navigate, ride.activeTrip?.startedAt, ride.activeTrip?.status, sharedLocationState.pickupCoords]);
+  }, [
+    navigate,
+    ride.activeTrip?.startedAt,
+    ride.activeTrip?.status,
+    setRideStatus,
+    sharedLocationState.driverLocation,
+    sharedLocationState.pickupCoords,
+    updateRideTrip,
+    updateSharedLocationState
+  ]);
 
   const handleStartTrip = () => {
-    actions.updateRideTrip({
+    updateRideTrip({
       startedAt: activeTrip?.startedAt ?? new Date().toISOString(),
       status: "in_progress"
     });
-    actions.setRideStatus("in_progress");
+    setRideStatus("in_progress");
     navigate("/rides/trip", { replace: true, state: { fromDriverVerification: true } });
   };
 
