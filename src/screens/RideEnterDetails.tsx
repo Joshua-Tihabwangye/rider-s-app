@@ -222,7 +222,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [routePolyline, setRoutePolyline] = useState<{ lat: number; lng: number }[]>([]);
 	const [routeAlternatives, setRouteAlternatives] = useState<Array<{ lat: number; lng: number }[]>>([]);
 	const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
-	const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
+	const [isMapExpanded, setIsMapExpanded] = useState(false);
 	const [showTripTypeModal, setShowTripTypeModal] = useState(false);
 	const [showAddStopModal, setShowAddStopModal] = useState(false);
 	const lastRouteQueryRef = useRef<{ key: string; at: number } | null>(null);
@@ -713,10 +713,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 			: theme.palette.background.paper;
 	const accentGreen = "#03CD8C";
 	const lightGreen = "rgba(3,205,140,0.1)"; // Light green for active passenger selection
-	const mapNormalHeight = { xs: "46dvh", md: "52vh" } as const;
+	const mapNormalHeight = { xs: "42dvh", md: "48vh" } as const;
 	const mapExpandedHeight = {
-		xs: "calc(78dvh - env(safe-area-inset-bottom, 0px))",
-		md: "76vh",
+		xs: "calc(58dvh - env(safe-area-inset-bottom, 0px))",
+		md: "64vh",
 	} as const;
 	const topMapBleedSx = {
 		position: "relative",
@@ -754,9 +754,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 				>
 						<MapShell
 							showControls={false}
-							resizeKey={isPanelCollapsed ? "collapsed" : "expanded"}
+							resizeKey={isMapExpanded ? "expanded" : "default"}
 							sx={{
-								height: isPanelCollapsed ? mapExpandedHeight : mapNormalHeight,
+								height: isMapExpanded ? mapExpandedHeight : mapNormalHeight,
 								minHeight: { xs: 320, md: 360 },
 								flex: "0 0 auto",
 								transition: "height 320ms ease-in-out"
@@ -775,11 +775,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 					}}
 				/>
 					<IconButton
-						onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
+						onClick={() => setIsMapExpanded(!isMapExpanded)}
 						sx={{
 							position: "absolute",
 							left: "50%",
-							bottom: isPanelCollapsed ? 12 : -18,
+							bottom: -18,
 							transform: "translateX(-50%)",
 							zIndex: 6,
 						width: 42,
@@ -801,16 +801,16 @@ function EnterDestinationScreen(): React.JSX.Element {
 						}
 					}}
 				>
-					{isPanelCollapsed ? (
-						<KeyboardArrowUpRoundedIcon sx={{ color: theme.palette.text.primary }} />
-					) : (
+					{isMapExpanded ? (
 						<KeyboardArrowDownRoundedIcon sx={{ color: theme.palette.text.primary }} />
+					) : (
+						<KeyboardArrowUpRoundedIcon sx={{ color: theme.palette.text.primary }} />
 					)}
 				</IconButton>
 				</Box>
 
 				{/* Trip Setup Card - Neutral Background */}
-				<SmoothHeightPanel open={!isPanelCollapsed}>
+				<SmoothHeightPanel open>
 					<Box sx={{ pt: 4 }}>
 				<Card
 				elevation={0}
@@ -1335,6 +1335,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 									}
 									onChange={(e) => {
 										const newValue = e.target.value;
+										if (newValue === "__add_contact__") {
+											setShowSwitchRiderModal(true);
+											return;
+										}
 										if (
 											newValue === "Personal" ||
 											newValue === "Business"
@@ -1389,7 +1393,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 													}}
 												/>
 												<Typography>
-													{rideType === "Business" ? "Organization" : rideType}
+													{rideType}
 												</Typography>
 											</Box>
 										);
@@ -1472,7 +1476,19 @@ function EnterDestinationScreen(): React.JSX.Element {
 											<DirectionsCarRoundedIcon
 												sx={{ fontSize: 18 }}
 											/>
-											Organization
+											Business
+										</Box>
+									</MenuItem>
+									<MenuItem value="__add_contact__">
+										<Box
+											sx={{
+												display: "flex",
+												alignItems: "center",
+												gap: 1,
+											}}
+										>
+											<PhoneIphoneRoundedIcon sx={{ fontSize: 18 }} />
+											Add Contact
 										</Box>
 									</MenuItem>
 								</Select>

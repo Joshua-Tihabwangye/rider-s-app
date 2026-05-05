@@ -97,7 +97,7 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }: SwitchRiderMo
   const passengerOptions = [1, 2, 3, 4, 5, 6];
   const rideTypeOptions: Array<{ value: string; label: string }> = [
     { value: "Personal", label: "Personal" },
-    { value: "Business", label: "Organization" },
+    { value: "Business", label: "Business" },
     { value: "Delivery", label: "Delivery" }
   ];
   
@@ -322,7 +322,7 @@ function SwitchRiderModal({ open, onClose, tripData, onContinue }: SwitchRiderMo
                         renderValue={(value) => (
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                             <PersonRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
-                            <Typography>{value === "Business" ? "Organization" : value}</Typography>
+                            <Typography>{value}</Typography>
                           </Box>
                         )}
                         sx={{

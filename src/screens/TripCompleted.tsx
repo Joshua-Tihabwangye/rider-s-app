@@ -21,6 +21,7 @@ import RadioButtonUncheckedRoundedIcon from "@mui/icons-material/RadioButtonUnch
 
 import ScreenScaffold from "../components/ScreenScaffold";
 import MapShell from "../components/maps/MapShell";
+import ExpandableMapPanel from "../components/maps/ExpandableMapPanel";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import { normalizeRoute } from "../utils/mapRoutes";
@@ -143,25 +144,30 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
 
   return (
     <ScreenScaffold disableTopPadding>
-      <Box sx={topMapBleedSx}>
-        <MapShell
-          showControls={false}
-          sx={{ height: { xs: "44dvh", md: "52vh" } }}
-          pickupLocation={sharedLocationState.pickupCoords}
-          dropoffLocation={sharedLocationState.destinationCoords}
-          driverLocation={sharedLocationState.destinationCoords}
-          routePolyline={routePolyline}
-          routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
-          routeDistanceKm={sharedLocationState.routeDistanceKm}
-          routeDurationMin={sharedLocationState.routeDurationMin}
-          canvasSx={{
-            background:
-              "linear-gradient(160deg, #D6E9FF 0%, #E5F3FF 22%, #F5EED9 22%, #F5EED9 100%)"
-          }}
-        />
-      </Box>
-
-      <Card
+      <ExpandableMapPanel
+        containerSx={topMapBleedSx}
+        mapHeight={{ xs: "44dvh", md: "52vh" }}
+        expandedMapHeight={{ xs: "78dvh", md: "76vh" }}
+        map={
+          <MapShell
+            showControls={false}
+            sx={{ height: "100%" }}
+            pickupLocation={sharedLocationState.pickupCoords}
+            dropoffLocation={sharedLocationState.destinationCoords}
+            driverLocation={sharedLocationState.destinationCoords}
+            routePolyline={routePolyline}
+            routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
+            routeDistanceKm={sharedLocationState.routeDistanceKm}
+            routeDurationMin={sharedLocationState.routeDurationMin}
+            canvasSx={{
+              background:
+                "linear-gradient(160deg, #D6E9FF 0%, #E5F3FF 22%, #F5EED9 22%, #F5EED9 100%)"
+            }}
+          />
+        }
+        details={
+          <>
+            <Card
         elevation={0}
         sx={{
           borderRadius: uiTokens.radius.sm,
@@ -231,9 +237,9 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
             Pay now
           </Button>
         </CardContent>
-      </Card>
+            </Card>
 
-      <Card
+            <Card
         elevation={0}
         sx={{
           borderRadius: uiTokens.radius.sm,
@@ -296,9 +302,9 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
             </Typography>
           </Box>
         </CardContent>
-      </Card>
+            </Card>
 
-      <Card
+            <Card
         elevation={0}
         sx={{
           borderRadius: uiTokens.radius.sm,
@@ -332,7 +338,10 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
             </Typography>
           </Box>
         </CardContent>
-      </Card>
+            </Card>
+          </>
+        }
+      />
     </ScreenScaffold>
   );
 }

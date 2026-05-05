@@ -225,16 +225,29 @@ function MapResizeController({ resizeKey }: { resizeKey: number | string }): nul
   const map = useMap();
 
   React.useEffect(() => {
-    const rafId = window.requestAnimationFrame(() => {
+    const invalidate = () => {
       map.invalidateSize({ animate: false, pan: false });
-    });
-    const timeoutId = window.setTimeout(() => {
-      map.invalidateSize({ animate: false, pan: false });
-    }, 320);
+    };
+    const container = map.getContainer();
+    const rafId = window.requestAnimationFrame(invalidate);
+    const timeoutId = window.setTimeout(invalidate, 320);
+    const lateTimeoutId = window.setTimeout(invalidate, 520);
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            window.requestAnimationFrame(invalidate);
+          })
+        : null;
+
+    resizeObserver?.observe(container);
+    window.addEventListener("resize", invalidate);
 
     return () => {
       window.cancelAnimationFrame(rafId);
       window.clearTimeout(timeoutId);
+      window.clearTimeout(lateTimeoutId);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", invalidate);
     };
   }, [map, resizeKey]);
 

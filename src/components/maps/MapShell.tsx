@@ -438,13 +438,13 @@ export default function MapShell({
             position: "absolute",
             left: leftInsetSx,
             bottom: bottomInsetSx,
-            zIndex: 6,
-            px: 1.6,
-            py: 1,
+            zIndex: 8,
+            px: 1.9,
+            py: 1.15,
             borderRadius: "999px",
-            bgcolor: "rgba(2,6,23,0.88)",
-            border: "1px solid rgba(52,211,153,0.45)",
-            boxShadow: "0 10px 24px rgba(2,6,23,0.3)",
+            bgcolor: "rgba(2,6,23,0.94)",
+            border: "1px solid rgba(74,222,128,0.72)",
+            boxShadow: "0 12px 26px rgba(2,6,23,0.42)",
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
             pointerEvents: "none"
@@ -453,11 +453,11 @@ export default function MapShell({
           <Box
             component="span"
             sx={{
-              fontSize: 14,
-              fontWeight: 800,
+              fontSize: 15,
+              fontWeight: 900,
               letterSpacing: "0.01em",
               lineHeight: 1.1,
-              color: "#ECFDF5",
+              color: "#F0FDF4",
               whiteSpace: "nowrap"
             }}
           >

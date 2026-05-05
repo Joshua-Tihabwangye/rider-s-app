@@ -238,7 +238,6 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
             }}
           >
             <Box
-              key={location.key}
               sx={{
                 width: "100%",
                 maxWidth: CONTENT_MAX_WIDTH,

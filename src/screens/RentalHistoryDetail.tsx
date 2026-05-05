@@ -285,7 +285,33 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      <Stack direction="row" spacing={1.25} sx={{ mb: 1.5 }}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} sx={{ mb: 1.5 }}>
+        {booking.status === "confirmed" ? (
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => {
+              actions.updateRentalBooking({
+                ...booking,
+                status: "completed"
+              });
+              navigate("/rental/history");
+            }}
+            sx={{
+              borderRadius: 5,
+              py: 1,
+              fontSize: 14,
+              fontWeight: 700,
+              textTransform: "none",
+              bgcolor: "#16A34A",
+              "&:hover": {
+                bgcolor: "#15803D"
+              }
+            }}
+          >
+            Return vehicle
+          </Button>
+        ) : null}
         <Button
           fullWidth
           variant="outlined"

@@ -26,6 +26,7 @@ import HotelRoundedIcon from "@mui/icons-material/HotelRounded";
 import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
 import BeachAccessRoundedIcon from "@mui/icons-material/BeachAccessRounded";
 import MapShell from "../components/maps/MapShell";
+import ExpandableMapPanel from "../components/maps/ExpandableMapPanel";
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
@@ -162,6 +163,11 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     if (!activeTrip?.id) return;
     if (isTripPaused || isAddStopRequested) return;
     if (tripElapsedMs < TRIP_SIMULATION_DURATION_MS) return;
+    actions.updateRideTrip({
+      status: "completed",
+      completedAt: new Date().toISOString()
+    });
+    actions.setRideStatus("completed");
     navigate("/rides/trip/completed", {
       replace: true,
       state: {
@@ -172,7 +178,16 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         distance: `${totalDistance} km`
       }
     });
-  }, [activeTrip?.id, isAddStopRequested, isTripPaused, navigate, totalDistance, totalFareDisplay, tripElapsedMs]);
+  }, [
+    actions,
+    activeTrip?.id,
+    isAddStopRequested,
+    isTripPaused,
+    navigate,
+    totalDistance,
+    totalFareDisplay,
+    tripElapsedMs
+  ]);
 
   useEffect(() => {
     if (!isTripPaused) {
@@ -213,6 +228,24 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     setShowContinueTripDialog(false);
   };
 
+  const handleEndTrip = () => {
+    actions.updateRideTrip({
+      status: "completed",
+      completedAt: new Date().toISOString()
+    });
+    actions.setRideStatus("completed");
+    navigate("/rides/trip/completed", {
+      replace: true,
+      state: {
+        duration: "1 min 30 sec",
+        estimatedTime: "1 min 30 sec",
+        totalFare: totalFareDisplay,
+        fare: totalFareDisplay,
+        distance: `${totalDistance} km`
+      }
+    });
+  };
+
   const topMapBleedSx = {
     position: "relative",
     width: {
@@ -232,23 +265,29 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
   return (
     <ScreenScaffold disableTopPadding>
-      <Box sx={topMapBleedSx}>
-        <MapShell
-          preset="full"
-          sx={{ height: { xs: "56dvh", md: "60vh" } }}
-          showControls={false}
-          pickupLocation={sharedLocationState.pickupCoords}
-          dropoffLocation={sharedLocationState.destinationCoords}
-          driverLocation={driverLocation}
-          riderLocation={driverLocation}
-          routePolyline={routePolyline}
-          routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
-          routeDistanceKm={sharedLocationState.routeDistanceKm}
-          routeDurationMin={sharedLocationState.routeDurationMin}
-          canvasSx={{ background: uiTokens.map.canvasEmphasis }}
-          onRecenter={handleMapRecenter}
-        />
-      </Box>
+      <ExpandableMapPanel
+        containerSx={topMapBleedSx}
+        mapHeight={{ xs: "56dvh", md: "60vh" }}
+        expandedMapHeight={{ xs: "82dvh", md: "78vh" }}
+        map={
+          <MapShell
+            preset="full"
+            sx={{ height: "100%" }}
+            showControls={false}
+            pickupLocation={sharedLocationState.pickupCoords}
+            dropoffLocation={sharedLocationState.destinationCoords}
+            driverLocation={driverLocation}
+            riderLocation={driverLocation}
+            routePolyline={routePolyline}
+            routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
+            routeDistanceKm={sharedLocationState.routeDistanceKm}
+            routeDurationMin={sharedLocationState.routeDurationMin}
+            canvasSx={{ background: uiTokens.map.canvasEmphasis }}
+            onRecenter={handleMapRecenter}
+          />
+        }
+        details={
+          <>
       <Box sx={{ pt: 2, pb: 1, px: 2 }}>
         <Typography variant="h5" sx={{ fontWeight: 800, color: 'var(--evz-text-main, #0f172a)' }}>
           Active Trip
@@ -483,7 +522,30 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             </Box>
           </CardContent>
         </Card>
+
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={handleEndTrip}
+          sx={{
+            borderRadius: uiTokens.radius.xl,
+            py: 1.15,
+            fontSize: 14,
+            fontWeight: 700,
+            textTransform: "none",
+            bgcolor: "#16A34A",
+            "&:hover": {
+              bgcolor: "#15803D"
+            }
+          }}
+        >
+          End trip
+        </Button>
       </Box>
+
+          </>
+        }
+      />
 
       {/* Add Stop Request Dialog */}
       <Dialog open={isAddStopRequested && !safetyCheck?.status} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
