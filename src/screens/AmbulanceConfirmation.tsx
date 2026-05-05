@@ -27,6 +27,8 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
   const { ambulance, actions } = useAppData();
   const requestId = ambulance.request.id;
   const eta = "8 min";
+  const pickupCoords = ambulance.request.pickup?.coordinates ?? null;
+  const destinationCoords = ambulance.request.destination?.coordinates ?? null;
   const destinationLabel =
     ambulance.request.destination?.label?.trim() ||
     ambulance.request.destination?.address?.trim() ||
@@ -61,6 +63,9 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
           sx={{ height: { xs: "42dvh", md: "44vh" } }}
           onBack={() => navigate(-1)}
           showBackButton
+          pickupLocation={pickupCoords}
+          dropoffLocation={destinationCoords}
+          routePolyline={pickupCoords && destinationCoords ? [pickupCoords, destinationCoords] : []}
           canvasSx={{ background: uiTokens.map.canvasEmphasis }}
         >
           <Box
@@ -282,6 +287,32 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
         If the patient’s condition changes or you move from this location, use
         these contact options to update the response team immediately.
       </Typography>
+
+      <Button
+        fullWidth
+        variant="contained"
+        onClick={() => {
+          actions.updateAmbulanceRequest({
+            status: "en_route",
+            dispatchedAt: ambulance.request.dispatchedAt ?? new Date().toISOString()
+          });
+          navigate("/ambulance/tracking");
+        }}
+        sx={{
+          mt: 1.5,
+          borderRadius: 5,
+          py: 1.1,
+          fontSize: 14,
+          fontWeight: 700,
+          textTransform: "none",
+          bgcolor: "#DC2626",
+          "&:hover": {
+            bgcolor: "#B91C1C"
+          }
+        }}
+      >
+        Track ambulance
+      </Button>
     </ScreenScaffold>
   );
 }

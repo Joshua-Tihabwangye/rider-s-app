@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { Box, CircularProgress } from "@mui/material";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { useAuth } from "../contexts/AuthContext";
@@ -105,6 +105,7 @@ import AmbulanceDashboard from "../screens/AmbulanceDashboard";
 import AmbulanceLocation from "../screens/AmbulanceLocation";
 import AmbulanceDestination from "../screens/AmbulanceDestination";
 import AmbulanceConfirmation from "../screens/AmbulanceConfirmation";
+import AmbulanceTracking from "../screens/AmbulanceTracking";
 import AmbulanceHistory from "../screens/AmbulanceHistory";
 import AmbulanceHistoryDetail from "../screens/AmbulanceHistoryDetail";
 import Wallet from "../screens/Wallet";
@@ -125,9 +126,8 @@ import SchoolFees from "../screens/SchoolFees";
 import SchoolHandoff from "../screens/SchoolHandoff";
 
 export default function AppRouter(): React.JSX.Element {
-	const location = useLocation();
 	return (
-		<Routes location={location} key={`${location.pathname}${location.search}${location.hash}`}>
+		<Routes>
 			{/* ── Landing ───────────────────────────────────────── */}
 			<Route path="/" element={<AuthAwareRedirect />} />
 
@@ -302,6 +302,7 @@ export default function AppRouter(): React.JSX.Element {
 						path="confirmation"
 						element={<AmbulanceConfirmation />}
 					/>
+					<Route path="tracking" element={<AmbulanceTracking />} />
 					<Route path="history" element={<AmbulanceHistory />} />
 					<Route path="history/:requestId" element={<AmbulanceHistoryDetail />} />
 				</Route>

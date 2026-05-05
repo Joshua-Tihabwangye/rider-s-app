@@ -109,6 +109,7 @@ interface AppState extends AppData {
 }
 
 const AUTO_SENDER_CONFIRMATION_FETCH_DELAY_MS = 45000;
+const APP_DATA_STORAGE_KEY = "evzone_app_data_v1";
 
 interface AppActions {
   updateSettings: (patch: Partial<SettingsState>) => void;
@@ -238,6 +239,36 @@ const initialState: AppState = {
   sos: SEED_SOS_STATE,
   sharedLocationState: SEED_SHARED_LOCATION_STATE
 };
+
+function createInitialState(baseState: AppState): AppState {
+  if (typeof window === "undefined") {
+    return baseState;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(APP_DATA_STORAGE_KEY);
+    if (!raw) {
+      return baseState;
+    }
+
+    const persisted = JSON.parse(raw) as Partial<AppState>;
+    return {
+      ...baseState,
+      ride: persisted.ride ? { ...baseState.ride, ...persisted.ride } : baseState.ride,
+      delivery: persisted.delivery ? { ...baseState.delivery, ...persisted.delivery } : baseState.delivery,
+      rental: persisted.rental ? { ...baseState.rental, ...persisted.rental } : baseState.rental,
+      tours: persisted.tours ? { ...baseState.tours, ...persisted.tours } : baseState.tours,
+      ambulance: persisted.ambulance
+        ? { ...baseState.ambulance, ...persisted.ambulance }
+        : baseState.ambulance,
+      sharedLocationState: persisted.sharedLocationState
+        ? { ...baseState.sharedLocationState, ...persisted.sharedLocationState }
+        : baseState.sharedLocationState
+    };
+  } catch {
+    return baseState;
+  }
+}
 
 type AppAction =
   | { type: "settings/update"; payload: Partial<SettingsState> }
@@ -2320,7 +2351,7 @@ interface AppDataProviderProps {
 
 export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.Element {
   const { user } = useAuth();
-  const [state, dispatch] = useReducer(appReducer, initialState);
+  const [state, dispatch] = useReducer(appReducer, initialState, createInitialState);
   const senderConfirmationTimersRef = useRef<Map<string, number>>(new Map());
 
   const updateSettings = useCallback((patch: Partial<SettingsState>) => {
@@ -3090,6 +3121,34 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     },
     []
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const persistedState: Partial<AppState> = {
+      ride: state.ride,
+      delivery: state.delivery,
+      rental: state.rental,
+      tours: state.tours,
+      ambulance: state.ambulance,
+      sharedLocationState: state.sharedLocationState
+    };
+
+    try {
+      window.localStorage.setItem(APP_DATA_STORAGE_KEY, JSON.stringify(persistedState));
+    } catch {
+      // Ignore persistence failures so workflow interactions keep working.
+    }
+  }, [
+    state.ride,
+    state.delivery,
+    state.rental,
+    state.tours,
+    state.ambulance,
+    state.sharedLocationState
+  ]);
 
   useEffect(() => {
     const wsUrl = (import.meta as any).env.VITE_DELIVERY_WS_URL as string | undefined;

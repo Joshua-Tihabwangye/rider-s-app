@@ -19,6 +19,7 @@ import MessageRoundedIcon from "@mui/icons-material/MessageRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import QrCode2RoundedIcon from "@mui/icons-material/QrCode2Rounded";
 import MapShell from "../components/maps/MapShell";
+import ExpandableMapPanel from "../components/maps/ExpandableMapPanel";
 import DriverChatRoom from "../components/DriverChatRoom";
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
@@ -37,12 +38,27 @@ function DriverHasArrivedScreen(): React.JSX.Element {
     actions.setRideStatus("driver_arrived");
     actions.updateSharedLocationState({ driverLocation: sharedLocationState.pickupCoords ?? null });
     const verificationTimer = window.setTimeout(() => {
-      actions.setRideStatus("in_progress");
-      navigate("/rides/trip", { replace: true, state: { fromDriverVerification: true } });
+      if (ride.activeTrip?.status === "driver_arrived") {
+        actions.updateRideTrip({
+          startedAt: ride.activeTrip?.startedAt ?? new Date().toISOString(),
+          status: "in_progress"
+        });
+        actions.setRideStatus("in_progress");
+        navigate("/rides/trip", { replace: true, state: { fromDriverVerification: true } });
+      }
     }, 15000);
 
     return () => window.clearTimeout(verificationTimer);
-  }, [actions, navigate, sharedLocationState.pickupCoords]);
+  }, [actions, navigate, ride.activeTrip?.startedAt, ride.activeTrip?.status, sharedLocationState.pickupCoords]);
+
+  const handleStartTrip = () => {
+    actions.updateRideTrip({
+      startedAt: activeTrip?.startedAt ?? new Date().toISOString(),
+      status: "in_progress"
+    });
+    actions.setRideStatus("in_progress");
+    navigate("/rides/trip", { replace: true, state: { fromDriverVerification: true } });
+  };
 
   const topMapBleedSx = {
     position: "relative",
@@ -69,227 +85,255 @@ function DriverHasArrivedScreen(): React.JSX.Element {
 
   return (
     <ScreenScaffold disableTopPadding>
-      <Box sx={topMapBleedSx}>
-        <MapShell
-          preset="compact"
-          sx={{ height: { xs: "52dvh", md: "54vh" } }}
-          showControls={false}
-          pickupLocation={sharedLocationState.pickupCoords}
-          dropoffLocation={sharedLocationState.destinationCoords}
-          driverLocation={sharedLocationState.pickupCoords}
-          routePolyline={sharedLocationState.routePolyline}
-          routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
-          routeDistanceKm={sharedLocationState.routeDistanceKm}
-          routeDurationMin={sharedLocationState.routeDurationMin}
-          canvasSx={{ background: uiTokens.map.canvasEmphasis }}
-        />
-      </Box>
-
-      <Box sx={{ pt: 0.5 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
-          Driver arrived
-        </Typography>
-        <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-          Verify OTP or QR before starting the trip.
-        </Typography>
-      </Box>
-
-      <Card
-        elevation={0}
-        sx={{
-          borderRadius: uiTokens.radius.sm,
-          bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.5 }}>
-          <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="space-between">
-            <Stack direction="row" spacing={1.25} alignItems="center">
-              <Avatar
-                sx={{
-                  width: 46,
-                  height: 46,
-                  bgcolor: "#03CD8C",
-                  color: "#FFFFFF",
-                  fontWeight: 700
-                }}
-              >
-                {driver?.avatar ?? driver?.name?.slice(0, 2).toUpperCase() ?? "DR"}
-              </Avatar>
-              <Box>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                  {driver?.name ?? "Driver"}
-                </Typography>
-                <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
-                  {vehicle?.model ?? "Tesla Model 3"} · {vehicle?.color ?? "Pearl White"}
-                </Typography>
-                <Typography variant="caption" sx={{ display: "block", color: (t) => t.palette.text.secondary }}>
-                  Plate: {vehicle?.plate ?? "UAX 278C"}
-                </Typography>
-              </Box>
-            </Stack>
-            <Stack direction="row" spacing={0.5}>
-              <IconButton size="small" onClick={handleCall}>
-                <PhoneRoundedIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-              <IconButton size="small" onClick={() => setChatOpen(true)}>
-                <MessageRoundedIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Card
-        elevation={0}
-        sx={{
-          borderRadius: uiTokens.radius.sm,
-          bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.5 }}>
-          <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} alignItems="stretch">
-            <Box sx={{ flex: 1, width: "100%" }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                <Box>
-                  <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                    Rider OTP
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    Driver can enter this code instead of scanning the QR.
-                  </Typography>
-                </Box>
-                <Chip
-                  size="small"
-                  label="Use OTP"
-                  sx={{
-                    height: 24,
-                    borderRadius: 1.5,
-                    bgcolor: "rgba(3,205,140,0.14)",
-                    color: "#047857",
-                    fontWeight: 700
-                  }}
-                />
-              </Stack>
-
-              <Stack direction="row" spacing={1} sx={{ mb: 1.25, flexWrap: "wrap" }} useFlexGap>
-                {otp.split("").map((digit, index) => (
-                  <Box
-                    key={`${digit}-${index}`}
-                    sx={{
-                      minWidth: 44,
-                      height: 52,
-                      px: 1.1,
-                      borderRadius: 2,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      bgcolor: (t) => (t.palette.mode === "light" ? "#F8FAFC" : "rgba(15,23,42,0.96)"),
-                      border: "1px solid rgba(3,205,140,0.28)"
-                    }}
-                  >
-                    <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: "0.02em", lineHeight: 1 }}>
-                      {digit}
-                    </Typography>
-                  </Box>
-                ))}
-              </Stack>
-
+      <ExpandableMapPanel
+        containerSx={topMapBleedSx}
+        mapHeight={{ xs: "52dvh", md: "54vh" }}
+        expandedMapHeight={{ xs: "78dvh", md: "76vh" }}
+        map={
+          <MapShell
+            preset="compact"
+            sx={{ height: "100%" }}
+            showControls={false}
+            pickupLocation={sharedLocationState.pickupCoords}
+            dropoffLocation={sharedLocationState.destinationCoords}
+            driverLocation={sharedLocationState.pickupCoords}
+            routePolyline={sharedLocationState.routePolyline}
+            routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
+            routeDistanceKm={sharedLocationState.routeDistanceKm}
+            routeDurationMin={sharedLocationState.routeDurationMin}
+            canvasSx={{ background: uiTokens.map.canvasEmphasis }}
+          />
+        }
+        details={
+          <>
+            <Box sx={{ pt: 0.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
+                Driver arrived
+              </Typography>
               <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                Share this OTP with the driver before trip start.
+                Verify OTP or QR before starting the trip.
               </Typography>
             </Box>
 
-            <Divider
-              flexItem
-              orientation="vertical"
-              sx={{ display: { xs: "none", md: "block" }, borderColor: "rgba(148,163,184,0.3)" }}
-            />
-            <Divider sx={{ display: { xs: "block", md: "none" }, borderColor: "rgba(148,163,184,0.3)" }}>
-              <Typography variant="caption" sx={{ px: 0.75, color: "text.secondary", fontWeight: 700 }}>
-                OR
-              </Typography>
-            </Divider>
-
-            <Box
+            <Card
+              elevation={0}
               sx={{
-                width: { xs: "100%", md: 156 },
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center"
+                borderRadius: uiTokens.radius.sm,
+                bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(209,213,219,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)"
               }}
             >
-              <Stack spacing={1} alignItems="center">
-                <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                  Or scan QR
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: 800,
-                    letterSpacing: "0.12em",
-                    color: "#0F172A"
-                  }}
-                >
-                  OTP {otp}
-                </Typography>
-                <Box
-                  sx={{
-                    width: 132,
-                    height: 132,
-                    p: 1.25,
-                    borderRadius: 2,
-                    border: "1px solid rgba(148,163,184,0.45)",
-                    bgcolor: "#FFFFFF",
-                    position: "relative"
-                  }}
-                >
+              <CardContent sx={{ px: 1.75, py: 1.5 }}>
+                <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="space-between">
+                  <Stack direction="row" spacing={1.25} alignItems="center">
+                    <Avatar
+                      sx={{
+                        width: 46,
+                        height: 46,
+                        bgcolor: "#03CD8C",
+                        color: "#FFFFFF",
+                        fontWeight: 700
+                      }}
+                    >
+                      {driver?.avatar ?? driver?.name?.slice(0, 2).toUpperCase() ?? "DR"}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        {driver?.name ?? "Driver"}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
+                        {vehicle?.model ?? "Tesla Model 3"} · {vehicle?.color ?? "Pearl White"}
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: "block", color: (t) => t.palette.text.secondary }}>
+                        Plate: {vehicle?.plate ?? "UAX 278C"}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <Stack direction="row" spacing={0.5}>
+                    <IconButton size="small" onClick={handleCall}>
+                      <PhoneRoundedIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => setChatOpen(true)}>
+                      <MessageRoundedIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Card>
+
+            <Card
+              elevation={0}
+              sx={{
+                borderRadius: uiTokens.radius.sm,
+                bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
+                border: (t) =>
+                  t.palette.mode === "light"
+                    ? "1px solid rgba(209,213,219,0.9)"
+                    : "1px solid rgba(51,65,85,0.9)"
+              }}
+            >
+              <CardContent sx={{ px: 1.75, py: 1.5 }}>
+                <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} alignItems="stretch">
+                  <Box sx={{ flex: 1, width: "100%" }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                      <Box>
+                        <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                          Rider OTP
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          Driver can enter this code instead of scanning the QR.
+                        </Typography>
+                      </Box>
+                      <Chip
+                        size="small"
+                        label="Use OTP"
+                        sx={{
+                          height: 24,
+                          borderRadius: 1.5,
+                          bgcolor: "rgba(3,205,140,0.14)",
+                          color: "#047857",
+                          fontWeight: 700
+                        }}
+                      />
+                    </Stack>
+
+                    <Stack direction="row" spacing={1} sx={{ mb: 1.25, flexWrap: "wrap" }} useFlexGap>
+                      {otp.split("").map((digit, index) => (
+                        <Box
+                          key={`${digit}-${index}`}
+                          sx={{
+                            minWidth: 44,
+                            height: 52,
+                            px: 1.1,
+                            borderRadius: 2,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            bgcolor: (t) => (t.palette.mode === "light" ? "#F8FAFC" : "rgba(15,23,42,0.96)"),
+                            border: "1px solid rgba(3,205,140,0.28)"
+                          }}
+                        >
+                          <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: "0.02em", lineHeight: 1 }}>
+                            {digit}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Stack>
+
+                    <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                      Share this OTP with the driver before trip start.
+                    </Typography>
+                  </Box>
+
+                  <Divider
+                    flexItem
+                    orientation="vertical"
+                    sx={{ display: { xs: "none", md: "block" }, borderColor: "rgba(148,163,184,0.3)" }}
+                  />
+                  <Divider sx={{ display: { xs: "block", md: "none" }, borderColor: "rgba(148,163,184,0.3)" }}>
+                    <Typography variant="caption" sx={{ px: 0.75, color: "text.secondary", fontWeight: 700 }}>
+                      OR
+                    </Typography>
+                  </Divider>
+
                   <Box
                     sx={{
-                      position: "absolute",
-                      inset: 10,
-                      backgroundImage:
-                        "repeating-linear-gradient(0deg, #111827 0 5px, transparent 5px 10px), repeating-linear-gradient(90deg, #111827 0 5px, transparent 5px 10px)",
-                      opacity: 0.24
+                      width: { xs: "100%", md: 156 },
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center"
                     }}
-                  />
-                  <Box sx={qrCornerSx(14, 14)} />
-                  <Box sx={qrCornerSx(undefined, 14, 14)} />
-                  <Box sx={qrCornerSx(14, undefined, undefined, 14)} />
-                  <QrCode2RoundedIcon
-                    sx={{
-                      position: "absolute",
-                      right: 12,
-                      bottom: 12,
-                      fontSize: 18,
-                      color: "#111827"
-                    }}
-                  />
-                </Box>
-              </Stack>
-            </Box>
-          </Stack>
-        </CardContent>
-      </Card>
+                  >
+                    <Stack spacing={1} alignItems="center">
+                      <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                        Or scan QR
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 800,
+                          letterSpacing: "0.12em",
+                          color: "#0F172A"
+                        }}
+                      >
+                        OTP {otp}
+                      </Typography>
+                      <Box
+                        sx={{
+                          width: 132,
+                          height: 132,
+                          p: 1.25,
+                          borderRadius: 2,
+                          border: "1px solid rgba(148,163,184,0.45)",
+                          bgcolor: "#FFFFFF",
+                          position: "relative"
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            inset: 10,
+                            backgroundImage:
+                              "repeating-linear-gradient(0deg, #111827 0 5px, transparent 5px 10px), repeating-linear-gradient(90deg, #111827 0 5px, transparent 5px 10px)",
+                            opacity: 0.24
+                          }}
+                        />
+                        <Box sx={qrCornerSx(14, 14)} />
+                        <Box sx={qrCornerSx(undefined, 14, 14)} />
+                        <Box sx={qrCornerSx(14, undefined, undefined, 14)} />
+                        <QrCode2RoundedIcon
+                          sx={{
+                            position: "absolute",
+                            right: 12,
+                            bottom: 12,
+                            fontSize: 18,
+                            color: "#111827"
+                          }}
+                        />
+                      </Box>
+                    </Stack>
+                  </Box>
+                </Stack>
+              </CardContent>
+            </Card>
 
-      <Typography
-        variant="caption"
-        sx={{
-          textAlign: "center",
-          color: (t) => t.palette.text.secondary,
-          fontSize: 11,
-          display: "block"
-        }}
-      >
-        Trip will start automatically once the driver verifies OTP or QR.
-      </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                textAlign: "center",
+                color: (t) => t.palette.text.secondary,
+                fontSize: 11,
+                display: "block"
+              }}
+            >
+              Trip will start automatically once the driver verifies OTP or QR.
+            </Typography>
+
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handleStartTrip}
+              sx={{
+                borderRadius: 5,
+                py: 1.2,
+                fontSize: 14,
+                fontWeight: 700,
+                textTransform: "none",
+                bgcolor: "#16A34A",
+                color: "#FFFFFF",
+                "&:hover": {
+                  bgcolor: "#15803D"
+                }
+              }}
+            >
+              Start trip
+            </Button>
+          </>
+        }
+      />
 
       <DriverChatRoom
         open={chatOpen}

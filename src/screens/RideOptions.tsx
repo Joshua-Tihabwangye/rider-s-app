@@ -13,6 +13,7 @@ import {
 import TwoWheelerRoundedIcon from "@mui/icons-material/TwoWheelerRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import MapShell from "../components/maps/MapShell";
+import ExpandableMapPanel from "../components/maps/ExpandableMapPanel";
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
@@ -331,39 +332,44 @@ function SelectYourRideScreen(): React.JSX.Element {
   
   return (
     <ScreenScaffold disableTopPadding>
-      <Box sx={topMapBleedSx}>
-        <MapShell
-          showControls={false}
-          sx={{ height: { xs: "62dvh", md: "55vh" } }}
-          pickupLocation={sharedLocationState.pickupCoords}
-          dropoffLocation={sharedLocationState.destinationCoords}
-          routePolyline={sharedLocationState.routePolyline}
-          routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
-          routeDistanceKm={sharedLocationState.routeDistanceKm}
-          routeDurationMin={sharedLocationState.routeDurationMin}
-          canvasSx={{
-            background: theme.palette.mode === "light"
-              ? "#F5F5DC"
-              : "linear-gradient(135deg, #0f1e2e 0%, #1a2d3e 50%, #0f1e2e 100%)"
-          }}
-        />
-      </Box>
+      <ExpandableMapPanel
+        containerSx={topMapBleedSx}
+        mapHeight={{ xs: "62dvh", md: "55vh" }}
+        expandedMapHeight={{ xs: "80dvh", md: "76vh" }}
+        map={
+          <MapShell
+            showControls={false}
+            sx={{ height: "100%" }}
+            pickupLocation={sharedLocationState.pickupCoords}
+            dropoffLocation={sharedLocationState.destinationCoords}
+            routePolyline={sharedLocationState.routePolyline}
+            routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
+            routeDistanceKm={sharedLocationState.routeDistanceKm}
+            routeDurationMin={sharedLocationState.routeDurationMin}
+            canvasSx={{
+              background: theme.palette.mode === "light"
+                ? "#F5F5DC"
+                : "linear-gradient(135deg, #0f1e2e 0%, #1a2d3e 50%, #0f1e2e 100%)"
+            }}
+          />
+        }
+        details={
+          <>
+            <Box sx={{ px: 0.5 }}>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
+              >
+                Select your ride
+              </Typography>
+              {selectionError ? (
+                <Typography variant="caption" sx={{ color: "#DC2626", display: "block" }}>
+                  {selectionError}
+                </Typography>
+              ) : null}
+            </Box>
 
-      <Box sx={{ px: 0.5 }}>
-        <Typography
-          variant="h6"
-          sx={{ fontWeight: 600, letterSpacing: "-0.01em", mb: 0.25 }}
-        >
-          Select your ride
-        </Typography>
-        {selectionError ? (
-          <Typography variant="caption" sx={{ color: "#DC2626", display: "block" }}>
-            {selectionError}
-          </Typography>
-        ) : null}
-      </Box>
-
-      <Card
+            <Card
         elevation={0}
         sx={{
           borderRadius: uiTokens.radius.xl,
@@ -459,21 +465,21 @@ function SelectYourRideScreen(): React.JSX.Element {
             </Box>
           </Box>
         </CardContent>
-      </Card>
+            </Card>
 
-      <Box>
-        {rideOptionsWithPricing.map((option) => (
-          <RideOptionCard
-            key={option.id}
-            option={option}
-            selected={selectedRide}
-            passengers={passengerCount}
-            onSelect={handleSelectRide}
-          />
-        ))}
-      </Box>
+            <Box>
+              {rideOptionsWithPricing.map((option) => (
+                <RideOptionCard
+                  key={option.id}
+                  option={option}
+                  selected={selectedRide}
+                  passengers={passengerCount}
+                  onSelect={handleSelectRide}
+                />
+              ))}
+            </Box>
 
-      <Button
+            <Button
         fullWidth
         variant="contained"
         onClick={handleConfirm}
@@ -495,9 +501,12 @@ function SelectYourRideScreen(): React.JSX.Element {
             opacity: 1
           }
         }}
-      >
-        Confirm your Ride
-      </Button>
+            >
+              Confirm your Ride
+            </Button>
+          </>
+        }
+      />
     </ScreenScaffold>
   );
 }
