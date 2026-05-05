@@ -27,6 +27,7 @@ import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { ride, sharedLocationState, actions } = useAppData();
+  const { setRideStatus, updateSharedLocationState } = actions;
   const activeTrip = ride.activeTrip;
   const driver = activeTrip?.driver;
   const vehicle = activeTrip?.vehicle;
@@ -37,7 +38,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const driverLocation = getApproachPoint(routePolyline, driverProgress);
 
   useEffect(() => {
-    actions.setRideStatus("driver_on_way");
+    setRideStatus("driver_on_way");
     const interval = setInterval(() => {
       setArrivalTime((prev) => {
         if (prev > 0) {
@@ -49,19 +50,30 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [actions.setRideStatus]);
+  }, [setRideStatus]);
 
   useEffect(() => {
-    actions.updateSharedLocationState({ driverLocation });
-  }, [actions, driverLocation]);
+    const previous = sharedLocationState.driverLocation;
+    const next = driverLocation;
+    if (
+      (!previous && !next) ||
+      (previous &&
+        next &&
+        previous.lat === next.lat &&
+        previous.lng === next.lng)
+    ) {
+      return;
+    }
+    updateSharedLocationState({ driverLocation });
+  }, [driverLocation, sharedLocationState.driverLocation, updateSharedLocationState]);
 
   const handleAccept = () => {
-    actions.setRideStatus("driver_arrived");
+    setRideStatus("driver_arrived");
     navigate("/rides/driver-arrived");
   };
 
   const handleChange = () => {
-    actions.setRideStatus("searching");
+    setRideStatus("searching");
     navigate("/rides/searching");
   };
 

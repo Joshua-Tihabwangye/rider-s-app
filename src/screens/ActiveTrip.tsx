@@ -60,6 +60,14 @@ function formatRemainingDuration(ms: number): string {
 function TripInProgressBasicScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { ride, sharedLocationState, actions } = useAppData();
+  const {
+    markTemporaryStopContinuePromptShown,
+    resumeTripAfterTemporaryStop,
+    setRideStatus,
+    simulateDriverAddStopRequest,
+    updateRideTrip,
+    updateSharedLocationState
+  } = actions;
   const activeTrip = ride.activeTrip;
   const temporaryStop = ride.temporaryStop;
   const safetyCheck = ride.safetyCheck;
@@ -90,16 +98,16 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
   useEffect(() => {
     if (!activeTrip?.startedAt) {
-      actions.updateRideTrip({ startedAt: new Date().toISOString() });
+      updateRideTrip({ startedAt: new Date().toISOString() });
       return;
     }
     if (activeTrip.status === "paused_at_stop" || activeTrip.status === "add_stop_requested") {
       return;
     }
     if (activeTrip.status !== "ongoing") {
-      actions.setRideStatus("ongoing");
+      setRideStatus("ongoing");
     }
-  }, [actions, activeTrip?.startedAt, activeTrip?.status]);
+  }, [activeTrip?.startedAt, activeTrip?.status, setRideStatus, updateRideTrip]);
 
   useEffect(() => {
     if (isTripPaused) return undefined;
@@ -112,11 +120,36 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   }, [isTripPaused]);
 
   useEffect(() => {
-    actions.updateSharedLocationState({
-      driverLocation,
-      riderLocation: driverLocation ?? sharedLocationState.pickupCoords ?? null
+    const nextDriver = driverLocation;
+    const nextRider = driverLocation ?? sharedLocationState.pickupCoords ?? null;
+    const prevDriver = sharedLocationState.driverLocation ?? null;
+    const prevRider = sharedLocationState.riderLocation ?? null;
+    const sameDriver =
+      (!prevDriver && !nextDriver) ||
+      (prevDriver &&
+        nextDriver &&
+        prevDriver.lat === nextDriver.lat &&
+        prevDriver.lng === nextDriver.lng);
+    const sameRider =
+      (!prevRider && !nextRider) ||
+      (prevRider &&
+        nextRider &&
+        prevRider.lat === nextRider.lat &&
+        prevRider.lng === nextRider.lng);
+    if (sameDriver && sameRider) {
+      return;
+    }
+    updateSharedLocationState({
+      driverLocation: nextDriver,
+      riderLocation: nextRider
     });
-  }, [actions, driverLocation, sharedLocationState.pickupCoords]);
+  }, [
+    driverLocation,
+    sharedLocationState.driverLocation,
+    sharedLocationState.pickupCoords,
+    sharedLocationState.riderLocation,
+    updateSharedLocationState
+  ]);
 
   useEffect(() => {
     setHasAutoSimulatedStopRequest(false);
@@ -155,19 +188,25 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     if (hasAutoSimulatedStopRequest) return;
     if (temporaryStop?.status !== "idle") return;
     if (tripElapsedMs < AUTO_ADD_STOP_TRIGGER_MS) return;
-    actions.simulateDriverAddStopRequest("Your driver has requested to add a temporary stop.");
+    simulateDriverAddStopRequest("Your driver has requested to add a temporary stop.");
     setHasAutoSimulatedStopRequest(true);
-  }, [actions, activeTrip?.id, hasAutoSimulatedStopRequest, temporaryStop?.status, tripElapsedMs]);
+  }, [
+    activeTrip?.id,
+    hasAutoSimulatedStopRequest,
+    simulateDriverAddStopRequest,
+    temporaryStop?.status,
+    tripElapsedMs
+  ]);
 
   useEffect(() => {
     if (!activeTrip?.id) return;
     if (isTripPaused || isAddStopRequested) return;
     if (tripElapsedMs < TRIP_SIMULATION_DURATION_MS) return;
-    actions.updateRideTrip({
+    updateRideTrip({
       status: "completed",
       completedAt: new Date().toISOString()
     });
-    actions.setRideStatus("completed");
+    setRideStatus("completed");
     navigate("/rides/trip/completed", {
       replace: true,
       state: {
@@ -179,14 +218,15 @@ function TripInProgressBasicScreen(): React.JSX.Element {
       }
     });
   }, [
-    actions,
     activeTrip?.id,
     isAddStopRequested,
     isTripPaused,
     navigate,
+    setRideStatus,
     totalDistance,
     totalFareDisplay,
-    tripElapsedMs
+    tripElapsedMs,
+    updateRideTrip
   ]);
 
   useEffect(() => {
@@ -202,13 +242,13 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
     const timeoutId = window.setTimeout(() => {
       setShowContinueTripDialog(true);
-      actions.markTemporaryStopContinuePromptShown();
+      markTemporaryStopContinuePromptShown();
     }, Math.max(0, dueMs - Date.now()));
 
     return () => window.clearTimeout(timeoutId);
   }, [
-    actions,
     isTripPaused,
+    markTemporaryStopContinuePromptShown,
     temporaryStop?.continuePromptDueAt,
     temporaryStop?.continuePromptShownAt
   ]);
@@ -224,16 +264,16 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   const handleMapRecenter = () => undefined;
 
   const handleContinueTrip = () => {
-    actions.resumeTripAfterTemporaryStop();
+    resumeTripAfterTemporaryStop();
     setShowContinueTripDialog(false);
   };
 
   const handleEndTrip = () => {
-    actions.updateRideTrip({
+    updateRideTrip({
       status: "completed",
       completedAt: new Date().toISOString()
     });
-    actions.setRideStatus("completed");
+    setRideStatus("completed");
     navigate("/rides/trip/completed", {
       replace: true,
       state: {

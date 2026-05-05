@@ -720,6 +720,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const { ride, sharedLocationState, actions } = useAppData();
+  const { updateRideRequest, updateSharedLocationState } = actions;
   
   // Check if this is a shared ride mode from query parameter
   const searchParams = new URLSearchParams(location.search);
@@ -800,18 +801,47 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     if (!currentLocation) {
       return;
     }
-    actions.updateRideRequest({
-      origin: {
-        label: ride.request.origin?.label || "Current location",
-        address: ride.request.origin?.address || "Your current location",
-        coordinates: currentLocation
-      }
-    });
-    actions.updateSharedLocationState({
+    const currentOriginCoords = ride.request.origin?.coordinates;
+    const sameOriginCoords =
+      Boolean(currentOriginCoords) &&
+      currentOriginCoords?.lat === currentLocation.lat &&
+      currentOriginCoords?.lng === currentLocation.lng;
+    const samePickupCoords =
+      Boolean(sharedLocationState.pickupCoords) &&
+      sharedLocationState.pickupCoords?.lat === currentLocation.lat &&
+      sharedLocationState.pickupCoords?.lng === currentLocation.lng;
+    const sameRiderCoords =
+      Boolean(sharedLocationState.riderLocation) &&
+      sharedLocationState.riderLocation?.lat === currentLocation.lat &&
+      sharedLocationState.riderLocation?.lng === currentLocation.lng;
+
+    if (!sameOriginCoords) {
+      updateRideRequest({
+        origin: {
+          label: ride.request.origin?.label || "Current location",
+          address: ride.request.origin?.address || "Your current location",
+          coordinates: currentLocation
+        }
+      });
+    }
+
+    if (samePickupCoords && sameRiderCoords) {
+      return;
+    }
+    updateSharedLocationState({
       riderLocation: currentLocation,
       pickupCoords: currentLocation
     });
-  }, [actions, currentLocation, ride.request.origin?.address, ride.request.origin?.label]);
+  }, [
+    currentLocation,
+    ride.request.origin?.address,
+    ride.request.origin?.coordinates,
+    ride.request.origin?.label,
+    sharedLocationState.pickupCoords,
+    sharedLocationState.riderLocation,
+    updateRideRequest,
+    updateSharedLocationState
+  ]);
 
   // Calculate route when destination is selected
   useEffect(() => {
@@ -827,7 +857,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           const route = await calculateRoute(currentLocation, destinationCoords);
           if (!route) {
             setRouteData(null);
-            actions.updateSharedLocationState({
+            updateSharedLocationState({
               pickupCoords: currentLocation,
               destinationCoords,
               routePolyline: [],
@@ -843,7 +873,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             path: route.path,
             alternatives: route.alternativePaths
           });
-          actions.updateSharedLocationState({
+          updateSharedLocationState({
             pickupCoords: currentLocation,
             destinationCoords,
             routePolyline: route.path,
@@ -854,7 +884,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         } catch (error) {
           console.error("Error calculating route:", error);
           setRouteData(null);
-          actions.updateSharedLocationState({
+          updateSharedLocationState({
             pickupCoords: currentLocation,
             destinationCoords,
             routePolyline: [],
@@ -868,14 +898,14 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     } else {
       lastRouteQueryRef.current = null;
       setRouteData(null);
-      actions.updateSharedLocationState({
+      updateSharedLocationState({
         routePolyline: [],
         routeAlternativePolylines: [],
         routeDistanceKm: null,
         routeDurationMin: null
       });
     }
-  }, [actions, destinationCoords, currentLocation]);
+  }, [currentLocation, destinationCoords, updateSharedLocationState]);
 
 
   const handleCommuteRequest = (commute: Commute): void => {
@@ -970,7 +1000,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       setWhereTo(location.address);
       setDestinationCoords(location.coordinates);
       setHelperState("idle");
-      actions.updateRideRequest({
+      updateRideRequest({
         origin: currentLocation
           ? {
               label: "Current location",
@@ -984,7 +1014,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           coordinates: location.coordinates
         }
       });
-      actions.updateSharedLocationState({
+      updateSharedLocationState({
         pickupCoords: currentLocation ?? null,
         destinationCoords: location.coordinates,
         routeAlternativePolylines: [],
@@ -1017,7 +1047,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       coordinates: place.coordinates,
       placeId: place.placeId
     };
-    actions.updateRideRequest({
+    updateRideRequest({
       origin: currentLocation
         ? {
             label: "Current location",
@@ -1027,7 +1057,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         : ride.request.origin,
       destination: selectedDestination
     });
-    actions.updateSharedLocationState({
+    updateSharedLocationState({
       pickupCoords: currentLocation ?? null,
       destinationCoords: selectedDestination.coordinates ?? null,
       routeAlternativePolylines: [],
