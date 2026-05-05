@@ -61,7 +61,8 @@ export default function RentalEstimateCard({
         <Row label="Base rental estimate" value={formatUgx(estimate.baseRental)} />
         <Row label="Chauffeur fee" value={formatUgx(estimate.chauffeurFee)} />
         <Row label="Add-ons total" value={formatUgx(estimate.addOnsTotal)} />
-        <Row label="One-way return fee" value={formatUgx(estimate.oneWayFee)} />
+        <Row label="One-way return fee" value={formatUgx(estimate.oneWayReturnFee)} />
+        <Row label="Cross-border fee" value={formatUgx(estimate.crossBorderFee)} />
         <Row
           label="Refundable deposit"
           value={formatUgx(estimate.refundableDeposit)}

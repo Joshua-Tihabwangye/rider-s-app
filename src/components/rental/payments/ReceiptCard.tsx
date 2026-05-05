@@ -58,7 +58,11 @@ export default function ReceiptCard({ receipt, transaction }: ReceiptCardProps):
           <Typography variant="caption" sx={{ fontSize: 11 }}>Chauffeur fee: {formatUgxAmount(receipt.chauffeurFee)}</Typography>
           <Typography variant="caption" sx={{ fontSize: 11 }}>Add-ons: {formatUgxAmount(receipt.addOnsTotal)}</Typography>
           <Typography variant="caption" sx={{ fontSize: 11 }}>One-way fee: {formatUgxAmount(receipt.oneWayFee)}</Typography>
+          <Typography variant="caption" sx={{ fontSize: 11 }}>Cross-border fee: {formatUgxAmount(receipt.crossBorderFee)}</Typography>
           <Typography variant="caption" sx={{ fontSize: 11 }}>Refundable deposit: {formatUgxAmount(receipt.refundableDeposit)}</Typography>
+          <Typography variant="caption" sx={{ fontSize: 11 }}>
+            Rental type: {receipt.isOneWayRental ? "One-way" : "Round trip"}{receipt.isCrossBorderRental ? " • Cross-border" : ""}
+          </Typography>
           <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5 }}>
             Amount paid: {formatUgxAmount(receipt.amountPaid)}
           </Typography>

@@ -190,9 +190,18 @@ function RentalSummaryScreen(): React.JSX.Element {
                 Pickup: {customRequest.pickupLocation} • Return: {customRequest.dropoffLocation}
               </Typography>
               <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                Rental type: {customRequest.oneWayRental ? "One-way" : "Same-location return"}
+                {customRequest.crossBorderReturn ? " • Cross-border" : ""}
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
                 Contact preference: {customRequest.contactPreference}
               </Typography>
             </Stack>
+            {customRequest.crossBorderReturn && (
+              <Alert severity="warning" sx={{ mt: 0.8 }}>
+                Cross-border return selected. Additional approval, documents, and fees apply.
+              </Alert>
+            )}
             {selectedAddOns.length > 0 ? (
               <Typography
                 variant="caption"
@@ -272,6 +281,14 @@ function RentalSummaryScreen(): React.JSX.Element {
               </Typography>
               <Typography variant="caption" sx={{ fontSize: 11 }}>
                 {pricing.oneWayFee > 0 ? formatUgx(pricing.oneWayFee) : "UGX 0"}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="caption" sx={{ fontSize: 11 }}>
+                Cross-border fee
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11 }}>
+                {pricing.crossBorderFee > 0 ? formatUgx(pricing.crossBorderFee) : "UGX 0"}
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">

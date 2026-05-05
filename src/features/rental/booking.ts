@@ -1,5 +1,6 @@
 import type { RentalBooking, RentalVehicle } from "../../store/types";
 import {
+  DEFAULT_CROSS_BORDER_FEE,
   DEFAULT_CHAUFFEUR_DAILY_FEE,
   DEFAULT_ONE_WAY_FEE,
   DEFAULT_REFUNDABLE_DEPOSIT,
@@ -15,6 +16,9 @@ export interface RentalPricingSummary {
   chauffeurFee: number;
   addOnsTotal: number;
   oneWayFee: number;
+  crossBorderFee: number;
+  isOneWayRental: boolean;
+  isCrossBorderRental: boolean;
   refundableDeposit: number;
   dueNow: number;
 }
@@ -107,11 +111,21 @@ export function buildRentalPricing(
         ? customPricing.baseRental
         : 0;
   const hasExplicitBranches = Boolean(booking.pickupBranch && booking.dropoffBranch);
-  const oneWayFee = hasExplicitBranches
+  const inferredOneWayRental = hasExplicitBranches
     ? booking.pickupBranch !== booking.dropoffBranch
-      ? DEFAULT_ONE_WAY_FEE
-      : 0
-    : customPricing?.oneWayFee ?? 0;
+    : false;
+  const isOneWayRental = customPricing?.isOneWayRental ?? inferredOneWayRental;
+  const oneWayFee = isOneWayRental
+    ? Math.max(
+        0,
+        customPricing?.oneWayReturnFee ?? customPricing?.oneWayFee ?? DEFAULT_ONE_WAY_FEE
+      )
+    : 0;
+  const isCrossBorderRental =
+    customPricing?.isCrossBorderRental ?? booking.customRequest?.crossBorderReturn ?? false;
+  const crossBorderFee = isCrossBorderRental
+    ? Math.max(0, customPricing?.crossBorderFee ?? DEFAULT_CROSS_BORDER_FEE)
+    : 0;
   const isChauffeurRental =
     booking.customRequest?.driverOption === "chauffeur" ||
     booking.rentalMode === "chauffeur";
@@ -125,7 +139,8 @@ export function buildRentalPricing(
         )
       : customPricing?.addOnsTotal ?? 0;
   const refundableDeposit = customPricing?.refundableDeposit ?? DEFAULT_REFUNDABLE_DEPOSIT;
-  const dueNow = rentalSubtotal + oneWayFee + chauffeurFee + addOnsTotal;
+  const dueNow =
+    rentalSubtotal + oneWayFee + crossBorderFee + chauffeurFee + addOnsTotal;
 
   return {
     dailyRate,
@@ -134,6 +149,9 @@ export function buildRentalPricing(
     chauffeurFee,
     addOnsTotal,
     oneWayFee,
+    crossBorderFee,
+    isOneWayRental,
+    isCrossBorderRental,
     refundableDeposit,
     dueNow
   };

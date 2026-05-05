@@ -9,6 +9,7 @@ import type {
 
 export const DEFAULT_BASE_DAILY_RATE = 180_000;
 export const DEFAULT_ONE_WAY_FEE = 40_000;
+export const DEFAULT_CROSS_BORDER_FEE = 120_000;
 export const DEFAULT_REFUNDABLE_DEPOSIT = 300_000;
 export const DEFAULT_CHAUFFEUR_DAILY_FEE = 80_000;
 
@@ -321,6 +322,10 @@ export function buildCustomRentalEstimate(params: {
   pickupDateTime: string;
   returnDateTime: string;
   differentDropoff: boolean;
+  isOneWayRental?: boolean;
+  isCrossBorderRental?: boolean;
+  oneWayReturnFee?: number;
+  crossBorderFee?: number;
   driverOption: RentalModeOption;
   addOns: RentalAddOnSelection[];
   chauffeurWaitingTimeHours: number;
@@ -341,15 +346,28 @@ export function buildCustomRentalEstimate(params: {
     durationDays,
     params.chauffeurWaitingTimeHours
   );
-  const oneWayFee = params.differentDropoff ? DEFAULT_ONE_WAY_FEE : 0;
+  const isOneWayRental = params.isOneWayRental ?? params.differentDropoff;
+  const oneWayReturnFee = isOneWayRental
+    ? Math.max(0, params.oneWayReturnFee ?? DEFAULT_ONE_WAY_FEE)
+    : 0;
+  const isCrossBorderRental = Boolean(params.isCrossBorderRental);
+  const crossBorderFee =
+    isOneWayRental && isCrossBorderRental
+      ? Math.max(0, params.crossBorderFee ?? DEFAULT_CROSS_BORDER_FEE)
+      : 0;
   const refundableDeposit = DEFAULT_REFUNDABLE_DEPOSIT;
-  const totalEstimated = baseRental + chauffeurFee + addOnsTotal + oneWayFee;
+  const totalEstimated =
+    baseRental + chauffeurFee + addOnsTotal + oneWayReturnFee + crossBorderFee;
 
   return {
     baseRental,
     chauffeurFee,
     addOnsTotal,
-    oneWayFee,
+    oneWayReturnFee,
+    crossBorderFee,
+    oneWayFee: oneWayReturnFee,
+    isOneWayRental,
+    isCrossBorderRental,
     refundableDeposit,
     totalEstimated,
     durationDays

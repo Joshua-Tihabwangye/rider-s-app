@@ -65,6 +65,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     resumeTripAfterTemporaryStop,
     setRideStatus,
     simulateDriverAddStopRequest,
+    simulateDriverContinueTripRequest,
     updateRideTrip,
     updateSharedLocationState
   } = actions;
@@ -336,14 +337,30 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             {routePolyline.length > 1 ? activeTrip?.routeSummary ?? "Trip in progress" : "Select pickup and destination first."}
           </Typography>
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => navigate("/rides/sos")}
-            sx={{ bgcolor: 'var(--evz-danger)', color: '#fff', px: 2, borderRadius: 2 }}
-          >
-            SOS
-          </Button>
+          <Stack direction="row" spacing={1}>
+            {temporaryStop?.status === "idle" && (
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() =>
+                  simulateDriverAddStopRequest(
+                    "Your driver has requested to add a temporary stop."
+                  )
+                }
+                sx={{ borderRadius: 2, textTransform: "none" }}
+              >
+                Simulate add stop
+              </Button>
+            )}
+            <Button
+              size="small"
+              variant="contained"
+              onClick={() => navigate("/rides/sos")}
+              sx={{ bgcolor: 'var(--evz-danger)', color: '#fff', px: 2, borderRadius: 2 }}
+            >
+              SOS
+            </Button>
+          </Stack>
         </Box>
         {isTripPaused && (
           <Box
@@ -365,6 +382,18 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             <Typography variant="body2" sx={{ fontSize: 13, color: "#78350F", mb: 1 }}>
               Trip paused at stop. Waiting for the driver to continue the ride.
             </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() =>
+                simulateDriverContinueTripRequest(
+                  "Your driver has requested to continue the trip."
+                )
+              }
+              sx={{ borderRadius: uiTokens.radius.xl, textTransform: "none", borderColor: "#F59E0B", color: "#92400E" }}
+            >
+              Simulate driver continue request
+            </Button>
           </Box>
         )}
       </Box>
