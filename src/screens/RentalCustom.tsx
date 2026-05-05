@@ -2,11 +2,14 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   Card,
   CardContent,
+  Checkbox,
   Divider,
+  FormControlLabel,
   IconButton,
   MenuItem,
   Stack,
@@ -15,6 +18,7 @@ import {
   Typography
 } from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import LocalOfferRoundedIcon from "@mui/icons-material/LocalOfferRounded";
 import UploadFileRoundedIcon from "@mui/icons-material/UploadFileRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
@@ -25,6 +29,7 @@ import VehiclePreferenceSelector from "../components/rental/VehiclePreferenceSel
 import DriverOptionSelector from "../components/rental/DriverOptionSelector";
 import RentalAddOnsSelector from "../components/rental/RentalAddOnsSelector";
 import RentalEstimateCard from "../components/rental/RentalEstimateCard";
+import MapShell from "../components/maps/MapShell";
 import { useAppData } from "../contexts/AppDataContext";
 import {
   DEFAULT_BASE_DAILY_RATE,
@@ -36,10 +41,13 @@ import {
   getAddOnIdsForTripPurpose
 } from "../features/rental/custom";
 import {
-  EVZONE_RENTAL_LOCATIONS,
+  getReturnLocationFees,
   getLocationById,
   getPickupLocations,
-  getReturnLocations
+  getRentalCountries,
+  getRentalRegionsByCountry,
+  getReturnLocationsByCountryAndRegion,
+  isCrossBorderReturn
 } from "../features/rental/locations";
 import { formatUgx, getRentalBookingVehicle, parseUgx } from "../features/rental/booking";
 import type {
@@ -177,27 +185,42 @@ export default function RentalCustom(): React.JSX.Element {
   );
 
   const pickupLocations = useMemo(() => getPickupLocations(), []);
-  const returnLocations = useMemo(() => getReturnLocations(), []);
+  const rentalCountries = useMemo(() => getRentalCountries(), []);
 
   const initialPickupLocationId =
     existingCustomRequest?.pickupLocationId ??
-    EVZONE_RENTAL_LOCATIONS.find(
-      (location) => location.displayName === rental.booking.pickupBranch
-    )?.id ??
+    pickupLocations.find((location) => location.displayName === rental.booking.pickupBranch)?.id ??
     pickupLocations[0]?.id ??
     "";
 
   const initialDifferentDropoff = existingCustomRequest?.differentDropoff ?? false;
   const initialReturnLocationId =
-    existingCustomRequest?.dropoffLocationId ??
-    EVZONE_RENTAL_LOCATIONS.find(
-      (location) => location.displayName === rental.booking.dropoffBranch
-    )?.id ??
-    initialPickupLocationId;
+    initialDifferentDropoff
+      ? existingCustomRequest?.dropoffLocationId ??
+        pickupLocations.find((location) => location.displayName === rental.booking.dropoffBranch)?.id ??
+        ""
+      : initialPickupLocationId;
+  const initialPickupLocation = getLocationById(initialPickupLocationId);
+  const initialReturnLocation = getLocationById(initialReturnLocationId);
+  const initialReturnCountryCode =
+    existingCustomRequest?.returnCountryCode ??
+    initialReturnLocation?.countryCode ??
+    initialPickupLocation?.countryCode ??
+    "";
+  const initialReturnRegion =
+    existingCustomRequest?.returnRegion ??
+    initialReturnLocation?.region ??
+    initialPickupLocation?.region ??
+    "";
 
   const [pickupLocationId, setPickupLocationId] = useState(initialPickupLocationId);
   const [differentDropoff, setDifferentDropoff] = useState(initialDifferentDropoff);
   const [returnLocationId, setReturnLocationId] = useState(initialReturnLocationId);
+  const [returnCountryCode, setReturnCountryCode] = useState(initialReturnCountryCode);
+  const [returnRegion, setReturnRegion] = useState(initialReturnRegion);
+  const [crossBorderAcknowledged, setCrossBorderAcknowledged] = useState(
+    existingCustomRequest?.crossBorderAcknowledged ?? false
+  );
   const [pickupDateTime, setPickupDateTime] = useState(
     existingCustomRequest?.pickupDateTime ?? defaultPickupDateTime
   );
@@ -278,11 +301,77 @@ export default function RentalCustom(): React.JSX.Element {
     [addOns, visibleAddOnIds]
   );
 
+  const selectedPickupLocation = getLocationById(pickupLocationId);
+  const pickupCountryCode = selectedPickupLocation?.countryCode ?? "";
+
+  const effectiveReturnCountryCode = differentDropoff
+    ? returnCountryCode
+    : pickupCountryCode;
+  const returnRegionOptions = useMemo(
+    () => getRentalRegionsByCountry(effectiveReturnCountryCode),
+    [effectiveReturnCountryCode]
+  );
+
+  const effectiveReturnRegion = differentDropoff
+    ? returnRegion
+    : selectedPickupLocation?.region ?? "";
+  const availableReturnHubs = useMemo(
+    () =>
+      getReturnLocationsByCountryAndRegion({
+        countryCode: effectiveReturnCountryCode,
+        region: effectiveReturnRegion,
+        pickupCountryCode
+      }),
+    [effectiveReturnCountryCode, effectiveReturnRegion, pickupCountryCode]
+  );
+
+  useEffect(() => {
+    if (!selectedPickupLocation) {
+      return;
+    }
+
+    if (!differentDropoff) {
+      setReturnCountryCode(selectedPickupLocation.countryCode);
+      setReturnRegion(selectedPickupLocation.region);
+      setReturnLocationId(selectedPickupLocation.id);
+      setCrossBorderAcknowledged(false);
+      return;
+    }
+
+    if (!returnCountryCode) {
+      setReturnCountryCode(selectedPickupLocation.countryCode);
+    }
+    if (!returnRegion) {
+      setReturnRegion(selectedPickupLocation.region);
+    }
+    if (returnLocationId === selectedPickupLocation.id) {
+      setReturnLocationId("");
+    }
+  }, [differentDropoff, returnCountryCode, returnLocationId, returnRegion, selectedPickupLocation]);
+
   useEffect(() => {
     if (!differentDropoff) {
-      setReturnLocationId(pickupLocationId);
+      return;
     }
-  }, [differentDropoff, pickupLocationId]);
+    if (
+      returnRegionOptions.length > 0 &&
+      !returnRegionOptions.some((option) => option.name === returnRegion)
+    ) {
+      setReturnRegion(returnRegionOptions[0]?.name ?? "");
+    }
+  }, [differentDropoff, returnRegion, returnRegionOptions]);
+
+  useEffect(() => {
+    if (!differentDropoff) {
+      return;
+    }
+    if (returnLocationId && !availableReturnHubs.some((hub) => hub.id === returnLocationId)) {
+      setReturnLocationId("");
+    }
+    if (availableReturnHubs.length === 0) {
+      setReturnLocationId("");
+    }
+  }, [availableReturnHubs, differentDropoff, returnLocationId]);
 
   useEffect(() => {
     setAddOns((previous) =>
@@ -294,9 +383,25 @@ export default function RentalCustom(): React.JSX.Element {
     );
   }, [visibleAddOnIds]);
 
-  const selectedPickupLocation = getLocationById(pickupLocationId);
-  const selectedReturnLocation = getLocationById(
-    differentDropoff ? returnLocationId : pickupLocationId
+  const resolvedReturnLocationId = differentDropoff ? returnLocationId : pickupLocationId;
+  const selectedReturnLocation = getLocationById(resolvedReturnLocationId);
+  const canShowRoutePreview = Boolean(
+    selectedPickupLocation &&
+      selectedReturnLocation &&
+      (!differentDropoff || returnLocationId.trim())
+  );
+  const oneWayRental =
+    Boolean(differentDropoff) && Boolean(pickupLocationId) && pickupLocationId !== resolvedReturnLocationId;
+  const crossBorderReturn =
+    oneWayRental &&
+    isCrossBorderReturn(pickupLocationId, resolvedReturnLocationId);
+  const returnFees = useMemo(
+    () =>
+      getReturnLocationFees({
+        pickupLocationId,
+        returnLocationId: resolvedReturnLocationId
+      }),
+    [pickupLocationId, resolvedReturnLocationId]
   );
 
   const baseDailyRate = useMemo(() => {
@@ -313,6 +418,10 @@ export default function RentalCustom(): React.JSX.Element {
         pickupDateTime,
         returnDateTime,
         differentDropoff,
+        isOneWayRental: oneWayRental,
+        isCrossBorderRental: crossBorderReturn,
+        oneWayReturnFee: returnFees.oneWayReturnFee,
+        crossBorderFee: returnFees.crossBorderFee,
         driverOption,
         addOns,
         chauffeurWaitingTimeHours: Number(chauffeurWaitingTimeHours) || 0,
@@ -322,15 +431,22 @@ export default function RentalCustom(): React.JSX.Element {
       addOns,
       baseDailyRate,
       chauffeurWaitingTimeHours,
+      crossBorderReturn,
       differentDropoff,
       driverOption,
+      oneWayRental,
       pickupDateTime,
+      returnFees.crossBorderFee,
+      returnFees.oneWayReturnFee,
       returnDateTime
     ]
   );
 
   const activeStep = useMemo(() => {
     if (!pickupLocationId || !pickupDateTime || !returnDateTime) {
+      return 0;
+    }
+    if (differentDropoff && (!returnCountryCode || !returnRegion || !resolvedReturnLocationId)) {
       return 0;
     }
     if (!minimumRangeKm || !requiredSeats) {
@@ -347,6 +463,9 @@ export default function RentalCustom(): React.JSX.Element {
     pickupDateTime,
     pickupLocationId,
     requiredSeats,
+    resolvedReturnLocationId,
+    returnCountryCode,
+    returnRegion,
     returnDateTime
   ]);
 
@@ -359,7 +478,10 @@ export default function RentalCustom(): React.JSX.Element {
   const focusFirstError = (validationErrors: ValidationErrors): void => {
     const fieldOrder = [
       "pickupLocationId",
+      "returnCountryCode",
+      "returnRegion",
       "returnLocationId",
+      "crossBorderAcknowledged",
       "pickupDateTime",
       "returnDateTime",
       "tripPurpose",
@@ -417,9 +539,28 @@ export default function RentalCustom(): React.JSX.Element {
     if (!pickupLocationId) {
       nextErrors.pickupLocationId = "Pickup location is required.";
     }
-    const resolvedReturnLocationId = differentDropoff ? returnLocationId : pickupLocationId;
+    if (differentDropoff && !returnCountryCode) {
+      nextErrors.returnCountryCode = "Return country is required.";
+    }
+    if (differentDropoff && !returnRegion) {
+      nextErrors.returnRegion = "Return region/city is required.";
+    }
+    if (differentDropoff && returnCountryCode && returnRegion && availableReturnHubs.length === 0) {
+      nextErrors.returnLocationId = "No return points available in this region.";
+    }
     if (!resolvedReturnLocationId) {
       nextErrors.returnLocationId = "Return location is required.";
+    }
+    if (
+      differentDropoff &&
+      resolvedReturnLocationId &&
+      !availableReturnHubs.some((location) => location.id === resolvedReturnLocationId)
+    ) {
+      nextErrors.returnLocationId = "Selected return point is not available.";
+    }
+    if (crossBorderReturn && !crossBorderAcknowledged) {
+      nextErrors.crossBorderAcknowledged =
+        "Please acknowledge cross-border requirements before continuing.";
     }
     if (!pickupDateTime) {
       nextErrors.pickupDateTime = "Pickup date & time is required.";
@@ -495,7 +636,6 @@ export default function RentalCustom(): React.JSX.Element {
     }
 
     setErrors({});
-    const resolvedReturnLocationId = differentDropoff ? returnLocationId : pickupLocationId;
     const pickupLocation = getLocationById(pickupLocationId);
     const dropoffLocation = getLocationById(resolvedReturnLocationId);
     const normalizedAddOns = addOns.map((addOn) => ({
@@ -535,6 +675,16 @@ export default function RentalCustom(): React.JSX.Element {
         pickupLocation: pickupLocation?.displayName ?? "",
         dropoffLocation: dropoffLocation?.displayName ?? "",
         differentDropoff,
+        pickupCountryCode: pickupLocation?.countryCode,
+        pickupCountry: pickupLocation?.country,
+        pickupRegion: pickupLocation?.region,
+        returnCountryCode: dropoffLocation?.countryCode,
+        returnCountry: dropoffLocation?.country,
+        returnRegion: dropoffLocation?.region,
+        oneWayRental,
+        crossBorderReturn,
+        crossBorderAcknowledged: crossBorderReturn ? crossBorderAcknowledged : false,
+        returnLocationNotes: dropoffLocation?.notes,
         pickupDateTime,
         returnDateTime,
         rentalDurationLabel: buildRentalDurationLabel(estimate.durationDays),
@@ -705,50 +855,62 @@ export default function RentalCustom(): React.JSX.Element {
             Step 1: Trip details
           </Typography>
           <Stack spacing={1}>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+            <Autocomplete
+              options={pickupLocations}
+              value={selectedPickupLocation ?? null}
+              onChange={(_, option) => setPickupLocationId(option?.id ?? "")}
+              getOptionLabel={(option) => `${option.displayName} • ${option.address}`}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  id="pickupLocationId"
+                  label="Pickup location"
+                  size="small"
+                  required
+                  error={Boolean(errors.pickupLocationId)}
+                  helperText={errors.pickupLocationId}
+                  inputRef={registerFieldRef("pickupLocationId")}
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {selectedPickupLocation && (
+                          <IconButton
+                            size="small"
+                            aria-label="Clear pickup location"
+                            onMouseDown={(event) => {
+                              event.preventDefault();
+                            }}
+                            onClick={() => {
+                              setPickupLocationId("");
+                              if (!differentDropoff) {
+                                setReturnLocationId("");
+                              }
+                            }}
+                            sx={{ mr: 0.25 }}
+                          >
+                            <CloseRoundedIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        )}
+                        {params.InputProps.endAdornment}
+                      </>
+                    )
+                  }}
+                />
+              )}
+            />
+
+            {!differentDropoff && (
               <TextField
-                id="pickupLocationId"
-                label="Pickup location"
-                size="small"
-                select
-                required
-                value={pickupLocationId}
-                onChange={(event) => setPickupLocationId(event.target.value)}
-                error={Boolean(errors.pickupLocationId)}
-                helperText={errors.pickupLocationId}
-                inputRef={registerFieldRef("pickupLocationId")}
-                fullWidth
-              >
-                {pickupLocations.map((location) => (
-                  <MenuItem key={location.id} value={location.id}>
-                    {location.displayName} • {location.address}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                id="returnLocationId"
                 label="Return location"
                 size="small"
-                select
-                required
-                value={differentDropoff ? returnLocationId : pickupLocationId}
-                onChange={(event) => setReturnLocationId(event.target.value)}
-                error={Boolean(errors.returnLocationId)}
-                helperText={
-                  errors.returnLocationId ??
-                  (!differentDropoff ? "Matches pickup location." : "")
-                }
-                inputRef={registerFieldRef("returnLocationId")}
-                disabled={!differentDropoff}
                 fullWidth
-              >
-                {returnLocations.map((location) => (
-                  <MenuItem key={location.id} value={location.id}>
-                    {location.displayName} • {location.address}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Stack>
+                value={selectedPickupLocation?.displayName ?? ""}
+                helperText="Matches pickup location."
+                InputProps={{ readOnly: true }}
+              />
+            )}
 
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Switch
@@ -759,6 +921,131 @@ export default function RentalCustom(): React.JSX.Element {
                 Return to a different location
               </Typography>
             </Box>
+
+            {differentDropoff && (
+              <Stack spacing={1}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <Autocomplete
+                    options={rentalCountries}
+                    value={rentalCountries.find((country) => country.code === returnCountryCode) ?? null}
+                    onChange={(_, option) => {
+                      setReturnCountryCode(option?.code ?? "");
+                    }}
+                    getOptionLabel={(option) => option.name}
+                    isOptionEqualToValue={(option, value) => option.code === value.code}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        id="returnCountryCode"
+                        label="Return country"
+                        size="small"
+                        required
+                        error={Boolean(errors.returnCountryCode)}
+                        helperText={errors.returnCountryCode}
+                        inputRef={registerFieldRef("returnCountryCode")}
+                      />
+                    )}
+                  />
+                  <Autocomplete
+                    options={returnRegionOptions}
+                    value={returnRegionOptions.find((regionOption) => regionOption.name === returnRegion) ?? null}
+                    onChange={(_, option) => {
+                      setReturnRegion(option?.name ?? "");
+                    }}
+                    getOptionLabel={(option) => option.name}
+                    isOptionEqualToValue={(option, value) => option.name === value.name}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        id="returnRegion"
+                        label="Return region/city"
+                        size="small"
+                        required
+                        error={Boolean(errors.returnRegion)}
+                        helperText={errors.returnRegion}
+                        inputRef={registerFieldRef("returnRegion")}
+                      />
+                    )}
+                  />
+                </Stack>
+                <Autocomplete
+                  options={availableReturnHubs}
+                  value={selectedReturnLocation ?? null}
+                  onChange={(_, option) => setReturnLocationId(option?.id ?? "")}
+                  getOptionLabel={(option) => `${option.displayName} • ${option.address}`}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      id="returnLocationId"
+                      label="Return hub / return point"
+                      size="small"
+                      required
+                      error={Boolean(errors.returnLocationId)}
+                      helperText={errors.returnLocationId}
+                      inputRef={registerFieldRef("returnLocationId")}
+                    />
+                  )}
+                />
+                {returnCountryCode && returnRegion && availableReturnHubs.length === 0 && (
+                  <Alert severity="info">No return points available in this region.</Alert>
+                )}
+                {crossBorderReturn && (
+                  <Alert severity="warning">
+                    Cross-border return may require documents, approval, and extra fees.
+                  </Alert>
+                )}
+                {crossBorderReturn && (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={crossBorderAcknowledged}
+                        onChange={(event) => setCrossBorderAcknowledged(event.target.checked)}
+                        inputRef={registerFieldRef("crossBorderAcknowledged")}
+                      />
+                    }
+                    label={
+                      <Typography variant="caption" sx={{ fontSize: 11.5 }}>
+                        I understand cross-border return may require approval and additional
+                        documents.
+                      </Typography>
+                    }
+                  />
+                )}
+                {errors.crossBorderAcknowledged && (
+                  <Typography variant="caption" color="error" sx={{ fontSize: 10.5 }}>
+                    {errors.crossBorderAcknowledged}
+                  </Typography>
+                )}
+              </Stack>
+            )}
+
+            {canShowRoutePreview && (
+              <Card elevation={0} sx={{ borderRadius: uiTokens.radius.lg, border: uiTokens.borders.subtle }}>
+                <Box sx={{ p: 0.5 }}>
+                  <MapShell
+                    height={210}
+                    rounded
+                    fullBleed={false}
+                    interactive={false}
+                    showBackButton={false}
+                    showSosButton={false}
+                    pickupLocation={{
+                      lat: selectedPickupLocation.latitude,
+                      lng: selectedPickupLocation.longitude
+                    }}
+                    dropoffLocation={{
+                      lat: selectedReturnLocation.latitude,
+                      lng: selectedReturnLocation.longitude
+                    }}
+                    routeInfoLabel={
+                      oneWayRental ? undefined : "Same pickup and return hub"
+                    }
+                    showRouteInfo={Boolean(differentDropoff && returnLocationId.trim())}
+                  />
+                </Box>
+              </Card>
+            )}
 
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
               <TextField
@@ -1057,6 +1344,10 @@ export default function RentalCustom(): React.JSX.Element {
               Return: {selectedReturnLocation?.displayName ?? "Not selected"}
             </Typography>
             <Typography variant="caption" sx={{ fontSize: 11 }}>
+              Rental type: {oneWayRental ? "One-way rental" : "Same location return"}{" "}
+              {crossBorderReturn ? "• Cross-border return" : ""}
+            </Typography>
+            <Typography variant="caption" sx={{ fontSize: 11 }}>
               Dates: {pickupDateTime || "Pending"} to {returnDateTime || "Pending"}
             </Typography>
             <Typography variant="caption" sx={{ fontSize: 11 }}>
@@ -1067,6 +1358,10 @@ export default function RentalCustom(): React.JSX.Element {
             </Typography>
             <Typography variant="caption" sx={{ fontSize: 11 }}>
               Driver option: {driverOption === "chauffeur" ? "With chauffeur" : "Self-drive"}
+            </Typography>
+            <Typography variant="caption" sx={{ fontSize: 11 }}>
+              One-way fee: {formatUgx(estimate.oneWayReturnFee)} • Cross-border fee:{" "}
+              {formatUgx(estimate.crossBorderFee)}
             </Typography>
             <Typography variant="caption" sx={{ fontSize: 11 }}>
               Selected add-ons:{" "}

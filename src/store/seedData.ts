@@ -853,7 +853,8 @@ const SEED_RENTAL_VEHICLES: RentalVehicle[] = [
       "bugolobi_hub",
       "kampala_central_hub",
       "ntinda_hub",
-      "jinja_road_hub"
+      "jinja_road_hub",
+      "mbarara_hub"
     ],
     available: true
   },
@@ -872,7 +873,10 @@ const SEED_RENTAL_VEHICLES: RentalVehicle[] = [
       "nsambya_hub",
       "bugolobi_hub",
       "entebbe_airport_desk",
-      "kampala_central_hub"
+      "kampala_central_hub",
+      "mbarara_hub",
+      "kigali_ev_hub",
+      "kigali_airport_desk"
     ],
     available: true
   },
@@ -892,7 +896,12 @@ const SEED_RENTAL_VEHICLES: RentalVehicle[] = [
       "bugolobi_hub",
       "entebbe_airport_desk",
       "kampala_central_hub",
-      "jinja_road_hub"
+      "jinja_road_hub",
+      "mbarara_hub",
+      "kigali_ev_hub",
+      "kigali_airport_desk",
+      "nairobi_ev_hub",
+      "dar_es_salaam_ev_hub"
     ],
     available: true
   }

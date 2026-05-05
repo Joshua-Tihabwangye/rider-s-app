@@ -679,7 +679,11 @@ export interface RentalCustomEstimate {
   baseRental: number;
   chauffeurFee: number;
   addOnsTotal: number;
+  oneWayReturnFee: number;
+  crossBorderFee: number;
   oneWayFee: number;
+  isOneWayRental: boolean;
+  isCrossBorderRental: boolean;
   refundableDeposit: number;
   totalEstimated: number;
   durationDays: number;
@@ -691,6 +695,16 @@ export interface RentalCustomRequest {
   pickupLocation: string;
   dropoffLocation: string;
   differentDropoff: boolean;
+  pickupCountryCode?: string;
+  pickupCountry?: string;
+  pickupRegion?: string;
+  returnCountryCode?: string;
+  returnCountry?: string;
+  returnRegion?: string;
+  oneWayRental: boolean;
+  crossBorderReturn: boolean;
+  crossBorderAcknowledged: boolean;
+  returnLocationNotes?: string;
   pickupDateTime: string;
   returnDateTime: string;
   rentalDurationLabel: string;
@@ -839,6 +853,9 @@ export interface RentalPaymentReceipt {
   chauffeurFee: number;
   addOnsTotal: number;
   oneWayFee: number;
+  crossBorderFee: number;
+  isOneWayRental: boolean;
+  isCrossBorderRental: boolean;
   currency: string;
   createdAt: string;
 }

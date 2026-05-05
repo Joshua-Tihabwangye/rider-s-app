@@ -26,6 +26,7 @@ function RentalBookingConfirmationScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { rental } = useAppData();
   const booking = rental.booking;
+  const customRequest = booking.customRequest;
   const vehicle = getRentalBookingVehicle(
     rental.vehicles,
     booking,
@@ -176,6 +177,15 @@ function RentalBookingConfirmationScreen(): React.JSX.Element {
                 Pickup: {booking.pickupBranch ?? "Pickup pending"} • Return: {booking.dropoffBranch ?? "Return pending"}
               </Typography>
             </Stack>
+            {customRequest && (
+              <Typography
+                variant="caption"
+                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, pl: 3 }}
+              >
+                Rental type: {customRequest.oneWayRental ? "One-way" : "Same-location return"}
+                {customRequest.crossBorderReturn ? " • Cross-border" : ""}
+              </Typography>
+            )}
           </Stack>
         </CardContent>
       </Card>

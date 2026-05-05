@@ -13,6 +13,9 @@ export default defineConfig({
     open: false, // Don't auto-open browser
     host: true, // Allow external connections
     strictPort: false, // Try next available port if 3000 is busy
+    headers: {
+      "X-Frame-Options": "DENY"
+    },
     watch: {
       usePolling: process.env.CHOKIDAR_USEPOLLING === '1',
       interval: 300,
@@ -40,6 +43,9 @@ export default defineConfig({
     }
   },
   preview: {
+    headers: {
+      "X-Frame-Options": "DENY"
+    },
     proxy: {
       "/api/osrm": {
         target: OSRM_TARGET,

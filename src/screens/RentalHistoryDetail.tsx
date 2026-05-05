@@ -192,6 +192,13 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
                 Pickup: {booking.pickupBranch ?? "Pickup pending"} • Return: {booking.dropoffBranch ?? "Return pending"}
               </Typography>
             </Stack>
+            <Typography
+              variant="caption"
+              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, pl: 3 }}
+            >
+              Rental type: {pricing.isOneWayRental ? "One-way" : "Same-location return"}
+              {pricing.isCrossBorderRental ? " • Cross-border" : ""}
+            </Typography>
           </Stack>
         </CardContent>
       </Card>
@@ -231,6 +238,14 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
               </Typography>
               <Typography variant="caption" sx={{ fontSize: 11 }}>
                 {pricing.oneWayFee > 0 ? formatUgx(pricing.oneWayFee) : "UGX 0"}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="caption" sx={{ fontSize: 11 }}>
+                Cross-border fee
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11 }}>
+                {pricing.crossBorderFee > 0 ? formatUgx(pricing.crossBorderFee) : "UGX 0"}
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">

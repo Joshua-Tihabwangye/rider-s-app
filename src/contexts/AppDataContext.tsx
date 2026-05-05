@@ -201,6 +201,7 @@ interface AppActions {
   dismissReminder: (id: number) => void;
   dismissReminders: (ids: number[]) => void;
   simulateDriverAddStopRequest: (requestNote?: string) => void;
+  simulateDriverContinueTripRequest: (requestNote?: string) => void;
   respondToTemporaryStopRequest: (decision: "confirm" | "decline") => void;
   resumeTripAfterTemporaryStop: () => void;
   markTemporaryStopContinuePromptShown: () => void;
@@ -2447,7 +2448,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           confirmedAt: nowIso,
           resumedAt: null,
           pauseStartedAt: nowIso,
-          continuePromptDueAt: new Date(nowMs + 15_000).toISOString(),
+          continuePromptDueAt: null,
           continuePromptShownAt: null,
           timerPaused: true
         }
@@ -2480,6 +2481,41 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       }, 50);
     }
   }, [state.ride.activeTrip, state.ride.temporaryStop.requestId]);
+
+  const simulateDriverContinueTripRequest = useCallback((requestNote?: string) => {
+    if (state.ride.temporaryStop.status !== "paused_at_stop") {
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+    dispatch({
+      type: "ride/set-temporary-stop",
+      payload: {
+        requestNote: requestNote ?? state.ride.temporaryStop.requestNote,
+        continuePromptDueAt: nowIso,
+        continuePromptShownAt: null
+      }
+    });
+
+    if (state.ride.activeTrip) {
+      setTimeout(() => {
+        window.localStorage.setItem(
+          "evzone_active_ride_continue_request",
+          JSON.stringify({
+            tripId: state.ride.activeTrip!.id,
+            requestId: state.ride.temporaryStop.requestId,
+            requestNote,
+            ts: Date.now()
+          })
+        );
+      }, 50);
+    }
+  }, [
+    state.ride.activeTrip,
+    state.ride.temporaryStop.requestId,
+    state.ride.temporaryStop.requestNote,
+    state.ride.temporaryStop.status
+  ]);
 
   const resumeTripAfterTemporaryStop = useCallback(() => {
     const nowMs = Date.now();
@@ -2570,6 +2606,20 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           }
         });
         dispatch({ type: "ride/status", payload: "add_stop_requested" });
+      } else if (key === "evzone_active_ride_continue_request") {
+        if (state.ride.temporaryStop.status === "paused_at_stop") {
+          dispatch({
+            type: "ride/set-temporary-stop",
+            payload: {
+              requestNote:
+                typeof parsed.requestNote === "string" && parsed.requestNote.trim()
+                  ? parsed.requestNote
+                  : state.ride.temporaryStop.requestNote,
+              continuePromptDueAt: new Date().toISOString(),
+              continuePromptShownAt: null
+            }
+          });
+        }
       } else if (key === "evzone_active_ride_stop_resume") {
         const nowMs = Date.now();
         const nowIso = new Date(nowMs).toISOString();
@@ -2824,6 +2874,9 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         chauffeurFee: pricing.chauffeurFee,
         addOnsTotal: pricing.addOnsTotal,
         oneWayFee: pricing.oneWayFee,
+        crossBorderFee: pricing.crossBorderFee,
+        isOneWayRental: pricing.isOneWayRental,
+        isCrossBorderRental: pricing.isCrossBorderRental,
         currency: "UGX",
         createdAt: now
       };
@@ -3253,6 +3306,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       dismissReminder,
       dismissReminders,
       simulateDriverAddStopRequest,
+      simulateDriverContinueTripRequest,
       respondToTemporaryStopRequest,
       resumeTripAfterTemporaryStop,
       markTemporaryStopContinuePromptShown,
@@ -3314,6 +3368,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       dismissReminder,
       dismissReminders,
       simulateDriverAddStopRequest,
+      simulateDriverContinueTripRequest,
       respondToTemporaryStopRequest,
       resumeTripAfterTemporaryStop,
       markTemporaryStopContinuePromptShown,
