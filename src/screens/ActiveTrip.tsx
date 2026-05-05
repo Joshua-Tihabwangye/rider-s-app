@@ -34,6 +34,7 @@ import { getPointAtProgress, normalizeRoute } from "../utils/mapRoutes";
 
 const TRIP_SIMULATION_DURATION_MS = 90_000;
 const AUTO_ADD_STOP_TRIGGER_MS = 15_000;
+const AUTO_CONTINUE_REQUEST_TRIGGER_MS = 15_000;
 const START_PROGRESS_PERCENT = 40;
 const START_DISTANCE_KM = 22;
 
@@ -65,13 +66,13 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     resumeTripAfterTemporaryStop,
     setRideStatus,
     simulateDriverAddStopRequest,
-    simulateDriverContinueTripRequest,
     updateRideTrip,
     updateSharedLocationState
   } = actions;
   const activeTrip = ride.activeTrip;
   const temporaryStop = ride.temporaryStop;
   const safetyCheck = ride.safetyCheck;
+  const isSafetyCheckPending = safetyCheck?.status === "safety_check_pending";
   const [clockNowMs, setClockNowMs] = useState(() => Date.now());
   const [showContinueTripDialog, setShowContinueTripDialog] = useState(false);
   const [hasAutoSimulatedStopRequest, setHasAutoSimulatedStopRequest] = useState(false);
@@ -254,6 +255,31 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     temporaryStop?.continuePromptShownAt
   ]);
 
+  useEffect(() => {
+    if (!isTripPaused) return undefined;
+    if (temporaryStop?.continuePromptDueAt || temporaryStop?.continuePromptShownAt) {
+      return undefined;
+    }
+    const pauseStartMs = temporaryStop?.pauseStartedAt
+      ? new Date(temporaryStop.pauseStartedAt).getTime()
+      : Number.NaN;
+    if (!Number.isFinite(pauseStartMs)) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      actions.simulateDriverContinueTripRequest(
+        "Your driver has requested to continue the trip."
+      );
+    }, Math.max(0, pauseStartMs + AUTO_CONTINUE_REQUEST_TRIGGER_MS - Date.now()));
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    actions,
+    isTripPaused,
+    temporaryStop?.continuePromptDueAt,
+    temporaryStop?.continuePromptShownAt,
+    temporaryStop?.pauseStartedAt
+  ]);
+
   const handleRating = () => {
     navigate("/rides/rating");
   };
@@ -382,18 +408,9 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             <Typography variant="body2" sx={{ fontSize: 13, color: "#78350F", mb: 1 }}>
               Trip paused at stop. Waiting for the driver to continue the ride.
             </Typography>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() =>
-                simulateDriverContinueTripRequest(
-                  "Your driver has requested to continue the trip."
-                )
-              }
-              sx={{ borderRadius: uiTokens.radius.xl, textTransform: "none", borderColor: "#F59E0B", color: "#92400E" }}
-            >
-              Simulate driver continue request
-            </Button>
+            <Typography variant="caption" sx={{ color: "#92400E", fontWeight: 600 }}>
+              Continue request popup will appear in about 15 seconds.
+            </Typography>
           </Box>
         )}
       </Box>
@@ -617,7 +634,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
       />
 
       {/* Add Stop Request Dialog */}
-      <Dialog open={isAddStopRequested && !safetyCheck?.status} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
+      <Dialog open={isAddStopRequested && !isSafetyCheckPending} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <PauseCircleIcon sx={{ color: "#F59E0B" }} />
           <Typography fontWeight="bold">Driver requested a stop</Typography>
@@ -650,7 +667,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
       {/* Continue Trip Request Dialog */}
       <Dialog
-        open={showContinueTripDialog && isTripPaused && !safetyCheck?.status}
+        open={showContinueTripDialog && isTripPaused && !isSafetyCheckPending}
         onClose={() => setShowContinueTripDialog(false)}
         PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}
       >
@@ -675,7 +692,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
       </Dialog>
 
       {/* Safety Check Dialog - Highest priority, overrides other dialogs */}
-      <Dialog open={safetyCheck?.status === "safety_check_pending"} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
+      <Dialog open={isSafetyCheckPending} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <AlertTriangleIcon sx={{ color: 'var(--evz-danger)' }}/>
           <Typography fontWeight="bold">Are you okay?</Typography>
