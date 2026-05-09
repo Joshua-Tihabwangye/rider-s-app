@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from "react";
 import type { User, AuthState, SignInCredentials, SignUpPayload, AuthProvider as AuthProviderType } from "../store/types";
 import * as authService from "../store/authService";
+import { getRiderProfile, isRiderBackendEnabled } from "../services/api/riderApi";
 
 // ─── Storage keys ────────────────────────────────────────────────────
 const STORAGE_KEY_USER = "evzone_auth_user";
@@ -150,6 +151,51 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
       persistSession(user, token);
     }
   }, [loading, user]);
+
+  useEffect(() => {
+    const refreshProfileFromBackend = async () => {
+      if (!isRiderBackendEnabled() || !user) {
+        return;
+      }
+
+      const token = localStorage.getItem(STORAGE_KEY_TOKEN);
+      if (!token) {
+        return;
+      }
+
+      try {
+        const backendProfile = await getRiderProfile(token);
+        const hasChanges =
+          backendProfile.userId !== user.id ||
+          backendProfile.fullName !== user.fullName ||
+          backendProfile.email !== user.email ||
+          backendProfile.phone !== user.phone ||
+          (backendProfile.avatarUrl ?? null) !== (user.avatarUrl ?? null) ||
+          backendProfile.provider !== user.provider ||
+          backendProfile.initials !== user.initials;
+
+        if (!hasChanges) {
+          return;
+        }
+
+        const nextUser: User = {
+          id: backendProfile.userId || user.id,
+          fullName: backendProfile.fullName || user.fullName,
+          email: backendProfile.email || user.email,
+          phone: backendProfile.phone || user.phone,
+          avatarUrl: backendProfile.avatarUrl ?? user.avatarUrl,
+          provider: backendProfile.provider || user.provider,
+          role: "rider",
+          initials: backendProfile.initials || user.initials,
+        };
+        setUser(nextUser);
+      } catch (error) {
+        console.warn("Rider backend profile fetch failed. Keeping local auth profile.", error);
+      }
+    };
+
+    void refreshProfileFromBackend();
+  }, [user]);
 
   const handleAuthSuccess = useCallback((authUser: User, token: string) => {
     setUser(authUser);

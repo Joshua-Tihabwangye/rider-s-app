@@ -96,6 +96,15 @@ import {
   SEED_SOS_STATE,
   SEED_SHARED_LOCATION_STATE
 } from "../store/seedData";
+import {
+  createRiderTripRequest,
+  getRiderActiveTrip,
+  getRiderNotifications,
+  getRiderTripHistory,
+  isRiderBackendEnabled,
+  mapApiTripToRideTrip,
+  updateRiderTripTracking,
+} from "../services/api/riderApi";
 
 interface AppState extends AppData {
   settings: SettingsState;
@@ -271,6 +280,28 @@ function createInitialState(baseState: AppState): AppState {
   }
 }
 
+function mapRideStatusToBackendStatus(
+  status: RideStatus,
+): "assigned" | "driver_en_route" | "arrived" | "in_progress" | "completed" | "cancelled" | null {
+  switch (status) {
+    case "driver_assigned":
+      return "assigned";
+    case "driver_on_way":
+      return "driver_en_route";
+    case "driver_arrived":
+      return "arrived";
+    case "ongoing":
+    case "in_progress":
+      return "in_progress";
+    case "completed":
+      return "completed";
+    case "cancelled":
+      return "cancelled";
+    default:
+      return null;
+  }
+}
+
 type AppAction =
   | { type: "settings/update"; payload: Partial<SettingsState> }
   | { type: "settings/notifications"; payload: Partial<NotificationPreferences> }
@@ -279,8 +310,10 @@ type AppAction =
   | { type: "settings/delivery"; payload: Partial<DeliveryPreferences> }
   | { type: "ride/request"; payload: Partial<RideRequest> }
   | { type: "ride/trip"; payload: Partial<RideTrip> }
+  | { type: "ride/history"; payload: RideTrip[] }
   | { type: "ride/status"; payload: RideStatus }
   | { type: "ride/set-active"; payload: RideTrip | null }
+  | { type: "delivery/notifications-replace"; payload: DeliveryState["notifications"] }
   | { type: "delivery/draft"; payload: Partial<DeliveryDraft> }
   | { type: "delivery/reset-draft" }
   | {
@@ -945,6 +978,16 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
     case "ride/set-active":
       return { ...state, ride: { ...state.ride, activeTrip: action.payload } };
+    case "ride/history":
+      return { ...state, ride: { ...state.ride, history: action.payload } };
+    case "delivery/notifications-replace":
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          notifications: action.payload
+        }
+      };
     case "delivery/draft": {
       const mergedDraft = { ...state.delivery.draft, ...action.payload };
       const stops = deriveDraftStops(mergedDraft);
@@ -2385,7 +2428,52 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
   const setRideStatus = useCallback((status: RideStatus) => {
     dispatch({ type: "ride/status", payload: status });
-  }, []);
+
+    if (!isRiderBackendEnabled() || typeof window === "undefined") {
+      return;
+    }
+
+    const token = window.localStorage.getItem("evzone_auth_token");
+    if (!token) {
+      return;
+    }
+
+    if (status === "searching") {
+      if (state.ride.activeTrip?.status === "searching") {
+        return;
+      }
+      const requestPayload = state.ride.request;
+      if (!requestPayload.origin || !requestPayload.destination) {
+        return;
+      }
+
+      void createRiderTripRequest(token, {
+        pickupLabel: requestPayload.origin.label,
+        pickupAddress: requestPayload.origin.address,
+        dropoffLabel: requestPayload.destination.label,
+        dropoffAddress: requestPayload.destination.address,
+        routeSummary:
+          `${requestPayload.origin.label} -> ${requestPayload.destination.label}`,
+      })
+        .then((trip) => {
+          dispatch({ type: "ride/set-active", payload: mapApiTripToRideTrip(trip) });
+        })
+        .catch((error) => {
+          console.warn("Rider backend trip request failed. Keeping local ride flow.", error);
+        });
+      return;
+    }
+
+    const backendStatus = mapRideStatusToBackendStatus(status);
+    const tripId = state.ride.activeTrip?.id;
+    if (!backendStatus || !tripId) {
+      return;
+    }
+
+    void updateRiderTripTracking(token, tripId, { status: backendStatus }).catch((error) => {
+      console.warn("Rider backend tracking status update failed. Keeping local ride flow.", error);
+    });
+  }, [state.ride.activeTrip?.id, state.ride.activeTrip?.status, state.ride.request]);
 
   const setActiveTrip = useCallback((trip: RideTrip | null) => {
     dispatch({ type: "ride/set-active", payload: trip });
@@ -2393,7 +2481,36 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
   const updateSharedLocationState = useCallback((patch: Partial<SharedLocationState>) => {
     dispatch({ type: "location/update", payload: patch });
-  }, []);
+
+    if (!isRiderBackendEnabled() || typeof window === "undefined") {
+      return;
+    }
+
+    const token = window.localStorage.getItem("evzone_auth_token");
+    const tripId = state.ride.activeTrip?.id;
+    if (!token || !tripId) {
+      return;
+    }
+
+    const routeSummary =
+      (patch.pickupCoords && patch.destinationCoords
+        ? `${patch.pickupCoords.lat.toFixed(4)},${patch.pickupCoords.lng.toFixed(4)} -> ${patch.destinationCoords.lat.toFixed(4)},${patch.destinationCoords.lng.toFixed(4)}`
+        : undefined);
+
+    void updateRiderTripTracking(token, tripId, {
+      routeSummary,
+      etaMinutes:
+        patch.routeDurationMin === null || patch.routeDurationMin === undefined
+          ? undefined
+          : patch.routeDurationMin,
+      distance:
+        patch.routeDistanceKm === null || patch.routeDistanceKm === undefined
+          ? undefined
+          : `${patch.routeDistanceKm.toFixed(1)} km`,
+    }).catch((error) => {
+      console.warn("Rider backend tracking sync failed. Keeping local tracking flow.", error);
+    });
+  }, [state.ride.activeTrip?.id]);
 
   const updateDeliveryDraft = useCallback((patch: Partial<DeliveryDraft>) => {
     dispatch({ type: "delivery/draft", payload: patch });
@@ -3174,6 +3291,63 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     },
     []
   );
+
+  useEffect(() => {
+    if (!isRiderBackendEnabled() || !user || typeof window === "undefined") {
+      return;
+    }
+
+    const token = window.localStorage.getItem("evzone_auth_token");
+    if (!token) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const hydrateReadOnlyDomains = async () => {
+      try {
+        const [notifications, history, activeTrip] = await Promise.all([
+          getRiderNotifications(token),
+          getRiderTripHistory(token),
+          getRiderActiveTrip(token),
+        ]);
+
+        if (cancelled) {
+          return;
+        }
+
+        dispatch({
+          type: "delivery/notifications-replace",
+          payload: notifications.map((item) => ({
+            id: item.id,
+            orderId: "rider-general",
+            title: item.title,
+            body: item.body,
+            category: item.category === "payment" ? "payment" : "system",
+            createdAt: new Date(item.createdAt).toISOString(),
+            read: item.read,
+          })),
+        });
+
+        dispatch({
+          type: "ride/history",
+          payload: history.map((trip) => mapApiTripToRideTrip(trip)),
+        });
+
+        if (activeTrip) {
+          dispatch({ type: "ride/set-active", payload: mapApiTripToRideTrip(activeTrip) });
+        }
+      } catch (error) {
+        console.warn("Rider backend read-only domain hydration failed. Using local state.", error);
+      }
+    };
+
+    void hydrateReadOnlyDomains();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
