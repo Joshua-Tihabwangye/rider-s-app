@@ -38,6 +38,7 @@ export interface SignUpPayload {
 export interface AuthResponse {
   user: User;
   token: string;
+  refreshToken?: string;
 }
 
 /** Payment method types */

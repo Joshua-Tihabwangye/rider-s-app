@@ -1,60 +1,64 @@
 import type { RideTrip } from "../../store/types";
-import { USE_BACKEND } from "./config";
+import { getBackendEnabled } from "./config";
 import { request } from "./httpClient";
 
 export interface RiderProfileApi {
-  userId: string;
+  riderId: string;
   fullName: string;
   email: string;
   phone: string;
-  avatarUrl: string | null;
-  provider: "email" | "evzone" | "google" | "apple";
-  role: "rider";
-  initials: string;
+  city?: string;
+  country?: string;
+  preferredCurrency?: string;
 }
 
 export interface RiderNotificationApi {
   id: string;
   userId: string;
   title: string;
-  body: string;
-  category: "status" | "payment" | "security" | "promo";
+  message: string;
   read: boolean;
   createdAt: number;
 }
 
 export interface RiderTripApi {
   id: string;
-  userId: string;
-  status: "requested" | "assigned" | "driver_en_route" | "arrived" | "in_progress" | "completed" | "cancelled";
-  pickupLabel: string;
-  pickupAddress: string;
-  dropoffLabel: string;
-  dropoffAddress: string;
-  etaMinutes: number;
-  fareEstimate: string;
-  distance: string;
-  routeSummary: string;
-  driverName: string;
-  driverPhone: string;
-  driverRating: number;
-  vehicleModel: string;
-  vehicleColor: string;
-  vehiclePlate: string;
+  riderId: string;
+  driverId?: string;
+  status:
+    | "requested"
+    | "driver_assigned"
+    | "driver_arriving"
+    | "arrived"
+    | "in_progress"
+    | "completed"
+    | "cancelled";
+  pickup: string;
+  dropoff: string;
+  pickupLocation: { lat: number; lng: number };
+  dropoffLocation: { lat: number; lng: number };
   otpCode: string;
+  requestedAt: number;
+  updatedAt: number;
   startedAt?: number;
   completedAt?: number;
-  updatedAt: number;
+}
+
+interface RiderTripRequestResponse {
+  trip: RiderTripApi;
+  nearbyDriverCount: number;
 }
 
 export interface CreateRiderTripRequestPayload {
   pickupLabel: string;
   pickupAddress: string;
+  pickupLat: number;
+  pickupLng: number;
   dropoffLabel: string;
   dropoffAddress: string;
+  dropoffLat: number;
+  dropoffLng: number;
   routeSummary?: string;
-  fareEstimate?: string;
-  distance?: string;
 }
 
 export interface UpdateRiderTripTrackingPayload {
@@ -64,63 +68,58 @@ export interface UpdateRiderTripTrackingPayload {
   distance?: string;
 }
 
-function authHeaders(token: string): Record<string, string> {
-  return {
-    Authorization: `Bearer ${token}`,
-  };
-}
-
 export function isRiderBackendEnabled(): boolean {
-  return USE_BACKEND;
+  return getBackendEnabled();
 }
 
-export async function getRiderProfile(token: string): Promise<RiderProfileApi> {
+export async function getRiderProfile(): Promise<RiderProfileApi> {
   return request<RiderProfileApi>("/riders/me/profile", {
     method: "GET",
-    headers: authHeaders(token),
   });
 }
 
-export async function getRiderNotifications(token: string): Promise<RiderNotificationApi[]> {
+export async function getRiderNotifications(): Promise<RiderNotificationApi[]> {
   return request<RiderNotificationApi[]>("/riders/me/notifications", {
     method: "GET",
-    headers: authHeaders(token),
   });
 }
 
-export async function getRiderTripHistory(token: string): Promise<RiderTripApi[]> {
+export async function getRiderTripHistory(): Promise<RiderTripApi[]> {
   return request<RiderTripApi[]>("/riders/me/trips/history", {
     method: "GET",
-    headers: authHeaders(token),
   });
 }
 
-export async function getRiderActiveTrip(token: string): Promise<RiderTripApi | null> {
+export async function getRiderActiveTrip(): Promise<RiderTripApi | null> {
   return request<RiderTripApi | null>("/riders/me/trips/active", {
     method: "GET",
-    headers: authHeaders(token),
   });
 }
 
 export async function createRiderTripRequest(
-  token: string,
   payload: CreateRiderTripRequestPayload,
 ): Promise<RiderTripApi> {
-  return request<RiderTripApi>("/riders/me/trips/request", {
+  const response = await request<RiderTripRequestResponse>("/riders/me/trips/request", {
     method: "POST",
-    headers: authHeaders(token),
-    body: payload,
+    body: {
+      pickupAddress: payload.pickupAddress,
+      pickupLat: payload.pickupLat,
+      pickupLng: payload.pickupLng,
+      dropoffAddress: payload.dropoffAddress,
+      dropoffLat: payload.dropoffLat,
+      dropoffLng: payload.dropoffLng,
+    },
   });
+
+  return response.trip;
 }
 
 export async function updateRiderTripTracking(
-  token: string,
   tripId: string,
   payload: UpdateRiderTripTrackingPayload,
 ): Promise<RiderTripApi> {
   return request<RiderTripApi>(`/riders/me/trips/${tripId}/tracking`, {
     method: "PATCH",
-    headers: authHeaders(token),
     body: payload,
   });
 }
@@ -129,9 +128,9 @@ function mapTripStatus(status: RiderTripApi["status"]): RideTrip["status"] {
   switch (status) {
     case "requested":
       return "searching";
-    case "assigned":
+    case "driver_assigned":
       return "driver_assigned";
-    case "driver_en_route":
+    case "driver_arriving":
       return "driver_on_way";
     case "arrived":
       return "driver_arrived";
@@ -151,36 +150,37 @@ export function mapApiTripToRideTrip(trip: RiderTripApi): RideTrip {
     id: trip.id,
     status: mapTripStatus(trip.status),
     otp: trip.otpCode,
-    etaMinutes: trip.etaMinutes,
-    fareEstimate: trip.fareEstimate,
-    distance: trip.distance,
-    routeSummary: trip.routeSummary,
+    etaMinutes: 8,
+    fareEstimate: "Pending fare",
+    distance: "Tracking driver",
+    routeSummary: `${trip.pickup} -> ${trip.dropoff}`,
     pickup: {
-      label: trip.pickupLabel,
-      address: trip.pickupAddress,
+      label: trip.pickup,
+      address: trip.pickup,
+      coordinates: trip.pickupLocation,
     },
     dropoff: {
-      label: trip.dropoffLabel,
-      address: trip.dropoffAddress,
+      label: trip.dropoff,
+      address: trip.dropoff,
+      coordinates: trip.dropoffLocation,
     },
-    driver: {
-      id: `driver_${trip.id}`,
-      name: trip.driverName,
-      phone: trip.driverPhone,
-      rating: trip.driverRating,
-      avatar: trip.driverName
-        .split(" ")
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase())
-        .join("") || "EV",
-    },
-    vehicle: {
-      model: trip.vehicleModel,
-      color: trip.vehicleColor,
-      plate: trip.vehiclePlate,
-      category: "EV",
-    },
+    driver: trip.driverId
+      ? {
+          id: trip.driverId,
+          name: "Assigned driver",
+          phone: "+256 700 000000",
+          rating: 4.8,
+          avatar: "EV",
+        }
+      : null,
+    vehicle: trip.driverId
+      ? {
+          model: "EV vehicle",
+          color: "Green",
+          plate: "Pending",
+          category: "EV",
+        }
+      : null,
     startedAt: trip.startedAt ? new Date(trip.startedAt).toISOString() : undefined,
     completedAt: trip.completedAt ? new Date(trip.completedAt).toISOString() : undefined,
   };
