@@ -1,11 +1,18 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from "react";
 import type { User, AuthState, SignInCredentials, SignUpPayload, AuthProvider as AuthProviderType } from "../store/types";
 import * as authService from "../store/authService";
+import { BACKEND_FLAG_EVENT } from "../services/api/config";
+import {
+  clearRiderBackendTokens,
+  RIDER_BACKEND_REFRESH_TOKEN_KEY,
+  saveRiderBackendTokens,
+} from "../services/api/authApi";
 import { getRiderProfile, isRiderBackendEnabled } from "../services/api/riderApi";
 
 // ─── Storage keys ────────────────────────────────────────────────────
 const STORAGE_KEY_USER = "evzone_auth_user";
 const STORAGE_KEY_TOKEN = "evzone_auth_token";
+const STORAGE_KEY_REFRESH_TOKEN = RIDER_BACKEND_REFRESH_TOKEN_KEY;
 
 // ─── Context value shape ─────────────────────────────────────────────
 interface AuthContextValue extends AuthState {
@@ -20,10 +27,14 @@ interface AuthContextValue extends AuthState {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 // ─── Helpers ─────────────────────────────────────────────────────────
-function persistSession(user: User, token: string): void {
+function persistSession(user: User, token: string, refreshToken?: string): void {
   try {
     localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
     localStorage.setItem(STORAGE_KEY_TOKEN, token);
+    if (refreshToken) {
+      localStorage.setItem(STORAGE_KEY_REFRESH_TOKEN, refreshToken);
+      saveRiderBackendTokens(token, refreshToken);
+    }
   } catch (error) {
     console.error("Failed to persist session:", error);
   }
@@ -33,6 +44,8 @@ function clearSession(): void {
   try {
     localStorage.removeItem(STORAGE_KEY_USER);
     localStorage.removeItem(STORAGE_KEY_TOKEN);
+    localStorage.removeItem(STORAGE_KEY_REFRESH_TOKEN);
+    clearRiderBackendTokens();
   } catch (error) {
     console.error("Failed to clear session:", error);
   }
@@ -89,6 +102,7 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // true while hydrating
   const [error, setError] = useState<string | null>(null);
+  const [riderBackendEnabled, setRiderBackendEnabled] = useState(() => isRiderBackendEnabled());
 
   // Hydrate auth session from localStorage on app load.
   useEffect(() => {
@@ -147,46 +161,58 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
       return;
     }
     const token = localStorage.getItem(STORAGE_KEY_TOKEN);
+    const refreshToken = localStorage.getItem(STORAGE_KEY_REFRESH_TOKEN);
     if (token) {
-      persistSession(user, token);
+      persistSession(user, token, refreshToken ?? undefined);
     }
   }, [loading, user]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const syncBackendFlag = () => {
+      setRiderBackendEnabled(isRiderBackendEnabled());
+    };
+
+    window.addEventListener(BACKEND_FLAG_EVENT, syncBackendFlag as EventListener);
+    syncBackendFlag();
+
+    return () => {
+      window.removeEventListener(BACKEND_FLAG_EVENT, syncBackendFlag as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
     const refreshProfileFromBackend = async () => {
-      if (!isRiderBackendEnabled() || !user) {
+      if (!riderBackendEnabled || !user) {
         return;
       }
 
-      const token = localStorage.getItem(STORAGE_KEY_TOKEN);
-      if (!token) {
+      if (!localStorage.getItem(STORAGE_KEY_TOKEN)) {
         return;
       }
 
       try {
-        const backendProfile = await getRiderProfile(token);
+        const backendProfile = await getRiderProfile();
         const hasChanges =
-          backendProfile.userId !== user.id ||
+          backendProfile.riderId !== user.id ||
           backendProfile.fullName !== user.fullName ||
           backendProfile.email !== user.email ||
-          backendProfile.phone !== user.phone ||
-          (backendProfile.avatarUrl ?? null) !== (user.avatarUrl ?? null) ||
-          backendProfile.provider !== user.provider ||
-          backendProfile.initials !== user.initials;
+          backendProfile.phone !== user.phone;
 
         if (!hasChanges) {
           return;
         }
 
         const nextUser: User = {
-          id: backendProfile.userId || user.id,
+          id: backendProfile.riderId || user.id,
           fullName: backendProfile.fullName || user.fullName,
           email: backendProfile.email || user.email,
           phone: backendProfile.phone || user.phone,
-          avatarUrl: backendProfile.avatarUrl ?? user.avatarUrl,
-          provider: backendProfile.provider || user.provider,
+          avatarUrl: user.avatarUrl,
+          provider: user.provider,
           role: "rider",
-          initials: backendProfile.initials || user.initials,
+          initials: user.initials,
         };
         setUser(nextUser);
       } catch (error) {
@@ -195,12 +221,12 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
     };
 
     void refreshProfileFromBackend();
-  }, [user]);
+  }, [riderBackendEnabled, user]);
 
-  const handleAuthSuccess = useCallback((authUser: User, token: string) => {
+  const handleAuthSuccess = useCallback((authUser: User, token: string, refreshToken?: string) => {
     setUser(authUser);
     setError(null);
-    persistSession(authUser, token);
+    persistSession(authUser, token, refreshToken);
     setLoading(false);
   }, []);
 
@@ -209,7 +235,7 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
     setError(null);
     try {
       const response = await authService.signIn(credentials);
-      handleAuthSuccess(response.user, response.token);
+      handleAuthSuccess(response.user, response.token, response.refreshToken);
     } catch (err) {
       // Sanitize error messages to prevent information leakage
       const errorMessage = err instanceof Error ? err.message : "An error occurred";
@@ -224,7 +250,7 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
     setError(null);
     try {
       const response = await authService.signUp(payload);
-      handleAuthSuccess(response.user, response.token);
+      handleAuthSuccess(response.user, response.token, response.refreshToken);
     } catch (err) {
       // Sanitize error messages to prevent information leakage
       const errorMessage = err instanceof Error ? err.message : "An error occurred";

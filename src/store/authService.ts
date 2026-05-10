@@ -62,6 +62,7 @@ export async function signIn(credentials: SignInCredentials): Promise<AuthRespon
       return {
         user: mapBackendUserToRider(backend.user.email),
         token: backend.accessToken,
+        refreshToken: backend.refreshToken,
       };
     } catch (error) {
       if (!shouldFallbackToLocal(error)) {
@@ -100,6 +101,7 @@ export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
       return {
         user: mapBackendUserToRider(backend.user.email, payload.fullName, "email"),
         token: backend.accessToken,
+        refreshToken: backend.refreshToken,
       };
     } catch (error) {
       if (!shouldFallbackToLocal(error)) {

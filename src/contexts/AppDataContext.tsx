@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, ReactNode, useReducer, useCallback, useEffect, useRef } from "react";
+import { createContext, useContext, useMemo, ReactNode, useReducer, useCallback, useEffect, useRef, useState } from "react";
 import type {
   AppData,
   PaymentMethod,
@@ -43,6 +43,7 @@ import type {
   SosEvent,
   SharedLocationState
 } from "../store/types";
+import { BACKEND_FLAG_EVENT } from "../services/api/config";
 import { useAuth } from "./AuthContext";
 import type { DeliveryRealtimePatch } from "../features/delivery/realtime";
 import {
@@ -105,6 +106,7 @@ import {
   mapApiTripToRideTrip,
   updateRiderTripTracking,
 } from "../services/api/riderApi";
+import { createRiderSocket } from "../services/riderSocket";
 
 interface AppState extends AppData {
   settings: SettingsState;
@@ -2397,6 +2399,22 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   const { user } = useAuth();
   const [state, dispatch] = useReducer(appReducer, initialState, createInitialState);
   const senderConfirmationTimersRef = useRef<Map<string, number>>(new Map());
+  const [riderBackendEnabled, setRiderBackendEnabled] = useState(() => isRiderBackendEnabled());
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const syncBackendFlag = () => {
+      setRiderBackendEnabled(isRiderBackendEnabled());
+    };
+
+    window.addEventListener(BACKEND_FLAG_EVENT, syncBackendFlag as EventListener);
+    syncBackendFlag();
+
+    return () => {
+      window.removeEventListener(BACKEND_FLAG_EVENT, syncBackendFlag as EventListener);
+    };
+  }, []);
 
   const updateSettings = useCallback((patch: Partial<SettingsState>) => {
     dispatch({ type: "settings/update", payload: patch });
@@ -2429,12 +2447,11 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   const setRideStatus = useCallback((status: RideStatus) => {
     dispatch({ type: "ride/status", payload: status });
 
-    if (!isRiderBackendEnabled() || typeof window === "undefined") {
+    if (!riderBackendEnabled || typeof window === "undefined") {
       return;
     }
 
-    const token = window.localStorage.getItem("evzone_auth_token");
-    if (!token) {
+    if (!window.localStorage.getItem("evzone_auth_token")) {
       return;
     }
 
@@ -2447,11 +2464,18 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         return;
       }
 
-      void createRiderTripRequest(token, {
+      const pickupCoords = requestPayload.origin.coordinates ?? { lat: 0, lng: 0 };
+      const dropoffCoords = requestPayload.destination.coordinates ?? { lat: 0, lng: 0 };
+
+      void createRiderTripRequest({
         pickupLabel: requestPayload.origin.label,
         pickupAddress: requestPayload.origin.address,
+        pickupLat: pickupCoords.lat,
+        pickupLng: pickupCoords.lng,
         dropoffLabel: requestPayload.destination.label,
         dropoffAddress: requestPayload.destination.address,
+        dropoffLat: dropoffCoords.lat,
+        dropoffLng: dropoffCoords.lng,
         routeSummary:
           `${requestPayload.origin.label} -> ${requestPayload.destination.label}`,
       })
@@ -2470,10 +2494,10 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       return;
     }
 
-    void updateRiderTripTracking(token, tripId, { status: backendStatus }).catch((error) => {
+    void updateRiderTripTracking(tripId, { status: backendStatus }).catch((error) => {
       console.warn("Rider backend tracking status update failed. Keeping local ride flow.", error);
     });
-  }, [state.ride.activeTrip?.id, state.ride.activeTrip?.status, state.ride.request]);
+  }, [riderBackendEnabled, state.ride.activeTrip?.id, state.ride.activeTrip?.status, state.ride.request]);
 
   const setActiveTrip = useCallback((trip: RideTrip | null) => {
     dispatch({ type: "ride/set-active", payload: trip });
@@ -2482,13 +2506,12 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   const updateSharedLocationState = useCallback((patch: Partial<SharedLocationState>) => {
     dispatch({ type: "location/update", payload: patch });
 
-    if (!isRiderBackendEnabled() || typeof window === "undefined") {
+    if (!riderBackendEnabled || typeof window === "undefined") {
       return;
     }
 
-    const token = window.localStorage.getItem("evzone_auth_token");
     const tripId = state.ride.activeTrip?.id;
-    if (!token || !tripId) {
+    if (!window.localStorage.getItem("evzone_auth_token") || !tripId) {
       return;
     }
 
@@ -2497,7 +2520,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         ? `${patch.pickupCoords.lat.toFixed(4)},${patch.pickupCoords.lng.toFixed(4)} -> ${patch.destinationCoords.lat.toFixed(4)},${patch.destinationCoords.lng.toFixed(4)}`
         : undefined);
 
-    void updateRiderTripTracking(token, tripId, {
+    void updateRiderTripTracking(tripId, {
       routeSummary,
       etaMinutes:
         patch.routeDurationMin === null || patch.routeDurationMin === undefined
@@ -2510,7 +2533,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     }).catch((error) => {
       console.warn("Rider backend tracking sync failed. Keeping local tracking flow.", error);
     });
-  }, [state.ride.activeTrip?.id]);
+  }, [riderBackendEnabled, state.ride.activeTrip?.id]);
 
   const updateDeliveryDraft = useCallback((patch: Partial<DeliveryDraft>) => {
     dispatch({ type: "delivery/draft", payload: patch });
@@ -3293,12 +3316,11 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   );
 
   useEffect(() => {
-    if (!isRiderBackendEnabled() || !user || typeof window === "undefined") {
+    if (!riderBackendEnabled || !user || typeof window === "undefined") {
       return;
     }
 
-    const token = window.localStorage.getItem("evzone_auth_token");
-    if (!token) {
+    if (!window.localStorage.getItem("evzone_auth_token")) {
       return;
     }
 
@@ -3307,9 +3329,9 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     const hydrateReadOnlyDomains = async () => {
       try {
         const [notifications, history, activeTrip] = await Promise.all([
-          getRiderNotifications(token),
-          getRiderTripHistory(token),
-          getRiderActiveTrip(token),
+          getRiderNotifications(),
+          getRiderTripHistory(),
+          getRiderActiveTrip(),
         ]);
 
         if (cancelled) {
@@ -3347,7 +3369,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [riderBackendEnabled, user]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -3378,51 +3400,34 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   ]);
 
   useEffect(() => {
-    const wsUrl = (import.meta as any).env.VITE_DELIVERY_WS_URL as string | undefined;
-    if (!wsUrl) {
+    if (!riderBackendEnabled || typeof window === "undefined") {
       dispatch({ type: "delivery/ws-connected", payload: false });
       return;
     }
 
-    let parsedUrl: URL;
-    try {
-      parsedUrl = new URL(wsUrl);
-      if (parsedUrl.protocol !== "ws:" && parsedUrl.protocol !== "wss:") {
-        throw new Error("Unsupported websocket protocol");
-      }
-    } catch {
-      dispatch({ type: "delivery/ws-connected", payload: false });
-      return;
-    }
-
-    const ws = new WebSocket(parsedUrl.toString());
-
-    ws.onopen = () => {
+    const socket = createRiderSocket();
+    socket.on("connect", () => {
       dispatch({ type: "delivery/ws-connected", payload: true });
-    };
-    ws.onclose = () => {
+    });
+    socket.on("disconnect", () => {
       dispatch({ type: "delivery/ws-connected", payload: false });
-    };
-    ws.onerror = () => {
+    });
+    socket.on("connect_error", () => {
       dispatch({ type: "delivery/ws-connected", payload: false });
-    };
-    ws.onmessage = (event) => {
-      try {
-        const payload = JSON.parse(event.data) as DeliveryRealtimePatch;
-        if (!payload.orderId) {
-          return;
-        }
-        dispatch({ type: "delivery/realtime", payload });
-      } catch {
-        // Ignore malformed websocket payloads.
+    });
+    socket.on("delivery.patch", (payload: DeliveryRealtimePatch) => {
+      if (!payload?.orderId) {
+        return;
       }
-    };
+      dispatch({ type: "delivery/realtime", payload });
+    });
+    socket.connect();
 
     return () => {
-      ws.close();
+      socket.disconnect();
       dispatch({ type: "delivery/ws-connected", payload: false });
     };
-  }, []);
+  }, [riderBackendEnabled]);
 
   const actions: AppActions = useMemo(
     () => ({
