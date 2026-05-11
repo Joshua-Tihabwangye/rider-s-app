@@ -19,7 +19,7 @@ import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFil
 import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { useAppData } from "../contexts/AppDataContext";
-import LeafletMapView from "../components/maps/LeafletMapView";
+import GoogleMapView from "../components/maps/GoogleMapView";
 import { uiTokens } from "../design/tokens";
 
 function RideDetailsPreConfirmScreen(): React.JSX.Element {
@@ -72,7 +72,7 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
           mb: uiTokens.spacing.xl
         }}
       >
-        <LeafletMapView
+        <GoogleMapView
           center={{ lat: 0.3476, lng: 32.5825 }}
           zoom={12}
           routePolyline={[

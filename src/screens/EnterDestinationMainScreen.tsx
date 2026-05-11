@@ -18,7 +18,7 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
-import LeafletMapView from "../components/maps/LeafletMapView";
+import GoogleMapView from "../components/maps/GoogleMapView";
 
 interface CommonPlaceCardProps {
   icon: React.ReactElement;
@@ -165,7 +165,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           overflow: "hidden"
         }}
       >
-        <LeafletMapView
+        <GoogleMapView
           center={{ lat: 0.3476, lng: 32.5825 }}
           zoom={12}
           routePolyline={[

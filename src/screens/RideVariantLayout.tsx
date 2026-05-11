@@ -18,7 +18,7 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import LeafletMapView from "../components/maps/LeafletMapView";
+import GoogleMapView from "../components/maps/GoogleMapView";
 
 function EnterDestinationVariantLayoutScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -78,7 +78,7 @@ function EnterDestinationVariantLayoutScreen(): React.JSX.Element {
           mb: 2
         }}
       >
-        <LeafletMapView
+        <GoogleMapView
           center={{ lat: 0.3476, lng: 32.5825 }}
           zoom={12}
           routePolyline={[

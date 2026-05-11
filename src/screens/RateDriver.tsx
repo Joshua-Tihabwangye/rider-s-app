@@ -19,7 +19,7 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
-import LeafletMapView from "../components/maps/LeafletMapView";
+import GoogleMapView from "../components/maps/GoogleMapView";
 
 function RideRatingFeedbackScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -103,7 +103,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
           opacity: 0.6
         }}
       >
-        <LeafletMapView
+        <GoogleMapView
           center={{ lat: 0.3476, lng: 32.5825 }}
           zoom={12}
           routePolyline={[
