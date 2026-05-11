@@ -8,6 +8,7 @@ import {
   saveRiderBackendTokens,
 } from "../services/api/authApi";
 import { getRiderProfile, isRiderBackendEnabled } from "../services/api/riderApi";
+import { verifyOtp, resetPassword } from "../store/authService";
 
 // ─── Storage keys ────────────────────────────────────────────────────
 const STORAGE_KEY_USER = "evzone_auth_user";
@@ -20,6 +21,8 @@ interface AuthContextValue extends AuthState {
   signUp: (payload: SignUpPayload) => Promise<void>;
   signOut: () => void;
   forgotPassword: (email: string) => Promise<string>;
+  verifyOtp: (email: string, otp: string) => Promise<{ verified: boolean; resetRequired?: boolean }>;
+  resetPassword: (email: string, otp: string, newPassword: string) => Promise<{ reset: boolean }>;
   socialSignIn: (provider: AuthProviderType) => Promise<void>;
   clearError: () => void;
 }
@@ -281,6 +284,36 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
     }
   }, []);
 
+  const verifyOtp = useCallback(async (email: string, otp: string): Promise<{ verified: boolean; resetRequired?: boolean }> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await authService.verifyOtp(email, otp);
+      return response;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "OTP verification failed.";
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const resetPassword = useCallback(async (email: string, otp: string, newPassword: string): Promise<{ reset: boolean }> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await authService.resetPassword(email, otp, newPassword);
+      return response;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Password reset failed.";
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const socialSignIn = useCallback(async (provider: AuthProviderType) => {
     setLoading(true);
     setError(null);
@@ -305,9 +338,11 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
     signUp,
     signOut,
     forgotPassword,
+    verifyOtp,
+    resetPassword,
     socialSignIn,
     clearError
-  }), [user, loading, error, signIn, signUp, signOut, forgotPassword, socialSignIn, clearError]);
+  }), [user, loading, error, signIn, signUp, signOut, forgotPassword, verifyOtp, resetPassword, socialSignIn, clearError]);
 
   return (
     <AuthContext.Provider value={value}>
