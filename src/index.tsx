@@ -2,8 +2,6 @@ import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import "leaflet/dist/leaflet.css";
-import "./components/maps/leafletSetup";
 import App from "./App";
 
 const rootElement = document.getElementById("root");

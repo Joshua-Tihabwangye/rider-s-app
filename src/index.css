@@ -275,8 +275,10 @@ body,
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
+ }
 
-.evz-map-static .leaflet-container {
+/* Static maps: disable pointer events on the map canvas while preserving overlay controls */
+.evz-map-static .gm-style {
   pointer-events: none;
 }
+

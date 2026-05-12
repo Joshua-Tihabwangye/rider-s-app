@@ -11,7 +11,7 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import MapShell from "../components/maps/MapShell";
 import LocationAutocompleteField from "../components/location/LocationAutocompleteField";
 import { uiTokens } from "../design/tokens";
-import type { MapPoint } from "../components/maps/LeafletMapView";
+import type { MapPoint } from "../components/maps/GoogleMapView";
 import { reverseGeocode } from "../services/maps";
 
 const KAMPALA_CENTER: MapPoint = { lat: 0.3476, lng: 32.5825 };

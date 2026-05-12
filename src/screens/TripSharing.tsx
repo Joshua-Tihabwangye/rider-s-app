@@ -18,7 +18,7 @@ import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
-import LeafletMapView from "../components/maps/LeafletMapView";
+import GoogleMapView from "../components/maps/GoogleMapView";
 
 // Passenger data - would come from backend/API
 // Retrieve all passengers from the ongoing trip session API
@@ -182,7 +182,7 @@ function SharingPassengersScreen(): React.JSX.Element {
           overflow: "hidden"
         }}
       >
-        <LeafletMapView
+        <GoogleMapView
           center={{ lat: 0.3476, lng: 32.5825 }}
           zoom={12}
           routePolyline={[

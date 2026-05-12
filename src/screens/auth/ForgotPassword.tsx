@@ -27,10 +27,12 @@ export default function ForgotPassword(): React.JSX.Element {
     setEmailError("");
 
     try {
-      const message = await forgotPassword(email);
-      setSuccessMessage(message);
+      // Call the API; if successful, navigate to OTP verification
+      await forgotPassword(email);
+      // Navigate to OTP verification with identity in state
+      navigate("/auth/verify-otp", { state: { identity: email.trim() } });
     } catch {
-      // Error is handled by the auth context
+      // Error handled by the auth context and displayed via error prop
     }
   };
 

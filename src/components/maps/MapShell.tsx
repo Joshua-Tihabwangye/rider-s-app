@@ -12,12 +12,12 @@ import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import { useLocation, useNavigate } from "react-router-dom";
 import { uiTokens } from "../../design/tokens";
 import { MAP_HEIGHT_PRESETS, MapHeightPreset } from "./mapPresets";
-import LeafletMapView, {
+import GoogleMapView, {
   type LeafletAlertMarker,
   type LeafletMapLayerMode,
   type LeafletMapMarker,
   type MapPoint
-} from "./LeafletMapView";
+} from "./GoogleMapView";
 
 type MapLayerMode = LeafletMapLayerMode;
 
@@ -298,7 +298,7 @@ export default function MapShell({
           ...(Array.isArray(canvasSx) ? canvasSx : canvasSx ? [canvasSx] : [])
         ]}
       >
-        <LeafletMapView
+        <GoogleMapView
           center={mapCenter}
           zoom={zoom}
           layer={layer}

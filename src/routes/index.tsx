@@ -5,6 +5,8 @@ import { useAuth } from "../contexts/AuthContext";
 import SignIn from "../screens/auth/SignIn";
 import SignUp from "../screens/auth/SignUp";
 import ForgotPassword from "../screens/auth/ForgotPassword";
+import OTPVerification from "../screens/auth/OTPVerification";
+import ResetPassword from "../screens/auth/ResetPassword";
 import Home from "../screens/Home";
 import Commutes from "../screens/Commutes";
 import UpcomingInline from "../screens/UpcomingInline";
@@ -135,6 +137,8 @@ export default function AppRouter(): React.JSX.Element {
 			<Route path="auth/sign-in" element={<SignIn />} />
 			<Route path="auth/sign-up" element={<SignUp />} />
 			<Route path="auth/forgot-password" element={<ForgotPassword />} />
+			<Route path="auth/verify-otp" element={<OTPVerification />} />
+			<Route path="auth/reset-password" element={<ResetPassword />} />
 
 			{/* ── Protected app routes ──────────────────────────── */}
 			<Route element={<ProtectedRoute><ProtectedOutlet /></ProtectedRoute>}>

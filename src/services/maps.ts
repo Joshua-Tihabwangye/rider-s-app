@@ -432,60 +432,70 @@ export async function calculateRoute(origin: Coordinates, destination: Coordinat
   if (!isFiniteCoordinate(origin.lat) || !isFiniteCoordinate(origin.lng)) return null;
   if (!isFiniteCoordinate(destination.lat) || !isFiniteCoordinate(destination.lng)) return null;
 
-  const requestRoute = async (alternatives: boolean): Promise<Response | null> => {
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 7000);
-    try {
-      const response = await fetch(
-        `/api/osrm/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&steps=false&alternatives=${alternatives ? "true" : "false"}`,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json"
-          },
-          signal: controller.signal
-        }
-      );
-      return response;
-    } catch {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 7000);
+
+  try {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      console.warn("Google Maps API key is not set. Route calculation disabled.");
       return null;
-    } finally {
-      window.clearTimeout(timeoutId);
     }
-  };
 
-  let response = await requestRoute(true);
-  if (!response || !response.ok) {
-    response = await requestRoute(false);
+    const url = new URL('https://maps.googleapis.com/maps/api/directions/json');
+    url.searchParams.set('origin', `${origin.lat},${origin.lng}`);
+    url.searchParams.set('destination', `${destination.lat},${destination.lng}`);
+    url.searchParams.set('mode', 'driving');
+    url.searchParams.set('key', apiKey);
+    url.searchParams.set('alternatives', 'true');
+    url.searchParams.set('geometries', 'geojson');
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      },
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      throw new Error(`Google Directions API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.status !== 'OK') {
+      throw new Error(`Google Directions status: ${data.status}`);
+    }
+
+    const routes = data.routes ?? [];
+    if (routes.length === 0) return null;
+
+    const mappedRoutes = routes.map((route: any) => {
+      const coords: Coordinates[] = (route.geometry?.coordinates ?? [])
+        .map(([lng, lat]: [number, number]) => ({ lat, lng }))
+        .filter((p) => isFiniteCoordinate(p.lat) && isFiniteCoordinate(p.lng));
+      return coords;
+    }).filter((route) => route.length > 0);
+
+    const mainPath = mappedRoutes[0];
+    if (!mainPath) return null;
+
+    const mainRoute = routes[0];
+    const distanceKm = (mainRoute.legs?.[0]?.distance?.value ?? 0) / 1000;
+    const durationMin = (mainRoute.legs?.[0]?.duration?.value ?? 0) / 60;
+
+    return {
+      distanceKm,
+      durationMin,
+      path: mainPath,
+      alternativePaths: mappedRoutes.slice(1)
+    };
+  } catch (error) {
+    if ((error as any)?.name === 'AbortError') return null;
+    console.error('calculateRoute failed:', error);
+    return null;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  if (!response || !response.ok) return null;
-
-  const payload = (await response.json()) as {
-    routes?: Array<{
-      distance?: number;
-      duration?: number;
-      geometry?: {
-        coordinates?: [number, number][];
-      };
-    }>;
-  };
-
-  const rawRoutes = payload.routes ?? [];
-  const mappedRoutes = rawRoutes
-    .map((candidate) =>
-      (candidate.geometry?.coordinates ?? [])
-        .map(([lng, lat]) => ({ lat, lng }))
-        .filter((point) => isFiniteCoordinate(point.lat) && isFiniteCoordinate(point.lng))
-    )
-    .filter((candidatePath) => candidatePath.length > 0);
-  const path = mappedRoutes[0];
-  if (!path?.length) return null;
-
-  return {
-    distanceKm: (rawRoutes[0]?.distance ?? 0) / 1000,
-    durationMin: (rawRoutes[0]?.duration ?? 0) / 60,
-    path,
-    alternativePaths: mappedRoutes.slice(1)
-  };
 }

@@ -18,7 +18,7 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import LeafletMapView from "../components/maps/LeafletMapView";
+import GoogleMapView from "../components/maps/GoogleMapView";
 
 function RideDetailsVariant2Screen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -131,7 +131,7 @@ function RideDetailsVariant2Screen(): React.JSX.Element {
           mb: 2
         }}
       >
-        <LeafletMapView
+        <GoogleMapView
           center={{ lat: 0.3476, lng: 32.5825 }}
           zoom={12}
           routePolyline={[
