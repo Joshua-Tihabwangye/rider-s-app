@@ -16,7 +16,7 @@ export interface RiderNotificationApi {
   id: string;
   userId: string;
   title: string;
-  message: string;
+  body: string;
   read: boolean;
   createdAt: number;
 }
@@ -228,7 +228,82 @@ export function isRiderBackendEnabled(): boolean {
   return getBackendEnabled();
 }
 
-// Existing functions (getRiderProfile, getRiderNotifications, getRiderTripHistory, getRiderActiveTrip, createRiderTripRequest, updateRiderTripTracking) are below...
+// Profile endpoint
+export async function getRiderProfile(): Promise<RiderProfileApi> {
+  return request<RiderProfileApi>("/riders/me/profile", { method: "GET" });
+}
+
+// Trip endpoints
+export async function getRiderActiveTrip(): Promise<RiderTripApi | null> {
+  return request<RiderTripApi>("/riders/me/trips/active", { method: "GET" });
+}
+
+export async function getRiderTripHistory(): Promise<RiderTripApi[]> {
+  return request<RiderTripApi[]>("/riders/me/trips/history", { method: "GET" });
+}
+
+export async function createRiderTripRequest(payload: CreateRiderTripRequestPayload): Promise<RiderTripApi> {
+  return request<RiderTripApi>("/riders/me/trips", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function updateRiderTripTracking(tripId: string, patch: UpdateRiderTripTrackingPayload): Promise<RiderTripApi> {
+  return request<RiderTripApi>(`/riders/me/trips/${tripId}`, {
+    method: "PATCH",
+    body: patch,
+  });
+}
+
+// Notification endpoints
+export async function getRiderNotifications(): Promise<RiderNotificationApi[]> {
+  return request<RiderNotificationApi[]>("/riders/me/notifications", { method: "GET" });
+}
+
+// Mapper: backend RiderTripApi → frontend RideTrip
+export function mapApiTripToRideTrip(apiTrip: RiderTripApi): RideTrip {
+  return {
+    id: apiTrip.id,
+    status: mapApiTripStatusToRideStatus(apiTrip.status),
+    otp: apiTrip.otpCode,
+    etaMinutes: 0, // Backend may not send ETA; fallback to 0 or derive from other fields if available
+    fareEstimate: "", // Not in RiderTripApi; fill from elsewhere if needed
+    distance: "", // Not in RiderTripApi
+    routeSummary: apiTrip.pickup + " → " + apiTrip.dropoff,
+    pickup: {
+      address: apiTrip.pickup,
+      coordinates: apiTrip.pickupLocation,
+      label: apiTrip.pickup, // could be shortened
+    },
+    dropoff: {
+      address: apiTrip.dropoff,
+      coordinates: apiTrip.dropoffLocation,
+      label: apiTrip.dropoff,
+    },
+    driver: null, // Populate from separate driver endpoint if available
+    vehicle: null, // Populate from separate vehicle endpoint if available
+    lastKnownLocation: undefined,
+    startedAt: apiTrip.startedAt,
+    completedAt: apiTrip.completedAt,
+  };
+}
+
+function mapApiTripStatusToRideStatus(status: RiderTripApi["status"]): RideTrip["status"] {
+  // Map backend status strings to frontend RideStatus enum/type
+  const mapping: Record<string, RideTrip["status"]> = {
+    requested: "requested",
+    driver_assigned: "driver_assigned",
+    driver_arriving: "driver_arriving",
+    arrived: "arrived",
+    in_progress: "in_progress",
+    completed: "completed",
+    cancelled: "cancelled",
+  };
+  return mapping[status] || "requested";
+}
+
+// Existing functions (getRiderNotifications, getRiderTripHistory, getRiderActiveTrip, createRiderTripRequest, updateRiderTripTracking) are below...
 
 // ---------- Delivery endpoints ----------
 export async function listRiderDeliveries(): Promise<RiderDeliveryApi[]> {
