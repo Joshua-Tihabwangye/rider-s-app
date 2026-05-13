@@ -9,7 +9,7 @@ const OSM_TARGET = process.env.VITE_OSM_BASE_URL || "https://nominatim.openstree
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3000,
+    port: 5173,
     open: false, // Don't auto-open browser
     host: true, // Allow external connections
     strictPort: false, // Try next available port if 3000 is busy

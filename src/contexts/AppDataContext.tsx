@@ -98,12 +98,19 @@ import {
   SEED_SHARED_LOCATION_STATE
 } from "../store/seedData";
 import {
+  createRiderAmbulance,
+  createRiderRental,
+  createRiderTour,
   createRiderTripRequest,
   getRiderActiveTrip,
+  listRiderAmbulances,
   getRiderNotifications,
+  listRiderRentals,
+  listRiderTours,
   getRiderTripHistory,
   isRiderBackendEnabled,
   mapApiTripToRideTrip,
+  updateRiderAmbulance,
   updateRiderTripTracking,
 } from "../services/api/riderApi";
 import { createRiderSocket } from "../services/riderSocket";
@@ -365,6 +372,7 @@ type AppAction =
       };
     }
   | { type: "rental/payment-reset" }
+  | { type: "rental/bookings-sync"; payload: RentalBooking[] }
   | { type: "tours/payment-init"; payload: TourPaymentSession }
   | { type: "tours/payment-session"; payload: Partial<TourPaymentSession> }
   | {
@@ -384,9 +392,12 @@ type AppAction =
       };
     }
   | { type: "tours/payment-reset" }
+  | { type: "tours/bookings-sync"; payload: TourBooking[] }
   | { type: "tours/booking"; payload: Partial<TourBooking> }
   | { type: "tours/select"; payload: string }
   | { type: "ambulance/update"; payload: Partial<AmbulanceRequest> }
+  | { type: "ambulance/request-sync"; payload: AmbulanceRequest }
+  | { type: "ambulance/history-sync"; payload: AmbulanceRequest[] }
   | { type: "emergency/add"; payload: EmergencyContact }
   | { type: "emergency/update"; payload: EmergencyContact }
   | { type: "emergency/remove"; payload: string }
@@ -2137,6 +2148,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
           activePayment: null
         }
       };
+    case "rental/bookings-sync":
+      return {
+        ...state,
+        rental: {
+          ...state.rental,
+          bookings: action.payload
+        }
+      };
     case "tours/payment-init": {
       const nextBooking: TourBooking = {
         ...state.tours.booking,
@@ -2252,6 +2271,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
           activePayment: null
         }
       };
+    case "tours/bookings-sync":
+      return {
+        ...state,
+        tours: {
+          ...state.tours,
+          bookings: action.payload
+        }
+      };
     case "tours/booking": {
       const nextBooking: TourBooking = { ...state.tours.booking, ...action.payload };
       const nextBookings =
@@ -2295,6 +2322,22 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ambulance: {
           ...state.ambulance,
           request: { ...state.ambulance.request, ...action.payload }
+        }
+      };
+    case "ambulance/request-sync":
+      return {
+        ...state,
+        ambulance: {
+          ...state.ambulance,
+          request: action.payload
+        }
+      };
+    case "ambulance/history-sync":
+      return {
+        ...state,
+        ambulance: {
+          ...state.ambulance,
+          history: action.payload
         }
       };
     case "emergency/add":
@@ -3030,9 +3073,23 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           walletDebitAmount: payment.paymentMethodType === "wallet" ? payment.amount : 0
         }
       });
+      if (riderBackendEnabled) {
+        const fallbackDate = new Date(now).toISOString().slice(0, 10);
+        const vehicleId = nextBooking.vehicleId || state.rental.selectedVehicleId || "vehicle_unknown";
+        void createRiderRental({
+          vehicleId,
+          startDate: nextBooking.startDate || fallbackDate,
+          endDate: nextBooking.endDate || nextBooking.startDate || fallbackDate,
+          pickupLocation: nextBooking.pickupBranch
+            ? { lat: 0.3136, lng: 32.5811, address: nextBooking.pickupBranch }
+            : undefined,
+        }).catch((error) => {
+          console.warn("Rider backend rental create failed.", error);
+        });
+      }
       return transaction;
     },
-    [state.rental, state.rental.activePayment]
+    [riderBackendEnabled, state.rental, state.rental.activePayment]
   );
 
   const failRentalPayment = useCallback(
@@ -3172,9 +3229,20 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           walletDebitAmount: payment.paymentMethodType === "wallet" ? payment.amount : 0
         }
       });
+      if (riderBackendEnabled) {
+        const fallbackDate = nextBooking.date || new Date(now).toISOString().slice(0, 10);
+        void createRiderTour({
+          tourId: nextBooking.tourId || selectedTour?.id || "tour_unknown",
+          scheduledDate: fallbackDate,
+          participantsCount: Math.max(1, nextBooking.guests || 1),
+          specialRequests: undefined,
+        }).catch((error) => {
+          console.warn("Rider backend tour create failed.", error);
+        });
+      }
       return transaction;
     },
-    [state.tours]
+    [riderBackendEnabled, state.tours]
   );
 
   const failTourPayment = useCallback(
@@ -3201,7 +3269,55 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
   const updateAmbulanceRequest = useCallback((patch: Partial<AmbulanceRequest>) => {
     dispatch({ type: "ambulance/update", payload: patch });
-  }, []);
+
+    if (!riderBackendEnabled) {
+      return;
+    }
+
+    const nextRequest = { ...state.ambulance.request, ...patch };
+    const pickup = nextRequest.pickup;
+    const priority =
+      nextRequest.urgency === "high"
+        ? "emergency"
+        : nextRequest.urgency === "medium"
+          ? "urgent"
+          : "normal";
+
+    if ((patch.status === "requested" || nextRequest.status === "requested") && pickup) {
+      void createRiderAmbulance({
+        pickupAddress: pickup.address || pickup.label,
+        pickupLat: pickup.coordinates?.lat ?? 0.3136,
+        pickupLng: pickup.coordinates?.lng ?? 32.5811,
+        dropoffAddress: nextRequest.destination?.address || nextRequest.destination?.label,
+        hospitalName: nextRequest.hospitalContactName,
+        priority,
+      }).catch((error) => {
+        console.warn("Rider backend ambulance request create failed.", error);
+      });
+      return;
+    }
+
+    if (nextRequest.id && nextRequest.id !== "ambulance_current") {
+      if (nextRequest.status === "idle") {
+        return;
+      }
+      void updateRiderAmbulance(nextRequest.id, {
+        status:
+          nextRequest.status === "assigned"
+            ? "dispatched"
+            : (nextRequest.status as
+                | "requested"
+                | "dispatched"
+                | "en_route"
+                | "arrived"
+                | "in_progress"
+                | "completed"
+                | "cancelled"),
+      }).catch((error) => {
+        console.warn("Rider backend ambulance request update failed.", error);
+      });
+    }
+  }, [riderBackendEnabled, state.ambulance.request]);
 
   const addEmergencyContact = useCallback((contact: Omit<EmergencyContact, "id">) => {
     const id = `ec_${Date.now()}`;
@@ -3328,10 +3444,13 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
     const hydrateReadOnlyDomains = async () => {
       try {
-        const [notifications, history, activeTrip] = await Promise.all([
+        const [notifications, history, activeTrip, rentals, tours, ambulances] = await Promise.all([
           getRiderNotifications(),
           getRiderTripHistory(),
           getRiderActiveTrip(),
+          listRiderRentals(),
+          listRiderTours(),
+          listRiderAmbulances(),
         ]);
 
         if (cancelled) {
@@ -3355,6 +3474,78 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           type: "ride/history",
           payload: history.map((trip) => mapApiTripToRideTrip(trip)),
         });
+
+        dispatch({
+          type: "rental/bookings-sync",
+          payload: rentals.map((rental) => ({
+            id: rental.id,
+            vehicleId: rental.vehicleId,
+            startDate: rental.startDate,
+            endDate: rental.endDate,
+            priceEstimate: `UGX ${Math.round(rental.totalAmount).toLocaleString()}`,
+            status:
+              rental.status === "cancelled"
+                ? "cancelled"
+                : rental.status === "completed"
+                  ? "completed"
+                  : "confirmed",
+            confirmedAt: new Date(rental.createdAt).toISOString(),
+          })),
+        });
+
+        dispatch({
+          type: "tours/bookings-sync",
+          payload: tours.map((tour) => ({
+            id: tour.id,
+            tourId: tour.tourId,
+            date: tour.scheduledDate,
+            guests: Math.max(1, tour.participantsCount || 1),
+            priceEstimate: `UGX ${Math.round(tour.totalPrice).toLocaleString()}`,
+            status:
+              tour.status === "cancelled"
+                ? "cancelled"
+                : tour.status === "completed"
+                  ? "completed"
+                  : "confirmed",
+            confirmedAt: new Date(tour.createdAt).toISOString(),
+          })),
+        });
+
+        const ambulanceHistory = ambulances.map((ambulance) => ({
+          id: ambulance.id,
+          pickup: {
+            label: ambulance.pickupAddress,
+            address: ambulance.pickupAddress,
+          },
+          destination: ambulance.dropoffAddress
+            ? {
+                label: ambulance.dropoffAddress,
+                address: ambulance.dropoffAddress,
+              }
+            : null,
+          urgency:
+            ambulance.priority === "emergency"
+              ? "high"
+              : ambulance.priority === "urgent"
+                ? "medium"
+                : "low",
+          status:
+            ambulance.status === "dispatched"
+              ? "assigned"
+              : ambulance.status === "in_progress"
+                ? "en_route"
+                : (ambulance.status as
+                    | "requested"
+                    | "en_route"
+                    | "arrived"
+                    | "completed"
+                    | "cancelled"),
+          requestedAt: new Date(ambulance.requestedAt).toISOString(),
+        }));
+        dispatch({ type: "ambulance/history-sync", payload: ambulanceHistory });
+        if (ambulanceHistory.length > 0) {
+          dispatch({ type: "ambulance/request-sync", payload: ambulanceHistory[0] });
+        }
 
         if (activeTrip) {
           dispatch({ type: "ride/set-active", payload: mapApiTripToRideTrip(activeTrip) });
@@ -3406,6 +3597,28 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     }
 
     const socket = createRiderSocket();
+    let cancelled = false;
+    const syncRiderTripsFromBackend = async () => {
+      try {
+        const [activeTrip, history] = await Promise.all([
+          getRiderActiveTrip(),
+          getRiderTripHistory(),
+        ]);
+        if (cancelled) {
+          return;
+        }
+        dispatch({
+          type: "ride/history",
+          payload: history.map((trip) => mapApiTripToRideTrip(trip)),
+        });
+        dispatch({
+          type: "ride/set-active",
+          payload: activeTrip ? mapApiTripToRideTrip(activeTrip) : null,
+        });
+      } catch (error) {
+        console.warn("Failed to sync rider trips from realtime event.", error);
+      }
+    };
     socket.on("connect", () => {
       dispatch({ type: "delivery/ws-connected", payload: true });
     });
@@ -3421,9 +3634,26 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       }
       dispatch({ type: "delivery/realtime", payload });
     });
+    const tripEvents = [
+      "trip.driver.assigned",
+      "trip.driver.arriving",
+      "trip.arrived",
+      "trip.started",
+      "trip.completed",
+      "trip.cancelled",
+    ];
+    tripEvents.forEach((eventName) => {
+      socket.on(eventName, () => {
+        void syncRiderTripsFromBackend();
+      });
+    });
     socket.connect();
 
     return () => {
+      cancelled = true;
+      tripEvents.forEach((eventName) => {
+        socket.off(eventName);
+      });
       socket.disconnect();
       dispatch({ type: "delivery/ws-connected", payload: false });
     };
