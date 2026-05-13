@@ -243,14 +243,14 @@ export async function getRiderTripHistory(): Promise<RiderTripApi[]> {
 }
 
 export async function createRiderTripRequest(payload: CreateRiderTripRequestPayload): Promise<RiderTripApi> {
-  return request<RiderTripApi>("/riders/me/trips", {
+  return request<RiderTripApi>("/riders/me/trips/request", {
     method: "POST",
     body: payload,
   });
 }
 
 export async function updateRiderTripTracking(tripId: string, patch: UpdateRiderTripTrackingPayload): Promise<RiderTripApi> {
-  return request<RiderTripApi>(`/riders/me/trips/${tripId}`, {
+  return request<RiderTripApi>(`/riders/me/trips/${tripId}/tracking`, {
     method: "PATCH",
     body: patch,
   });
@@ -478,4 +478,3 @@ export async function triggerRiderSOS(payload: { message?: string; location?: { 
 export async function listRiderSOSHistory(): Promise<RiderSosEventApi[]> {
   return request<RiderSosEventApi[]>("/riders/me/sos/history", { method: "GET" });
 }
-

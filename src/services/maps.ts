@@ -436,7 +436,8 @@ export async function calculateRoute(origin: Coordinates, destination: Coordinat
   const timeoutId = setTimeout(() => controller.abort(), 7000);
 
   try {
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    const rawApiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "").trim();
+    const apiKey = rawApiKey && !/^https?:\/\//i.test(rawApiKey) ? rawApiKey : "";
     if (!apiKey) {
       console.warn("Google Maps API key is not set. Route calculation disabled.");
       return null;

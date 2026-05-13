@@ -59,10 +59,6 @@ function isValidJWT(token: string): boolean {
     // Basic JWT structure validation (header.payload.signature)
     const parts = token.split('.');
     if (parts.length !== 3) {
-      // For development, allow non-standard tokens that start with our mock prefix
-      if (token.startsWith('mock_jwt_token_')) {
-        return true;
-      }
       return false;
     }
 

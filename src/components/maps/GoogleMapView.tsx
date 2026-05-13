@@ -248,9 +248,11 @@ export default function GoogleMapView({
   const [resolvedRoute, setResolvedRoute] = useState<MapPoint[]>(routePolyline);
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const rawApiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "").trim();
+  const googleMapsApiKey = rawApiKey && !/^https?:\/\//i.test(rawApiKey) ? rawApiKey : "";
 
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
+    googleMapsApiKey,
     libraries: LIBRARIES
   });
 
@@ -325,6 +327,13 @@ export default function GoogleMapView({
   };
 
   if (loadError) {
+    const details =
+      loadError instanceof Error
+        ? loadError.message
+        : typeof loadError === "string"
+          ? loadError
+          : "Unknown Google Maps loader error";
+    const host = typeof window !== "undefined" ? window.location.host : "unknown-host";
     return (
       <div
         className={className}
@@ -338,10 +347,17 @@ export default function GoogleMapView({
           justifyContent: "center",
           background: "#f3f4f6",
           color: "#6b7280",
-          fontSize: 14
+          fontSize: 14,
+          textAlign: "center",
+          padding: 16,
+          zIndex: 20
         }}
       >
-        Failed to load map.
+        <div>
+          <div style={{ fontWeight: 600, marginBottom: 6 }}>Failed to load Google Map.</div>
+          <div style={{ fontSize: 12 }}>{details}</div>
+          <div style={{ fontSize: 11, marginTop: 6 }}>Host: {host}</div>
+        </div>
       </div>
     );
   }
@@ -358,7 +374,8 @@ export default function GoogleMapView({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#f3f4f6"
+          background: "#f3f4f6",
+          zIndex: 20
         }}
       >
         Loading map...
