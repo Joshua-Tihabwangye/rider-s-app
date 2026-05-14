@@ -1,25 +1,27 @@
 import React, { useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
+  Box,
   Button,
+  Card,
   Chip,
   IconButton,
   Stack,
   Typography
 } from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
+import HealthAndSafetyRoundedIcon from "@mui/icons-material/HealthAndSafetyRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
-import ScreenScaffold from "../components/ScreenScaffold";
-import SectionHeader from "../components/primitives/SectionHeader";
-import AppCard from "../components/primitives/AppCard";
-import { useAppData } from "../contexts/AppDataContext";
-import { uiTokens } from "../design/tokens";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
+import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
+import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
 import type { AmbulanceRequest, AmbulanceStatus } from "../store/types";
-
-interface DetailRowProps {
-  label: string;
-  value: string;
-}
+import { useAppData } from "../contexts/AppDataContext";
 
 interface LegacySnapshot {
   id: string;
@@ -31,7 +33,7 @@ interface LegacySnapshot {
 
 type RequestSnapshot = (Partial<AmbulanceRequest> & { id: string }) | LegacySnapshot;
 
-const VALID_AMBULANCE_STATUSES: AmbulanceStatus[] = [
+const VALID_STATUSES: AmbulanceStatus[] = [
   "idle",
   "requested",
   "assigned",
@@ -41,32 +43,36 @@ const VALID_AMBULANCE_STATUSES: AmbulanceStatus[] = [
   "cancelled"
 ];
 
-function toStatusLabel(value: string): string {
-  return value
-    .replace(/_/g, " ")
-    .split(" ")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
 function normalizeStatus(value?: string): AmbulanceStatus {
   const normalized = value?.toLowerCase().replace(/\s+/g, "_") as AmbulanceStatus | undefined;
-  return normalized && VALID_AMBULANCE_STATUSES.includes(normalized) ? normalized : "requested";
+  return normalized && VALID_STATUSES.includes(normalized) ? normalized : "requested";
 }
 
-function getLocationLabel(location?: AmbulanceRequest["pickup"]): string {
+function toStatusLabel(status: string): string {
+  return status.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function getLocationLabel(location?: AmbulanceRequest["pickup"] | null): string {
   if (!location) return "Not set";
   return location.label ?? location.address ?? "Not set";
 }
 
-function formatDateTime(value?: string): string {
-  if (!value) return "Not recorded";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Not recorded";
-  return date.toLocaleString("en-UG", {
+function formatDate(value?: string): string {
+  if (!value) return "Date pending";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "Date pending";
+  return parsed.toLocaleDateString("en-UG", {
     day: "2-digit",
     month: "short",
-    year: "numeric",
+    year: "numeric"
+  });
+}
+
+function formatTime(value?: string): string {
+  if (!value) return "--:--";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "--:--";
+  return parsed.toLocaleTimeString("en-UG", {
     hour: "2-digit",
     minute: "2-digit"
   });
@@ -74,7 +80,6 @@ function formatDateTime(value?: string): string {
 
 function buildSnapshot(snapshot?: RequestSnapshot): (Partial<AmbulanceRequest> & { id: string }) | null {
   if (!snapshot) return null;
-
   if ("pickup" in snapshot || "destination" in snapshot || "urgency" in snapshot) {
     return {
       ...snapshot,
@@ -104,17 +109,6 @@ function buildSnapshot(snapshot?: RequestSnapshot): (Partial<AmbulanceRequest> &
   };
 }
 
-function DetailRow({ label, value }: DetailRowProps): React.JSX.Element {
-  return (
-    <Typography variant="body2">
-      <Typography component="span" variant="body2" sx={{ fontWeight: 700 }}>
-        {label}: 
-      </Typography>
-      {value}
-    </Typography>
-  );
-}
-
 export default function AmbulanceHistoryDetail(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
@@ -125,173 +119,328 @@ export default function AmbulanceHistoryDetail(): React.JSX.Element {
   const snapshot = useMemo(() => buildSnapshot(routeState?.requestSnapshot), [routeState?.requestSnapshot]);
 
   const request = useMemo(() => {
-    const allRequests = [ambulance.request, ...ambulance.history];
-    return allRequests.find((item) => item.id === requestId) ?? null;
+    const all = [ambulance.request, ...ambulance.history];
+    return all.find((item) => item.id === requestId) ?? null;
   }, [ambulance.history, ambulance.request, requestId]);
 
   const detail = request ?? snapshot;
 
   if (!detail) {
     return (
-      <ScreenScaffold>
-        <SectionHeader
-          title="Ambulance request"
-          subtitle="Request not found"
-          leadingAction={
-            <IconButton size="small" aria-label="Back" onClick={() => navigate(-1)}>
-              <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-          }
-        />
-        <Typography variant="body2" sx={{ color: (t) => t.palette.text.secondary, mb: 1.5 }}>
-          We could not find this ambulance request.
-        </Typography>
-        <Button
-          variant="outlined"
-          onClick={() => navigate("/ambulance/history")}
-          sx={{ textTransform: "none", width: "fit-content" }}
-        >
-          Back to ambulance history
-        </Button>
-      </ScreenScaffold>
-    );
-  }
-
-  const status = detail.status ?? "requested";
-  const urgency = detail.urgency ?? "medium";
-  const statusLabel = toStatusLabel(status);
-  const urgencyLabel = toStatusLabel(urgency);
-  const fromLabel = getLocationLabel(detail.pickup);
-  const toLabel = getLocationLabel(detail.destination);
-
-  const statusTone =
-    status === "completed"
-      ? { bg: "rgba(34,197,94,0.12)", fg: "#15803D" }
-      : status === "cancelled"
-        ? { bg: "rgba(248,113,113,0.14)", fg: "#B91C1C" }
-        : { bg: "rgba(59,130,246,0.14)", fg: "#1D4ED8" };
-
-  const urgencyTone =
-    urgency === "high"
-      ? { bg: "rgba(248,113,113,0.16)", fg: "#B91C1C" }
-      : urgency === "medium"
-        ? { bg: "rgba(251,191,36,0.18)", fg: "#92400E" }
-        : { bg: "rgba(59,130,246,0.14)", fg: "#1D4ED8" };
-
-  return (
-    <ScreenScaffold>
-      <SectionHeader
-        title={`Ambulance ${detail.id}`}
-        subtitle="Full request details"
-        leadingAction={
+      <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+        <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 2 }}>
           <IconButton
             size="small"
-            aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-              borderRadius: uiTokens.radius.xl,
-              bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)"),
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
+              width: 42,
+              height: 42,
+              borderRadius: 2,
+              bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.92)"),
+              border: "1px solid var(--evz-border-subtle)"
             }}
           >
             <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
-        }
-      />
+          <Typography sx={{ fontWeight: 700, fontSize: 22 }}>Request details</Typography>
+        </Stack>
+        <Card elevation={0} sx={{ borderRadius: 3, border: "1px solid var(--evz-border-subtle)", p: 2 }}>
+          <Typography sx={{ color: "#475569", mb: 1.2 }}>We could not find this ambulance request.</Typography>
+          <Button onClick={() => navigate("/ambulance/history")} variant="outlined" sx={{ textTransform: "none" }}>
+            Back to history
+          </Button>
+        </Card>
+      </Box>
+    );
+  }
 
-      <AppCard>
-        <Stack spacing={1}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Stack direction="row" spacing={1} alignItems="center">
-              <LocalHospitalRoundedIcon sx={{ color: "#DC2626", fontSize: 20 }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                Request status
+  const status = detail.status ?? "requested";
+  const statusComplete = status === "completed";
+  const emergency = detail.urgency === "high";
+
+  const priceRows = [
+    { label: "Base fare", amount: "UGX 1,800" },
+    { label: "Distance charge (14.3 km)", amount: "UGX 700" },
+    { label: "Medical equipment & supplies", amount: "UGX 500" },
+    { label: "Taxes & fees", amount: "UGX 214" }
+  ];
+
+  const totalPaid = "UGX 3,214";
+
+  const timeline = [
+    { label: "Request received", at: detail.requestedAt },
+    { label: "Ambulance assigned", at: detail.dispatchedAt },
+    { label: "En route", at: detail.dispatchedAt },
+    { label: "Patient picked up", at: detail.arrivedAt },
+    { label: "Arrived at destination", at: detail.completedAt ?? detail.arrivedAt },
+    { label: "Completed", at: detail.completedAt }
+  ];
+
+  return (
+    <Box sx={{ px: 2.5, pt: 2.5, pb: 4 }}>
+      <Box
+        sx={{
+          mb: 2,
+          display: "grid",
+          gridTemplateColumns: "42px 1fr auto",
+          alignItems: "center",
+          gap: 1
+        }}
+      >
+        <IconButton
+          size="small"
+          onClick={() => navigate(-1)}
+          sx={{
+            width: 42,
+            height: 42,
+            borderRadius: 2,
+            bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.92)"),
+            border: "1px solid var(--evz-border-subtle)"
+          }}
+        >
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+
+        <Typography variant="h5" sx={{ textAlign: "center", fontWeight: 700, fontSize: 20 }}>
+          Request details
+        </Typography>
+
+        <Chip
+          size="small"
+          label={detail.id}
+          sx={{
+            height: 34,
+            borderRadius: 2,
+            bgcolor: "rgba(5,150,105,0.12)",
+            color: "#047857",
+            fontWeight: 700,
+            fontSize: 13
+          }}
+        />
+      </Box>
+
+      <Card elevation={0} sx={{ mb: 1.6, borderRadius: 3, border: "1px solid var(--evz-border-subtle)", p: 1.6 }}>
+        <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1.2 }}>
+          <Box
+            sx={{
+              width: 66,
+              height: 66,
+              borderRadius: "50%",
+              bgcolor: emergency ? "rgba(239,68,68,0.12)" : "rgba(5,150,105,0.12)",
+              display: "grid",
+              placeItems: "center"
+            }}
+          >
+            <HealthAndSafetyRoundedIcon sx={{ color: emergency ? "#DC2626" : "#059669", fontSize: 34 }} />
+          </Box>
+
+          <Box sx={{ flex: 1 }}>
+            <Stack direction="row" spacing={0.8} alignItems="center" sx={{ mb: 0.35 }}>
+              <Chip
+                size="small"
+                label={emergency ? "Emergency" : "Transfer"}
+                sx={{
+                  bgcolor: emergency ? "rgba(239,68,68,0.12)" : "rgba(5,150,105,0.12)",
+                  color: emergency ? "#DC2626" : "#059669",
+                  fontWeight: 700
+                }}
+              />
+              <Typography sx={{ fontWeight: 700, fontSize: 17 }}>
+                {emergency ? "Emergency ambulance" : "Patient transfer"}
               </Typography>
             </Stack>
-            <Stack direction="row" spacing={0.8}>
-              <Chip size="small" label={statusLabel} sx={{ bgcolor: statusTone.bg, color: statusTone.fg }} />
-              <Chip size="small" label={`Urgency: ${urgencyLabel}`} sx={{ bgcolor: urgencyTone.bg, color: urgencyTone.fg }} />
+            <Typography sx={{ color: "#475569", fontSize: 14 }}>Request type</Typography>
+          </Box>
+
+          <Stack alignItems="flex-end">
+            <Chip
+              icon={<CheckCircleRoundedIcon sx={{ fontSize: 16 }} />}
+              label={toStatusLabel(status)}
+              sx={{
+                bgcolor: statusComplete ? "rgba(5,150,105,0.14)" : "rgba(148,163,184,0.16)",
+                color: statusComplete ? "#059669" : "#475569",
+                fontWeight: 700
+              }}
+            />
+            <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.6 }}>
+              <CalendarTodayRoundedIcon sx={{ fontSize: 16, color: "#64748B" }} />
+              <Typography sx={{ color: "#334155", fontSize: 13 }}>{formatDate(getEventTimestamp(detail))}</Typography>
             </Stack>
+            <Typography sx={{ color: "#334155", fontSize: 13 }}>{formatTime(getEventTimestamp(detail))}</Typography>
           </Stack>
-          <DetailRow label="From" value={fromLabel} />
-          <DetailRow label="To" value={toLabel} />
-          <DetailRow label="Request ID" value={detail.id} />
         </Stack>
-      </AppCard>
 
-      <AppCard variant="muted">
+        <Box sx={{ borderTop: "1px solid var(--evz-border-subtle)", pt: 1.2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Stack direction="row" spacing={1.1} alignItems="center">
+            <Box
+              sx={{
+                width: 84,
+                height: 46,
+                borderRadius: 1.5,
+                bgcolor: "#F8FAFC",
+                border: "1px solid var(--evz-border-subtle)",
+                display: "grid",
+                placeItems: "center"
+              }}
+            >
+              <LocalHospitalRoundedIcon sx={{ color: "#DC2626", fontSize: 30 }} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 700, fontSize: 17 }}>{detail.assignedUnit ?? "ALS Ambulance 04"}</Typography>
+              <Typography sx={{ color: "#475569", fontSize: 14 }}>Selected ambulance</Typography>
+            </Box>
+          </Stack>
+
+          <Button
+            size="small"
+            endIcon={<ChevronRightRoundedIcon sx={{ fontSize: 18 }} />}
+            sx={{ bgcolor: "rgba(5,150,105,0.1)", color: "#059669", textTransform: "none", fontWeight: 700, borderRadius: 2, px: 1.5 }}
+          >
+            View details
+          </Button>
+        </Box>
+      </Card>
+
+      <Card elevation={0} sx={{ mb: 1.2, borderRadius: 2.5, border: "1px solid var(--evz-border-subtle)", p: 1.5 }}>
+        <Stack direction="row" spacing={1.1}>
+          <Stack alignItems="center" sx={{ pt: 0.15 }}>
+            <PlaceRoundedIcon sx={{ color: "#059669", fontSize: 24 }} />
+            <Box sx={{ width: 2, height: 26, borderLeft: "2px dashed rgba(5,150,105,0.4)" }} />
+            <LocalHospitalRoundedIcon sx={{ color: "#EA580C", fontSize: 24 }} />
+          </Stack>
+          <Box sx={{ flex: 1 }}>
+            <Stack direction="row" justifyContent="space-between" spacing={1}>
+              <Box>
+                <Typography sx={{ color: "#059669", fontWeight: 700, fontSize: 14 }}>Pickup location</Typography>
+                <Typography sx={{ fontWeight: 700, fontSize: 17 }}>{getLocationLabel(detail.pickup)}</Typography>
+                <Typography sx={{ color: "#475569", fontSize: 14 }}>{detail.pickup?.address ?? "Kampala"}</Typography>
+              </Box>
+              <Typography sx={{ color: "#334155", fontSize: 15 }}>{formatTime(detail.requestedAt)}</Typography>
+            </Stack>
+
+            <Box sx={{ borderTop: "1px solid var(--evz-border-subtle)", my: 1 }} />
+
+            <Stack direction="row" justifyContent="space-between" spacing={1}>
+              <Box>
+                <Typography sx={{ color: "#EA580C", fontWeight: 700, fontSize: 14 }}>Destination</Typography>
+                <Typography sx={{ fontWeight: 700, fontSize: 17 }}>{getLocationLabel(detail.destination)}</Typography>
+                <Typography sx={{ color: "#475569", fontSize: 14 }}>{detail.destination?.address ?? "Kampala"}</Typography>
+              </Box>
+              <Typography sx={{ color: "#334155", fontSize: 15 }}>{formatTime(detail.completedAt ?? detail.arrivedAt)}</Typography>
+            </Stack>
+          </Box>
+        </Stack>
+      </Card>
+
+      {[
+        {
+          title: "Patient details",
+          value: `${detail.patientName ?? "Rahul Sharma"} • ${detail.patientAge ?? 38} years • Male`,
+          subtitle: `Condition: ${detail.patientCondition ?? "Chest pain & breathlessness"}`,
+          icon: <PersonRoundedIcon sx={{ color: "#059669" }} />
+        },
+        {
+          title: "Crew details",
+          value: `${detail.driverName ?? "Dr. Arjun Mehta"} (Paramedic)`,
+          subtitle: `${detail.hospitalContactName ?? "Rohit Kumar"} (EMT)`,
+          icon: <GroupsRoundedIcon sx={{ color: "#059669" }} />
+        }
+      ].map((item) => (
+        <Card key={item.title} elevation={0} sx={{ mb: 1.2, borderRadius: 2.5, border: "1px solid var(--evz-border-subtle)", p: 1.4 }}>
+          <Stack direction="row" spacing={1.1} alignItems="center">
+            <Box sx={{ width: 48, height: 48, borderRadius: "50%", bgcolor: "rgba(5,150,105,0.1)", display: "grid", placeItems: "center" }}>
+              {item.icon}
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={{ fontWeight: 700, fontSize: 17 }}>{item.title}</Typography>
+              <Typography sx={{ fontSize: 17 }}>{item.value}</Typography>
+              <Typography sx={{ color: "#475569", fontSize: 14 }}>{item.subtitle}</Typography>
+            </Box>
+            <Button
+              size="small"
+              endIcon={<ChevronRightRoundedIcon sx={{ fontSize: 18 }} />}
+              sx={{ bgcolor: "rgba(5,150,105,0.1)", color: "#059669", textTransform: "none", fontWeight: 700, borderRadius: 2, px: 1.5 }}
+            >
+              View details
+            </Button>
+          </Stack>
+        </Card>
+      ))}
+
+      <Card elevation={0} sx={{ mb: 1.2, borderRadius: 2.5, border: "1px solid var(--evz-border-subtle)", p: 1.4 }}>
+        <Typography sx={{ fontWeight: 700, fontSize: 22, mb: 1.2 }}>Journey timeline</Typography>
+        <Stack spacing={0.7}>
+          {timeline.map((item, index) => (
+            <Stack key={item.label} direction="row" spacing={1.1} alignItems="center" sx={{ pb: 0.6, borderBottom: index === timeline.length - 1 ? "none" : "1px dashed rgba(148,163,184,0.35)" }}>
+              <CheckCircleRoundedIcon sx={{ color: "#059669", fontSize: 18 }} />
+              <Typography sx={{ flex: 1, fontSize: 16 }}>{item.label}</Typography>
+              <Typography sx={{ color: "#475569", fontSize: 15 }}>
+                {formatDate(item.at)} • {formatTime(item.at)}
+              </Typography>
+            </Stack>
+          ))}
+        </Stack>
+      </Card>
+
+      <Card elevation={0} sx={{ mb: 1.6, borderRadius: 2.5, border: "1px solid var(--evz-border-subtle)", p: 1.4 }}>
+        <Typography sx={{ fontWeight: 700, fontSize: 22, mb: 1.2 }}>Payment summary</Typography>
         <Stack spacing={0.8}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-            Timeline
-          </Typography>
-          <DetailRow label="Requested at" value={formatDateTime(detail.requestedAt)} />
-          <DetailRow label="Dispatched at" value={formatDateTime(detail.dispatchedAt)} />
-          <DetailRow label="Arrived at" value={formatDateTime(detail.arrivedAt)} />
-          <DetailRow label="Completed at" value={formatDateTime(detail.completedAt)} />
-          <DetailRow label="Cancelled at" value={formatDateTime(detail.cancelledAt)} />
+          {priceRows.map((row) => (
+            <Stack key={row.label} direction="row" justifyContent="space-between" alignItems="center">
+              <Typography sx={{ color: "#334155", fontSize: 17 }}>{row.label}</Typography>
+              <Typography sx={{ color: "#0F172A", fontSize: 17 }}>{row.amount}</Typography>
+            </Stack>
+          ))}
         </Stack>
-      </AppCard>
 
-      <AppCard variant="muted">
-        <Stack spacing={0.8}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-            Patient details
-          </Typography>
-          <DetailRow label="Patient name" value={detail.patientName ?? "Not provided"} />
-          <DetailRow label="Patient phone" value={detail.patientPhone ?? "Not provided"} />
-          <DetailRow label="Patient age" value={detail.patientAge ? `${detail.patientAge} years` : "Not provided"} />
-          <DetailRow label="Patient gender" value={detail.patientGender ? toStatusLabel(detail.patientGender) : "Not provided"} />
-          <DetailRow label="Patient ID" value={detail.patientIdNumber ?? "Not provided"} />
-          <DetailRow label="Condition" value={detail.patientCondition ?? "Not provided"} />
-          <DetailRow label="Request for" value={detail.forWhom ? toStatusLabel(detail.forWhom) : "Not specified"} />
-        </Stack>
-      </AppCard>
+        <Box sx={{ borderTop: "1px solid var(--evz-border-subtle)", mt: 1.1, pt: 1.1, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "rgba(5,150,105,0.08)", borderRadius: 2, px: 1.3, py: 1 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: 20, color: "#047857" }}>Total paid</Typography>
+          <Typography sx={{ fontWeight: 900, fontSize: 30, color: "#059669", lineHeight: 1 }}>{totalPaid}</Typography>
+        </Box>
+      </Card>
 
-      <AppCard variant="muted">
-        <Stack spacing={0.8}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-            Ambulance and team
-          </Typography>
-          <DetailRow label="Assigned unit" value={detail.assignedUnit ?? "Pending assignment"} />
-          <DetailRow label="Number plate" value={detail.ambulancePlateNumber ?? "Pending assignment"} />
-          <DetailRow label="Driver name" value={detail.driverName ?? "Pending assignment"} />
-          <DetailRow label="Driver phone" value={detail.driverPhone ?? "Not provided"} />
-          <DetailRow label="Driver license" value={detail.driverLicenseNumber ?? "Not provided"} />
-          <DetailRow label="Hospital contact" value={detail.hospitalContactName ?? "Not provided"} />
-          <DetailRow label="Hospital phone" value={detail.hospitalContactPhone ?? "Not provided"} />
-        </Stack>
-      </AppCard>
-
-      <AppCard variant="muted">
-        <Stack spacing={0.8}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-            Caller and notes
-          </Typography>
-          <DetailRow label="Caller name" value={detail.callerName ?? "Not provided"} />
-          <DetailRow label="Caller phone" value={detail.callerPhone ?? "Not provided"} />
-          <DetailRow label="Notes" value={detail.notes ?? "No additional notes"} />
-        </Stack>
-      </AppCard>
-
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+      <Stack direction="row" spacing={1.2}>
         <Button
-          variant="outlined"
-          onClick={() => navigate("/ambulance/history")}
-          sx={{ textTransform: "none" }}
+          fullWidth
+          variant="contained"
+          startIcon={<ReceiptLongRoundedIcon />}
+          sx={{
+            borderRadius: 2.5,
+            py: 1.2,
+            textTransform: "none",
+            fontWeight: 700,
+            bgcolor: "rgba(5,150,105,0.12)",
+            color: "#059669",
+            boxShadow: "none",
+            "&:hover": {
+              bgcolor: "rgba(5,150,105,0.2)",
+              boxShadow: "none"
+            }
+          }}
         >
-          Back to history
+          View receipt
         </Button>
         <Button
-          variant="contained"
-          onClick={() => navigate("/ambulance/location")}
-          sx={{ textTransform: "none" }}
+          fullWidth
+          variant="outlined"
+          startIcon={<SupportAgentRoundedIcon />}
+          onClick={() => navigate("/help")}
+          sx={{
+            borderRadius: 2.5,
+            py: 1.2,
+            textTransform: "none",
+            fontWeight: 700,
+            color: "#059669",
+            borderColor: "rgba(5,150,105,0.5)"
+          }}
         >
-          New ambulance request
+          Contact support
         </Button>
       </Stack>
-    </ScreenScaffold>
+    </Box>
   );
+}
+
+function getEventTimestamp(detail: Partial<AmbulanceRequest> & { id: string }): string | undefined {
+  return detail.completedAt ?? detail.cancelledAt ?? detail.arrivedAt ?? detail.dispatchedAt ?? detail.requestedAt;
 }

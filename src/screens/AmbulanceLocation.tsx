@@ -1,424 +1,456 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  
   Box,
-  IconButton,
-  Typography,
+  Button,
   Card,
-  CardContent,
-  Stack,
   Chip,
-  TextField,
+  IconButton,
   InputAdornment,
-  Button
+  MenuItem,
+  Stack,
+  TextField,
+  Typography
 } from "@mui/material";
-
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
+import AddAlertRoundedIcon from "@mui/icons-material/AddAlertRounded";
+import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
+import MapRoundedIcon from "@mui/icons-material/MapRounded";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
-import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
-import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
-import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
+import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
+import MonitorHeartRoundedIcon from "@mui/icons-material/MonitorHeartRounded";
+import AccessibleRoundedIcon from "@mui/icons-material/AccessibleRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import { useAppData } from "../contexts/AppDataContext";
 
+const mobilityOptions = [
+  "Wheelchair assistance",
+  "Stretcher required",
+  "Walking assisted",
+  "No special support"
+];
+
+function formatRequestType(urgency: "low" | "medium" | "high"): string {
+  if (urgency === "high") return "Emergency ambulance";
+  if (urgency === "medium") return "Priority ambulance";
+  return "Standard ambulance";
+}
+
+function toAgeValue(value?: number): string {
+  if (!value || value <= 0) return "";
+  return String(value);
+}
 
 function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { ambulance, actions } = useAppData();
-  const [location, setLocation] = useState(ambulance.request.pickup?.address ?? "Nsambya Road 472, Kampala");
-  const [patientName, setPatientName] = useState(ambulance.request.patientName ?? "");
-  const [patientPhone, setPatientPhone] = useState(ambulance.request.patientPhone ?? "");
-  const [requestForWhom, setRequestForWhom] = useState<"family" | "facility">("family");
-  const [notes, setNotes] = useState(ambulance.request.notes ?? "");
+  const request = ambulance.request;
+
+  const [pickupAddress, setPickupAddress] = useState(
+    request.pickup?.address ?? "12 Riverside Ave, Indiranagar, Bengaluru"
+  );
+  const [patientName, setPatientName] = useState(request.patientName ?? "Mary Atieno");
+  const [patientAge, setPatientAge] = useState(toAgeValue(request.patientAge) || "63");
+  const [condition, setCondition] = useState(request.patientCondition ?? "Chest pain");
+  const [mobilityNeeds, setMobilityNeeds] = useState("Wheelchair assistance");
 
   const canContinue =
-    location.trim().length > 0 && patientPhone.trim().length > 0 && patientName.trim().length > 0;
+    pickupAddress.trim().length > 0 &&
+    patientName.trim().length > 0 &&
+    patientAge.trim().length > 0 &&
+    condition.trim().length > 0;
+
+  const parsedAge = useMemo(() => {
+    const value = Number.parseInt(patientAge, 10);
+    return Number.isFinite(value) ? value : undefined;
+  }, [patientAge]);
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
+    <Box sx={{ px: 2.5, pt: 2.5, pb: 16 }}>
       <Box
         sx={{
           mb: 2,
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between"
+          justifyContent: "space-between",
+          gap: 1
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
+        <IconButton
+          size="small"
+          aria-label="Back"
+          onClick={() => navigate(-1)}
+          sx={{
+            width: 42,
+            height: 42,
+            borderRadius: 2,
+            bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.92)"),
+            border: "1px solid var(--evz-border-subtle)"
+          }}
+        >
+          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+
+        <Typography variant="h5" sx={{ fontWeight: 700, fontSize: 20, letterSpacing: "-0.01em" }}>
+          Pickup location
+        </Typography>
+
+        <Chip
+          icon={<AddAlertRoundedIcon sx={{ fontSize: 16 }} />}
+          label="Emergency"
+          size="small"
+          sx={{
+            height: 36,
+            borderRadius: 2,
+            px: 0.6,
+            bgcolor: "rgba(239,68,68,0.12)",
+            color: "#DC2626",
+            border: "1px solid rgba(239,68,68,0.2)",
+            fontWeight: 600
+          }}
+        />
+      </Box>
+
+      <Card
+        elevation={0}
+        sx={{
+          mb: 2,
+          borderRadius: 3,
+          border: "1px solid var(--evz-border-subtle)",
+          overflow: "hidden"
+        }}
+      >
+        <Box
+          sx={{
+            position: "relative",
+            height: 286,
+            bgcolor: "#EEF2F7",
+            backgroundImage:
+              "linear-gradient(to right, rgba(148,163,184,0.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.18) 1px, transparent 1px)",
+            backgroundSize: "28px 28px"
+          }}
+        >
+          <Box
             sx={{
-              borderRadius: 5,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 0.6
             }}
           >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+            <Box
+              sx={{
+                width: 58,
+                height: 58,
+                borderRadius: "50%",
+                bgcolor: "rgba(220,38,38,0.12)",
+                display: "grid",
+                placeItems: "center"
+              }}
+            >
+              <LocalHospitalRoundedIcon sx={{ color: "#DC2626", fontSize: 34 }} />
+            </Box>
+            <PlaceRoundedIcon sx={{ color: "#DC2626", fontSize: 34 }} />
+          </Box>
+
+          <IconButton
+            size="small"
+            sx={{
+              position: "absolute",
+              left: 16,
+              bottom: 16,
+              width: 48,
+              height: 48,
+              borderRadius: 2,
+              bgcolor: "rgba(255,255,255,0.96)",
+              border: "1px solid var(--evz-border-subtle)"
+            }}
+          >
+            <MyLocationRoundedIcon sx={{ color: "#059669" }} />
           </IconButton>
+
+          <Box
+            sx={{
+              position: "absolute",
+              right: 26,
+              bottom: 26,
+              width: 64,
+              height: 64,
+              borderRadius: "50%",
+              bgcolor: "rgba(59,130,246,0.18)",
+              display: "grid",
+              placeItems: "center"
+            }}
+          >
+            <Box
+              sx={{
+                width: 18,
+                height: 18,
+                borderRadius: "50%",
+                bgcolor: "#2563EB",
+                border: "3px solid #FFFFFF"
+              }}
+            />
+          </Box>
+        </Box>
+      </Card>
+
+      <Card
+        elevation={0}
+        sx={{ mb: 2, borderRadius: 3, border: "1px solid var(--evz-border-subtle)", p: 2 }}
+      >
+        <Typography variant="h6" sx={{ fontSize: 20, fontWeight: 700, mb: 1.4 }}>
+          Patient pickup location
+        </Typography>
+
+        <TextField
+          fullWidth
+          value={pickupAddress}
+          onChange={(event) => setPickupAddress(event.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <PlaceRoundedIcon sx={{ color: "#059669" }} />
+              </InputAdornment>
+            ),
+            endAdornment: (
+              <InputAdornment position="end">
+                <CheckCircleRoundedIcon sx={{ color: "#059669" }} />
+              </InputAdornment>
+            )
+          }}
+          sx={{
+            mb: 1.5,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 2,
+              bgcolor: "#FFFFFF"
+            }
+          }}
+        />
+
+        <Stack direction="row" spacing={1}>
+          {[
+            { icon: <MyLocationRoundedIcon />, label: "Use current location" },
+            { icon: <MapRoundedIcon />, label: "Choose on map" },
+            { icon: <EditRoundedIcon />, label: "Enter manually" }
+          ].map((action) => (
+            <Button
+              key={action.label}
+              fullWidth
+              variant="outlined"
+              startIcon={action.icon}
+              sx={{
+                borderRadius: 2,
+                py: 1,
+                borderColor: "var(--evz-border-subtle)",
+                color: "#334155",
+                fontSize: 12,
+                lineHeight: 1.2
+              }}
+            >
+              {action.label}
+            </Button>
+          ))}
+        </Stack>
+      </Card>
+
+      <Card
+        elevation={0}
+        sx={{ mb: 2, borderRadius: 3, border: "1px solid var(--evz-border-subtle)", p: 2 }}
+      >
+        <Typography variant="h6" sx={{ fontSize: 20, fontWeight: 700, mb: 1.4 }}>
+          Patient details
+        </Typography>
+
+        <Stack direction="row" spacing={1.25} sx={{ mb: 1.2 }}>
+          <TextField
+            fullWidth
+            label="Patient name"
+            value={patientName}
+            onChange={(event) => setPatientName(event.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PersonOutlineRoundedIcon sx={{ color: "#059669" }} />
+                </InputAdornment>
+              )
+            }}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+          />
+          <TextField
+            fullWidth
+            label="Age"
+            value={patientAge}
+            onChange={(event) => setPatientAge(event.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <CalendarMonthRoundedIcon sx={{ color: "#059669" }} />
+                </InputAdornment>
+              )
+            }}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+          />
+        </Stack>
+
+        <Stack direction="row" spacing={1.25} sx={{ mb: 1.4 }}>
+          <TextField
+            fullWidth
+            label="Condition"
+            value={condition}
+            onChange={(event) => setCondition(event.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <MonitorHeartRoundedIcon sx={{ color: "#EA580C" }} />
+                </InputAdornment>
+              )
+            }}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+          />
+          <TextField
+            fullWidth
+            select
+            label="Mobility needs"
+            value={mobilityNeeds}
+            onChange={(event) => setMobilityNeeds(event.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <AccessibleRoundedIcon sx={{ color: "#EA580C" }} />
+                </InputAdornment>
+              )
+            }}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+          >
+            {mobilityOptions.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Stack>
+
+        <Box
+          sx={{
+            borderRadius: 2,
+            border: "1px solid rgba(239,68,68,0.18)",
+            bgcolor: "rgba(239,68,68,0.06)",
+            px: 1.5,
+            py: 1.2,
+            display: "flex",
+            alignItems: "center",
+            gap: 1
+          }}
+        >
+          <AddAlertRoundedIcon sx={{ color: "#DC2626" }} />
           <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              Confirm location & patient
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              We’ll use this to dispatch the nearest ambulance
+            <Typography sx={{ fontWeight: 700, fontSize: 18 }}>Priority dispatch enabled</Typography>
+            <Typography sx={{ fontSize: 13, color: "#475569" }}>
+              Closest ambulance will be assigned to your request.
             </Typography>
           </Box>
         </Box>
-      </Box>
-
-      {/* Location card */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block" }}
-          >
-            Current location
-          </Typography>
-          <TextField
-            fullWidth
-            size="small"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PlaceRoundedIcon sx={{ fontSize: 18, color: "#DC2626" }} />
-                </InputAdornment>
-              )
-            }}
-            sx={{
-              mb: 1.25,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 5,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFF7F7" : "rgba(15,23,42,0.96)",
-                "& fieldset": {
-                  borderColor: (t) =>
-                    t.palette.mode === "light"
-                      ? "rgba(248,113,113,0.9)"
-                      : "rgba(127,29,29,0.9)"
-                },
-                "&:hover fieldset": { borderColor: "#DC2626" }
-              }
-            }}
-          />
-          <Stack direction="row" spacing={1}>
-            <Chip
-              label="Use current GPS location"
-              size="small"
-              sx={{
-                borderRadius: 5,
-                fontSize: 11,
-                height: 26,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-                color: (t) => t.palette.text.primary
-              }}
-            />
-            <Chip
-              label="Share live location"
-              size="small"
-              sx={{
-                borderRadius: 5,
-                fontSize: 11,
-                height: 26,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-                color: (t) => t.palette.text.primary
-              }}
-            />
-          </Stack>
-        </CardContent>
       </Card>
 
-      {/* Request target */}
       <Card
-        elevation={0}
+        elevation={8}
         sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
+          position: "fixed",
+          left: 0,
+          right: 0,
+          bottom: "calc(72px + env(safe-area-inset-bottom, 0px))",
+          mx: "auto",
+          maxWidth: { xs: "100%", md: "768px", lg: "1024px" },
+          borderRadius: 0,
+          borderTop: "1px solid var(--evz-border-subtle)",
+          px: 2,
+          py: 1.5,
+          zIndex: 1100
         }}
       >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block" }}
-          >
-            This request is for
-          </Typography>
-          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
-            <Chip
-              label="Family / friend"
-              size="small"
-              onClick={() => setRequestForWhom("family")}
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
+            <Box
               sx={{
-                borderRadius: 5,
-                fontSize: 11,
-                height: 26,
-                bgcolor:
-                  requestForWhom === "family"
-                    ? "primary.main"
-                    : (t) =>
-                        t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-                color: requestForWhom === "family" ? "#020617" : (t) => t.palette.text.primary
-              }}
-            />
-            <Chip
-              label="Clinic / hospital"
-              size="small"
-              onClick={() => setRequestForWhom("facility")}
-              sx={{
-                borderRadius: 5,
-                fontSize: 11,
-                height: 26,
-                bgcolor:
-                  requestForWhom === "facility"
-                    ? "primary.main"
-                    : (t) =>
-                        t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-                color:
-                  requestForWhom === "facility" ? "#020617" : (t) => t.palette.text.primary
-              }}
-            />
-          </Stack>
-        </CardContent>
-      </Card>
-
-      {/* Patient details card */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={1}
-            alignItems={{ xs: "flex-start", sm: "center" }}
-            justifyContent="space-between"
-            sx={{ mb: 1 }}
-          >
-            <Stack direction="row" spacing={0.75} alignItems="center">
-              <PersonRoundedIcon
-                sx={{ fontSize: 18, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Patient details
-              </Typography>
-            </Stack>
-            <PhoneBookPickerButton
-              size="small"
-              variant="outlined"
-              onContactPicked={(contact) => {
-                setPatientName(contact.name);
-                setPatientPhone(contact.phone);
-              }}
-              sx={{ textTransform: "none", borderRadius: 5 }}
-            >
-              Import from phone book
-            </PhoneBookPickerButton>
-          </Stack>
-
-          <TextField
-            fullWidth
-            size="small"
-            value={patientName}
-            onChange={(e) => setPatientName(e.target.value)}
-            placeholder="Patient full name"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PersonRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
-                </InputAdornment>
-              )
-            }}
-            sx={{
-              mb: 1.2,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 5,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                "& fieldset": {
-                  borderColor: (t) =>
-                    t.palette.mode === "light"
-                      ? "rgba(209,213,219,0.9)"
-                      : "rgba(51,65,85,0.9)"
-                },
-                "&:hover fieldset": { borderColor: "primary.main" }
-              }
-            }}
-          />
-
-          <TextField
-            fullWidth
-            size="small"
-            value={patientPhone}
-            onChange={(e) => setPatientPhone(e.target.value)}
-            placeholder="Contact phone number"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PhoneIphoneRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
-                </InputAdornment>
-              )
-            }}
-            sx={{
-              mb: 1.4,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 5,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
-                "& fieldset": {
-                  borderColor: (t) =>
-                    t.palette.mode === "light"
-                      ? "rgba(209,213,219,0.9)"
-                      : "rgba(51,65,85,0.9)"
-                },
-                "&:hover fieldset": { borderColor: "primary.main" }
-              }
-            }}
-          />
-
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block" }}
-          >
-            Brief notes (optional)
-          </Typography>
-          <TextField
-            fullWidth
-            multiline
-            minRows={2}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="E.g. breathing difficulties, severe pain, pregnancy, etc."
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <DescriptionRoundedIcon
-                    sx={{ fontSize: 18, color: "text.secondary", mt: 0.5 }}
-                  />
-                </InputAdornment>
-              )
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
+                width: 46,
+                height: 46,
                 borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                "& fieldset": {
-                  borderColor: (t) =>
-                    t.palette.mode === "light"
-                      ? "rgba(209,213,219,0.9)"
-                      : "rgba(51,65,85,0.9)"
-                },
-                "&:hover fieldset": { borderColor: "primary.main" }
+                bgcolor: "rgba(239,68,68,0.08)",
+                display: "grid",
+                placeItems: "center"
+              }}
+            >
+              <LocalHospitalRoundedIcon sx={{ color: "#DC2626" }} />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontSize: 12, color: "#64748B" }}>Request type</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: 16 }}>{formatRequestType(request.urgency)}</Typography>
+              <Typography sx={{ color: "#DC2626", fontSize: 12, whiteSpace: "nowrap" }}>
+                Priority dispatch • Immediate response
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Button
+            variant="contained"
+            disabled={!canContinue}
+            onClick={() => {
+              actions.updateAmbulanceRequest({
+                pickup: { label: pickupAddress, address: pickupAddress },
+                patientName,
+                patientAge: parsedAge,
+                patientCondition: condition,
+                patientPhone: request.patientPhone ?? request.callerPhone ?? "+256700000000",
+                notes: mobilityNeeds,
+                status: "requested"
+              });
+              navigate("/ambulance/destination");
+            }}
+            endIcon={<ChevronRightRoundedIcon />}
+            sx={{
+              minWidth: 248,
+              borderRadius: 3,
+              py: 1.5,
+              fontSize: 15,
+              fontWeight: 700,
+              color: "#FFFFFF",
+              background: "linear-gradient(90deg, #059669 0%, #EA580C 100%)",
+              "&:hover": {
+                background: "linear-gradient(90deg, #047857 0%, #C2410C 100%)"
+              },
+              "&.Mui-disabled": {
+                color: "#E2E8F0",
+                background: "#94A3B8"
               }
             }}
-          />
-        </CardContent>
+          >
+            Continue to destination
+          </Button>
+        </Stack>
       </Card>
-
-      <Button
-        fullWidth
-        variant="contained"
-        onClick={() => {
-          actions.updateAmbulanceRequest({
-            pickup: { label: location, address: location },
-            patientName,
-            patientPhone,
-            forWhom: "someone",
-            notes
-          });
-          navigate("/ambulance/destination");
-        }}
-        disabled={!canContinue}
-        sx={{
-          borderRadius: 5,
-          py: 1.1,
-          fontSize: 15,
-          fontWeight: 600,
-          textTransform: "none",
-          bgcolor: canContinue ? "primary.main" : "#9CA3AF",
-          color: canContinue ? "#020617" : "#E5E7EB",
-          "&:hover": {
-            bgcolor: canContinue ? "#06e29a" : "#9CA3AF"
-          }
-        }}
-      >
-        Confirm location & find ambulance
-      </Button>
-
-      <Typography
-        variant="caption"
-        sx={{ mt: 1.2, fontSize: 11, color: (t) => t.palette.text.secondary }}
-      >
-        Only share enough information to help responders understand urgency.
-        Detailed medical history can be shared directly with medical staff.
-      </Typography>
     </Box>
   );
 }
 
-export default function RiderScreen84AmbulanceLocationPatientDetailsCanvas_v2() {
-      return (
-    
-      
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: (t) => t.palette.background.default
-        }}
-      >
-
-          <AmbulanceLocationPatientDetailsScreen />
-        
-      </Box>
-    
+export default function RiderScreen84AmbulanceLocationPatientDetailsCanvas_v2(): React.JSX.Element {
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        minHeight: "100vh",
+        bgcolor: (t) => t.palette.background.default
+      }}
+    >
+      <AmbulanceLocationPatientDetailsScreen />
+    </Box>
   );
 }
