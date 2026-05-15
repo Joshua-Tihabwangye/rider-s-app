@@ -110,6 +110,9 @@ import AmbulanceConfirmation from "../screens/AmbulanceConfirmation";
 import AmbulanceTracking from "../screens/AmbulanceTracking";
 import AmbulanceHistory from "../screens/AmbulanceHistory";
 import AmbulanceHistoryDetail from "../screens/AmbulanceHistoryDetail";
+import AmbulancePaymentWallet from "../screens/AmbulancePaymentWallet";
+import AmbulancePaymentCard from "../screens/AmbulancePaymentCard";
+import AmbulancePaymentMobileMoney from "../screens/AmbulancePaymentMobileMoney";
 import Wallet from "../screens/Wallet";
 import {
   WalletTransferMethodScreen,
@@ -306,6 +309,9 @@ export default function AppRouter(): React.JSX.Element {
 						path="confirmation"
 						element={<AmbulanceConfirmation />}
 					/>
+					<Route path="payment/wallet" element={<AmbulancePaymentWallet />} />
+					<Route path="payment/card" element={<AmbulancePaymentCard />} />
+					<Route path="payment/mobile-money" element={<AmbulancePaymentMobileMoney />} />
 					<Route path="tracking" element={<AmbulanceTracking />} />
 					<Route path="history" element={<AmbulanceHistory />} />
 					<Route path="history/:requestId" element={<AmbulanceHistoryDetail />} />

@@ -42,6 +42,7 @@ import {
   getDeliveryOrderModeSummary,
   getDeliveryOrderModeTone
 } from "../features/delivery/orderMode";
+import { uiConfig } from "../config/uiConfig";
 
 const CREATION_STEPS = [
   "Pickup & dropoff",
@@ -523,10 +524,10 @@ export default function DeliveryNew(): React.JSX.Element {
   };
 
   return (
-    <ScreenScaffold>
+    <ScreenScaffold className="evz-delivery-screen">
       <SectionHeader
-        title="New delivery"
-        subtitle="Create, price, and confirm a parcel delivery"
+        title={uiConfig.delivery.labels.newTitle}
+        subtitle={uiConfig.delivery.labels.newSubtitle}
         leadingAction={
           <IconButton
             size="small"
@@ -662,12 +663,6 @@ export default function DeliveryNew(): React.JSX.Element {
                         {index === 0 && <Chip size="small" label="First dropoff" />}
                       </Stack>
                       <Stack direction="row" spacing={0.6} flexWrap="wrap" useFlexGap>
-                        <Button size="small" variant="outlined" onClick={() => moveStop(index, -1)} disabled={index === 0} sx={{ textTransform: "none" }}>
-                          Up
-                        </Button>
-                        <Button size="small" variant="outlined" onClick={() => moveStop(index, 1)} disabled={index === draftStops.length - 1} sx={{ textTransform: "none" }}>
-                          Down
-                        </Button>
                         <Button size="small" variant="outlined" onClick={() => duplicateStop(index)} sx={{ textTransform: "none" }}>
                           Duplicate
                         </Button>
@@ -1472,14 +1467,16 @@ export default function DeliveryNew(): React.JSX.Element {
               <Button
                 variant="contained"
                 onClick={handleNext}
+                className="evz-delivery-cta"
                 sx={{ textTransform: "none", fontWeight: 700, minHeight: uiTokens.delivery.button.mdHeight }}
               >
-                Continue
+                {uiConfig.delivery.buttons.primary}
               </Button>
             ) : (
               <Button
                 variant="contained"
                 onClick={handleConfirm}
+                className="evz-delivery-cta"
                 sx={{ textTransform: "none", fontWeight: 700, minHeight: uiTokens.delivery.button.mdHeight }}
               >
                 Confirm delivery

@@ -1,0 +1,124 @@
+.evz-delivery-screen {
+  --evz-del-card-radius: 22px;
+  --evz-del-card-border: 1px solid rgba(209, 213, 219, 0.88);
+  --evz-del-card-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  --evz-del-title-size: clamp(1.6rem, 4.2vw, 2.1rem);
+  --evz-del-subtitle-size: clamp(0.82rem, 2.2vw, 0.98rem);
+  --evz-del-action-gradient: linear-gradient(100deg, #03cd8c 0%, #059669 48%, #f97316 100%);
+}
+
+.evz-delivery-screen .MuiCard-root,
+.evz-delivery-screen .MuiPaper-root {
+  border-radius: var(--evz-del-card-radius);
+}
+
+.evz-delivery-screen .MuiCard-root {
+  border: var(--evz-del-card-border);
+  box-shadow: var(--evz-del-card-shadow);
+}
+
+.evz-delivery-screen .MuiTypography-h6 {
+  font-size: var(--evz-del-title-size);
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+.evz-delivery-screen .MuiTypography-caption {
+  font-size: var(--evz-del-subtitle-size);
+}
+
+.evz-delivery-screen .MuiTypography-body1 {
+  font-size: 0.92rem;
+}
+
+.evz-delivery-screen .MuiTypography-body2 {
+  font-size: 0.84rem;
+}
+
+.evz-delivery-screen .MuiButton-root {
+  font-size: 0.83rem;
+  min-height: 36px;
+}
+
+.evz-delivery-screen .MuiChip-root {
+  font-size: 0.72rem;
+}
+
+.evz-delivery-screen .evz-delivery-cta {
+  background: var(--evz-del-action-gradient);
+  color: #fff;
+  border: 0;
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(5, 150, 105, 0.28);
+}
+
+.evz-delivery-screen .MuiButton-containedPrimary {
+  background: var(--evz-del-action-gradient);
+  color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(5, 150, 105, 0.2);
+}
+
+.evz-delivery-screen .MuiButton-containedPrimary:hover {
+  filter: brightness(0.98);
+  background: var(--evz-del-action-gradient);
+}
+
+.evz-delivery-screen .evz-delivery-cta.Mui-disabled {
+  color: rgba(255, 255, 255, 0.78);
+  opacity: 0.7;
+}
+
+.evz-delivery-screen .evz-delivery-chip {
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+@media (min-width: 900px) {
+  .evz-delivery-screen {
+    --evz-del-title-size: clamp(1.65rem, 2.4vw, 2.35rem);
+  }
+}
+
+@media (max-width: 600px) {
+  .evz-delivery-screen {
+    --evz-del-card-radius: 18px;
+  }
+}
+
+.evz-delivery-dashboard .MuiTypography-h6 {
+  font-size: clamp(1.08rem, 2.2vw, 1.52rem);
+  letter-spacing: -0.02em;
+}
+
+.evz-delivery-dashboard .MuiTypography-subtitle1 {
+  font-size: clamp(0.9rem, 1.45vw, 1rem);
+}
+
+.evz-delivery-dashboard .MuiTypography-subtitle2 {
+  font-size: clamp(0.82rem, 1.2vw, 0.9rem);
+}
+
+.evz-delivery-dashboard .MuiTypography-body1 {
+  font-size: clamp(0.82rem, 1.1vw, 0.9rem);
+}
+
+.evz-delivery-dashboard .MuiTypography-body2 {
+  font-size: clamp(0.78rem, 1.05vw, 0.84rem);
+}
+
+.evz-delivery-dashboard .MuiTypography-caption {
+  font-size: clamp(0.7rem, 0.98vw, 0.78rem);
+}
+
+.evz-delivery-dashboard .MuiButton-root {
+  font-size: clamp(0.76rem, 1vw, 0.82rem);
+}
+
+.evz-delivery-dashboard .MuiInputBase-input {
+  font-size: clamp(0.84rem, 1.1vw, 0.9rem);
+}
+
+.evz-delivery-dashboard .MuiChip-root {
+  font-size: clamp(0.68rem, 0.9vw, 0.74rem);
+}

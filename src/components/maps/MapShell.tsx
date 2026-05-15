@@ -54,6 +54,10 @@ interface MapShellProps {
   alerts?: LeafletAlertMarker[];
   routePolyline?: MapPoint[];
   routeAlternativePolylines?: MapPoint[][];
+  routeProgress?: number | null;
+  routeCompletedColor?: string;
+  routeRemainingColor?: string;
+  routeBaseColor?: string;
   routeDistanceKm?: number | null;
   routeDurationMin?: number | null;
   routeInfoLabel?: string | null;
@@ -122,6 +126,7 @@ export default function MapShell({
   height,
   rounded = false,
   showGrid = false,
+  showControls = false,
   showBackButton,
   showSosButton,
   onBack,
@@ -142,6 +147,10 @@ export default function MapShell({
   alerts = [],
   routePolyline = [],
   routeAlternativePolylines = [],
+  routeProgress = null,
+  routeCompletedColor = "#16a34a",
+  routeRemainingColor = "#f97316",
+  routeBaseColor = "#ffffff",
   routeDistanceKm = null,
   routeDurationMin = null,
   routeInfoLabel = null,
@@ -310,8 +319,13 @@ export default function MapShell({
           alerts={alerts}
           routePolyline={effectiveRoutePolyline}
           alternativePolylines={routeAlternativePolylines}
+          routeProgress={routeProgress}
+          routeCompletedColor={routeCompletedColor}
+          routeRemainingColor={routeRemainingColor}
+          routeBaseColor={routeBaseColor}
           showTraffic={false}
           showAlerts={false}
+          showViewSwitcher={showControls}
           onMarkerClick={onMarkerClick}
           onMapClick={onMapClick}
           onLocationSelect={onLocationSelect}

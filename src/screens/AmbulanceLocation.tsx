@@ -25,6 +25,8 @@ import AccessibleRoundedIcon from "@mui/icons-material/AccessibleRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
+import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded";
 import { useAppData } from "../contexts/AppDataContext";
 
 const mobilityOptions = [
@@ -57,6 +59,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
   const [patientAge, setPatientAge] = useState(toAgeValue(request.patientAge) || "63");
   const [condition, setCondition] = useState(request.patientCondition ?? "Chest pain");
   const [mobilityNeeds, setMobilityNeeds] = useState("Wheelchair assistance");
+  const [contentExtendedDown, setContentExtendedDown] = useState(false);
 
   const canContinue =
     pickupAddress.trim().length > 0 &&
@@ -115,19 +118,22 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
         />
       </Box>
 
-      <Card
-        elevation={0}
+      <Box
         sx={{
-          mb: 2,
-          borderRadius: 3,
-          border: "1px solid var(--evz-border-subtle)",
+          position: "relative",
+          width: "100vw",
+          ml: "calc(50% - 50vw)",
+          mr: "calc(50% - 50vw)",
+          mb: 0.5,
+          height: contentExtendedDown ? { xs: "56vh", sm: "52vh" } : { xs: "36vh", sm: "34vh" },
+          transition: "height 260ms ease",
           overflow: "hidden"
         }}
       >
         <Box
           sx={{
             position: "relative",
-            height: 286,
+            height: "100%",
             bgcolor: "#EEF2F7",
             backgroundImage:
               "linear-gradient(to right, rgba(148,163,184,0.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.18) 1px, transparent 1px)",
@@ -201,7 +207,35 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
             />
           </Box>
         </Box>
-      </Card>
+      </Box>
+
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
+        <Button
+          onClick={() => setContentExtendedDown((prev) => !prev)}
+          startIcon={contentExtendedDown ? <KeyboardArrowUpRoundedIcon /> : <KeyboardArrowDownRoundedIcon />}
+          sx={{
+            minWidth: 0,
+            borderRadius: 999,
+            px: 2,
+            py: 0.5,
+            textTransform: "none",
+            fontWeight: 700,
+            color: "#334155",
+            bgcolor: "#F1F5F9",
+            border: "1px solid var(--evz-border-subtle)",
+            "&:hover": { bgcolor: "#E2E8F0" }
+          }}
+        >
+          {contentExtendedDown ? "Show details" : "Extend map"}
+        </Button>
+      </Box>
+
+      <Box
+        sx={{
+          transform: contentExtendedDown ? { xs: "translateY(8vh)", sm: "translateY(6vh)" } : "translateY(0)",
+          transition: "transform 260ms ease"
+        }}
+      >
 
       <Card
         elevation={0}
@@ -360,6 +394,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
           </Box>
         </Box>
       </Card>
+      </Box>
 
       <Card
         elevation={8}
@@ -377,7 +412,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
           zIndex: 1100
         }}
       >
-        <Stack direction="row" spacing={1.5} alignItems="center">
+        <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} alignItems="center">
           <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
             <Box
               sx={{
@@ -393,8 +428,10 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
             </Box>
             <Box sx={{ minWidth: 0 }}>
               <Typography sx={{ fontSize: 12, color: "#64748B" }}>Request type</Typography>
-              <Typography sx={{ fontWeight: 700, fontSize: 16 }}>{formatRequestType(request.urgency)}</Typography>
-              <Typography sx={{ color: "#DC2626", fontSize: 12, whiteSpace: "nowrap" }}>
+              <Typography sx={{ fontWeight: 700, fontSize: { xs: 14, sm: 16 }, lineHeight: 1.2 }}>
+                {formatRequestType(request.urgency)}
+              </Typography>
+              <Typography sx={{ color: "#DC2626", fontSize: { xs: 11, sm: 12 }, whiteSpace: "nowrap" }}>
                 Priority dispatch • Immediate response
               </Typography>
             </Box>
@@ -417,10 +454,13 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
             }}
             endIcon={<ChevronRightRoundedIcon />}
             sx={{
-              minWidth: 248,
+              minWidth: { xs: 168, sm: 220, md: 248 },
               borderRadius: 3,
-              py: 1.5,
-              fontSize: 15,
+              px: { xs: 1.8, sm: 2.4 },
+              py: { xs: 1.05, sm: 1.5 },
+              fontSize: { xs: 13, sm: 15 },
+              whiteSpace: "nowrap",
+              flexShrink: 0,
               fontWeight: 700,
               color: "#FFFFFF",
               background: "linear-gradient(90deg, #059669 0%, #EA580C 100%)",

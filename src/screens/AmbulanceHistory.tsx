@@ -130,6 +130,10 @@ function AmbulanceHistoryCard({ request, onOpen }: { request: AmbulanceRequest; 
             <Button
               size="small"
               startIcon={<ReplayRoundedIcon />}
+              onClick={(event) => {
+                event.stopPropagation();
+                onOpen();
+              }}
               sx={{
                 mt: 1,
                 borderRadius: 2,

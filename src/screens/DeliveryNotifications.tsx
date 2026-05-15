@@ -17,6 +17,7 @@ import AppCard from "../components/primitives/AppCard";
 import ListSection from "../components/primitives/ListSection";
 import { useAppData } from "../contexts/AppDataContext";
 import { uiTokens } from "../design/tokens";
+import { uiConfig } from "../config/uiConfig";
 
 function formatDateTime(value: string): string {
   const date = new Date(value);
@@ -45,10 +46,10 @@ export default function DeliveryNotifications(): React.JSX.Element {
   }, [delivery.notifications.length]);
 
   return (
-    <ScreenScaffold>
+    <ScreenScaffold className="evz-delivery-screen">
       <SectionHeader
-        title="Notification center"
-        subtitle="Delivery updates, proof, payment and issue alerts"
+        title={uiConfig.delivery.labels.notificationsTitle}
+        subtitle={uiConfig.delivery.labels.notificationsSubtitle}
         leadingAction={
           <IconButton
             size="small"

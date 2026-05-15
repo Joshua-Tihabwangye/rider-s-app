@@ -21,6 +21,7 @@ import {
   getDeliveryOrderModeTone
 } from "../features/delivery/orderMode";
 import type { PaymentMethodType } from "../store/types";
+import { uiConfig } from "../config/uiConfig";
 
 function formatAmount(value: number): string {
   return `UGX ${Math.round(value).toLocaleString()}`;
@@ -63,7 +64,7 @@ export default function DeliverySettlement(): React.JSX.Element {
 
   if (!order) {
     return (
-      <ScreenScaffold>
+      <ScreenScaffold className="evz-delivery-screen">
         <SectionHeader
           title="Delivery settlement"
           subtitle="Order not found"
@@ -91,10 +92,10 @@ export default function DeliverySettlement(): React.JSX.Element {
   };
 
   return (
-    <ScreenScaffold>
+    <ScreenScaffold className="evz-delivery-screen">
       <SectionHeader
-        title={`Settlement ${order.id}`}
-        subtitle="Delivery-specific authorization and capture flow"
+        title={`${uiConfig.delivery.labels.settlementTitle} ${order.id}`}
+        subtitle={uiConfig.delivery.labels.settlementSubtitle}
         leadingAction={
           <IconButton
             size="small"
@@ -235,6 +236,7 @@ export default function DeliverySettlement(): React.JSX.Element {
           startIcon={<PaymentsRoundedIcon sx={{ fontSize: 16 }} />}
           onClick={handleCaptureSettlement}
           disabled={!canCaptureSettlement}
+          className="evz-delivery-cta"
           sx={{ textTransform: "none" }}
         >
           {settlementFinalized ? "Settlement finalized" : "Capture settlement"}

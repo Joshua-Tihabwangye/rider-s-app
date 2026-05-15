@@ -8,6 +8,7 @@ interface ScreenScaffoldProps {
   disableTopPadding?: boolean;
   disableBottomPadding?: boolean;
   contentSx?: SxProps<Theme>;
+  className?: string;
 }
 
 export default function ScreenScaffold({
@@ -15,7 +16,8 @@ export default function ScreenScaffold({
   children,
   disableTopPadding = false,
   disableBottomPadding = false,
-  contentSx
+  contentSx,
+  className
 }: ScreenScaffoldProps): React.JSX.Element {
   const defaultPxXs = `${uiTokens.spacing.container.xs * 8}px`;
   const defaultPxMd = `${uiTokens.spacing.container.md * 8}px`;
@@ -27,6 +29,7 @@ export default function ScreenScaffold({
 
   return (
     <Box
+      className={className}
       sx={[
         {
           px: {

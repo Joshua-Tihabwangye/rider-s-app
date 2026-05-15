@@ -21,6 +21,7 @@ import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { useAppData } from "../contexts/AppDataContext";
 import { uiTokens } from "../design/tokens";
+import { uiConfig } from "../config/uiConfig";
 
 const TAGS = [
   "On-time delivery",
@@ -48,7 +49,7 @@ export default function DeliveryRating(): React.JSX.Element {
 
   if (!order) {
     return (
-      <ScreenScaffold>
+      <ScreenScaffold className="evz-delivery-screen">
         <SectionHeader
           title="Rate delivery"
           subtitle="Order not found"
@@ -86,10 +87,10 @@ export default function DeliveryRating(): React.JSX.Element {
   const canSubmit = rating > 0;
 
   return (
-    <ScreenScaffold>
+    <ScreenScaffold className="evz-delivery-screen">
       <SectionHeader
-        title="How was your delivery?"
-        subtitle="Rate the courier and delivery experience"
+        title={uiConfig.delivery.labels.ratingTitle}
+        subtitle={uiConfig.delivery.labels.ratingSubtitle}
         leadingAction={
           <IconButton
             size="small"
@@ -222,6 +223,7 @@ export default function DeliveryRating(): React.JSX.Element {
         disabled={!canSubmit}
         onClick={handleSubmit}
         startIcon={<StarRoundedIcon sx={{ fontSize: 18 }} />}
+        className="evz-delivery-cta"
         sx={{
           borderRadius: 5,
           py: 1.1,
