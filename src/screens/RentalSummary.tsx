@@ -100,20 +100,28 @@ export default function RentalSummary(): React.JSX.Element {
 
       <Card sx={{ ...cardSx, mb: 1.5 }}>
         <CardContent sx={{ p: 1.45, "&:last-child": { pb: 1.45 } }}>
-          <Stack direction={{ xs: "column", md: "row" }} spacing={1.2} alignItems="center" sx={{ mb: 1.15 }}>
+          <Stack direction="row" spacing={1.15} alignItems="center" sx={{ mb: 1.15 }}>
             <CroppedReferenceImage
               src={getVehicleImageFromName(vehicle.name)}
               alt={vehicleLabel}
               height={124}
               scale={1}
-              sx={{ width: 230, borderRadius: 2.5 }}
+              fit="contain"
+              sx={{ width: 150, borderRadius: 2.5, flexShrink: 0 }}
             />
             <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography sx={{ fontSize: 58/2, fontWeight: 800 }}>{vehicleLabel}</Typography>
+              <Typography sx={{ fontSize: 24/1.2, fontWeight: 800 }}>{vehicleLabel}</Typography>
               <Chip
                 icon={<DirectionsCarRoundedIcon />}
                 label={rental.booking.rentalMode === "chauffeur" ? "Chauffeur" : "Self-drive"}
-                sx={{ mt: 0.8, bgcolor: rentalUi.greenSoft, color: rentalUi.greenDeep, fontWeight: 700 }}
+                sx={{
+                  mt: 0.6,
+                  bgcolor: rentalUi.greenSoft,
+                  color: rentalUi.greenDeep,
+                  fontWeight: 700,
+                  height: 34,
+                  "& .MuiChip-label": { fontSize: "11.5px !important", px: 0.95 }
+                }}
               />
             </Box>
           </Stack>

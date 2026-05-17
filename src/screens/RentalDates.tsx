@@ -4,9 +4,7 @@ import {
   Box,
   Card,
   CardContent,
-  Divider,
   IconButton,
-  MenuItem,
   Stack,
   TextField,
   Typography
@@ -30,20 +28,26 @@ import {
 import { getVehicleImageFromName } from "../features/rental/uiAssets";
 
 const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const gridDays = [
-  28, 29, 30, 1, 2, 3, 4,
-  5, 6, 7, 8, 9, 10, 11,
-  12, 13, 14, 15, 16, 17, 18,
-  19, 20, 21, 22, 23, 24, 25,
-  26, 27, 28, 29, 30, 31, 1
-];
 
-function isMuted(index: number): boolean {
-  return index <= 2 || index === gridDays.length - 1;
+function atMidnight(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-function isInRange(day: number): boolean {
-  return day >= 14 && day <= 18;
+function isSameDay(left: Date, right: Date): boolean {
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate()
+  );
+}
+
+function toDisplayDate(date: Date): string {
+  return date.toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
 }
 
 export default function RentalDates(): React.JSX.Element {
@@ -55,12 +59,69 @@ export default function RentalDates(): React.JSX.Element {
     [rental.booking.vehicleId, rental.vehicles]
   );
 
-  const [pickupDate] = useState("Wed, 14 May 2025");
-  const [returnDate] = useState("Sun, 18 May 2025");
-  const [pickupTime, setPickupTime] = useState("10:00 AM");
-  const [returnTime, setReturnTime] = useState("10:00 AM");
+  const [visibleMonth, setVisibleMonth] = useState(() => new Date(2025, 4, 1));
+  const [pickupDate, setPickupDate] = useState(() => atMidnight(new Date(2025, 4, 14)));
+  const [returnDate, setReturnDate] = useState(() => atMidnight(new Date(2025, 4, 18)));
+  const [pickupTime, setPickupTime] = useState("10:00");
+  const [returnTime, setReturnTime] = useState("10:00");
+  const [selectionMode, setSelectionMode] = useState<"pickup" | "return">("pickup");
 
-  const durationLabel = "5 days";
+  const calendarDays = useMemo(() => {
+    const monthStart = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1);
+    const startOffset = (monthStart.getDay() + 6) % 7;
+    const gridStart = new Date(monthStart);
+    gridStart.setDate(monthStart.getDate() - startOffset);
+
+    return Array.from({ length: 42 }, (_, index) => {
+      const date = new Date(gridStart);
+      date.setDate(gridStart.getDate() + index);
+      return date;
+    });
+  }, [visibleMonth]);
+
+  const durationDays = useMemo(() => {
+    const start = atMidnight(pickupDate).getTime();
+    const end = atMidnight(returnDate).getTime();
+    const diffDays = Math.floor((end - start) / 86400000) + 1;
+    return Math.max(1, diffDays);
+  }, [pickupDate, returnDate]);
+
+  const durationLabel = `${durationDays} day${durationDays > 1 ? "s" : ""}`;
+
+  const pickupDateLabel = toDisplayDate(pickupDate);
+  const returnDateLabel = toDisplayDate(returnDate);
+
+  const formatTime12h = (time24: string): string => {
+    const [rawHour, rawMinute] = time24.split(":");
+    const hour = Number(rawHour);
+    const minute = Number(rawMinute);
+    if (Number.isNaN(hour) || Number.isNaN(minute)) {
+      return "10:00 AM";
+    }
+    const suffix = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 || 12;
+    return `${String(hour12).padStart(2, "0")}:${String(minute).padStart(2, "0")} ${suffix}`;
+  };
+
+  const handleDatePick = (picked: Date): void => {
+    const day = atMidnight(picked);
+
+    if (selectionMode === "pickup") {
+      setPickupDate(day);
+      if (day.getTime() > returnDate.getTime()) {
+        setReturnDate(day);
+      }
+      setSelectionMode("return");
+      return;
+    }
+
+    if (day.getTime() < pickupDate.getTime()) {
+      setReturnDate(pickupDate);
+    } else {
+      setReturnDate(day);
+    }
+    setSelectionMode("pickup");
+  };
 
   if (!vehicle) {
     return (
@@ -104,11 +165,19 @@ export default function RentalDates(): React.JSX.Element {
       <Card sx={{ ...cardSx, mb: 1.4 }}>
         <CardContent sx={{ p: 1.4, "&:last-child": { pb: 1.4 } }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.1 }}>
-            <IconButton sx={{ color: rentalUi.green }}>
+            <IconButton
+              sx={{ color: rentalUi.green }}
+              onClick={() => setVisibleMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+            >
               <ChevronLeftRoundedIcon />
             </IconButton>
-            <Typography sx={{ fontSize: 26, fontWeight: 700 }}>May 2025</Typography>
-            <IconButton sx={{ color: rentalUi.green }}>
+            <Typography sx={{ fontSize: 26, fontWeight: 700 }}>
+              {visibleMonth.toLocaleDateString("en-GB", { month: "long", year: "numeric" })}
+            </Typography>
+            <IconButton
+              sx={{ color: rentalUi.green }}
+              onClick={() => setVisibleMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+            >
               <ChevronRightRoundedIcon />
             </IconButton>
           </Stack>
@@ -120,14 +189,17 @@ export default function RentalDates(): React.JSX.Element {
           </Box>
 
           <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0,1fr))", rowGap: 0.65, columnGap: 0.5 }}>
-            {gridDays.map((day, index) => {
-              const isPickup = day === 14;
-              const isReturn = day === 18;
-              const inRange = isInRange(day);
+            {calendarDays.map((day) => {
+              const isPickup = isSameDay(day, pickupDate);
+              const isReturn = isSameDay(day, returnDate);
+              const inRange = day.getTime() > pickupDate.getTime() && day.getTime() < returnDate.getTime();
+              const muted = day.getMonth() !== visibleMonth.getMonth();
               return (
                 <Box
-                  key={`${day}-${index}`}
+                  key={day.toISOString()}
+                  onClick={() => handleDatePick(day)}
                   sx={{
+                    cursor: "pointer",
                     textAlign: "center",
                     py: 0.65,
                     borderRadius: isPickup || isReturn ? "50%" : 0,
@@ -136,7 +208,7 @@ export default function RentalDates(): React.JSX.Element {
                     color:
                       isPickup || isReturn
                         ? "#fff"
-                        : isMuted(index)
+                        : muted
                           ? "#B5BECB"
                           : rentalUi.title,
                     width: isPickup || isReturn ? 42 : "auto",
@@ -148,14 +220,25 @@ export default function RentalDates(): React.JSX.Element {
                     fontSize: 17
                   }}
                 >
-                  {day}
+                  {day.getDate()}
                 </Box>
               );
             })}
           </Box>
-          <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.5, px: 4.3 }}>
-            <Typography sx={{ color: rentalUi.greenDeep, fontWeight: 700, fontSize: 16 }}>PICKUP</Typography>
-            <Typography sx={{ color: rentalUi.orange, fontWeight: 700, fontSize: 16 }}>RETURN</Typography>
+          <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.55, px: 1 }}>
+            <Typography sx={{ color: rentalUi.greenDeep, fontWeight: 700, fontSize: 13 }}>
+              Pickup: {pickupDate.getDate()}
+            </Typography>
+            <Typography sx={{ color: rentalUi.orange, fontWeight: 700, fontSize: 13 }}>
+              Return: {returnDate.getDate()}
+            </Typography>
+          </Stack>
+          <Typography sx={{ mt: 0.35, fontSize: 11.2, color: rentalUi.muted }}>
+            Selecting: {selectionMode === "pickup" ? "pickup date" : "return date"}
+          </Typography>
+          <Stack direction="row" spacing={1.2} sx={{ mt: 0.45 }}>
+            <Typography sx={{ color: rentalUi.greenDeep, fontWeight: 700, fontSize: 12 }}>PICKUP</Typography>
+            <Typography sx={{ color: rentalUi.orange, fontWeight: 700, fontSize: 12 }}>RETURN</Typography>
           </Stack>
         </CardContent>
       </Card>
@@ -167,16 +250,17 @@ export default function RentalDates(): React.JSX.Element {
             <Stack direction="row" spacing={0.7} alignItems="center">
               <AccessTimeRoundedIcon sx={{ color: rentalUi.green }} />
               <TextField
-                select
-                variant="standard"
+                type="time"
+                variant="outlined"
                 value={pickupTime}
                 onChange={(event) => setPickupTime(event.target.value)}
-                sx={{ flex: 1, "& .MuiInputBase-input": { fontSize: 42/2, fontWeight: 700 } }}
-              >
-                {"08:00 AM,09:00 AM,10:00 AM,11:00 AM,12:00 PM".split(",").map((slot) => (
-                  <MenuItem key={slot} value={slot}>{slot}</MenuItem>
-                ))}
-              </TextField>
+                inputProps={{ step: 300 }}
+                sx={{
+                  flex: 1,
+                  "& .MuiInputBase-input": { fontSize: "14px !important", fontWeight: 700, py: 0.8 },
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 }
+                }}
+              />
             </Stack>
           </CardContent>
         </Card>
@@ -187,16 +271,17 @@ export default function RentalDates(): React.JSX.Element {
             <Stack direction="row" spacing={0.7} alignItems="center">
               <AccessTimeRoundedIcon sx={{ color: rentalUi.orange }} />
               <TextField
-                select
-                variant="standard"
+                type="time"
+                variant="outlined"
                 value={returnTime}
                 onChange={(event) => setReturnTime(event.target.value)}
-                sx={{ flex: 1, "& .MuiInputBase-input": { fontSize: 42/2, fontWeight: 700 } }}
-              >
-                {"08:00 AM,09:00 AM,10:00 AM,11:00 AM,12:00 PM".split(",").map((slot) => (
-                  <MenuItem key={slot} value={slot}>{slot}</MenuItem>
-                ))}
-              </TextField>
+                inputProps={{ step: 300 }}
+                sx={{
+                  flex: 1,
+                  "& .MuiInputBase-input": { fontSize: "14px !important", fontWeight: 700, py: 0.8 },
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 }
+                }}
+              />
             </Stack>
           </CardContent>
         </Card>
@@ -211,7 +296,7 @@ export default function RentalDates(): React.JSX.Element {
             <Box>
               <Typography sx={{ color: rentalUi.muted, fontSize: 17 }}>Total duration</Typography>
               <Typography sx={{ fontSize: 32/2, fontWeight: 700 }}>{durationLabel}</Typography>
-              <Typography sx={{ fontSize: 16.5, color: rentalUi.muted }}>{pickupDate} – {returnDate}</Typography>
+              <Typography sx={{ fontSize: 16.5, color: rentalUi.muted }}>{pickupDateLabel} – {returnDateLabel}</Typography>
             </Box>
           </Stack>
         </CardContent>
@@ -233,8 +318,8 @@ export default function RentalDates(): React.JSX.Element {
         onClick={() => {
           actions.updateRentalBooking({
             vehicleId: vehicle.id,
-            startDate: `${pickupDate} • ${pickupTime}`,
-            endDate: `${returnDate} • ${returnTime}`
+            startDate: `${pickupDateLabel} • ${formatTime12h(pickupTime)}`,
+            endDate: `${returnDateLabel} • ${formatTime12h(returnTime)}`
           });
           navigate("/rental/branches");
         }}

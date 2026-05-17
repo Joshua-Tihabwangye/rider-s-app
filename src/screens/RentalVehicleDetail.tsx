@@ -82,10 +82,10 @@ export default function RentalVehicleDetail(): React.JSX.Element {
   );
 
   useEffect(() => {
-    if (vehicle?.id) {
+    if (vehicle?.id && rental.selectedVehicleId !== vehicle.id) {
       actions.selectRentalVehicle(vehicle.id);
     }
-  }, [actions, vehicle?.id]);
+  }, [actions, rental.selectedVehicleId, vehicle?.id]);
 
   if (!vehicle) {
     return (

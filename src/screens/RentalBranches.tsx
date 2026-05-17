@@ -156,9 +156,16 @@ export default function RentalBranches(): React.JSX.Element {
       <CroppedReferenceImage
         src={RENTAL_UI_ASSETS.banners.branchMap}
         alt="Branch map"
-        height={190}
+        height={240}
         scale={1}
-        sx={{ mb: 1.5 }}
+        fit="contain"
+        sx={{
+          mb: 1.5,
+          mx: { xs: -2, sm: -2.5 },
+          width: { xs: "calc(100% + 32px)", sm: "calc(100% + 40px)" },
+          borderRadius: 0,
+          bgcolor: "#fff"
+        }}
       />
 
       <Card sx={{ ...cardSx, p: 0.4, mb: 1.5 }}>
