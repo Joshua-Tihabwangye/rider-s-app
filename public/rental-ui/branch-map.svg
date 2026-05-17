@@ -1,0 +1,10 @@
+<svg width="1100" height="320" viewBox="0 0 1100 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1100" height="320" rx="24" fill="#EDF3F7"/>
+  <path d="M0 58h1100M0 128h1100M0 198h1100M190 0v320M380 0v320M570 0v320M760 0v320M950 0v320" stroke="#D9E3EA"/>
+  <path d="M205 170C352 170 488 170 626 170C690 170 741 170 797 170C854 170 904 170 948 170" stroke="#12B86A" stroke-width="8" stroke-linecap="round"/>
+  <path d="M797 170C854 170 904 170 948 170" stroke="#FF8A00" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="205" cy="170" r="23" fill="#12B86A"/><circle cx="205" cy="170" r="10" fill="white"/>
+  <circle cx="948" cy="170" r="23" fill="#FF8A00"/><circle cx="948" cy="170" r="10" fill="white"/>
+  <text x="140" y="72" fill="#7A899B" font-family="Arial" font-size="40">Koramangala</text>
+  <text x="874" y="110" fill="#7A899B" font-family="Arial" font-size="40">HAL Airport</text>
+</svg>

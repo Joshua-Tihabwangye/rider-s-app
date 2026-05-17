@@ -3,25 +3,36 @@ import { Navigate, useNavigate } from "react-router-dom";
 import {
   Alert,
   Box,
-  Button,
   Card,
   CardContent,
+  Checkbox,
   IconButton,
   Stack,
   TextField,
   Typography
 } from "@mui/material";
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
+import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
+import HelpOutlineRoundedIcon from "@mui/icons-material/HelpOutlineRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 
-import ScreenScaffold from "../components/ScreenScaffold";
-import PaymentSummaryCard from "../components/rental/payments/PaymentSummaryCard";
 import { useAppData } from "../contexts/AppDataContext";
+import {
+  CroppedReferenceImage,
+  GradientActionButton,
+  cardSx,
+  formatInr,
+  rentalUi,
+  screenShellSx
+} from "../components/rental/RentalRedesignUI";
+import { RENTAL_UI_ASSETS } from "../features/rental/uiAssets";
 import {
   CardFormErrors,
   formatCardNumberInput,
   formatExpiryInput,
-  formatUgxAmount,
   maskCardNumber,
   normalizeDigits,
   resolveCardOutcome,
@@ -30,43 +41,33 @@ import {
 
 export default function RentalCardPayment(): React.JSX.Element {
   const navigate = useNavigate();
-  const { rental, paymentMethods, actions } = useAppData();
+  const { rental, actions } = useAppData();
   const activePayment = rental.activePayment;
-
-  const [cardholderName, setCardholderName] = useState(activePayment?.customerName ?? "");
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [billingPhone, setBillingPhone] = useState(activePayment?.customerPhone ?? "");
-  const [billingEmail, setBillingEmail] = useState(activePayment?.customerEmail ?? "");
-  const [errors, setErrors] = useState<CardFormErrors>({});
-  const [formError, setFormError] = useState<string>("");
-  const showTestHelpers = Boolean((import.meta as ImportMeta).env.DEV);
-
   const vehicle = useMemo(
     () => rental.vehicles.find((entry) => entry.id === rental.booking.vehicleId) ?? rental.vehicles[0] ?? null,
     [rental.booking.vehicleId, rental.vehicles]
   );
 
+  const [cardholderName, setCardholderName] = useState(activePayment?.customerName ?? "");
+  const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
+  const [expiry, setExpiry] = useState("12/27");
+  const [cvv, setCvv] = useState("123");
+  const [saveCard, setSaveCard] = useState(false);
+  const [errors, setErrors] = useState<CardFormErrors>({});
+  const [formError, setFormError] = useState("");
+
   if (!activePayment) {
     return <Navigate to="/rental/summary" replace />;
   }
 
-  const paymentMethodLabel =
-    paymentMethods.find((method) => method.id === activePayment.paymentMethodId)?.label ?? "Bank card";
+  if (activePayment.paymentMethodType !== "card") {
+    return <Navigate to="/rental/summary" replace />;
+  }
 
-  const handlePayNow = () => {
+  const amountDue = activePayment.amount;
+
+  const handlePay = (): void => {
     const validationErrors = validateCardForm({ cardholderName, cardNumber, expiry, cvv });
-    if (activePayment.customerEmail && !billingEmail.trim()) {
-      setFormError("Billing email is required for this account.");
-      setErrors(validationErrors);
-      return;
-    }
-    if (activePayment.customerPhone && !billingPhone.trim()) {
-      setFormError("Billing phone is required for this account.");
-      setErrors(validationErrors);
-      return;
-    }
     setErrors(validationErrors);
     setFormError("");
     if (Object.keys(validationErrors).length > 0) {
@@ -75,7 +76,7 @@ export default function RentalCardPayment(): React.JSX.Element {
 
     const outcome = resolveCardOutcome(cardNumber);
     if (!outcome) {
-      setFormError("Use one of the provided test card numbers for this simulation.");
+      setFormError("Use a valid test card number. Example: 4242 4242 4242 4242.");
       return;
     }
 
@@ -86,170 +87,153 @@ export default function RentalCardPayment(): React.JSX.Element {
       cardHolderName: cardholderName.trim(),
       cardLast4: digits.slice(-4),
       maskedCardNumber: maskCardNumber(cardNumber),
-      billingPhone: billingPhone.trim() || undefined,
-      billingEmail: billingEmail.trim() || undefined,
       failureReason: undefined
     });
+
     navigate("/rental/payment/processing");
   };
 
   return (
-    <ScreenScaffold>
-      <Stack direction="row" spacing={1.2} alignItems="center">
-        <IconButton
-          size="small"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-          sx={{
-            borderRadius: 5,
-            bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)"),
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
-          }}
-        >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+    <Box sx={screenShellSx}>
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+        <IconButton onClick={() => navigate(-1)} sx={{ color: rentalUi.title }}>
+          <ArrowBackRoundedIcon />
         </IconButton>
-        <Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
-            EVzone Card Gateway
-          </Typography>
-          <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-            Secure simulated payment
-          </Typography>
-        </Box>
+        <Typography sx={{ fontSize: 22, fontWeight: 800 }}>Card payment</Typography>
       </Stack>
 
-      <PaymentSummaryCard
-        customerName={activePayment.customerName}
-        bookingReference={activePayment.bookingReference}
-        vehicleName={vehicle?.name ?? "EV rental"}
-        paymentMethodLabel={paymentMethodLabel}
-        amount={activePayment.amount}
-      />
-
-      <Card
-        elevation={0}
-        sx={{
-          borderRadius: 2,
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)",
-          bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)")
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Stack spacing={1.2}>
-            <Alert severity="info" icon={<LockRoundedIcon fontSize="inherit" />}>
-              Secure simulated payment. CVV is never stored.
-            </Alert>
-            {formError && <Alert severity="error">{formError}</Alert>}
-
-            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-              Amount to pay: {formatUgxAmount(activePayment.amount)}
-            </Typography>
-
-            <TextField
-              label="Cardholder name"
-              value={cardholderName}
-              onChange={(event) => setCardholderName(event.target.value)}
-              error={Boolean(errors.cardholderName)}
-              helperText={errors.cardholderName}
-              fullWidth
+      <Card sx={{ ...cardSx, mb: 1.45 }}>
+        <CardContent sx={{ p: 1.55, "&:last-child": { pb: 1.55 } }}>
+          <Stack direction="row" justifyContent="space-between" spacing={1.1}>
+            <Box>
+              <Typography sx={{ color: rentalUi.muted, fontSize: 19 }}>Amount due</Typography>
+              <Typography sx={{ fontSize: 74/2, fontWeight: 800 }}>{formatInr(amountDue)}</Typography>
+              <Typography sx={{ color: rentalUi.greenDeep, fontWeight: 700, fontSize: 35/2 }}>View breakdown</Typography>
+            </Box>
+            <CroppedReferenceImage
+              src={RENTAL_UI_ASSETS.banners.cardHero}
+              alt={vehicle?.name ?? "Vehicle"}
+              height={145}
+              scale={1}
+              sx={{ width: 240, borderRadius: 2.6 }}
             />
-            <TextField
-              label="Card number"
-              placeholder="4242 4242 4242 4242"
-              value={cardNumber}
-              onChange={(event) => setCardNumber(formatCardNumberInput(event.target.value))}
-              error={Boolean(errors.cardNumber)}
-              helperText={errors.cardNumber}
-              fullWidth
-            />
-            <Stack direction="row" spacing={1}>
-              <TextField
-                label="Expiry"
-                placeholder="MM/YY"
-                value={expiry}
-                onChange={(event) => setExpiry(formatExpiryInput(event.target.value))}
-                error={Boolean(errors.expiry)}
-                helperText={errors.expiry}
-                fullWidth
-              />
-              <TextField
-                label="CVV"
-                placeholder="123"
-                value={cvv}
-                onChange={(event) => setCvv(normalizeDigits(event.target.value).slice(0, 4))}
-                error={Boolean(errors.cvv)}
-                helperText={errors.cvv}
-                fullWidth
-              />
-            </Stack>
-
-            <TextField
-              label="Billing phone"
-              value={billingPhone}
-              onChange={(event) => setBillingPhone(event.target.value)}
-              fullWidth
-            />
-            <TextField
-              label="Billing email"
-              value={billingEmail}
-              onChange={(event) => setBillingEmail(event.target.value)}
-              fullWidth
-            />
-
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handlePayNow}
-              sx={{
-                borderRadius: 5,
-                py: 1,
-                fontWeight: 700,
-                textTransform: "none",
-                bgcolor: "primary.main",
-                color: "#022C22",
-                "&:hover": { bgcolor: "#06e29a" }
-              }}
-            >
-              Pay now
-            </Button>
           </Stack>
         </CardContent>
       </Card>
 
-      {showTestHelpers && (
-        <Card
-          elevation={0}
-          sx={{
-            borderRadius: 2,
-            border: "1px solid rgba(249,115,22,0.35)",
-            bgcolor: "rgba(249,115,22,0.07)"
-          }}
-        >
-          <CardContent sx={{ px: 1.75, py: 1.6 }}>
-            <Typography variant="body2" sx={{ fontWeight: 700, color: "#C2410C", mb: 0.5 }}>
-              Test card numbers
-            </Typography>
-            <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
-              4242 4242 4242 4242 = successful payment
-            </Typography>
-            <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
-              4000 0000 0000 0002 = failed payment
-            </Typography>
-            <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
-              4000 0000 0000 9995 = insufficient funds
-            </Typography>
-            <Typography variant="caption" sx={{ display: "block", fontSize: 11 }}>
-              4000 0000 0000 3220 = requires OTP verification
-            </Typography>
-          </CardContent>
-        </Card>
-      )}
-    </ScreenScaffold>
+      <Card sx={{ ...cardSx, mb: 1.35 }}>
+        <CardContent sx={{ p: 1.45, "&:last-child": { pb: 1.45 } }}>
+          <Typography sx={{ fontSize: 44/2, fontWeight: 700, mb: 0.75 }}>Saved card</Typography>
+          <Card sx={{ ...cardSx, borderColor: rentalUi.green, borderWidth: 2 }}>
+            <CardContent sx={{ p: 1.2, "&:last-child": { pb: 1.2 } }}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                <Stack spacing={0.25}>
+                  <Typography sx={{ fontSize: 39/2, fontWeight: 800, color: "#1A4EB1" }}>VISA</Typography>
+                  <Typography sx={{ color: rentalUi.title, fontSize: 35/2, fontWeight: 700 }}>•••• •••• •••• 4242</Typography>
+                  <Typography sx={{ color: rentalUi.muted }}>Expires 12/27</Typography>
+                </Stack>
+                <Stack alignItems="center" spacing={0.7}>
+                  <Typography sx={{ color: rentalUi.greenDeep, fontWeight: 700, bgcolor: rentalUi.greenSoft, px: 1, borderRadius: 2 }}>Default</Typography>
+                  <CheckCircleRoundedIcon sx={{ color: rentalUi.green, fontSize: 28 }} />
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
+
+      <Card sx={{ ...cardSx, mb: 1.35 }}>
+        <CardContent sx={{ p: 1.45, "&:last-child": { pb: 1.45 } }}>
+          <Typography sx={{ fontSize: 44/2, fontWeight: 700, mb: 1 }}>New card details</Typography>
+
+          {formError ? <Alert severity="error" sx={{ mb: 1 }}>{formError}</Alert> : null}
+
+          <Typography sx={{ color: rentalUi.muted, mb: 0.35 }}>Card number</Typography>
+          <TextField
+            fullWidth
+            value={cardNumber}
+            onChange={(event) => setCardNumber(formatCardNumberInput(event.target.value))}
+            placeholder="1234 5678 9012 3456"
+            error={Boolean(errors.cardNumber)}
+            helperText={errors.cardNumber}
+            InputProps={{ startAdornment: <CreditCardRoundedIcon sx={{ color: rentalUi.muted, mr: 1 }} /> }}
+            sx={{ mb: 1.2, "& .MuiOutlinedInput-root": { borderRadius: 2.1 } }}
+          />
+
+          <Typography sx={{ color: rentalUi.muted, mb: 0.35 }}>Cardholder name</Typography>
+          <TextField
+            fullWidth
+            value={cardholderName}
+            onChange={(event) => setCardholderName(event.target.value)}
+            placeholder="Name on card"
+            error={Boolean(errors.cardholderName)}
+            helperText={errors.cardholderName}
+            InputProps={{ startAdornment: <PersonOutlineRoundedIcon sx={{ color: rentalUi.muted, mr: 1 }} /> }}
+            sx={{ mb: 1.2, "& .MuiOutlinedInput-root": { borderRadius: 2.1 } }}
+          />
+
+          <Stack direction="row" spacing={1.1} sx={{ mb: 1.15 }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={{ color: rentalUi.muted, mb: 0.35 }}>Expiry date</Typography>
+              <TextField
+                fullWidth
+                value={expiry}
+                onChange={(event) => setExpiry(formatExpiryInput(event.target.value))}
+                placeholder="MM / YY"
+                error={Boolean(errors.expiry)}
+                helperText={errors.expiry}
+                InputProps={{ startAdornment: <CalendarMonthRoundedIcon sx={{ color: rentalUi.muted, mr: 1 }} /> }}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2.1 } }}
+              />
+            </Box>
+
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={{ color: rentalUi.muted, mb: 0.35 }}>CVV</Typography>
+              <TextField
+                fullWidth
+                value={cvv}
+                onChange={(event) => setCvv(normalizeDigits(event.target.value).slice(0, 4))}
+                placeholder="123"
+                error={Boolean(errors.cvv)}
+                helperText={errors.cvv}
+                InputProps={{
+                  startAdornment: <LockRoundedIcon sx={{ color: rentalUi.muted, mr: 1 }} />,
+                  endAdornment: <HelpOutlineRoundedIcon sx={{ color: rentalUi.muted }} />
+                }}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2.1 } }}
+              />
+            </Box>
+          </Stack>
+
+          <Stack direction="row" spacing={0.8} alignItems="center">
+            <Checkbox checked={saveCard} onChange={(event) => setSaveCard(event.target.checked)} sx={{ p: 0.5 }} />
+            <Box>
+              <Typography sx={{ fontSize: 35/2, fontWeight: 600 }}>Save this card securely for faster payments</Typography>
+              <Typography sx={{ color: rentalUi.muted }}>Your card details are encrypted and safe.</Typography>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card sx={{ ...cardSx, mb: 1.35 }}>
+        <CardContent sx={{ p: 1.35, "&:last-child": { pb: 1.35 } }}>
+          <Typography sx={{ fontWeight: 700, fontSize: 37/2, mb: 0.35 }}>Billing address</Typography>
+          <Typography sx={{ color: rentalUi.muted, fontSize: 19/1.2 }}>
+            123 Green Avenue, Koramangala,
+          </Typography>
+          <Typography sx={{ color: rentalUi.muted, fontSize: 19/1.2 }}>Bengaluru, Karnataka 560034, India</Typography>
+        </CardContent>
+      </Card>
+
+      <GradientActionButton label={`Pay now ${formatInr(amountDue)}`} onClick={handlePay} />
+
+      <Stack direction="row" spacing={0.65} alignItems="center" justifyContent="center" sx={{ mt: 1.25 }}>
+        <CheckCircleRoundedIcon sx={{ color: rentalUi.green }} />
+        <Typography sx={{ fontSize: 35/2, fontWeight: 700 }}>Secure encrypted payment</Typography>
+      </Stack>
+      <Typography sx={{ color: rentalUi.muted, textAlign: "center", fontSize: 16, mt: 0.25 }}>
+        Your information is protected with 256-bit SSL encryption
+      </Typography>
+    </Box>
   );
 }

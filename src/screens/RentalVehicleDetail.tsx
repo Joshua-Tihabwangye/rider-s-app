@@ -1,336 +1,284 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  
   Box,
-  IconButton,
-  Typography,
   Card,
   CardContent,
-  Stack,
   Chip,
-  Button,
-  Divider
+  Divider,
+  IconButton,
+  Stack,
+  Typography
 } from "@mui/material";
-
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
-import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
-import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
+import StarRoundedIcon from "@mui/icons-material/StarRounded";
+import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
+import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
+import AirlineSeatReclineNormalRoundedIcon from "@mui/icons-material/AirlineSeatReclineNormalRounded";
 import BatteryChargingFullRoundedIcon from "@mui/icons-material/BatteryChargingFullRounded";
-import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
+import SettingsSuggestRoundedIcon from "@mui/icons-material/SettingsSuggestRounded";
+import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
+import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
+import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
+import EvStationOutlinedIcon from "@mui/icons-material/EvStationOutlined";
+import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+
 import { useAppData } from "../contexts/AppDataContext";
+import {
+  CroppedReferenceImage,
+  GradientActionButton,
+  cardSx,
+  formatInr,
+  rentalUi,
+  screenShellSx
+} from "../components/rental/RentalRedesignUI";
+import { parseUgx } from "../features/rental/booking";
+import { RENTAL_UI_ASSETS, getVehicleImageFromName } from "../features/rental/uiAssets";
 
-function RentalVehicleDetailsScreen(): React.JSX.Element {
-  const navigate = useNavigate();
-  const { vehicleId } = useParams();
-  const { rental, actions } = useAppData();
-  const selectRentalVehicle = actions.selectRentalVehicle;
-  const [modeSelection, setModeSelection] = useState(
-    rental.booking.rentalMode === "chauffeur" ? "chauffeur" : "self"
-  );
-  const vehicle = rental.vehicles.find((item) => item.id === vehicleId) ?? rental.vehicles[0];
+const depositAmount = 10000;
 
-  useEffect(() => {
-    if (vehicleId) {
-      selectRentalVehicle(vehicleId);
-    }
-  }, [vehicleId, selectRentalVehicle]);
+interface FeatureStatProps {
+  icon: React.ReactNode;
+  label: string;
+  helper: string;
+}
 
+function FeatureStat({ icon, label, helper }: FeatureStatProps): React.JSX.Element {
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
-            sx={{
-              borderRadius: 5,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              {vehicle?.name ?? "EV Rental"} • {vehicle?.type ?? "EV"}
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              {vehicle?.mode ?? "Self-drive"} • {vehicle?.range ?? "Range info"}
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
-
-      {/* Hero vehicle card */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 3,
-          bgcolor: (t) =>
-            t.palette.mode === "light"
-              ? "radial-gradient(circle at top,#E0F2FE,#EEF2FF)"
-              : "radial-gradient(circle at top,#020617,#020617)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(191,219,254,0.9)"
-              : "1px solid rgba(30,64,175,0.8)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.2 }}>
-            <Box
-              sx={{
-                flex: 1,
-                minHeight: 80,
-                borderRadius: 2,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "rgba(255,255,255,0.7)" : "rgba(15,23,42,0.9)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-            >
-              <ElectricCarRoundedIcon
-                sx={{
-                  fontSize: 48,
-                  color: "primary.main",
-                  filter: "drop-shadow(0 10px 18px rgba(15,23,42,0.45))"
-                }}
-              />
-            </Box>
-          </Stack>
-
-          <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-            <Chip
-              label="Self-drive"
-              size="small"
-              onClick={() => setModeSelection("self")}
-              sx={{
-                borderRadius: 5,
-                fontSize: 11,
-                height: 24,
-                bgcolor:
-                  modeSelection === "self"
-                    ? "primary.main"
-                    : "rgba(255,255,255,0.85)",
-                color: modeSelection === "self" ? "#020617" : "#111827"
-              }}
-            />
-            <Chip
-              label="With chauffeur"
-              size="small"
-              onClick={() => setModeSelection("chauffeur")}
-              sx={{
-                borderRadius: 5,
-                fontSize: 11,
-                height: 24,
-                bgcolor:
-                  modeSelection === "chauffeur"
-                    ? "primary.main"
-                    : "rgba(255,255,255,0.85)",
-                color: modeSelection === "chauffeur" ? "#020617" : "#111827"
-              }}
-            />
-            <Chip
-              label="100% electric"
-              size="small"
-              icon={<BatteryChargingFullRoundedIcon sx={{ fontSize: 14 }} />}
-              sx={{
-                borderRadius: 5,
-                fontSize: 11,
-                height: 24,
-                bgcolor: "rgba(34,197,94,0.12)",
-                color: "#16A34A"
-              }}
-            />
-          </Stack>
-
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              <PeopleAltRoundedIcon
-                sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                5 seats
-              </Typography>
-            </Stack>
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              <LuggageRoundedIcon
-                sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                2–3 suitcases
-              </Typography>
-            </Stack>
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              <BatteryChargingFullRoundedIcon
-                sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                {vehicle?.range ?? "Range info"}
-              </Typography>
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      {/* Pricing & terms */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Stack
-            direction="row"
-            spacing={1.5}
-            alignItems="center"
-            justifyContent="space-between"
-            sx={{ mb: 1.2 }}
-          >
-            <Box>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                From
-              </Typography>
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 700, letterSpacing: "-0.02em" }}
-              >
-                UGX 180,000 <Typography component="span" variant="caption" sx={{ fontSize: 11 }}>/ day</Typography>
-              </Typography>
-            </Box>
-            <Chip
-              size="small"
-              icon={<ShieldRoundedIcon sx={{ fontSize: 14 }} />}
-              label="Insurance & roadside support"
-              sx={{
-                borderRadius: 5,
-                fontSize: 10,
-                height: 24,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-                color: (t) => t.palette.text.primary
-              }}
-            />
-          </Stack>
-
-          <Divider sx={{ my: 1.2, borderColor: (t) => t.palette.divider }} />
-
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 0.5, display: "block" }}
-          >
-            Includes
-          </Typography>
-          <Stack spacing={0.4}>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              • EV charger cable & adapter (where applicable)
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              • Standard daily mileage allowance (150 km / day)
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              • 24/7 roadside support
-            </Typography>
-          </Stack>
-
-          <Typography
-            variant="caption"
-            sx={{ mt: 1.2, fontSize: 11, color: (t) => t.palette.text.secondary }}
-          >
-            A refundable deposit and valid driver’s license are required for
-            self‑drive. Additional terms may apply.
-          </Typography>
-        </CardContent>
-      </Card>
-
-      {/* Continue CTA */}
-      <Button
-        fullWidth
-        variant="contained"
-        onClick={() => {
-          if (vehicle) {
-            actions.selectRentalVehicle(vehicle.id);
-          }
-          actions.updateRentalBooking({
-            rentalMode: modeSelection === "chauffeur" ? "chauffeur" : "self_drive"
-          });
-          navigate("/rental/dates");
-        }}
-        sx={{
-          borderRadius: 5,
-          py: 1.1,
-          fontSize: 15,
-          fontWeight: 600,
-          textTransform: "none",
-          bgcolor: "primary.main",
-          color: "#020617",
-          "&:hover": { bgcolor: "#06e29a" }
-        }}
-      >
-        Continue to dates & pickup
-      </Button>
-    </Box>
+    <Card sx={{ ...cardSx, borderRadius: 2.3, minHeight: 118 }}>
+      <CardContent sx={{ p: 1.05, "&:last-child": { pb: 1.05 } }}>
+        <Box sx={{ color: rentalUi.green, mb: 0.4, display: "grid", placeItems: "center" }}>{icon}</Box>
+        <Typography sx={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2, textAlign: "center" }}>{label}</Typography>
+        <Typography
+          sx={{
+            fontSize: 11,
+            color: rentalUi.muted,
+            mt: 0.2,
+            textAlign: "center",
+            lineHeight: 1.2,
+            overflowWrap: "anywhere"
+          }}
+        >
+          {helper}
+        </Typography>
+      </CardContent>
+    </Card>
   );
 }
 
-export default function RiderScreen71RentalVehicleDetailsCanvas_v2() {
-      return (
-    
-      
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: (t) => t.palette.background.default
-        }}
-      >
+export default function RentalVehicleDetail(): React.JSX.Element {
+  const navigate = useNavigate();
+  const { vehicleId } = useParams();
+  const { rental, actions } = useAppData();
+  const vehicle = useMemo(
+    () => rental.vehicles.find((entry) => entry.id === vehicleId) ?? rental.vehicles[0] ?? null,
+    [rental.vehicles, vehicleId]
+  );
 
-          <RentalVehicleDetailsScreen />
-        
+  const [mode, setMode] = useState<"self_drive" | "chauffeur">(
+    rental.booking.rentalMode === "chauffeur" ? "chauffeur" : "self_drive"
+  );
+
+  useEffect(() => {
+    if (vehicle?.id) {
+      actions.selectRentalVehicle(vehicle.id);
+    }
+  }, [actions, vehicle?.id]);
+
+  if (!vehicle) {
+    return (
+      <Box sx={screenShellSx}>
+        <Typography>No rental vehicle available.</Typography>
       </Box>
-    
+    );
+  }
+
+  const price = parseUgx(vehicle.dailyPrice);
+
+  return (
+    <Box sx={{ ...screenShellSx, pb: { xs: 13, sm: 6 } }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.1 }}>
+        <IconButton onClick={() => navigate(-1)} sx={{ border: `1px solid ${rentalUi.border}`, bgcolor: "#fff" }}>
+          <ArrowBackRoundedIcon />
+        </IconButton>
+        <Typography sx={{ fontSize: "22px !important", fontWeight: 800 }}>Rental vehicle</Typography>
+        <IconButton sx={{ border: `1px solid ${rentalUi.border}`, bgcolor: "#fff", color: rentalUi.orange }}>
+          <FavoriteBorderRoundedIcon />
+        </IconButton>
+      </Stack>
+
+      <CroppedReferenceImage
+        src={getVehicleImageFromName(vehicle.name)}
+        alt={vehicle.name}
+        height={258}
+        scale={1}
+        fit="contain"
+        sx={{ mb: 1.05 }}
+      />
+      <Stack direction="row" justifyContent="center" spacing={0.8} sx={{ mb: 1.05 }}>
+        <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: rentalUi.green }} />
+        <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: "#D9DEE7" }} />
+        <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: "#D9DEE7" }} />
+      </Stack>
+
+      <Stack direction="row" justifyContent="space-between" spacing={0.9} alignItems="flex-start" sx={{ mb: 0.45 }}>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography sx={{ fontSize: "26px !important", fontWeight: 800, lineHeight: 1.03 }}>
+            {vehicle.name.includes("Kona") ? "Family SUV" : vehicle.name}
+          </Typography>
+          <Stack direction="row" spacing={0.8} alignItems="center" sx={{ mt: 0.3 }}>
+            <StarRoundedIcon sx={{ color: rentalUi.green, fontSize: 18 }} />
+            <Typography sx={{ color: rentalUi.muted, fontSize: "11.6px !important" }}>4.6 (128 reviews)</Typography>
+            <Typography sx={{ color: rentalUi.greenDeep, fontWeight: 700, fontSize: "11.6px !important" }}>• Available</Typography>
+          </Stack>
+        </Box>
+
+        <Stack direction="row" spacing={0.7} sx={{ flexShrink: 0, alignSelf: "center" }}>
+          <Chip
+            icon={<DirectionsCarRoundedIcon />}
+            label="Self-drive"
+            onClick={() => setMode("self_drive")}
+            sx={{
+              borderRadius: 2,
+              bgcolor: mode === "self_drive" ? rentalUi.greenSoft : "#fff",
+              border: `1px solid ${mode === "self_drive" ? rentalUi.green : rentalUi.border}`,
+              color: mode === "self_drive" ? rentalUi.greenDeep : rentalUi.muted,
+              height: 40,
+              "& .MuiChip-label": { fontSize: "11.2px !important", fontWeight: 600, px: 0.8 },
+              "& .MuiChip-icon": { fontSize: 16, ml: 0.85, mr: -0.15 }
+            }}
+          />
+          <Chip
+            icon={<SupportAgentRoundedIcon />}
+            label="Chauffeur"
+            onClick={() => setMode("chauffeur")}
+            sx={{
+              borderRadius: 2,
+              bgcolor: mode === "chauffeur" ? rentalUi.greenSoft : "#fff",
+              border: `1px solid ${mode === "chauffeur" ? rentalUi.green : rentalUi.border}`,
+              color: mode === "chauffeur" ? rentalUi.greenDeep : rentalUi.muted,
+              height: 40,
+              "& .MuiChip-label": { fontSize: "11.2px !important", fontWeight: 600, px: 0.8 },
+              "& .MuiChip-icon": { fontSize: 16, ml: 0.85, mr: -0.15 }
+            }}
+          />
+        </Stack>
+      </Stack>
+
+      <Typography sx={{ color: rentalUi.muted, fontSize: "11.8px !important", mb: 1.35 }}>
+        Spacious, comfortable, and perfect for family trips. Enjoy long drives with zero emissions.
+      </Typography>
+
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 0.75, mb: 1.55 }}>
+        <FeatureStat icon={<AirlineSeatReclineNormalRoundedIcon />} label={`${vehicle.seats} Seats`} helper="Spacious cabin" />
+        <FeatureStat icon={<BatteryChargingFullRoundedIcon />} label={`${parseUgx(vehicle.range)} km`} helper="ARAI range" />
+        <FeatureStat icon={<SettingsSuggestRoundedIcon />} label="Automatic" helper="Transmission" />
+        <FeatureStat icon={<LuggageRoundedIcon />} label={`${vehicle.luggageCapacity} Large`} helper="Luggage" />
+      </Box>
+
+      <Typography sx={{ fontSize: "18px !important", fontWeight: 700, mb: 0.75 }}>Included</Typography>
+      <Card sx={{ ...cardSx, mb: 1.45 }}>
+        <CardContent sx={{ p: 1.1, "&:last-child": { pb: 1.1 } }}>
+          <Stack direction="row" divider={<Divider orientation="vertical" flexItem />}>
+            <Stack direction="row" spacing={0.6} alignItems="center" sx={{ flex: 1, px: 1 }}>
+              <ShieldOutlinedIcon sx={{ color: rentalUi.green, fontSize: 19 }} />
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: "11.8px !important", lineHeight: 1.15 }}>Zero dep. insurance</Typography>
+                <Typography sx={{ color: rentalUi.muted, fontSize: "10.8px !important", mt: 0.1 }}>Fully covered</Typography>
+              </Box>
+            </Stack>
+            <Stack direction="row" spacing={0.6} alignItems="center" sx={{ flex: 1, px: 1 }}>
+              <SupportAgentOutlinedIcon sx={{ color: rentalUi.green, fontSize: 19 }} />
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: "11.8px !important", lineHeight: 1.15 }}>Roadside support</Typography>
+                <Typography sx={{ color: rentalUi.muted, fontSize: "10.8px !important", mt: 0.1 }}>24x7 assistance</Typography>
+              </Box>
+            </Stack>
+            <Stack direction="row" spacing={0.6} alignItems="center" sx={{ flex: 1, px: 1 }}>
+              <EvStationOutlinedIcon sx={{ color: rentalUi.green, fontSize: 19 }} />
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: "11.8px !important", lineHeight: 1.15 }}>Home charger</Typography>
+                <Typography sx={{ color: rentalUi.muted, fontSize: "10.8px !important", mt: 0.1 }}>Included</Typography>
+              </Box>
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Typography sx={{ fontSize: "18px !important", fontWeight: 700, mb: 0.75 }}>Pickup branch</Typography>
+      <Card sx={{ ...cardSx, mb: 1.45 }}>
+        <CardContent sx={{ p: 1.2, "&:last-child": { pb: 1.2 } }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Box sx={{ width: 42, height: 42, borderRadius: "50%", bgcolor: rentalUi.greenSoft, color: rentalUi.green, display: "grid", placeItems: "center" }}>
+                <LocationOnRoundedIcon />
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: "16px !important", fontWeight: 700 }}>EVzone Koramangala</Typography>
+                <Typography sx={{ color: rentalUi.muted, fontSize: "11px !important", mt: 0.1 }}>1.8 km away</Typography>
+                <Typography sx={{ color: rentalUi.greenDeep, fontSize: "11px !important", mt: 0.05 }}>Open until 9:00 PM</Typography>
+              </Box>
+            </Stack>
+            <Stack direction="row" spacing={0.9} alignItems="center">
+              <CroppedReferenceImage
+                src={RENTAL_UI_ASSETS.banners.branchMap}
+                alt="Branch"
+                height={60}
+                scale={1}
+                fit="cover"
+                sx={{ width: 110, borderRadius: 1.8 }}
+              />
+              <Box
+                sx={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: "50%",
+                  border: `1px solid ${rentalUi.border}`,
+                  color: rentalUi.muted,
+                  display: "grid",
+                  placeItems: "center"
+                }}
+              >
+                <ChevronRightRoundedIcon sx={{ fontSize: 18 }} />
+              </Box>
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card sx={{ ...cardSx, mb: 1.1 }}>
+        <CardContent sx={{ p: 1.15, "&:last-child": { pb: 1.15 } }}>
+          <Stack direction="row" divider={<Divider orientation="vertical" flexItem />}>
+            <Box sx={{ flex: 1, px: 1 }}>
+              <Typography sx={{ fontSize: "19px !important", fontWeight: 800, color: rentalUi.greenDeep }}>
+                {formatInr(price)}
+                <Typography component="span" sx={{ color: rentalUi.muted, fontSize: "11px !important", fontWeight: 500 }}>
+                  {" "}/ day
+                </Typography>
+              </Typography>
+              <Typography sx={{ fontSize: "11px !important", color: rentalUi.muted }}>Inclusive of taxes</Typography>
+            </Box>
+            <Box sx={{ flex: 1, px: 1 }}>
+              <Typography sx={{ fontSize: "20px !important", fontWeight: 800 }}>{formatInr(depositAmount)}</Typography>
+              <Typography sx={{ fontSize: "11px !important", color: rentalUi.muted }}>Security deposit</Typography>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <GradientActionButton
+        label="Select dates"
+        sx={{ mt: 0.15 }}
+        onClick={() => {
+          actions.updateRentalBooking({
+            vehicleId: vehicle.id,
+            rentalMode: mode
+          });
+          navigate("/rental/dates");
+        }}
+      />
+    </Box>
   );
 }

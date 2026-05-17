@@ -885,12 +885,12 @@ const SEED_RENTAL_VEHICLES: RentalVehicle[] = [
     name: "Tesla Model 3",
     type: "Sedan",
     dailyPrice: "UGX 320,000",
-    mode: "With chauffeur",
+    mode: "Self-drive",
     seats: 4,
     luggageCapacity: 3,
     range: "400 km",
     tag: "Premium",
-    supportedModes: ["chauffeur"],
+    supportedModes: ["self_drive", "chauffeur"],
     availableLocationIds: [
       "nsambya_hub",
       "bugolobi_hub",
@@ -902,6 +902,48 @@ const SEED_RENTAL_VEHICLES: RentalVehicle[] = [
       "kigali_airport_desk",
       "nairobi_ev_hub",
       "dar_es_salaam_ev_hub"
+    ],
+    available: true
+  },
+  {
+    id: "EV-RENT-04",
+    name: "Maxus E-Deliver 3",
+    type: "Van",
+    dailyPrice: "UGX 249,000",
+    mode: "Self-drive",
+    seats: 7,
+    luggageCapacity: 5,
+    range: "200 km",
+    tag: "Group trips",
+    supportedModes: ["self_drive"],
+    availableLocationIds: [
+      "nsambya_hub",
+      "bugolobi_hub",
+      "entebbe_airport_desk",
+      "kampala_central_hub",
+      "jinja_road_hub",
+      "mbarara_hub",
+      "kigali_ev_hub"
+    ],
+    available: true
+  },
+  {
+    id: "EV-RENT-05",
+    name: "BYD Dolphin",
+    type: "Hatchback",
+    dailyPrice: "UGX 199,000",
+    mode: "Self-drive",
+    seats: 4,
+    luggageCapacity: 3,
+    range: "280 km",
+    tag: "City saver",
+    supportedModes: ["self_drive"],
+    availableLocationIds: [
+      "nsambya_hub",
+      "bugolobi_hub",
+      "kampala_central_hub",
+      "ntinda_hub",
+      "jinja_road_hub"
     ],
     available: true
   }

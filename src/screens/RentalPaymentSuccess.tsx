@@ -1,17 +1,37 @@
 import React, { useMemo } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { Box, Card, CardContent, IconButton, Stack, Typography } from "@mui/material";
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
+import {
+  Box,
+  Card,
+  CardContent,
+  Divider,
+  IconButton,
+  Stack,
+  Typography
+} from "@mui/material";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
+import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
+import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
+import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
+import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
+import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 
-import ScreenScaffold from "../components/ScreenScaffold";
-import PaymentStatusPage from "../components/rental/payments/PaymentStatusPage";
 import { useAppData } from "../contexts/AppDataContext";
-import { formatRentalDateRange } from "../features/rental/booking";
-import { formatUgxAmount } from "../features/rental/payment";
+import {
+  CroppedReferenceImage,
+  GradientActionButton,
+  cardSx,
+  formatInr,
+  rentalUi,
+  screenShellSx
+} from "../components/rental/RentalRedesignUI";
+import { RENTAL_UI_ASSETS } from "../features/rental/uiAssets";
 
 export default function RentalPaymentSuccess(): React.JSX.Element {
   const navigate = useNavigate();
-  const { rental, paymentMethods, actions } = useAppData();
+  const { rental, actions } = useAppData();
   const booking = rental.booking;
   const activePayment = rental.activePayment;
 
@@ -19,95 +39,157 @@ export default function RentalPaymentSuccess(): React.JSX.Element {
     if (!booking.transactionId) {
       return rental.paymentTransactions[0] ?? null;
     }
-    return rental.paymentTransactions.find((entry) => entry.transactionId === booking.transactionId) ?? null;
+    return rental.paymentTransactions.find((item) => item.transactionId === booking.transactionId) ?? null;
   }, [booking.transactionId, rental.paymentTransactions]);
-
-  const vehicle = useMemo(
-    () => rental.vehicles.find((entry) => entry.id === booking.vehicleId) ?? rental.vehicles[0] ?? null,
-    [booking.vehicleId, rental.vehicles]
-  );
 
   if (!activePayment || !transaction) {
     return <Navigate to="/rental/summary" replace />;
   }
 
-  const paymentMethodLabel =
-    paymentMethods.find((method) => method.id === booking.paymentMethodId)?.label ?? transaction.paymentMethodLabel;
+  const vehicleName = transaction.vehicleName.includes("Kona") ? "Family SUV" : transaction.vehicleName;
 
   return (
-    <ScreenScaffold>
-      <Stack direction="row" spacing={1.2} alignItems="center">
-        <IconButton
-          size="small"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-          sx={{
-            borderRadius: 5,
-            bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)"),
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
+    <Box sx={screenShellSx}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.4 }}>
+        <Box sx={{ width: 64 }} />
+        <Typography sx={{ fontSize: 22, fontWeight: 800 }}>Rental success</Typography>
+        <Typography
+          component="button"
+          type="button"
+          onClick={() => {
+            actions.resetRentalPayment();
+            navigate("/rental");
           }}
+          sx={{ border: 0, p: 0, bgcolor: "transparent", color: rentalUi.green, fontWeight: 600, fontSize: 21/1.2, cursor: "pointer" }}
         >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-        <Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
-            Payment successful
-          </Typography>
-          <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-            Rental booking confirmed
-          </Typography>
-        </Box>
+          Close
+        </Typography>
       </Stack>
 
-      <PaymentStatusPage
-        type="success"
-        title="Rental booking confirmed"
-        subtitle={`Paid by ${activePayment.customerName}`}
-        bookingReference={booking.bookingReference ?? activePayment.bookingReference}
-        paymentMethodLabel={paymentMethodLabel}
-        amountLabel={formatUgxAmount(transaction.amountPaid)}
-        transactionId={transaction.transactionId}
-        primaryLabel="View rental details"
-        secondaryLabel="Back to rentals"
-        tertiaryLabel="Download receipt"
-        onPrimaryClick={() => navigate(`/rental/history/${booking.id}`)}
-        onSecondaryClick={() => {
-          actions.resetRentalPayment();
-          navigate("/rental");
-        }}
-        onTertiaryClick={() => navigate(`/rental/payment/receipt/${transaction.transactionId}`)}
+      <Divider sx={{ mb: 1.4 }} />
+
+      <CroppedReferenceImage
+        src={RENTAL_UI_ASSETS.banners.successHero}
+        alt="Rental success"
+        height={300}
+        scale={1}
+        sx={{ mb: 1.3 }}
       />
 
-      <Card
-        elevation={0}
-        sx={{
-          borderRadius: 2,
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)",
-          bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)")
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.65 }}>
-          <Stack spacing={0.45}>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>Customer: {activePayment.customerName}</Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>Vehicle: {vehicle?.name ?? "EV rental"}</Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Rental dates: {formatRentalDateRange(booking.startDate, booking.endDate)}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Pickup: {booking.pickupBranch ?? "Pending"} • Return: {booking.dropoffBranch ?? "Pending"}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Date/time: {new Date(transaction.paidAt).toLocaleString("en-UG")}
-            </Typography>
+      <Typography sx={{ textAlign: "center", fontSize: 72/2, fontWeight: 900, lineHeight: 1.05, mb: 0.5 }}>
+        <Box component="span" sx={{ color: rentalUi.greenDeep }}>Payment</Box> successful
+      </Typography>
+      <Typography sx={{ textAlign: "center", color: rentalUi.muted, fontSize: 22/1.2, mb: 1.55 }}>
+        Your rental is confirmed and all set to go.
+        <br />
+        We’ve sent the details to your email.
+      </Typography>
+
+      <Card sx={{ ...cardSx, mb: 1.4 }}>
+        <CardContent sx={{ p: 1.4, "&:last-child": { pb: 1.4 } }}>
+          <Stack spacing={0.95}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" spacing={0.8} alignItems="center">
+                <ConfirmationNumberOutlinedIcon sx={{ color: rentalUi.green }} />
+                <Typography sx={{ color: rentalUi.muted }}>Booking reference</Typography>
+              </Stack>
+              <Typography sx={{ color: rentalUi.greenDeep, fontWeight: 800, fontSize: 34/2 }}>{transaction.bookingReference}</Typography>
+            </Stack>
+            <Divider />
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" spacing={0.8} alignItems="center">
+                <DirectionsCarRoundedIcon sx={{ color: rentalUi.green }} />
+                <Typography sx={{ color: rentalUi.muted }}>Vehicle</Typography>
+              </Stack>
+              <Typography sx={{ fontWeight: 700, fontSize: 36/2 }}>{vehicleName}</Typography>
+            </Stack>
+            <Divider />
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" spacing={0.8} alignItems="center">
+                <CalendarMonthRoundedIcon sx={{ color: rentalUi.green }} />
+                <Typography sx={{ color: rentalUi.muted }}>Pickup date & time</Typography>
+              </Stack>
+              <Typography sx={{ fontWeight: 700 }}>{transaction.startDate ?? "24 May 2025, 09:00 AM"}</Typography>
+            </Stack>
+            <Divider />
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" spacing={0.8} alignItems="center">
+                <LocationOnRoundedIcon sx={{ color: rentalUi.green }} />
+                <Typography sx={{ color: rentalUi.muted }}>Pickup branch</Typography>
+              </Stack>
+              <Typography sx={{ fontWeight: 700 }}>{transaction.pickupBranch ?? "EVzone Koramangala"}</Typography>
+            </Stack>
+            <Divider />
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" spacing={0.8} alignItems="center">
+                <AccountBalanceWalletRoundedIcon sx={{ color: rentalUi.green }} />
+                <Typography sx={{ color: rentalUi.muted }}>Total paid</Typography>
+              </Stack>
+              <Typography sx={{ fontWeight: 800, color: rentalUi.greenDeep, fontSize: 44/2 }}>
+                {formatInr(transaction.amountPaid)}
+              </Typography>
+            </Stack>
           </Stack>
         </CardContent>
       </Card>
-    </ScreenScaffold>
+
+      <Card sx={{ ...cardSx, bgcolor: "#F2FBF6", mb: 1.45 }}>
+        <CardContent sx={{ p: 1.35, "&:last-child": { pb: 1.35 } }}>
+          <Typography sx={{ color: rentalUi.greenDeep, fontWeight: 800, fontSize: 40/2, mb: 0.7 }}>What’s next?</Typography>
+          <Stack spacing={0.7}>
+            <Stack direction="row" spacing={0.7} alignItems="center">
+              <BadgeOutlinedIcon sx={{ color: rentalUi.green }} />
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: 36/2 }}>Bring your driving license</Typography>
+                <Typography sx={{ color: rentalUi.muted }}>Original license is required at pickup.</Typography>
+              </Box>
+            </Stack>
+            <Stack direction="row" spacing={0.7} alignItems="center">
+              <AccessTimeRoundedIcon sx={{ color: rentalUi.green }} />
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: 36/2 }}>Arrive 15 minutes early</Typography>
+                <Typography sx={{ color: rentalUi.muted }}>Help us get you on the road faster.</Typography>
+              </Box>
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <GradientActionButton
+        label="View confirmation"
+        onClick={() => navigate(`/rental/history/${booking.id}`)}
+        sx={{ mb: 1.1 }}
+      />
+
+      <Card
+        sx={{
+          ...cardSx,
+          borderRadius: 99,
+          borderColor: rentalUi.green,
+          mb: 1.05,
+          cursor: "pointer"
+        }}
+        onClick={() => navigate(`/rental/payment/receipt/${transaction.transactionId}`)}
+      >
+        <CardContent sx={{ py: 1.1, "&:last-child": { pb: 1.1 } }}>
+          <Stack direction="row" spacing={0.8} alignItems="center" justifyContent="center">
+            <CheckCircleRoundedIcon sx={{ color: rentalUi.green }} />
+            <Typography sx={{ color: rentalUi.greenDeep, fontWeight: 700, fontSize: 40/2 }}>Download receipt</Typography>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Typography
+        component="button"
+        type="button"
+        onClick={() => {
+          actions.resetRentalPayment();
+          navigate("/rental/history");
+        }}
+        sx={{ border: 0, bgcolor: "transparent", color: rentalUi.greenDeep, fontWeight: 700, fontSize: 20, mx: "auto", display: "block", cursor: "pointer" }}
+      >
+        Rental history
+      </Typography>
+    </Box>
   );
 }
