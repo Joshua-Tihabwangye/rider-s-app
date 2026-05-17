@@ -5,505 +5,265 @@ import {
   Box,
   Card,
   CardContent,
-  Checkbox,
+  Chip,
   Divider,
-  FormControlLabel,
   IconButton,
-  Link,
   Stack,
-  Typography,
-  Button
+  Typography
 } from "@mui/material";
-
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
-import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
-import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
+import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
+import LocalOfferRoundedIcon from "@mui/icons-material/LocalOfferRounded";
+import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
+import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 
 import { useAppData } from "../contexts/AppDataContext";
 import {
-  buildRentalPricing,
-  formatRentalDateRange,
-  formatUgx,
-  getRentalBookingVehicle,
-  getRentalModeLabel
-} from "../features/rental/booking";
+  CroppedReferenceImage,
+  GradientActionButton,
+  cardSx,
+  formatInr,
+  rentalUi,
+  screenShellSx
+} from "../components/rental/RentalRedesignUI";
+import { buildRentalPricing, getRentalBookingVehicle } from "../features/rental/booking";
+import { getVehicleImageFromName } from "../features/rental/uiAssets";
 
-function getPaymentIcon(type: "wallet" | "card" | "mobile_money" | "cash"): React.ReactNode {
+function PaymentIcon({ type }: { type: "wallet" | "card" | "mobile_money" }): React.JSX.Element {
   if (type === "wallet") {
-    return <AccountBalanceWalletRoundedIcon sx={{ fontSize: 20, color: "primary.main" }} />;
+    return <AccountBalanceWalletRoundedIcon sx={{ color: rentalUi.title }} />;
   }
-  if (type === "mobile_money") {
-    return <PhoneIphoneRoundedIcon sx={{ fontSize: 20, color: (t) => t.palette.text.secondary }} />;
+  if (type === "card") {
+    return <CreditCardRoundedIcon sx={{ color: rentalUi.title }} />;
   }
-  return <CreditCardRoundedIcon sx={{ fontSize: 20, color: (t) => t.palette.text.secondary }} />;
+  return <PhoneIphoneRoundedIcon sx={{ color: rentalUi.title }} />;
 }
 
-function RentalSummaryScreen(): React.JSX.Element {
+export default function RentalSummary(): React.JSX.Element {
   const navigate = useNavigate();
-  const { rental, walletBalance, paymentMethods, actions } = useAppData();
-  const vehicle = getRentalBookingVehicle(
-    rental.vehicles,
-    rental.booking,
-    rental.selectedVehicleId
-  );
-  const pricing = buildRentalPricing(vehicle, rental.booking);
-  const customRequest = rental.booking.customRequest;
-  const selectedAddOns = useMemo(
-    () => customRequest?.addOns.filter((addOn) => addOn.selected) ?? [],
-    [customRequest?.addOns]
-  );
-  const initialPaymentMethodId =
-    rental.booking.paymentMethodId ??
-    paymentMethods.find((method) => method.isDefault)?.id ??
-    paymentMethods[0]?.id ??
-    "pm_wallet";
-  const [paymentMethodId, setPaymentMethodId] = useState(initialPaymentMethodId);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const { rental, paymentMethods, walletBalance, actions } = useAppData();
 
-  const selectedPaymentMethod =
-    paymentMethods.find((method) => method.id === paymentMethodId) ?? paymentMethods[0];
-  const walletInsufficient =
-    selectedPaymentMethod?.type === "wallet" && walletBalance < pricing.dueNow;
-  const disableConfirm = !acceptedTerms || walletInsufficient;
+  const vehicle = getRentalBookingVehicle(rental.vehicles, rental.booking, rental.selectedVehicleId);
+  const pricing = buildRentalPricing(vehicle, rental.booking);
+
+  const paymentOptions = paymentMethods.filter((method) => method.type !== "cash");
+  const [paymentMethodId, setPaymentMethodId] = useState(
+    rental.booking.paymentMethodId ?? paymentOptions[0]?.id ?? "pm_wallet"
+  );
+  const [error, setError] = useState<string>("");
+
+  const charges = useMemo(() => {
+    const rentalSubtotal = Math.max(pricing.rentalSubtotal, pricing.dailyRate || 3597);
+    const insurance = 180;
+    const serviceFee = 299;
+    const securityDeposit = Math.max(2000, pricing.refundableDeposit);
+    const taxes = Math.round((rentalSubtotal + insurance + serviceFee) * 0.18);
+    const discount = 481;
+    const total = rentalSubtotal + insurance + serviceFee + securityDeposit + taxes - discount;
+
+    return {
+      rentalSubtotal,
+      insurance,
+      serviceFee,
+      securityDeposit,
+      taxes,
+      discount,
+      total
+    };
+  }, [pricing.dailyRate, pricing.refundableDeposit, pricing.rentalSubtotal]);
+
+  const selectedMethod = paymentOptions.find((method) => method.id === paymentMethodId) ?? paymentOptions[0];
+  const walletInsufficient = selectedMethod?.type === "wallet" && walletBalance < charges.total;
+
+  if (!vehicle) {
+    return (
+      <Box sx={screenShellSx}>
+        <Typography>No rental booking found.</Typography>
+      </Box>
+    );
+  }
+
+  const vehicleLabel = vehicle.name.includes("Nissan") ? "City EV" : vehicle.name.includes("Kona") ? "Family SUV" : "Executive EV";
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      <Box
-        sx={{
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
-            sx={{
-              borderRadius: 5,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
-              Review & confirm rental
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-              Search • Vehicle • Details • Payment • Confirmation
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
+    <Box sx={screenShellSx}>
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+        <IconButton onClick={() => navigate(-1)} sx={{ color: rentalUi.title }}>
+          <ArrowBackRoundedIcon />
+        </IconButton>
+        <Typography sx={{ fontSize: 22, fontWeight: 800 }}>Rental summary</Typography>
+      </Stack>
 
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.2 }}>
-            <Box
+      <Card sx={{ ...cardSx, mb: 1.5 }}>
+        <CardContent sx={{ p: 1.45, "&:last-child": { pb: 1.45 } }}>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={1.2} alignItems="center" sx={{ mb: 1.15 }}>
+            <CroppedReferenceImage
+              src={getVehicleImageFromName(vehicle.name)}
+              alt={vehicleLabel}
+              height={124}
+              scale={1}
+              sx={{ width: 230, borderRadius: 2.5 }}
+            />
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography sx={{ fontSize: 58/2, fontWeight: 800 }}>{vehicleLabel}</Typography>
+              <Chip
+                icon={<DirectionsCarRoundedIcon />}
+                label={rental.booking.rentalMode === "chauffeur" ? "Chauffeur" : "Self-drive"}
+                sx={{ mt: 0.8, bgcolor: rentalUi.greenSoft, color: rentalUi.greenDeep, fontWeight: 700 }}
+              />
+            </Box>
+          </Stack>
+
+          <Divider sx={{ my: 0.7 }} />
+          <Stack spacing={0.85}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <CalendarMonthRoundedIcon sx={{ color: rentalUi.green }} />
+              <Typography sx={{ width: 90, color: rentalUi.muted }}>Pick-up</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{rental.booking.startDate ?? "24 May 2025 • 10:00 AM"}</Typography>
+            </Stack>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <CalendarMonthRoundedIcon sx={{ color: rentalUi.green }} />
+              <Typography sx={{ width: 90, color: rentalUi.muted }}>Return</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{rental.booking.endDate ?? "27 May 2025 • 10:00 AM"}</Typography>
+            </Stack>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <LocationOnRoundedIcon sx={{ color: rentalUi.green }} />
+              <Typography sx={{ width: 90, color: rentalUi.muted }}>Branch</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{rental.booking.pickupBranch ?? "EVzone Koramangala"}</Typography>
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card sx={{ ...cardSx, mb: 1.25 }}>
+        <CardContent sx={{ p: 1.45, "&:last-child": { pb: 1.45 } }}>
+          <Typography sx={{ fontSize: 34/2, fontWeight: 700, mb: 0.95 }}>Charges breakdown</Typography>
+          <Stack spacing={0.65}>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography sx={{ color: rentalUi.muted }}>Daily rental (3 days × {formatInr(Math.round(charges.rentalSubtotal / 3))})</Typography>
+              <Typography>{formatInr(charges.rentalSubtotal)}</Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between"><Typography sx={{ color: rentalUi.muted }}>Insurance</Typography><Typography>{formatInr(charges.insurance)}</Typography></Stack>
+            <Stack direction="row" justifyContent="space-between"><Typography sx={{ color: rentalUi.muted }}>Service fee</Typography><Typography>{formatInr(charges.serviceFee)}</Typography></Stack>
+            <Stack direction="row" justifyContent="space-between"><Typography sx={{ color: rentalUi.muted }}>Security deposit (refundable)</Typography><Typography>{formatInr(charges.securityDeposit)}</Typography></Stack>
+            <Stack direction="row" justifyContent="space-between"><Typography sx={{ color: rentalUi.muted }}>Taxes (18%)</Typography><Typography>{formatInr(charges.taxes)}</Typography></Stack>
+            <Stack direction="row" justifyContent="space-between"><Typography sx={{ color: rentalUi.orange }}>Discount (GREEN10)</Typography><Typography sx={{ color: rentalUi.orange }}>- {formatInr(charges.discount)}</Typography></Stack>
+            <Divider sx={{ mt: 0.6, mb: 0.2 }} />
+            <Stack direction="row" justifyContent="space-between">
+              <Typography sx={{ fontSize: 39/2, fontWeight: 800 }}>Total</Typography>
+              <Typography sx={{ fontSize: 50/2, fontWeight: 800, color: rentalUi.greenDeep }}>{formatInr(charges.total)}</Typography>
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card sx={{ ...cardSx, mb: 1.25 }}>
+        <CardContent sx={{ p: 1.35, "&:last-child": { pb: 1.35 } }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Stack direction="row" spacing={1} alignItems="center">
+              <LocalOfferRoundedIcon sx={{ color: rentalUi.green }} />
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: 33/2 }}>Promo code</Typography>
+                <Typography sx={{ color: rentalUi.muted, fontSize: 16 }}>Apply code to get discount</Typography>
+              </Box>
+            </Stack>
+            <Typography sx={{ color: rentalUi.green, fontWeight: 700, fontSize: 34/2 }}>Apply</Typography>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Typography sx={{ fontSize: 42/2, fontWeight: 700, mb: 0.8 }}>Payment method</Typography>
+      <Stack direction="row" spacing={1.1} sx={{ mb: 1.35 }}>
+        {paymentOptions.map((method) => {
+          const selected = method.id === paymentMethodId;
+          const type = method.type as "wallet" | "card" | "mobile_money";
+          return (
+            <Card
+              key={method.id}
+              onClick={() => setPaymentMethodId(method.id)}
               sx={{
-                width: 44,
-                height: 44,
-                borderRadius: 5,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#E0F2FE" : "rgba(15,23,42,0.9)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
+                ...cardSx,
+                flex: 1,
+                cursor: "pointer",
+                borderColor: selected ? rentalUi.green : rentalUi.border,
+                bgcolor: selected ? rentalUi.greenSoft : "#fff"
               }}
             >
-              <ElectricCarRoundedIcon sx={{ fontSize: 26, color: "primary.main" }} />
-            </Box>
-            <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
-                {vehicle ? `${vehicle.name} • ${vehicle.type}` : "EV rental"}
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                {getRentalModeLabel(rental.booking)} • {vehicle?.seats ?? "-"} seats • {vehicle?.range ?? "Range pending"}
-              </Typography>
-            </Box>
-          </Stack>
+              <CardContent sx={{ p: 1.2, "&:last-child": { pb: 1.2 } }}>
+                <Stack direction="row" spacing={0.8} alignItems="center" justifyContent="center">
+                  <PaymentIcon type={type} />
+                  <Typography sx={{ fontWeight: 700 }}>{type === "mobile_money" ? "Mobile money" : method.type === "wallet" ? "Wallet" : "Card"}</Typography>
+                </Stack>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </Stack>
 
-          <Stack spacing={0.4} sx={{ mb: 0.8 }}>
-            <Stack direction="row" spacing={0.75} alignItems="center">
-              <CalendarMonthRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                {formatRentalDateRange(rental.booking.startDate, rental.booking.endDate)}
-              </Typography>
-            </Stack>
-            <Stack direction="row" spacing={0.75} alignItems="center">
-              <PlaceRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                Pickup: {rental.booking.pickupBranch ?? "Pickup pending"} • Return: {rental.booking.dropoffBranch ?? "Return pending"}
-              </Typography>
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
+      {walletInsufficient ? (
+        <Alert severity="warning" sx={{ mb: 1.15 }}>
+          Wallet balance is lower than this total. Select card/mobile money or top up your wallet.
+        </Alert>
+      ) : null}
+      {error ? <Alert severity="error" sx={{ mb: 1.15 }}>{error}</Alert> : null}
 
-      {customRequest && (
-        <Card
-          elevation={0}
-          sx={{
-            mb: 2,
-            borderRadius: 2,
-            bgcolor: "rgba(249,115,22,0.06)",
-            border: "1px solid rgba(249,115,22,0.35)"
-          }}
-        >
-          <CardContent sx={{ px: 1.75, py: 1.6 }}>
-            <Typography variant="body2" sx={{ fontSize: 12.5, fontWeight: 700, color: "#C2410C", mb: 0.6 }}>
-              Custom rental details
-            </Typography>
-            <Stack spacing={0.35}>
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                Trip purpose: {customRequest.tripPurpose.replace(/_/g, " ")}
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                Driver option: {customRequest.driverOption === "chauffeur" ? "With chauffeur" : "Self-drive"}
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                Pickup: {customRequest.pickupLocation} • Return: {customRequest.dropoffLocation}
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                Rental type: {customRequest.oneWayRental ? "One-way" : "Same-location return"}
-                {customRequest.crossBorderReturn ? " • Cross-border" : ""}
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                Contact preference: {customRequest.contactPreference}
-              </Typography>
-            </Stack>
-            {customRequest.crossBorderReturn && (
-              <Alert severity="warning" sx={{ mt: 0.8 }}>
-                Cross-border return selected. Additional approval, documents, and fees apply.
-              </Alert>
-            )}
-            {selectedAddOns.length > 0 ? (
-              <Typography
-                variant="caption"
-                sx={{ display: "block", mt: 0.5, fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Selected add-ons:{" "}
-                {selectedAddOns
-                  .map((addOn) => `${addOn.name} x${Math.max(1, addOn.quantity || 1)}`)
-                  .join(", ")}
-              </Typography>
-            ) : (
-              <Typography
-                variant="caption"
-                sx={{ display: "block", mt: 0.5, fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                No add-ons selected.
-              </Typography>
-            )}
-            {Boolean(customRequest.documents?.length) && (
-              <Typography
-                variant="caption"
-                sx={{ display: "block", mt: 0.45, fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Uploaded documents:{" "}
-                {customRequest.documents.map((document) => document.fileName).join(", ")}
-              </Typography>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 1, display: "block" }}>
-            Price breakdown
-          </Typography>
-          <Stack spacing={0.4}>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Rental ({pricing.durationDays} day{pricing.durationDays === 1 ? "" : "s"})
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                {formatUgx(pricing.rentalSubtotal)}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Chauffeur fee
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                {pricing.chauffeurFee > 0 ? formatUgx(pricing.chauffeurFee) : "UGX 0"}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Add-ons total
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                {pricing.addOnsTotal > 0 ? formatUgx(pricing.addOnsTotal) : "UGX 0"}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                One-way drop-off fee
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                {pricing.oneWayFee > 0 ? formatUgx(pricing.oneWayFee) : "UGX 0"}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Cross-border fee
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                {pricing.crossBorderFee > 0 ? formatUgx(pricing.crossBorderFee) : "UGX 0"}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Refundable deposit
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                {formatUgx(pricing.refundableDeposit)}
-              </Typography>
-            </Stack>
-          </Stack>
-          <Divider sx={{ my: 1.2, borderColor: (t) => t.palette.divider }} />
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Box>
-              <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase" }}>
-                Total due now
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.02em" }}>
-                {formatUgx(pricing.dueNow)}
-              </Typography>
-            </Box>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 1, display: "block" }}>
-            Payment method
-          </Typography>
-          <Stack spacing={1}>
-            {paymentMethods
-              .filter((method) => method.type !== "cash")
-              .map((method) => (
-                <Card
-                  key={method.id}
-                  elevation={0}
-                  onClick={() => setPaymentMethodId(method.id)}
-                  sx={{
-                    borderRadius: 2,
-                    bgcolor:
-                      paymentMethodId === method.id
-                        ? "rgba(3,205,140,0.12)"
-                        : (t) =>
-                            t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                    border:
-                      paymentMethodId === method.id
-                        ? "1px solid #03CD8C"
-                        : (t) =>
-                            t.palette.mode === "light"
-                              ? "1px solid rgba(209,213,219,0.9)"
-                              : "1px solid rgba(51,65,85,0.9)",
-                    cursor: "pointer"
-                  }}
-                >
-                  <CardContent sx={{ px: 1.4, py: 1.1 }}>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      {getPaymentIcon(method.type)}
-                      <Box>
-                        <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600 }}>
-                          {method.label}
-                        </Typography>
-                        <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                          {method.type === "wallet"
-                            ? `Available balance: ${formatUgx(walletBalance)}`
-                            : method.detail || "Payment method available"}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </CardContent>
-                </Card>
-              ))}
-          </Stack>
-          {walletInsufficient && (
-            <Alert severity="warning" sx={{ mt: 1.1 }}>
-              Your wallet balance is below the total due now. Choose card/mobile money or top up your wallet.
-              <Link
-                component="button"
-                type="button"
-                underline="hover"
-                onClick={() => navigate("/wallet?action=topup")}
-                sx={{ ml: 0.75, fontSize: 12 }}
-              >
-                Top up wallet
-              </Link>
-            </Alert>
-          )}
-          {submitError && (
-            <Alert severity="error" sx={{ mt: 1.1 }}>
-              {submitError}
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.45 }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={acceptedTerms}
-                onChange={(event) => setAcceptedTerms(event.target.checked)}
-              />
-            }
-            label={
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                I agree to the rental terms, deposit policy and vehicle use conditions.
-              </Typography>
-            }
-          />
-          <Typography variant="caption" sx={{ display: "block", fontSize: 11, color: (t) => t.palette.text.secondary }}>
-            <Link component="button" type="button" underline="hover" sx={{ fontSize: 11 }}>
-              View cancellation and refund policy
-            </Link>
-          </Typography>
-        </CardContent>
-      </Card>
-
-      <Button
-        fullWidth
-        variant="contained"
-        disabled={disableConfirm}
+      <GradientActionButton
+        label="Proceed to payment"
         onClick={() => {
-          setSubmitError(null);
-          if (!selectedPaymentMethod) {
-            setSubmitError("Select a payment method to continue.");
+          setError("");
+          if (!selectedMethod) {
+            setError("Select a payment method.");
             return;
           }
-          if (selectedPaymentMethod.type === "wallet" && walletInsufficient) {
-            setSubmitError("Wallet balance is insufficient. Choose another method or top up.");
+          if (walletInsufficient) {
+            setError("Wallet balance is insufficient for this amount.");
             return;
           }
 
           const session = actions.initializeRentalPayment({
             paymentMethodId,
-            amount: pricing.dueNow
+            amount: charges.total
           });
+
           if (!session) {
-            setSubmitError("Could not initialize payment. Please try again.");
+            setError("Unable to initialize payment. Please try again.");
             return;
           }
 
           actions.updateRentalBooking({
             paymentMethodId,
-            priceEstimate: formatUgx(pricing.dueNow)
+            priceEstimate: formatInr(charges.total)
           });
 
-          if (selectedPaymentMethod.type === "wallet") {
+          if (selectedMethod.type === "wallet") {
             navigate("/rental/payment/wallet");
             return;
           }
-
-          if (selectedPaymentMethod.type === "card") {
+          if (selectedMethod.type === "card") {
             navigate("/rental/payment/card");
             return;
           }
-
-          if (selectedPaymentMethod.type === "mobile_money") {
-            navigate("/rental/payment/mobile-money");
-            return;
-          }
-
-          setSubmitError("Unsupported payment method selected.");
+          navigate("/rental/payment/mobile-money");
         }}
-        sx={{
-          borderRadius: 5,
-          py: 1.1,
-          fontSize: 15,
-          fontWeight: 600,
-          textTransform: "none",
-          bgcolor: !disableConfirm ? "primary.main" : "#9CA3AF",
-          color: !disableConfirm ? "#020617" : "#E5E7EB",
-          "&:hover": { bgcolor: !disableConfirm ? "#06e29a" : "#9CA3AF" }
-        }}
-      >
-        Confirm rental booking
-      </Button>
-    </Box>
-  );
-}
+      />
 
-export default function RentalSummary(): React.JSX.Element {
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (t) => t.palette.background.default
-      }}
-    >
-      <RentalSummaryScreen />
+      <Card sx={{ ...cardSx, bgcolor: "#F2FBF6", mt: 1.45 }}>
+        <CardContent sx={{ p: 1.35, "&:last-child": { pb: 1.35 } }}>
+          <Stack direction="row" spacing={0.95} alignItems="center">
+            <CheckCircleRoundedIcon sx={{ color: rentalUi.green }} />
+            <Box>
+              <Typography sx={{ fontWeight: 700, fontSize: 19 }}>Secure & trusted payments</Typography>
+              <Typography sx={{ color: rentalUi.muted, fontSize: 16.5 }}>
+                Your payment details are encrypted and safe with us.
+              </Typography>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
     </Box>
   );
 }

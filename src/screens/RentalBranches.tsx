@@ -1,306 +1,260 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  
   Box,
-  IconButton,
-  Typography,
   Card,
   CardContent,
+  IconButton,
   Stack,
-  Chip,
-  TextField,
-  InputAdornment,
-  Button
+  Typography
 } from "@mui/material";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
+import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
+import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import LocalTaxiOutlinedIcon from "@mui/icons-material/LocalTaxiOutlined";
+import FlightTakeoffRoundedIcon from "@mui/icons-material/FlightTakeoffRounded";
+import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-
-import ScreenScaffold from "../components/ScreenScaffold";
-import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import {
-  buildRentalPricing,
-  formatUgx,
-  getRentalBookingVehicle
-} from "../features/rental/booking";
+  CroppedReferenceImage,
+  GradientActionButton,
+  cardSx,
+  rentalUi,
+  screenShellSx
+} from "../components/rental/RentalRedesignUI";
+import { RENTAL_UI_ASSETS } from "../features/rental/uiAssets";
 
+interface BranchOption {
+  id: string;
+  name: string;
+  address: string;
+  distance: string;
+  hours: string;
+  vehicles: number;
+}
 
-const BRANCHES = [
-  "Nsambya EV Hub",
-  "Bugolobi EV Hub",
-  "Entebbe Airport EV Desk",
-  "Kansanga EV Pickup Point"
+const branches: BranchOption[] = [
+  {
+    id: "koramangala",
+    name: "EVzone Koramangala",
+    address: "16, 5th Cross, 80 Feet Road, Koramangala, Bengaluru 560095",
+    distance: "1.8 km away",
+    hours: "7:00 AM - 10:00 PM",
+    vehicles: 18
+  },
+  {
+    id: "airport_t1",
+    name: "EVzone Airport T1",
+    address: "Kempegowda International Airport, Terminal 1, Bengaluru 562300",
+    distance: "22.4 km away",
+    hours: "24x7",
+    vehicles: 22
+  },
+  {
+    id: "mg_road",
+    name: "EVzone MG Road",
+    address: "45, MG Road, Near Trinity Circle, Bengaluru 560001",
+    distance: "4.2 km away",
+    hours: "7:00 AM - 10:00 PM",
+    vehicles: 12
+  },
+  {
+    id: "whitefield",
+    name: "EVzone Whitefield",
+    address: "Ground Floor, VR Bengaluru, Whitefield Main Road, Bengaluru 560066",
+    distance: "17.6 km away",
+    hours: "7:00 AM - 10:00 PM",
+    vehicles: 16
+  }
 ];
 
-function RentalPickupReturnBranchesScreen(): React.JSX.Element {
-  const navigate = useNavigate();
-  const { rental, actions } = useAppData();
-  const vehicle = getRentalBookingVehicle(
-    rental.vehicles,
-    rental.booking,
-    rental.selectedVehicleId
-  );
-  const [pickupBranch, setPickupBranch] = useState(
-    rental.booking.pickupBranch ?? "Nsambya EV Hub"
-  );
-  const [returnBranch, setReturnBranch] = useState(
-    rental.booking.dropoffBranch ?? "Nsambya EV Hub"
-  );
+function BranchCard({
+  branch,
+  selected,
+  onSelect
+}: {
+  branch: BranchOption;
+  selected: boolean;
+  onSelect: () => void;
+}): React.JSX.Element {
+  return (
+    <Card
+      onClick={onSelect}
+      sx={{
+        ...cardSx,
+        cursor: "pointer",
+        borderColor: selected ? rentalUi.green : rentalUi.border,
+        borderWidth: selected ? 2 : 1
+      }}
+    >
+      <CardContent sx={{ p: 1.45, "&:last-child": { pb: 1.45 } }}>
+        <Stack direction="row" spacing={1.1}>
+          <Box
+            sx={{
+              width: 34,
+              height: 34,
+              borderRadius: "50%",
+              border: `2px solid ${selected ? rentalUi.green : "#C8D0DC"}`,
+              display: "grid",
+              placeItems: "center",
+              mt: 0.25
+            }}
+          >
+            {selected ? <Box sx={{ width: 20, height: 20, borderRadius: "50%", bgcolor: rentalUi.green }} /> : null}
+          </Box>
 
-  const canContinue = Boolean(pickupBranch.trim() && returnBranch.trim());
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" spacing={0.6}>
+              <Box>
+                <Typography sx={{ fontSize: 36/2, fontWeight: 800 }}>{branch.name}</Typography>
+                <Typography sx={{ fontSize: 16.5, color: rentalUi.muted, lineHeight: 1.3 }}>{branch.address}</Typography>
+              </Box>
+
+              <Stack spacing={0.45}>
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <AccessTimeRoundedIcon sx={{ fontSize: 18, color: rentalUi.muted }} />
+                  <Typography sx={{ color: rentalUi.muted, fontSize: 16.5 }}>{branch.hours}</Typography>
+                </Stack>
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <LocalTaxiOutlinedIcon sx={{ fontSize: 18, color: rentalUi.muted }} />
+                  <Typography sx={{ color: rentalUi.muted, fontSize: 16.5 }}>{branch.vehicles} vehicles</Typography>
+                </Stack>
+              </Stack>
+            </Stack>
+
+            <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.65 }}>
+              <LocationOnRoundedIcon sx={{ color: rentalUi.green, fontSize: 20 }} />
+              <Typography sx={{ color: rentalUi.muted, fontSize: 18 }}>{branch.distance}</Typography>
+            </Stack>
+          </Box>
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function RentalBranches(): React.JSX.Element {
+  const navigate = useNavigate();
+  const { actions } = useAppData();
+
+  const [tab, setTab] = useState<"pickup" | "return">("pickup");
+  const defaultBranch = branches[0]?.name ?? "";
+  const [pickupBranch, setPickupBranch] = useState(defaultBranch);
+  const [returnBranch, setReturnBranch] = useState(defaultBranch);
 
   return (
-    <ScreenScaffold
-      header={
-        <Box
-          sx={{
-            mb: uiTokens.spacing.lg,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between"
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.md }}>
-            <IconButton
-              size="small"
-              aria-label="Back"
-              onClick={() => navigate(-1)}
-              sx={{
-                borderRadius: uiTokens.radius.xl,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
-              }}
-            >
-              <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-            <Box>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                Pickup & return locations
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Choose where you collect and drop off the EV
-              </Typography>
-            </Box>
+    <Box sx={screenShellSx}>
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+        <IconButton onClick={() => navigate(-1)} sx={{ color: rentalUi.title }}>
+          <ArrowBackRoundedIcon />
+        </IconButton>
+        <Typography sx={{ fontSize: 22, fontWeight: 800 }}>Branches</Typography>
+      </Stack>
+
+      <CroppedReferenceImage
+        src={RENTAL_UI_ASSETS.banners.branchMap}
+        alt="Branch map"
+        height={190}
+        scale={1}
+        sx={{ mb: 1.5 }}
+      />
+
+      <Card sx={{ ...cardSx, p: 0.4, mb: 1.5 }}>
+        <Stack direction="row" spacing={0.6}>
+          <Box
+            role="button"
+            onClick={() => setTab("pickup")}
+            sx={{
+              flex: 1,
+              borderRadius: 2.2,
+              py: 1.1,
+              px: 1,
+              bgcolor: tab === "pickup" ? "#fff" : "transparent",
+              borderBottom: tab === "pickup" ? `3px solid ${rentalUi.green}` : "3px solid transparent",
+              cursor: "pointer"
+            }}
+          >
+            <Stack direction="row" justifyContent="center" spacing={0.6} alignItems="center">
+              <DirectionsCarRoundedIcon sx={{ color: rentalUi.green }} />
+              <Typography sx={{ fontSize: 24/1.4, fontWeight: 800, color: tab === "pickup" ? rentalUi.greenDeep : rentalUi.muted }}>Pickup</Typography>
+            </Stack>
           </Box>
-        </Box>
-      }
-    >
-      {/* Pickup card */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: uiTokens.spacing.lg,
-          borderRadius: uiTokens.radius.xl,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: uiTokens.spacing.xxs, display: "block" }}
-          >
-            Pickup branch
-          </Typography>
-          <TextField
-            fullWidth
-            size="small"
-            value={pickupBranch}
-            onChange={(e) => setPickupBranch(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PlaceRoundedIcon sx={{ fontSize: 18, color: "primary.main" }} />
-                </InputAdornment>
-              )
-            }}
-            sx={{
-              mb: uiTokens.spacing.md,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: uiTokens.radius.xl,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                "& fieldset": {
-                  borderColor: (t) =>
-                    t.palette.mode === "light"
-                      ? "rgba(209,213,219,0.9)"
-                      : "rgba(51,65,85,0.9)"
-                },
-                "&:hover fieldset": { borderColor: "primary.main" }
-              }
-            }}
-          />
 
-          <Stack direction="row" spacing={uiTokens.spacing.sm} sx={{ flexWrap: "wrap" }}>
-            {BRANCHES.map((b) => (
-              <Chip
-                key={b}
-                label={b}
-                size="small"
-                onClick={() => setPickupBranch(b)}
-                sx={{
-                  borderRadius: uiTokens.radius.xl,
-                  fontSize: 11,
-                  height: 24,
-                  bgcolor:
-                    pickupBranch === b
-                      ? "primary.main"
-                      : (t) =>
-                          t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-                  color:
-                    pickupBranch === b ? "#020617" : (t) => t.palette.text.primary
-                }}
-              />
-            ))}
+          <Box
+            role="button"
+            onClick={() => setTab("return")}
+            sx={{
+              flex: 1,
+              borderRadius: 2.2,
+              py: 1.1,
+              px: 1,
+              bgcolor: tab === "return" ? "#fff" : "transparent",
+              borderBottom: tab === "return" ? `3px solid ${rentalUi.orange}` : "3px solid transparent",
+              cursor: "pointer"
+            }}
+          >
+            <Stack direction="row" justifyContent="center" spacing={0.6} alignItems="center">
+              <LocationOnRoundedIcon sx={{ color: rentalUi.orange }} />
+              <Typography sx={{ fontSize: 24/1.4, fontWeight: 800, color: tab === "return" ? rentalUi.orange : rentalUi.muted }}>Return</Typography>
+            </Stack>
+          </Box>
+        </Stack>
+      </Card>
+
+      <Stack spacing={1.2} sx={{ mb: 1.4 }}>
+        {branches.map((branch) => {
+          const selected = tab === "pickup" ? pickupBranch === branch.name : returnBranch === branch.name;
+          return (
+            <BranchCard
+              key={branch.id}
+              branch={branch}
+              selected={selected}
+              onSelect={() => {
+                if (tab === "pickup") {
+                  setPickupBranch(branch.name);
+                } else {
+                  setReturnBranch(branch.name);
+                }
+              }}
+            />
+          );
+        })}
+      </Stack>
+
+      <Card sx={{ ...cardSx, bgcolor: "#F1FAF6", mb: 1.55 }}>
+        <CardContent sx={{ p: 1.35, "&:last-child": { pb: 1.35 } }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.1}>
+            <Stack direction="row" spacing={0.95} alignItems="center">
+              <FlightTakeoffRoundedIcon sx={{ color: rentalUi.green }} />
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: 34/2 }}>Airport pickup surcharge</Typography>
+                <Typography sx={{ color: rentalUi.muted, fontSize: 17 }}>
+                  A surcharge of ₹499 applies for pickups from Airport branches.
+                </Typography>
+              </Box>
+            </Stack>
+            <Typography sx={{ color: rentalUi.green, fontWeight: 700, fontSize: 17 }}>Learn more</Typography>
           </Stack>
         </CardContent>
       </Card>
 
-      {/* Return card */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: uiTokens.spacing.xl,
-          borderRadius: uiTokens.radius.xl,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: uiTokens.spacing.xxs, display: "block" }}
-          >
-            Return branch
-          </Typography>
-          <TextField
-            fullWidth
-            size="small"
-            value={returnBranch}
-            onChange={(e) => setReturnBranch(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PlaceRoundedIcon sx={{ fontSize: 18, color: "text.secondary" }} />
-                </InputAdornment>
-              )
-            }}
-            sx={{
-              mb: uiTokens.spacing.md,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: uiTokens.radius.xl,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
-                "& fieldset": {
-                  borderColor: (t) =>
-                    t.palette.mode === "light"
-                      ? "rgba(209,213,219,0.9)"
-                      : "rgba(51,65,85,0.9)"
-                },
-                "&:hover fieldset": { borderColor: "primary.main" }
-              }
-            }}
-          />
-
-          <Stack direction="row" spacing={uiTokens.spacing.sm} sx={{ flexWrap: "wrap" }}>
-            {BRANCHES.map((b) => (
-              <Chip
-                key={b}
-                label={b}
-                size="small"
-                onClick={() => setReturnBranch(b)}
-                sx={{
-                  borderRadius: uiTokens.radius.xl,
-                  fontSize: 11,
-                  height: 24,
-                  bgcolor:
-                    returnBranch === b
-                      ? "primary.main"
-                      : (t) =>
-                          t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-                  color:
-                    returnBranch === b ? "#020617" : (t) => t.palette.text.primary
-                }}
-              />
-            ))}
-          </Stack>
-
-          <Typography
-            variant="caption"
-            sx={{ mt: uiTokens.spacing.md, fontSize: 11, color: (t) => t.palette.text.secondary, display: "block" }}
-          >
-            Some locations may charge a one‑way drop‑off fee if pickup and
-            return branches are different. You’ll see this on the summary screen.
-          </Typography>
-        </CardContent>
-      </Card>
-
-      <Button
-        fullWidth
-        variant="contained"
-        disabled={!canContinue}
+      <GradientActionButton
+        label="Continue"
         onClick={() => {
-          const pricing = buildRentalPricing(vehicle, {
-            ...rental.booking,
-            pickupBranch,
-            dropoffBranch: returnBranch
-          });
           actions.updateRentalBooking({
             pickupBranch,
-            dropoffBranch: returnBranch,
-            priceEstimate: formatUgx(pricing.dueNow)
+            dropoffBranch: returnBranch
           });
           navigate("/rental/summary");
         }}
         sx={{
-          borderRadius: uiTokens.radius.xl,
-          py: uiTokens.spacing.smPlus,
-          fontSize: 15,
-          fontWeight: 600,
-          textTransform: "none",
-          bgcolor: canContinue ? "primary.main" : "#9CA3AF",
-          color: canContinue ? "#020617" : "#E5E7EB",
-          "&:hover": {
-            bgcolor: canContinue ? "#06e29a" : "#9CA3AF"
+          "& .MuiButton-endIcon": {
+            marginLeft: 6
           }
         }}
-      >
-        Continue to summary & payment
-      </Button>
-    </ScreenScaffold>
-  );
-}
-
-export default function RiderScreen73RentalPickupReturnBranchesCanvas_v2() {
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (t) => t.palette.background.default
-      }}
-    >
-      <RentalPickupReturnBranchesScreen />
+      />
     </Box>
   );
 }

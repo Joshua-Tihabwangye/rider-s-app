@@ -271,11 +271,29 @@ function createInitialState(baseState: AppState): AppState {
     }
 
     const persisted = JSON.parse(raw) as Partial<AppState>;
+    const mergedRentalVehicles = (() => {
+      const persistedVehicles = persisted.rental?.vehicles ?? [];
+      if (!persistedVehicles.length) {
+        return baseState.rental.vehicles;
+      }
+
+      const byId = new Map<string, (typeof baseState.rental.vehicles)[number]>();
+      for (const vehicle of baseState.rental.vehicles) {
+        byId.set(vehicle.id, vehicle);
+      }
+      for (const vehicle of persistedVehicles) {
+        byId.set(vehicle.id, vehicle);
+      }
+      return Array.from(byId.values());
+    })();
+
     return {
       ...baseState,
       ride: persisted.ride ? { ...baseState.ride, ...persisted.ride } : baseState.ride,
       delivery: persisted.delivery ? { ...baseState.delivery, ...persisted.delivery } : baseState.delivery,
-      rental: persisted.rental ? { ...baseState.rental, ...persisted.rental } : baseState.rental,
+      rental: persisted.rental
+        ? { ...baseState.rental, ...persisted.rental, vehicles: mergedRentalVehicles }
+        : baseState.rental,
       tours: persisted.tours ? { ...baseState.tours, ...persisted.tours } : baseState.tours,
       ambulance: persisted.ambulance
         ? { ...baseState.ambulance, ...persisted.ambulance }

@@ -3,33 +3,43 @@ import { Navigate, useNavigate } from "react-router-dom";
 import {
   Alert,
   Box,
-  Button,
   Card,
   CardContent,
+  Chip,
   IconButton,
   Stack,
   Typography
 } from "@mui/material";
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import RadioButtonCheckedRoundedIcon from "@mui/icons-material/RadioButtonCheckedRounded";
+import RadioButtonUncheckedRoundedIcon from "@mui/icons-material/RadioButtonUncheckedRounded";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
+import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 
-import ScreenScaffold from "../components/ScreenScaffold";
-import PaymentSummaryCard from "../components/rental/payments/PaymentSummaryCard";
 import { useAppData } from "../contexts/AppDataContext";
-import { formatRentalDateRange } from "../features/rental/booking";
-import { formatUgxAmount } from "../features/rental/payment";
+import {
+  CroppedReferenceImage,
+  GradientActionButton,
+  cardSx,
+  formatInr,
+  rentalUi,
+  screenShellSx
+} from "../components/rental/RentalRedesignUI";
+import { RENTAL_UI_ASSETS, getVehicleImageFromName } from "../features/rental/uiAssets";
 
 export default function RentalWalletPayment(): React.JSX.Element {
   const navigate = useNavigate();
-  const { rental, paymentMethods, walletBalance, actions } = useAppData();
+  const { rental, walletBalance, actions } = useAppData();
   const activePayment = rental.activePayment;
-  const [error, setError] = useState<string>("");
-
-  const booking = rental.booking;
   const vehicle = useMemo(
-    () => rental.vehicles.find((entry) => entry.id === booking.vehicleId) ?? rental.vehicles[0] ?? null,
-    [booking.vehicleId, rental.vehicles]
+    () => rental.vehicles.find((entry) => entry.id === rental.booking.vehicleId) ?? rental.vehicles[0] ?? null,
+    [rental.booking.vehicleId, rental.vehicles]
   );
+
+  const [splitPayment, setSplitPayment] = useState(false);
+  const [error, setError] = useState("");
 
   if (!activePayment) {
     return <Navigate to="/rental/summary" replace />;
@@ -39,134 +49,199 @@ export default function RentalWalletPayment(): React.JSX.Element {
     return <Navigate to="/rental/summary" replace />;
   }
 
-  const paymentMethodLabel =
-    paymentMethods.find((method) => method.id === activePayment.paymentMethodId)?.label ?? "EVzone Wallet";
-
-  const walletInsufficient = walletBalance < activePayment.amount;
-
-  const handleWalletPay = () => {
-    setError("");
-    if (walletInsufficient) {
-      setError("Insufficient wallet balance. Top up or choose another payment method.");
-      return;
-    }
-
-    actions.updateRentalPaymentSession({
-      status: "processing",
-      gatewayOutcome: "success",
-      failureReason: undefined
-    });
-    navigate("/rental/payment/processing");
-  };
+  const amountDue = activePayment.amount;
+  const walletInsufficient = walletBalance < amountDue;
+  const vehicleLabel = vehicle?.name.includes("Kona") ? "Family SUV" : vehicle?.name ?? "EV rental";
 
   return (
-    <ScreenScaffold>
-      <Stack direction="row" spacing={1.2} alignItems="center">
-        <IconButton
-          size="small"
-          aria-label="Back"
-          onClick={() => navigate(-1)}
-          sx={{
-            borderRadius: 5,
-            bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)"),
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
-          }}
-        >
-          <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+    <Box sx={screenShellSx}>
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+        <IconButton onClick={() => navigate(-1)} sx={{ border: `1px solid ${rentalUi.border}`, bgcolor: "#fff", color: rentalUi.green }}>
+          <ArrowBackRoundedIcon />
         </IconButton>
-        <Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
-            EVzone Wallet Payment
-          </Typography>
-          <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-            Simulated wallet checkout
-          </Typography>
-        </Box>
+        <Typography sx={{ fontSize: 22, fontWeight: 800 }}>Wallet payment</Typography>
       </Stack>
 
-      <PaymentSummaryCard
-        customerName={activePayment.customerName}
-        bookingReference={activePayment.bookingReference}
-        vehicleName={vehicle?.name ?? "EV rental"}
-        paymentMethodLabel={paymentMethodLabel}
-        amount={activePayment.amount}
-      />
-
-      <Card
-        elevation={0}
-        sx={{
-          borderRadius: 2,
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)",
-          bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)")
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Stack spacing={1.1}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <AccountBalanceWalletRoundedIcon sx={{ fontSize: 20, color: "primary.main" }} />
-              <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                Wallet balance: {formatUgxAmount(walletBalance)}
-              </Typography>
-            </Stack>
-
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Amount to pay: {formatUgxAmount(activePayment.amount)}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Rental: {vehicle?.name ?? "EV rental"}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Dates: {formatRentalDateRange(booking.startDate, booking.endDate)}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Pickup: {booking.pickupBranch ?? "Pending"} • Return: {booking.dropoffBranch ?? "Pending"}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-              By continuing, this simulated wallet payment will debit your wallet and confirm the booking.
-            </Typography>
-
-            {walletInsufficient && (
-              <Alert severity="warning">
-                Wallet balance is not enough for this payment. Choose another method or top up your wallet.
-              </Alert>
-            )}
-            {error && <Alert severity="error">{error}</Alert>}
-
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handleWalletPay}
-              disabled={walletInsufficient}
-              sx={{
-                borderRadius: 5,
-                py: 1,
-                fontWeight: 700,
-                textTransform: "none",
-                bgcolor: "primary.main",
-                color: "#022C22",
-                "&:hover": { bgcolor: "#06e29a" }
-              }}
-            >
-              Pay with EVzone Wallet
-            </Button>
-
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => navigate("/rental/summary")}
-              sx={{ borderRadius: 5, py: 1, textTransform: "none" }}
-            >
-              Choose another payment method
-            </Button>
+      <Card sx={{ ...cardSx, borderColor: "#BFECD4", bgcolor: "#F4FCF8", mb: 1.4 }}>
+        <CardContent sx={{ p: 1.55, "&:last-child": { pb: 1.55 } }}>
+          <Stack direction="row" justifyContent="space-between" spacing={1.1}>
+            <Box>
+              <Stack direction="row" spacing={0.65} alignItems="center" sx={{ mb: 0.7 }}>
+                <Typography sx={{ fontSize: 22/1.25, fontWeight: 600 }}>EVzone wallet balance</Typography>
+                <VisibilityOutlinedIcon sx={{ fontSize: 20, color: rentalUi.muted }} />
+              </Stack>
+              <Typography sx={{ fontSize: 74/2, fontWeight: 800, color: rentalUi.greenDeep }}>{formatInr(walletBalance)}</Typography>
+              <Typography sx={{ color: rentalUi.muted, fontSize: 20/1.2 }}>Available balance</Typography>
+            </Box>
+            <CroppedReferenceImage
+              src={RENTAL_UI_ASSETS.banners.walletHero}
+              alt="Wallet"
+              height={140}
+              scale={1}
+              sx={{ width: 214, borderRadius: 2.6 }}
+            />
           </Stack>
         </CardContent>
       </Card>
-    </ScreenScaffold>
+
+      <Card sx={{ ...cardSx, mb: 1.35 }}>
+        <CardContent sx={{ p: 1.55, "&:last-child": { pb: 1.55 } }}>
+          <Stack direction="row" justifyContent="space-between" spacing={1.1}>
+            <Box>
+              <Typography sx={{ fontSize: 38/2, fontWeight: 700 }}>Amount due</Typography>
+              <Typography sx={{ fontSize: 74/2, fontWeight: 800, mt: 0.25 }}>{formatInr(amountDue)}</Typography>
+              <Stack spacing={0.3} sx={{ mt: 0.8 }}>
+                <Stack direction="row" spacing={1.2}>
+                  <Typography sx={{ color: rentalUi.muted }}>Total rental amount</Typography>
+                  <Typography sx={{ color: rentalUi.muted }}>{formatInr(Math.max(0, amountDue - 300))}</Typography>
+                </Stack>
+                <Stack direction="row" spacing={1.2}>
+                  <Typography sx={{ color: rentalUi.muted }}>Refundable deposit</Typography>
+                  <Typography sx={{ color: rentalUi.muted }}>{formatInr(300)}</Typography>
+                </Stack>
+              </Stack>
+            </Box>
+            <CroppedReferenceImage
+              src={RENTAL_UI_ASSETS.banners.walletHero}
+              alt="Amount breakdown"
+              height={148}
+              scale={1}
+              sx={{ width: 212, borderRadius: 2.6 }}
+            />
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Stack direction="row" spacing={1.1} sx={{ mb: 1.3 }}>
+        <Card
+          onClick={() => setSplitPayment(false)}
+          sx={{ ...cardSx, flex: 1, cursor: "pointer", borderColor: !splitPayment ? rentalUi.green : rentalUi.border, bgcolor: !splitPayment ? rentalUi.greenSoft : "#fff" }}
+        >
+          <CardContent sx={{ p: 1.15, "&:last-child": { pb: 1.15 } }}>
+            <Stack direction="row" spacing={0.7} alignItems="center">
+              {!splitPayment ? <RadioButtonCheckedRoundedIcon sx={{ color: rentalUi.green }} /> : <RadioButtonUncheckedRoundedIcon sx={{ color: "#C4CEDA" }} />}
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: 32/2 }}>Full payment</Typography>
+                <Typography sx={{ color: rentalUi.muted, fontSize: 16 }}>Pay entire amount now</Typography>
+              </Box>
+            </Stack>
+          </CardContent>
+        </Card>
+
+        <Card
+          onClick={() => setSplitPayment(true)}
+          sx={{ ...cardSx, flex: 1, cursor: "pointer", borderColor: splitPayment ? rentalUi.green : rentalUi.border, bgcolor: splitPayment ? rentalUi.greenSoft : "#fff" }}
+        >
+          <CardContent sx={{ p: 1.15, "&:last-child": { pb: 1.15 } }}>
+            <Stack direction="row" spacing={0.7} alignItems="center" justifyContent="space-between">
+              <Stack direction="row" spacing={0.7} alignItems="center">
+                {splitPayment ? <RadioButtonCheckedRoundedIcon sx={{ color: rentalUi.green }} /> : <RadioButtonUncheckedRoundedIcon sx={{ color: "#C4CEDA" }} />}
+                <Box>
+                  <Typography sx={{ fontWeight: 700, fontSize: 32/2 }}>Split payment</Typography>
+                  <Typography sx={{ color: rentalUi.muted, fontSize: 16 }}>Pay partial now, rest later</Typography>
+                </Box>
+              </Stack>
+              <Chip label="New" sx={{ bgcolor: "#FFF1E3", color: rentalUi.orange }} />
+            </Stack>
+          </CardContent>
+        </Card>
+      </Stack>
+
+      <Card sx={{ ...cardSx, mb: 1.3 }}>
+        <CardContent sx={{ p: 1.3, "&:last-child": { pb: 1.3 } }}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.85 }}>
+            <CroppedReferenceImage
+              src={getVehicleImageFromName(vehicleLabel)}
+              alt={vehicleLabel}
+              height={74}
+              scale={1}
+              sx={{ width: 128, borderRadius: 2.2 }}
+            />
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Stack direction="row" justifyContent="space-between">
+                <Typography sx={{ color: rentalUi.muted, fontSize: 16 }}>Booking ID</Typography>
+                <Typography sx={{ color: rentalUi.muted, fontSize: 16 }}>Vehicle</Typography>
+              </Stack>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography sx={{ fontWeight: 800, fontSize: 35/2 }}>{activePayment.bookingReference}</Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: 35/2 }}>{vehicleLabel}</Typography>
+              </Stack>
+            </Box>
+          </Stack>
+
+          <Stack direction="row" spacing={0.65} alignItems="center">
+            <CalendarMonthRoundedIcon sx={{ color: rentalUi.muted, fontSize: 19 }} />
+            <Typography sx={{ color: rentalUi.muted, fontSize: 16.5 }}>
+              24 May, 10:00 AM – 26 May, 10:00 AM  •  2 days
+            </Typography>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card sx={{ ...cardSx, mb: 1.35 }}>
+        <CardContent sx={{ p: 1.25, "&:last-child": { pb: 1.25 } }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography sx={{ fontSize: 34/2, fontWeight: 700 }}>Payment summary</Typography>
+            <Typography sx={{ color: rentalUi.greenDeep, fontSize: 38/2, fontWeight: 800 }}>
+              You will pay {formatInr(amountDue)}
+            </Typography>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      {error ? <Alert severity="error" sx={{ mb: 1 }}>{error}</Alert> : null}
+      {walletInsufficient ? (
+        <Alert severity="warning" sx={{ mb: 1 }}>
+          Wallet balance is insufficient. Top up your wallet or choose another payment method.
+        </Alert>
+      ) : null}
+
+      <GradientActionButton
+        label="Pay with wallet"
+        disabled={walletInsufficient}
+        onClick={() => {
+          setError("");
+          if (walletInsufficient) {
+            setError("Insufficient wallet balance.");
+            return;
+          }
+
+          actions.updateRentalPaymentSession({
+            status: "processing",
+            gatewayOutcome: "success",
+            failureReason: undefined
+          });
+          navigate("/rental/payment/processing");
+        }}
+      />
+
+      <Stack direction="row" justifyContent="center" spacing={0.7} alignItems="center" sx={{ mt: 1.2, mb: 1.2 }}>
+        <AccountBalanceWalletRoundedIcon sx={{ color: rentalUi.green }} />
+        <Typography
+          component="button"
+          type="button"
+          onClick={() => navigate("/wallet?action=topup")}
+          sx={{ border: 0, bgcolor: "transparent", color: rentalUi.greenDeep, fontSize: 34/2, fontWeight: 700, cursor: "pointer" }}
+        >
+          Top up wallet
+        </Typography>
+      </Stack>
+
+      <Card sx={{ ...cardSx, bgcolor: "#F2FBF6" }}>
+        <CardContent sx={{ p: 1.25, "&:last-child": { pb: 1.25 } }}>
+          <Stack direction="row" spacing={0.85} alignItems="center">
+            <Box sx={{ width: 36, height: 36, borderRadius: "50%", bgcolor: rentalUi.green, color: "#fff", display: "grid", placeItems: "center" }}>
+              <LockRoundedIcon sx={{ fontSize: 20 }} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: 33/2, fontWeight: 700 }}>Secure & trusted payments</Typography>
+              <Typography sx={{ color: rentalUi.muted, fontSize: 16.5 }}>
+                Your payment is protected with 256-bit SSL encryption.
+              </Typography>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }

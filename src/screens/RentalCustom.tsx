@@ -1,1401 +1,405 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Alert,
-  Autocomplete,
   Box,
-  Button,
   Card,
   CardContent,
   Checkbox,
+  Chip,
   Divider,
-  FormControlLabel,
+  FormControl,
   IconButton,
+  Select,
   MenuItem,
   Stack,
-  Switch,
   TextField,
-  Typography
+  Typography,
+  InputAdornment
 } from "@mui/material";
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import LocalOfferRoundedIcon from "@mui/icons-material/LocalOfferRounded";
-import UploadFileRoundedIcon from "@mui/icons-material/UploadFileRounded";
-import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
+import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
+import BusinessCenterRoundedIcon from "@mui/icons-material/BusinessCenterRounded";
+import FamilyRestroomRoundedIcon from "@mui/icons-material/FamilyRestroomRounded";
+import FlightTakeoffRoundedIcon from "@mui/icons-material/FlightTakeoffRounded";
+import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
+import MapRoundedIcon from "@mui/icons-material/MapRounded";
+import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
+import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
+import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
+import AcUnitRoundedIcon from "@mui/icons-material/AcUnitRounded";
+import ChildCareRoundedIcon from "@mui/icons-material/ChildCareRounded";
+import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
+import TranslateRoundedIcon from "@mui/icons-material/TranslateRounded";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
+import CurrencyRupeeRoundedIcon from "@mui/icons-material/CurrencyRupeeRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 
-import ScreenScaffold from "../components/ScreenScaffold";
-import CustomRentalStepIndicator from "../components/rental/CustomRentalStepIndicator";
-import VehiclePreferenceSelector from "../components/rental/VehiclePreferenceSelector";
-import DriverOptionSelector from "../components/rental/DriverOptionSelector";
-import RentalAddOnsSelector from "../components/rental/RentalAddOnsSelector";
-import RentalEstimateCard from "../components/rental/RentalEstimateCard";
-import MapShell from "../components/maps/MapShell";
 import { useAppData } from "../contexts/AppDataContext";
-import {
-  DEFAULT_BASE_DAILY_RATE,
-  RENTAL_CONTACT_PREFERENCE_OPTIONS,
-  RENTAL_TRIP_PURPOSE_OPTIONS,
-  buildCustomRentalEstimate,
-  buildRentalDurationLabel,
-  createDefaultRentalAddOns,
-  getAddOnIdsForTripPurpose
-} from "../features/rental/custom";
-import {
-  getReturnLocationFees,
-  getLocationById,
-  getPickupLocations,
-  getRentalCountries,
-  getRentalRegionsByCountry,
-  getReturnLocationsByCountryAndRegion,
-  isCrossBorderReturn
-} from "../features/rental/locations";
-import { formatUgx, getRentalBookingVehicle, parseUgx } from "../features/rental/booking";
-import type {
-  RentalContactPreference,
-  RentalModeOption,
-  RentalTripPurpose,
-  RentalUploadedDocument,
-  RentalVehiclePreferenceType
-} from "../store/types";
-import { uiTokens } from "../design/tokens";
+import { GradientActionButton, cardSx, rentalUi, screenShellSx } from "../components/rental/RentalRedesignUI";
 
-const CUSTOM_RENTAL_STEPS = [
-  "Trip details",
-  "Vehicle preference",
-  "Driver option",
-  "Add-ons",
-  "Review estimate"
-];
+const purposes = [
+  { key: "business", label: "Business", icon: <BusinessCenterRoundedIcon /> },
+  { key: "family", label: "Family", icon: <FamilyRestroomRoundedIcon /> },
+  { key: "airport", label: "Airport", icon: <FlightTakeoffRoundedIcon /> },
+  { key: "wedding", label: "Wedding", icon: <FavoriteBorderRoundedIcon /> },
+  { key: "tour", label: "Tour", icon: <MapRoundedIcon /> }
+] as const;
 
-const ACCEPTED_DOCUMENT_TYPES = ".pdf,image/*";
-const ORANGE_ACCENT = "#C2410C";
-const FORM_CONTENT_SX = {
-  px: 1.7,
-  py: 1.7,
-  "& .MuiFormLabel-root": { fontSize: 14 },
-  "& .MuiInputLabel-root.MuiInputLabel-shrink": { fontSize: 12.5 },
-  "& .MuiInputBase-input, & .MuiSelect-select": { fontSize: 15 },
-  "& .MuiFormHelperText-root": { fontSize: 11 }
-};
-
-type ValidationErrors = Record<string, string>;
-
-function toInputDateTimeValue(date: Date): string {
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  const localDate = new Date(date.getTime() - offsetMs);
-  return localDate.toISOString().slice(0, 16);
+interface PreferenceRowProps {
+  label: string;
+  helper: string;
+  icon: React.ReactNode;
+  checked: boolean;
+  onToggle: () => void;
 }
 
-function sanitizeIntegerString(value: string): string {
-  if (!value.trim()) {
-    return "";
-  }
-  const sanitized = value.replace(/[^\d]/g, "");
-  if (!sanitized) {
-    return "";
-  }
-  return String(Math.max(0, Math.round(Number(sanitized))));
-}
-
-function parseNumberValue(value: string, min: number): number | undefined {
-  if (!value.trim()) {
-    return undefined;
-  }
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) {
-    return undefined;
-  }
-  return Math.max(min, Math.round(numeric));
-}
-
-function toUploadedDocument(
-  kind: RentalUploadedDocument["kind"],
-  file: File
-): RentalUploadedDocument {
-  return {
-    kind,
-    fileName: file.name,
-    fileType: file.type,
-    fileSize: file.size,
-    lastModified: file.lastModified
-  };
-}
-
-function isAllowedDocumentType(file: File): boolean {
-  return file.type === "application/pdf" || file.type.startsWith("image/");
-}
-
-function renderUploadedFileLabel(file: File | null): string {
-  if (!file) {
-    return "No file selected";
-  }
-  const sizeKb = Math.max(1, Math.round(file.size / 1024));
-  return `${file.name} (${sizeKb} KB)`;
-}
-
-function toSeatCapacityBucket(value?: number): string {
-  if (!value || value <= 0) {
-    return "";
-  }
-  if (value >= 8) {
-    return "8";
-  }
-  if (value >= 6) {
-    return "6";
-  }
-  if (value >= 4) {
-    return "4";
-  }
-  return "2";
-}
-
-function getSeatCapacityLabel(value: string): string {
-  switch (value) {
-    case "2":
-      return "2 seats";
-    case "4":
-      return "4-5 seats";
-    case "6":
-      return "6-7 seats";
-    case "8":
-      return "8+ (group)";
-    default:
-      return "Not set";
-  }
+function PreferenceRow({ label, helper, icon, checked, onToggle }: PreferenceRowProps): React.JSX.Element {
+  return (
+    <Card sx={{ ...cardSx, borderRadius: 1.9 }}>
+      <CardContent sx={{ p: 1.05, pr: 1.2, "&:last-child": { pb: 1.05 } }}>
+        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={0.9}>
+          <Stack direction="row" spacing={0.8} alignItems="flex-start" sx={{ minWidth: 0, flex: 1 }}>
+            <Box sx={{ color: checked ? rentalUi.green : rentalUi.muted, mt: 0.05 }}>
+              {icon}
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                sx={{
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                  whiteSpace: "normal",
+                  wordBreak: "normal",
+                  overflowWrap: "normal"
+                }}
+              >
+                {label}
+              </Typography>
+              <Typography sx={{ fontSize: 10, color: rentalUi.muted, mt: 0.35 }}>{helper}</Typography>
+            </Box>
+          </Stack>
+          <Checkbox
+            checked={checked}
+            onChange={onToggle}
+            sx={{
+              color: rentalUi.green,
+              p: 0,
+              mt: 0.1,
+              ml: 0.6,
+              flexShrink: 0,
+              width: 20,
+              height: 20,
+              "& .MuiSvgIcon-root": { fontSize: 18 }
+            }}
+          />
+        </Stack>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function RentalCustom(): React.JSX.Element {
   const navigate = useNavigate();
-  const { rental, actions } = useAppData();
-  const existingCustomRequest = rental.booking.customRequest;
-  const selectedVehicle = getRentalBookingVehicle(
-    rental.vehicles,
-    rental.booking,
-    rental.selectedVehicleId
+  const { actions } = useAppData();
+
+  const [mode, setMode] = useState<"self_drive" | "chauffeur">("self_drive");
+  const [purpose, setPurpose] = useState("family");
+  const [passengers, setPassengers] = useState("4");
+  const [luggageKg, setLuggageKg] = useState("20");
+  const [duration, setDuration] = useState("1");
+  const [instructions, setInstructions] = useState("");
+  const [budgetMin, setBudgetMin] = useState("2000");
+  const [budgetMax, setBudgetMax] = useState("5000");
+  const [budgetUnit, setBudgetUnit] = useState<"per day" | "per trip">("per day");
+
+  const [ac, setAc] = useState(true);
+  const [childSeat, setChildSeat] = useState(false);
+  const [extraLuggage, setExtraLuggage] = useState(false);
+  const [premium, setPremium] = useState(false);
+  const [driverLanguage, setDriverLanguage] = useState(false);
+
+  const safetyText = useMemo(
+    () => "Best matching vehicles  •  Transparent pricing  •  No hidden charges",
+    []
   );
-
-  const now = useMemo(() => new Date(), []);
-  const defaultPickupDateTime = useMemo(
-    () => toInputDateTimeValue(new Date(now.getTime() + 60 * 60 * 1000)),
-    [now]
-  );
-  const defaultReturnDateTime = useMemo(
-    () => toInputDateTimeValue(new Date(now.getTime() + 24 * 60 * 60 * 1000)),
-    [now]
-  );
-
-  const pickupLocations = useMemo(() => getPickupLocations(), []);
-  const rentalCountries = useMemo(() => getRentalCountries(), []);
-
-  const initialPickupLocationId =
-    existingCustomRequest?.pickupLocationId ??
-    pickupLocations.find((location) => location.displayName === rental.booking.pickupBranch)?.id ??
-    pickupLocations[0]?.id ??
-    "";
-
-  const initialDifferentDropoff = existingCustomRequest?.differentDropoff ?? false;
-  const initialReturnLocationId =
-    initialDifferentDropoff
-      ? existingCustomRequest?.dropoffLocationId ??
-        pickupLocations.find((location) => location.displayName === rental.booking.dropoffBranch)?.id ??
-        ""
-      : initialPickupLocationId;
-  const initialPickupLocation = getLocationById(initialPickupLocationId);
-  const initialReturnLocation = getLocationById(initialReturnLocationId);
-  const initialReturnCountryCode =
-    existingCustomRequest?.returnCountryCode ??
-    initialReturnLocation?.countryCode ??
-    initialPickupLocation?.countryCode ??
-    "";
-  const initialReturnRegion =
-    existingCustomRequest?.returnRegion ??
-    initialReturnLocation?.region ??
-    initialPickupLocation?.region ??
-    "";
-
-  const [pickupLocationId, setPickupLocationId] = useState(initialPickupLocationId);
-  const [differentDropoff, setDifferentDropoff] = useState(initialDifferentDropoff);
-  const [returnLocationId, setReturnLocationId] = useState(initialReturnLocationId);
-  const [returnCountryCode, setReturnCountryCode] = useState(initialReturnCountryCode);
-  const [returnRegion, setReturnRegion] = useState(initialReturnRegion);
-  const [crossBorderAcknowledged, setCrossBorderAcknowledged] = useState(
-    existingCustomRequest?.crossBorderAcknowledged ?? false
-  );
-  const [pickupDateTime, setPickupDateTime] = useState(
-    existingCustomRequest?.pickupDateTime ?? defaultPickupDateTime
-  );
-  const [returnDateTime, setReturnDateTime] = useState(
-    existingCustomRequest?.returnDateTime ?? defaultReturnDateTime
-  );
-  const [tripPurpose, setTripPurpose] = useState<RentalTripPurpose>(
-    existingCustomRequest?.tripPurpose ?? "personal"
-  );
-
-  const [driverOption, setDriverOption] = useState<RentalModeOption>(
-    existingCustomRequest?.driverOption ?? rental.booking.rentalMode ?? "self_drive"
-  );
-  const [additionalDriver, setAdditionalDriver] = useState(
-    existingCustomRequest?.additionalDriver ?? false
-  );
-  const [passengerCount, setPassengerCount] = useState(
-    existingCustomRequest?.passengerCount?.toString() ?? ""
-  );
-  const [preferredDriverLanguage, setPreferredDriverLanguage] = useState(
-    existingCustomRequest?.preferredDriverLanguage ?? "English"
-  );
-  const [chauffeurWaitingTimeHours, setChauffeurWaitingTimeHours] = useState(
-    existingCustomRequest?.chauffeurWaitingTimeHours?.toString() ?? "0"
-  );
-  const [routeNotes, setRouteNotes] = useState(existingCustomRequest?.routeNotes ?? "");
-
-  const [vehiclePreference, setVehiclePreference] = useState<RentalVehiclePreferenceType>(
-    existingCustomRequest?.vehiclePreference ?? "any"
-  );
-  const [minimumRangeKm, setMinimumRangeKm] = useState(
-    existingCustomRequest?.minimumRangeKm?.toString() ?? ""
-  );
-  const [requiredSeats, setRequiredSeats] = useState(
-    toSeatCapacityBucket(existingCustomRequest?.requiredSeats)
-  );
-  const [requiredLuggageCapacity, setRequiredLuggageCapacity] = useState(
-    existingCustomRequest?.requiredLuggageCapacity?.toString() ?? ""
-  );
-  const [premiumInterior, setPremiumInterior] = useState(
-    existingCustomRequest?.premiumInterior ?? false
-  );
-  const [fastestCharging, setFastestCharging] = useState(
-    existingCustomRequest?.fastestCharging ?? false
-  );
-
-  const [addOns, setAddOns] = useState(() => {
-    if (existingCustomRequest?.addOns?.length) {
-      return existingCustomRequest.addOns;
-    }
-    return createDefaultRentalAddOns();
-  });
-
-  const [specialInstructions, setSpecialInstructions] = useState(
-    existingCustomRequest?.specialInstructions ?? ""
-  );
-  const [preferredVehicleModel, setPreferredVehicleModel] = useState(
-    existingCustomRequest?.preferredVehicleModel ?? ""
-  );
-  const [accessibilityNeeds, setAccessibilityNeeds] = useState(
-    existingCustomRequest?.accessibilityNeeds ?? ""
-  );
-  const [contactPreference, setContactPreference] = useState<RentalContactPreference>(
-    existingCustomRequest?.contactPreference ?? "call"
-  );
-
-  const [driverLicenseFile, setDriverLicenseFile] = useState<File | null>(null);
-  const [idDocumentFile, setIdDocumentFile] = useState<File | null>(null);
-
-  const [errors, setErrors] = useState<ValidationErrors>({});
-  const driverLicenseInputRef = useRef<HTMLInputElement | null>(null);
-  const idDocumentInputRef = useRef<HTMLInputElement | null>(null);
-  const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
-
-  const visibleAddOnIds = useMemo(() => getAddOnIdsForTripPurpose(tripPurpose), [tripPurpose]);
-  const visibleAddOns = useMemo(
-    () => addOns.filter((addOn) => visibleAddOnIds.includes(addOn.id)),
-    [addOns, visibleAddOnIds]
-  );
-
-  const selectedPickupLocation = getLocationById(pickupLocationId);
-  const pickupCountryCode = selectedPickupLocation?.countryCode ?? "";
-
-  const effectiveReturnCountryCode = differentDropoff
-    ? returnCountryCode
-    : pickupCountryCode;
-  const returnRegionOptions = useMemo(
-    () => getRentalRegionsByCountry(effectiveReturnCountryCode),
-    [effectiveReturnCountryCode]
-  );
-
-  const effectiveReturnRegion = differentDropoff
-    ? returnRegion
-    : selectedPickupLocation?.region ?? "";
-  const availableReturnHubs = useMemo(
-    () =>
-      getReturnLocationsByCountryAndRegion({
-        countryCode: effectiveReturnCountryCode,
-        region: effectiveReturnRegion,
-        pickupCountryCode
-      }),
-    [effectiveReturnCountryCode, effectiveReturnRegion, pickupCountryCode]
-  );
-
-  useEffect(() => {
-    if (!selectedPickupLocation) {
-      return;
-    }
-
-    if (!differentDropoff) {
-      setReturnCountryCode(selectedPickupLocation.countryCode);
-      setReturnRegion(selectedPickupLocation.region);
-      setReturnLocationId(selectedPickupLocation.id);
-      setCrossBorderAcknowledged(false);
-      return;
-    }
-
-    if (!returnCountryCode) {
-      setReturnCountryCode(selectedPickupLocation.countryCode);
-    }
-    if (!returnRegion) {
-      setReturnRegion(selectedPickupLocation.region);
-    }
-    if (returnLocationId === selectedPickupLocation.id) {
-      setReturnLocationId("");
-    }
-  }, [differentDropoff, returnCountryCode, returnLocationId, returnRegion, selectedPickupLocation]);
-
-  useEffect(() => {
-    if (!differentDropoff) {
-      return;
-    }
-    if (
-      returnRegionOptions.length > 0 &&
-      !returnRegionOptions.some((option) => option.name === returnRegion)
-    ) {
-      setReturnRegion(returnRegionOptions[0]?.name ?? "");
-    }
-  }, [differentDropoff, returnRegion, returnRegionOptions]);
-
-  useEffect(() => {
-    if (!differentDropoff) {
-      return;
-    }
-    if (returnLocationId && !availableReturnHubs.some((hub) => hub.id === returnLocationId)) {
-      setReturnLocationId("");
-    }
-    if (availableReturnHubs.length === 0) {
-      setReturnLocationId("");
-    }
-  }, [availableReturnHubs, differentDropoff, returnLocationId]);
-
-  useEffect(() => {
-    setAddOns((previous) =>
-      previous.map((addOn) =>
-        visibleAddOnIds.includes(addOn.id)
-          ? addOn
-          : { ...addOn, selected: false, quantity: 1 }
-      )
-    );
-  }, [visibleAddOnIds]);
-
-  const resolvedReturnLocationId = differentDropoff ? returnLocationId : pickupLocationId;
-  const selectedReturnLocation = getLocationById(resolvedReturnLocationId);
-  const canShowRoutePreview = Boolean(
-    selectedPickupLocation &&
-      selectedReturnLocation &&
-      (!differentDropoff || returnLocationId.trim())
-  );
-  const oneWayRental =
-    Boolean(differentDropoff) && Boolean(pickupLocationId) && pickupLocationId !== resolvedReturnLocationId;
-  const crossBorderReturn =
-    oneWayRental &&
-    isCrossBorderReturn(pickupLocationId, resolvedReturnLocationId);
-  const returnFees = useMemo(
-    () =>
-      getReturnLocationFees({
-        pickupLocationId,
-        returnLocationId: resolvedReturnLocationId
-      }),
-    [pickupLocationId, resolvedReturnLocationId]
-  );
-
-  const baseDailyRate = useMemo(() => {
-    const selectedVehicleRate = parseUgx(selectedVehicle?.dailyPrice);
-    if (selectedVehicleRate > 0) {
-      return selectedVehicleRate;
-    }
-    return DEFAULT_BASE_DAILY_RATE;
-  }, [selectedVehicle?.dailyPrice]);
-
-  const estimate = useMemo(
-    () =>
-      buildCustomRentalEstimate({
-        pickupDateTime,
-        returnDateTime,
-        differentDropoff,
-        isOneWayRental: oneWayRental,
-        isCrossBorderRental: crossBorderReturn,
-        oneWayReturnFee: returnFees.oneWayReturnFee,
-        crossBorderFee: returnFees.crossBorderFee,
-        driverOption,
-        addOns,
-        chauffeurWaitingTimeHours: Number(chauffeurWaitingTimeHours) || 0,
-        baseDailyRate
-      }),
-    [
-      addOns,
-      baseDailyRate,
-      chauffeurWaitingTimeHours,
-      crossBorderReturn,
-      differentDropoff,
-      driverOption,
-      oneWayRental,
-      pickupDateTime,
-      returnFees.crossBorderFee,
-      returnFees.oneWayReturnFee,
-      returnDateTime
-    ]
-  );
-
-  const activeStep = useMemo(() => {
-    if (!pickupLocationId || !pickupDateTime || !returnDateTime) {
-      return 0;
-    }
-    if (differentDropoff && (!returnCountryCode || !returnRegion || !resolvedReturnLocationId)) {
-      return 0;
-    }
-    if (!minimumRangeKm || !requiredSeats) {
-      return 1;
-    }
-    if (driverOption === "chauffeur" && !passengerCount) {
-      return 2;
-    }
-    return 4;
-  }, [
-    driverOption,
-    minimumRangeKm,
-    passengerCount,
-    pickupDateTime,
-    pickupLocationId,
-    requiredSeats,
-    resolvedReturnLocationId,
-    returnCountryCode,
-    returnRegion,
-    returnDateTime
-  ]);
-
-  const registerFieldRef =
-    (field: string) =>
-    (element: HTMLElement | null): void => {
-      fieldRefs.current[field] = element;
-    };
-
-  const focusFirstError = (validationErrors: ValidationErrors): void => {
-    const fieldOrder = [
-      "pickupLocationId",
-      "returnCountryCode",
-      "returnRegion",
-      "returnLocationId",
-      "crossBorderAcknowledged",
-      "pickupDateTime",
-      "returnDateTime",
-      "tripPurpose",
-      "minimumRangeKm",
-      "requiredSeats",
-      "passengerCount",
-      "chauffeurWaitingTimeHours",
-      "drivers_license",
-      "id_or_passport"
-    ];
-    const firstInvalidField = fieldOrder.find((field) => validationErrors[field]);
-    if (!firstInvalidField) {
-      return;
-    }
-
-    if (firstInvalidField === "drivers_license" && driverLicenseInputRef.current) {
-      driverLicenseInputRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-      driverLicenseInputRef.current.focus();
-      return;
-    }
-    if (firstInvalidField === "id_or_passport" && idDocumentInputRef.current) {
-      idDocumentInputRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-      idDocumentInputRef.current.focus();
-      return;
-    }
-
-    const element = fieldRefs.current[firstInvalidField];
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center" });
-      if ("focus" in element) {
-        element.focus();
-      }
-    }
-  };
-
-  const handleToggleAddOn = (addOnId: string): void => {
-    setAddOns((previous) =>
-      previous.map((addOn) =>
-        addOn.id === addOnId ? { ...addOn, selected: !addOn.selected } : addOn
-      )
-    );
-  };
-
-  const handleAddOnQuantityChange = (addOnId: string, quantity: number): void => {
-    const safeQuantity = Math.max(1, Math.round(quantity));
-    setAddOns((previous) =>
-      previous.map((addOn) =>
-        addOn.id === addOnId ? { ...addOn, quantity: safeQuantity } : addOn
-      )
-    );
-  };
-
-  const validateForm = (): ValidationErrors => {
-    const nextErrors: ValidationErrors = {};
-    if (!pickupLocationId) {
-      nextErrors.pickupLocationId = "Pickup location is required.";
-    }
-    if (differentDropoff && !returnCountryCode) {
-      nextErrors.returnCountryCode = "Return country is required.";
-    }
-    if (differentDropoff && !returnRegion) {
-      nextErrors.returnRegion = "Return region/city is required.";
-    }
-    if (differentDropoff && returnCountryCode && returnRegion && availableReturnHubs.length === 0) {
-      nextErrors.returnLocationId = "No return points available in this region.";
-    }
-    if (!resolvedReturnLocationId) {
-      nextErrors.returnLocationId = "Return location is required.";
-    }
-    if (
-      differentDropoff &&
-      resolvedReturnLocationId &&
-      !availableReturnHubs.some((location) => location.id === resolvedReturnLocationId)
-    ) {
-      nextErrors.returnLocationId = "Selected return point is not available.";
-    }
-    if (crossBorderReturn && !crossBorderAcknowledged) {
-      nextErrors.crossBorderAcknowledged =
-        "Please acknowledge cross-border requirements before continuing.";
-    }
-    if (!pickupDateTime) {
-      nextErrors.pickupDateTime = "Pickup date & time is required.";
-    }
-    if (!returnDateTime) {
-      nextErrors.returnDateTime = "Return date & time is required.";
-    }
-
-    const pickupDate = new Date(pickupDateTime);
-    const dropoffDate = new Date(returnDateTime);
-    if (
-      pickupDateTime &&
-      returnDateTime &&
-      (!Number.isFinite(pickupDate.getTime()) ||
-        !Number.isFinite(dropoffDate.getTime()) ||
-        dropoffDate <= pickupDate)
-    ) {
-      nextErrors.returnDateTime = "Return date & time must be after pickup date & time.";
-    }
-
-    if (!minimumRangeKm.trim()) {
-      nextErrors.minimumRangeKm = "Minimum battery distance is required.";
-    }
-    if (!requiredSeats.trim()) {
-      nextErrors.requiredSeats = "Seats are required.";
-    }
-
-    const parsedMinimumRange = parseNumberValue(minimumRangeKm, 0);
-    if (minimumRangeKm.trim() && parsedMinimumRange === undefined) {
-      nextErrors.minimumRangeKm = "Battery distance cannot be negative.";
-    }
-
-    const parsedSeats = parseNumberValue(requiredSeats, 2);
-    if (requiredSeats.trim() && parsedSeats === undefined) {
-      nextErrors.requiredSeats = "Seats must be a positive number.";
-    }
-
-    if (driverOption === "chauffeur") {
-      const parsedPassengers = parseNumberValue(passengerCount, 1);
-      if (!passengerCount.trim()) {
-        nextErrors.passengerCount = "Passengers are required for chauffeur trips.";
-      } else if (parsedPassengers === undefined) {
-        nextErrors.passengerCount = "Passengers must be at least 1.";
-      }
-    }
-
-    const parsedWaitingHours = parseNumberValue(chauffeurWaitingTimeHours, 0);
-    if (
-      chauffeurWaitingTimeHours.trim() &&
-      parsedWaitingHours === undefined
-    ) {
-      nextErrors.chauffeurWaitingTimeHours = "Waiting time cannot be negative.";
-    }
-
-    if (driverOption === "self_drive") {
-      if (!driverLicenseFile) {
-        nextErrors.drivers_license = "Driver's licence upload is required for self-drive.";
-      }
-      if (!idDocumentFile) {
-        nextErrors.id_or_passport = "National ID or Passport upload is required for self-drive.";
-      }
-    }
-
-    return nextErrors;
-  };
-
-  const handleContinueToRentalOrder = (): void => {
-    const validationErrors = validateForm();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      focusFirstError(validationErrors);
-      return;
-    }
-
-    setErrors({});
-    const pickupLocation = getLocationById(pickupLocationId);
-    const dropoffLocation = getLocationById(resolvedReturnLocationId);
-    const normalizedAddOns = addOns.map((addOn) => ({
-      ...addOn,
-      quantity: Math.max(1, Math.round(addOn.quantity || 1))
-    }));
-    const vehicleId =
-      rental.booking.vehicleId ??
-      rental.selectedVehicleId ??
-      rental.vehicles[0]?.id ??
-      "EV-RENT-01";
-
-    const documents: RentalUploadedDocument[] = [];
-    if (driverLicenseFile) {
-      documents.push(toUploadedDocument("drivers_license", driverLicenseFile));
-    }
-    if (idDocumentFile) {
-      documents.push(toUploadedDocument("id_or_passport", idDocumentFile));
-    }
-
-    const parsedMinimumRange = parseNumberValue(minimumRangeKm, 0);
-    const parsedSeats = parseNumberValue(requiredSeats, 2);
-    const parsedLuggageCapacity = parseNumberValue(requiredLuggageCapacity, 0);
-    const parsedPassengers = parseNumberValue(passengerCount, 1);
-    const parsedWaitingHours = parseNumberValue(chauffeurWaitingTimeHours, 0);
-
-    actions.updateRentalBooking({
-      vehicleId,
-      startDate: pickupDateTime,
-      endDate: returnDateTime,
-      pickupBranch: pickupLocation?.displayName,
-      dropoffBranch: dropoffLocation?.displayName,
-      rentalMode: driverOption,
-      customRequest: {
-        pickupLocationId,
-        dropoffLocationId: resolvedReturnLocationId,
-        pickupLocation: pickupLocation?.displayName ?? "",
-        dropoffLocation: dropoffLocation?.displayName ?? "",
-        differentDropoff,
-        pickupCountryCode: pickupLocation?.countryCode,
-        pickupCountry: pickupLocation?.country,
-        pickupRegion: pickupLocation?.region,
-        returnCountryCode: dropoffLocation?.countryCode,
-        returnCountry: dropoffLocation?.country,
-        returnRegion: dropoffLocation?.region,
-        oneWayRental,
-        crossBorderReturn,
-        crossBorderAcknowledged: crossBorderReturn ? crossBorderAcknowledged : false,
-        returnLocationNotes: dropoffLocation?.notes,
-        pickupDateTime,
-        returnDateTime,
-        rentalDurationLabel: buildRentalDurationLabel(estimate.durationDays),
-        tripPurpose,
-        driverOption,
-        additionalDriver,
-        passengerCount: parsedPassengers,
-        preferredDriverLanguage: preferredDriverLanguage.trim() || undefined,
-        chauffeurWaitingTimeHours: parsedWaitingHours,
-        routeNotes: routeNotes.trim() || undefined,
-        vehiclePreference,
-        minimumRangeKm: parsedMinimumRange,
-        requiredSeats: parsedSeats,
-        requiredLuggageCapacity: parsedLuggageCapacity,
-        premiumInterior,
-        fastestCharging,
-        addOns: normalizedAddOns,
-        specialInstructions: specialInstructions.trim() || undefined,
-        preferredVehicleModel: preferredVehicleModel.trim() || undefined,
-        accessibilityNeeds: accessibilityNeeds.trim() || undefined,
-        contactPreference,
-        documents,
-        pricing: estimate
-      },
-      priceEstimate: formatUgx(estimate.totalEstimated)
-    });
-
-    navigate("/rental/list", {
-      state: {
-        mode: driverOption === "chauffeur" ? "chauffeur" : "self",
-        vehicleType: vehiclePreference,
-        fromCustom: true,
-        customFilters: {
-          pickupLocationId,
-          dropoffLocationId: resolvedReturnLocationId,
-          minimumRangeKm: parsedMinimumRange,
-          requiredSeats: parsedSeats,
-          requiredLuggageCapacity: parsedLuggageCapacity,
-          driverOption
-        }
-      }
-    });
-  };
-
-  const handleDocumentUpload = (
-    kind: RentalUploadedDocument["kind"],
-    file: File | null
-  ): void => {
-    if (!file) {
-      if (kind === "drivers_license") {
-        setDriverLicenseFile(null);
-      } else {
-        setIdDocumentFile(null);
-      }
-      return;
-    }
-
-    if (!isAllowedDocumentType(file)) {
-      setErrors((previous) => ({
-        ...previous,
-        [kind]: "Only image or PDF files are allowed."
-      }));
-      return;
-    }
-
-    setErrors((previous) => {
-      const next = { ...previous };
-      delete next[kind];
-      return next;
-    });
-
-    if (kind === "drivers_license") {
-      setDriverLicenseFile(file);
-      return;
-    }
-    setIdDocumentFile(file);
-  };
 
   return (
-    <ScreenScaffold>
-      <Box>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.2}>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
-            <IconButton
-              size="small"
-              aria-label="Back"
-              onClick={() => navigate(-1)}
-              sx={{
-                borderRadius: uiTokens.radius.xl,
-                bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)"),
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
-              }}
-            >
-              <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography variant="h6" sx={{ ...uiTokens.text.sectionTitle, lineHeight: 1.25 }}>
-                Custom EV rental
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  ...uiTokens.text.itemBody,
-                  fontSize: 12,
-                  color: (t) => t.palette.text.secondary,
-                  display: "block",
-                  mt: 0.3
-                }}
-              >
-                Build your request, review your estimate, then continue to vehicle selection.
-              </Typography>
-            </Box>
-          </Stack>
-          <Box
-            sx={{
-              display: { xs: "none", sm: "inline-flex" },
-              borderRadius: uiTokens.radius.pill,
-              px: 1,
-              py: 0.45,
-              bgcolor: "rgba(249,115,22,0.14)",
-              border: "1px solid rgba(249,115,22,0.4)",
-              color: ORANGE_ACCENT,
-              alignItems: "center",
-              gap: 0.5
-            }}
+    <Box sx={screenShellSx}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.4 }}>
+        <Stack direction="row" spacing={1.4} alignItems="center">
+          <IconButton
+            onClick={() => navigate(-1)}
+            sx={{ border: `1px solid ${rentalUi.border}`, bgcolor: "#fff", width: 50, height: 50 }}
           >
-            <LocalOfferRoundedIcon sx={{ fontSize: 13 }} />
-            <Typography variant="caption" sx={{ fontSize: 10.5, fontWeight: 700 }}>
-              Custom builder
-            </Typography>
+            <ArrowBackRoundedIcon />
+          </IconButton>
+          <Box>
+            <Typography sx={{ fontSize: 52/2, fontWeight: 800, lineHeight: 1.08 }}>Custom rental</Typography>
+            <Typography sx={{ fontSize: 17, color: rentalUi.muted }}>Build your perfect trip</Typography>
           </Box>
         </Stack>
-        <Box
-          sx={{
-            display: { xs: "inline-flex", sm: "none" },
-            mt: 0.7,
-            borderRadius: uiTokens.radius.pill,
-            px: 1,
-            py: 0.45,
-            bgcolor: "rgba(249,115,22,0.14)",
-            border: "1px solid rgba(249,115,22,0.4)",
-            color: ORANGE_ACCENT,
-            alignItems: "center",
-            gap: 0.5
-          }}
-        >
-          <LocalOfferRoundedIcon sx={{ fontSize: 13 }} />
-          <Typography variant="caption" sx={{ fontSize: 10.5, fontWeight: 700 }}>
-            Custom builder
-          </Typography>
-        </Box>
+        <Typography sx={{ color: rentalUi.green, fontWeight: 800, fontSize: 25 }}>EVzone</Typography>
+      </Stack>
+
+      <Card sx={{ ...cardSx, mb: 2.1 }}>
+        <CardContent sx={{ p: 1.15, "&:last-child": { pb: 1.15 } }}>
+          <Stack direction="row" spacing={1}>
+            <Chip
+              icon={<DirectionsCarRoundedIcon />}
+              label="Self-drive"
+              onClick={() => setMode("self_drive")}
+              sx={{
+                flex: 1,
+                borderRadius: 2.3,
+                height: 58,
+                fontSize: 18,
+                bgcolor: mode === "self_drive" ? rentalUi.greenSoft : "#fff",
+                color: mode === "self_drive" ? rentalUi.greenDeep : rentalUi.title,
+                border: `1px solid ${mode === "self_drive" ? rentalUi.green : rentalUi.border}`
+              }}
+            />
+            <Chip
+              icon={<SupportAgentRoundedIcon />}
+              label="Chauffeur"
+              onClick={() => setMode("chauffeur")}
+              sx={{
+                flex: 1,
+                borderRadius: 2.3,
+                height: 58,
+                fontSize: 18,
+                bgcolor: mode === "chauffeur" ? rentalUi.greenSoft : "#fff",
+                color: mode === "chauffeur" ? rentalUi.greenDeep : rentalUi.title,
+                border: `1px solid ${mode === "chauffeur" ? rentalUi.green : rentalUi.border}`
+              }}
+            />
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 1 }}>Trip purpose</Typography>
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 0.8, mb: 1.8 }}>
+        {purposes.map((item) => {
+          const selected = item.key === purpose;
+          return (
+            <Card
+              key={item.key}
+              onClick={() => setPurpose(item.key)}
+              sx={{
+                ...cardSx,
+                cursor: "pointer",
+                bgcolor: selected ? rentalUi.greenSoft : "#fff",
+                borderColor: selected ? "rgba(17,184,106,0.45)" : rentalUi.border
+              }}
+            >
+              <CardContent sx={{ p: 0.85, textAlign: "center", "&:last-child": { pb: 0.85 } }}>
+                <Box
+                  sx={{
+                    color: selected ? rentalUi.green : rentalUi.muted,
+                    display: "grid",
+                    placeItems: "center",
+                    "& .MuiSvgIcon-root": { fontSize: 21 }
+                  }}
+                >
+                  {item.icon}
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: "10.5px !important",
+                    fontWeight: 600,
+                    mt: 0.25,
+                    lineHeight: 1.1,
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  {item.label}
+                </Typography>
+              </CardContent>
+            </Card>
+          );
+        })}
       </Box>
 
-      <CustomRentalStepIndicator steps={CUSTOM_RENTAL_STEPS} activeStep={activeStep} />
-
-      {Object.keys(errors).length > 0 && (
-        <Alert severity="error" sx={{ borderRadius: uiTokens.radius.lg }}>
-          Please fix the highlighted fields before continuing.
-        </Alert>
-      )}
-
-      <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl, border: uiTokens.borders.subtle }}>
-        <CardContent sx={FORM_CONTENT_SX}>
-          <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 700, mb: 1 }}>
-            Step 1: Trip details
-          </Typography>
-          <Stack spacing={1}>
-            <Autocomplete
-              options={pickupLocations}
-              value={selectedPickupLocation ?? null}
-              onChange={(_, option) => setPickupLocationId(option?.id ?? "")}
-              getOptionLabel={(option) => `${option.displayName} • ${option.address}`}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  id="pickupLocationId"
-                  label="Pickup location"
-                  size="small"
-                  required
-                  error={Boolean(errors.pickupLocationId)}
-                  helperText={errors.pickupLocationId}
-                  inputRef={registerFieldRef("pickupLocationId")}
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {selectedPickupLocation && (
-                          <IconButton
-                            size="small"
-                            aria-label="Clear pickup location"
-                            onMouseDown={(event) => {
-                              event.preventDefault();
-                            }}
-                            onClick={() => {
-                              setPickupLocationId("");
-                              if (!differentDropoff) {
-                                setReturnLocationId("");
-                              }
-                            }}
-                            sx={{ mr: 0.25 }}
-                          >
-                            <CloseRoundedIcon sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        )}
-                        {params.InputProps.endAdornment}
-                      </>
-                    )
-                  }}
-                />
-              )}
-            />
-
-            {!differentDropoff && (
-              <TextField
-                label="Return location"
-                size="small"
-                fullWidth
-                value={selectedPickupLocation?.displayName ?? ""}
-                helperText="Matches pickup location."
-                InputProps={{ readOnly: true }}
-              />
-            )}
-
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Switch
-                checked={differentDropoff}
-                onChange={(event) => setDifferentDropoff(event.target.checked)}
-              />
-              <Typography variant="caption" sx={{ fontSize: 11.5 }}>
-                Return to a different location
-              </Typography>
-            </Box>
-
-            {differentDropoff && (
-              <Stack spacing={1}>
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                  <Autocomplete
-                    options={rentalCountries}
-                    value={rentalCountries.find((country) => country.code === returnCountryCode) ?? null}
-                    onChange={(_, option) => {
-                      setReturnCountryCode(option?.code ?? "");
-                    }}
-                    getOptionLabel={(option) => option.name}
-                    isOptionEqualToValue={(option, value) => option.code === value.code}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        id="returnCountryCode"
-                        label="Return country"
-                        size="small"
-                        required
-                        error={Boolean(errors.returnCountryCode)}
-                        helperText={errors.returnCountryCode}
-                        inputRef={registerFieldRef("returnCountryCode")}
-                      />
-                    )}
-                  />
-                  <Autocomplete
-                    options={returnRegionOptions}
-                    value={returnRegionOptions.find((regionOption) => regionOption.name === returnRegion) ?? null}
-                    onChange={(_, option) => {
-                      setReturnRegion(option?.name ?? "");
-                    }}
-                    getOptionLabel={(option) => option.name}
-                    isOptionEqualToValue={(option, value) => option.name === value.name}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        id="returnRegion"
-                        label="Return region/city"
-                        size="small"
-                        required
-                        error={Boolean(errors.returnRegion)}
-                        helperText={errors.returnRegion}
-                        inputRef={registerFieldRef("returnRegion")}
-                      />
-                    )}
-                  />
-                </Stack>
-                <Autocomplete
-                  options={availableReturnHubs}
-                  value={selectedReturnLocation ?? null}
-                  onChange={(_, option) => setReturnLocationId(option?.id ?? "")}
-                  getOptionLabel={(option) => `${option.displayName} • ${option.address}`}
-                  isOptionEqualToValue={(option, value) => option.id === value.id}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      id="returnLocationId"
-                      label="Return hub / return point"
-                      size="small"
-                      required
-                      error={Boolean(errors.returnLocationId)}
-                      helperText={errors.returnLocationId}
-                      inputRef={registerFieldRef("returnLocationId")}
-                    />
-                  )}
-                />
-                {returnCountryCode && returnRegion && availableReturnHubs.length === 0 && (
-                  <Alert severity="info">No return points available in this region.</Alert>
-                )}
-                {crossBorderReturn && (
-                  <Alert severity="warning">
-                    Cross-border return may require documents, approval, and extra fees.
-                  </Alert>
-                )}
-                {crossBorderReturn && (
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={crossBorderAcknowledged}
-                        onChange={(event) => setCrossBorderAcknowledged(event.target.checked)}
-                        inputRef={registerFieldRef("crossBorderAcknowledged")}
-                      />
-                    }
-                    label={
-                      <Typography variant="caption" sx={{ fontSize: 11.5 }}>
-                        I understand cross-border return may require approval and additional
-                        documents.
-                      </Typography>
-                    }
-                  />
-                )}
-                {errors.crossBorderAcknowledged && (
-                  <Typography variant="caption" color="error" sx={{ fontSize: 10.5 }}>
-                    {errors.crossBorderAcknowledged}
-                  </Typography>
-                )}
+      <Card sx={{ ...cardSx, mb: 2.1 }}>
+        <CardContent sx={{ p: 1.3, "&:last-child": { pb: 1.3 } }}>
+          <Stack direction="row" divider={<Divider orientation="vertical" flexItem />}>
+            <Box sx={{ flex: 1, px: 1.05 }}>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <PersonOutlineRoundedIcon sx={{ color: rentalUi.green, fontSize: 18 }} />
+                <Typography sx={{ color: rentalUi.muted, fontSize: 12.5, fontWeight: 500 }}>Passengers</Typography>
               </Stack>
-            )}
-
-            {canShowRoutePreview && (
-              <Card elevation={0} sx={{ borderRadius: uiTokens.radius.lg, border: uiTokens.borders.subtle }}>
-                <Box sx={{ p: 0.5 }}>
-                  <MapShell
-                    height={210}
-                    rounded
-                    fullBleed={false}
-                    interactive={false}
-                    showBackButton={false}
-                    showSosButton={false}
-                    pickupLocation={{
-                      lat: selectedPickupLocation.latitude,
-                      lng: selectedPickupLocation.longitude
-                    }}
-                    dropoffLocation={{
-                      lat: selectedReturnLocation.latitude,
-                      lng: selectedReturnLocation.longitude
-                    }}
-                    routeInfoLabel={
-                      oneWayRental ? undefined : "Same pickup and return hub"
-                    }
-                    showRouteInfo={Boolean(differentDropoff && returnLocationId.trim())}
-                  />
-                </Box>
-              </Card>
-            )}
-
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
               <TextField
-                id="pickupDateTime"
-                label="Pickup date & time"
-                size="small"
-                fullWidth
-                required
-                type="datetime-local"
-                value={pickupDateTime}
-                onChange={(event) => setPickupDateTime(event.target.value)}
-                error={Boolean(errors.pickupDateTime)}
-                helperText={errors.pickupDateTime}
-                inputRef={registerFieldRef("pickupDateTime")}
-                InputLabelProps={{ shrink: true }}
-              />
-              <TextField
-                id="returnDateTime"
-                label="Return date & time"
-                size="small"
-                fullWidth
-                required
-                type="datetime-local"
-                value={returnDateTime}
-                onChange={(event) => setReturnDateTime(event.target.value)}
-                error={Boolean(errors.returnDateTime)}
-                helperText={errors.returnDateTime}
-                inputRef={registerFieldRef("returnDateTime")}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Stack>
-
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-              <TextField
-                id="tripPurpose"
-                label="Trip purpose"
-                size="small"
                 select
-                required
-                fullWidth
-                value={tripPurpose}
-                onChange={(event) => setTripPurpose(event.target.value as RentalTripPurpose)}
-                inputRef={registerFieldRef("tripPurpose")}
+                value={passengers}
+                onChange={(event) => setPassengers(event.target.value)}
+                variant="standard"
+                sx={{
+                  mt: 0.45,
+                  width: "100%",
+                  "& .MuiInputBase-input": { fontSize: 15.5, fontWeight: 600, lineHeight: 1.2, py: 0.25 }
+                }}
               >
-                {RENTAL_TRIP_PURPOSE_OPTIONS.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
+                {["2", "3", "4", "5", "6", "7"].map((value) => (
+                  <MenuItem key={value} value={value}>{value} people</MenuItem>
                 ))}
               </TextField>
-              <TextField
-                label="Rental duration"
-                size="small"
-                fullWidth
-                value={buildRentalDurationLabel(estimate.durationDays)}
-                InputProps={{ readOnly: true }}
-              />
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
+            </Box>
 
-      <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl, border: uiTokens.borders.subtle }}>
-        <CardContent sx={FORM_CONTENT_SX}>
-          <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 700, mb: 1 }}>
-            Step 2: Vehicle preference
-          </Typography>
-          <VehiclePreferenceSelector
-            vehiclePreference={vehiclePreference}
-            minimumRangeKm={minimumRangeKm}
-            requiredSeats={requiredSeats}
-            requiredLuggageCapacity={requiredLuggageCapacity}
-            premiumInterior={premiumInterior}
-            fastestCharging={fastestCharging}
-            errors={{
-              minimumRangeKm: errors.minimumRangeKm,
-              requiredSeats: errors.requiredSeats,
-              requiredLuggageCapacity: errors.requiredLuggageCapacity
-            }}
-            onVehiclePreferenceChange={setVehiclePreference}
-            onMinimumRangeChange={(value) => setMinimumRangeKm(sanitizeIntegerString(value))}
-            onRequiredSeatsChange={setRequiredSeats}
-            onRequiredLuggageChange={(value) =>
-              setRequiredLuggageCapacity(sanitizeIntegerString(value))
-            }
-            onPremiumInteriorChange={setPremiumInterior}
-            onFastestChargingChange={setFastestCharging}
-          />
-        </CardContent>
-      </Card>
-
-      <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl, border: uiTokens.borders.subtle }}>
-        <CardContent sx={FORM_CONTENT_SX}>
-          <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 700, mb: 1 }}>
-            Step 3: Driver option
-          </Typography>
-          <DriverOptionSelector
-            driverOption={driverOption}
-            additionalDriver={additionalDriver}
-            passengerCount={passengerCount}
-            preferredDriverLanguage={preferredDriverLanguage}
-            chauffeurWaitingTimeHours={chauffeurWaitingTimeHours}
-            routeNotes={routeNotes}
-            errors={{
-              passengerCount: errors.passengerCount,
-              chauffeurWaitingTimeHours: errors.chauffeurWaitingTimeHours
-            }}
-            onDriverOptionChange={setDriverOption}
-            onAdditionalDriverChange={setAdditionalDriver}
-            onPassengerCountChange={(value) => setPassengerCount(sanitizeIntegerString(value))}
-            onPreferredDriverLanguageChange={setPreferredDriverLanguage}
-            onChauffeurWaitingTimeHoursChange={(value) =>
-              setChauffeurWaitingTimeHours(sanitizeIntegerString(value))
-            }
-            onRouteNotesChange={setRouteNotes}
-          />
-
-          {driverOption === "self_drive" && (
-            <Stack spacing={1} sx={{ mt: 1.2 }}>
-              <Divider />
-              <Typography variant="caption" sx={{ fontSize: 11.5, fontWeight: 700 }}>
-                Required verification documents
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 10.8, color: (t) => t.palette.text.secondary }}>
-                Upload image or PDF files. These are mandatory for self-drive verification.
-              </Typography>
-
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                <Box sx={{ flex: 1 }}>
-                  <Button
-                    component="label"
-                    variant="outlined"
-                    startIcon={<UploadFileRoundedIcon />}
-                    sx={{ textTransform: "none", borderRadius: uiTokens.radius.lg }}
-                    fullWidth
-                  >
-                    Upload driver&apos;s licence
-                    <input
-                      ref={driverLicenseInputRef}
-                      hidden
-                      type="file"
-                      accept={ACCEPTED_DOCUMENT_TYPES}
-                      onChange={(event) =>
-                        handleDocumentUpload(
-                          "drivers_license",
-                          event.target.files?.[0] ?? null
-                        )
-                      }
-                    />
-                  </Button>
-                  <Typography variant="caption" sx={{ mt: 0.35, display: "block", fontSize: 10.8 }}>
-                    {renderUploadedFileLabel(driverLicenseFile)}
-                  </Typography>
-                  {driverLicenseFile && (
-                    <Button
-                      size="small"
-                      startIcon={<DeleteOutlineRoundedIcon />}
-                      onClick={() => setDriverLicenseFile(null)}
-                      sx={{ mt: 0.2, textTransform: "none", fontSize: 11 }}
-                    >
-                      Remove
-                    </Button>
-                  )}
-                  {errors.drivers_license && (
-                    <Typography variant="caption" color="error" sx={{ display: "block", fontSize: 10.5 }}>
-                      {errors.drivers_license}
-                    </Typography>
-                  )}
-                </Box>
-
-                <Box sx={{ flex: 1 }}>
-                  <Button
-                    component="label"
-                    variant="outlined"
-                    startIcon={<UploadFileRoundedIcon />}
-                    sx={{ textTransform: "none", borderRadius: uiTokens.radius.lg }}
-                    fullWidth
-                  >
-                    Upload National ID / Passport
-                    <input
-                      ref={idDocumentInputRef}
-                      hidden
-                      type="file"
-                      accept={ACCEPTED_DOCUMENT_TYPES}
-                      onChange={(event) =>
-                        handleDocumentUpload(
-                          "id_or_passport",
-                          event.target.files?.[0] ?? null
-                        )
-                      }
-                    />
-                  </Button>
-                  <Typography variant="caption" sx={{ mt: 0.35, display: "block", fontSize: 10.8 }}>
-                    {renderUploadedFileLabel(idDocumentFile)}
-                  </Typography>
-                  {idDocumentFile && (
-                    <Button
-                      size="small"
-                      startIcon={<DeleteOutlineRoundedIcon />}
-                      onClick={() => setIdDocumentFile(null)}
-                      sx={{ mt: 0.2, textTransform: "none", fontSize: 11 }}
-                    >
-                      Remove
-                    </Button>
-                  )}
-                  {errors.id_or_passport && (
-                    <Typography variant="caption" color="error" sx={{ display: "block", fontSize: 10.5 }}>
-                      {errors.id_or_passport}
-                    </Typography>
-                  )}
-                </Box>
+            <Box sx={{ flex: 1, px: 1.05 }}>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <LuggageRoundedIcon sx={{ color: rentalUi.green, fontSize: 18 }} />
+                <Typography sx={{ color: rentalUi.muted, fontSize: 12.5, fontWeight: 500 }}>Luggage</Typography>
               </Stack>
-            </Stack>
-          )}
+              <TextField
+                type="number"
+                value={luggageKg}
+                onChange={(event) => setLuggageKg(event.target.value.replace(/[^\d]/g, ""))}
+                variant="standard"
+                inputProps={{ min: 1, max: 200 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end" sx={{ color: rentalUi.muted, fontSize: 12 }}>
+                      kg
+                    </InputAdornment>
+                  )
+                }}
+                sx={{
+                  mt: 0.45,
+                  width: "100%",
+                  "& .MuiInputBase-input": { fontSize: 15.5, fontWeight: 600, lineHeight: 1.2, py: 0.25 }
+                }}
+              />
+            </Box>
+
+            <Box sx={{ flex: 1, px: 1.05 }}>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <CalendarTodayRoundedIcon sx={{ color: rentalUi.green, fontSize: 18 }} />
+                <Typography sx={{ color: rentalUi.muted, fontSize: 12.5, fontWeight: 500 }}>Duration</Typography>
+              </Stack>
+              <TextField
+                type="number"
+                value={duration}
+                onChange={(event) => setDuration(event.target.value.replace(/[^\d]/g, ""))}
+                variant="standard"
+                inputProps={{ min: 1, max: 365 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end" sx={{ color: rentalUi.muted, fontSize: 12 }}>
+                      day(s)
+                    </InputAdornment>
+                  )
+                }}
+                sx={{
+                  mt: 0.45,
+                  width: "100%",
+                  "& .MuiInputBase-input": { fontSize: 15.5, fontWeight: 600, lineHeight: 1.2, py: 0.25 }
+                }}
+              />
+              <Typography sx={{ mt: 0.8, fontSize: 12, color: rentalUi.muted, fontWeight: 500, whiteSpace: "nowrap" }}>
+                Pick-up  →  Drop-off
+              </Typography>
+            </Box>
+          </Stack>
         </CardContent>
       </Card>
 
-      <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl, border: uiTokens.borders.subtle }}>
-        <CardContent sx={FORM_CONTENT_SX}>
-          <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 700, mb: 0.3 }}>
-            Step 4: Add-ons and amenities (optional)
-          </Typography>
-          <Typography variant="caption" sx={{ display: "block", fontSize: 10.8, color: (t) => t.palette.text.secondary, mb: 1 }}>
-            Optional: select any extras for {tripPurpose.replace(/_/g, " ")} trips.
-          </Typography>
-          <RentalAddOnsSelector
-            addOns={visibleAddOns}
-            onToggleAddOn={handleToggleAddOn}
-            onQuantityChange={handleAddOnQuantityChange}
+      <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 1 }}>
+        Preferences <Typography component="span" sx={{ color: rentalUi.muted, fontSize: 11, fontWeight: 500 }}>(optional)</Typography>
+      </Typography>
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 0.8, mb: 0.8 }}>
+        <PreferenceRow label="AC" helper="Required" icon={<AcUnitRoundedIcon sx={{ fontSize: 20 }} />} checked={ac} onToggle={() => setAc((prev) => !prev)} />
+        <PreferenceRow label="Child seat" helper="Add if needed" icon={<ChildCareRoundedIcon sx={{ fontSize: 20 }} />} checked={childSeat} onToggle={() => setChildSeat((prev) => !prev)} />
+        <PreferenceRow label="Extra luggage" helper="More space" icon={<LuggageRoundedIcon sx={{ fontSize: 20 }} />} checked={extraLuggage} onToggle={() => setExtraLuggage((prev) => !prev)} />
+      </Box>
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 0.8, mb: 2 }}>
+        <PreferenceRow label="Premium" helper="Luxury vehicles" icon={<StarBorderRoundedIcon sx={{ fontSize: 20 }} />} checked={premium} onToggle={() => setPremium((prev) => !prev)} />
+        <PreferenceRow label="Driver language" helper="Select language" icon={<TranslateRoundedIcon sx={{ fontSize: 20 }} />} checked={driverLanguage} onToggle={() => setDriverLanguage((prev) => !prev)} />
+      </Box>
+
+      <Card sx={{ ...cardSx, mb: 1.7 }}>
+        <CardContent sx={{ p: 1.4, "&:last-child": { pb: 1.4 } }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+            <Typography sx={{ fontSize: 21/1.2, fontWeight: 700 }}>
+              Special instructions <Box component="span" sx={{ color: rentalUi.muted, fontWeight: 500 }}>(optional)</Box>
+            </Typography>
+            <EditRoundedIcon sx={{ color: rentalUi.muted }} />
+          </Stack>
+          <TextField
+            value={instructions}
+            onChange={(event) => setInstructions(event.target.value)}
+            placeholder="Any special requests or notes for your trip..."
+            multiline
+            minRows={2.5}
+            fullWidth
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2.1 } }}
           />
         </CardContent>
       </Card>
 
-      <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl, border: uiTokens.borders.subtle }}>
-        <CardContent sx={FORM_CONTENT_SX}>
-          <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 700, mb: 1 }}>
-            Step 5: Review estimate
-          </Typography>
-          <RentalEstimateCard estimate={estimate} />
-          <Divider sx={{ my: 1.1 }} />
-          <Stack spacing={1}>
-            <TextField
-              label="Special instructions"
-              size="small"
-              fullWidth
-              multiline
-              minRows={2}
-              value={specialInstructions}
-              onChange={(event) => setSpecialInstructions(event.target.value)}
-            />
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-              <TextField
-                label="Preferred vehicle model"
-                size="small"
-                fullWidth
-                value={preferredVehicleModel}
-                onChange={(event) => setPreferredVehicleModel(event.target.value)}
-              />
-              <TextField
-                label="Accessibility needs"
-                size="small"
-                fullWidth
-                value={accessibilityNeeds}
-                onChange={(event) => setAccessibilityNeeds(event.target.value)}
-              />
+      <Card sx={{ ...cardSx, borderColor: "#F6D8BA", bgcolor: "#FFFBF5", mb: 1.6 }}>
+        <CardContent sx={{ p: 1.4, "&:last-child": { pb: 1.4 } }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Box sx={{ width: 44, height: 44, borderRadius: "50%", bgcolor: rentalUi.orangeSoft, display: "grid", placeItems: "center", color: rentalUi.orange }}>
+                <CurrencyRupeeRoundedIcon />
+              </Box>
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: 13 }}>
+                  Budget / Price range <Box component="span" sx={{ color: rentalUi.muted, fontWeight: 500 }}>(optional)</Box>
+                </Typography>
+                <Typography sx={{ color: rentalUi.muted, fontSize: 11 }}>Set your preferred price range</Typography>
+              </Box>
             </Stack>
-            <TextField
-              label="Contact preference"
-              size="small"
-              select
-              value={contactPreference}
-              onChange={(event) =>
-                setContactPreference(event.target.value as RentalContactPreference)
-              }
-            >
-              {RENTAL_CONTACT_PREFERENCE_OPTIONS.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </TextField>
+
+            <Stack spacing={0.7} alignItems="flex-end">
+              <Typography sx={{ color: rentalUi.greenDeep, fontWeight: 800, fontSize: 16, lineHeight: 1.1 }}>
+                ₹ {(Number(budgetMin || 0)).toLocaleString("en-IN")} - ₹ {(Number(budgetMax || 0)).toLocaleString("en-IN")}
+              </Typography>
+              <FormControl size="small" sx={{ minWidth: 88 }}>
+                <Select
+                  value={budgetUnit}
+                  onChange={(event) => setBudgetUnit(event.target.value as "per day" | "per trip")}
+                  sx={{
+                    height: 28,
+                    borderRadius: 99,
+                    bgcolor: "#EFF8F2",
+                    color: rentalUi.greenDeep,
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    "& .MuiSelect-select": { py: 0.35, px: 1.15 },
+                    "& fieldset": { borderColor: "#D3EADB" }
+                  }}
+                >
+                  <MenuItem value="per day">per day</MenuItem>
+                  <MenuItem value="per trip">per trip</MenuItem>
+                </Select>
+              </FormControl>
+            </Stack>
           </Stack>
         </CardContent>
       </Card>
 
-      <Card elevation={0} sx={{ borderRadius: uiTokens.radius.xl, border: uiTokens.borders.subtle }}>
-        <CardContent sx={FORM_CONTENT_SX}>
-          <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 700, mb: 1 }}>
-            Final review
-          </Typography>
-          <Stack spacing={0.5}>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Pickup: {selectedPickupLocation?.displayName ?? "Not selected"}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Return: {selectedReturnLocation?.displayName ?? "Not selected"}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Rental type: {oneWayRental ? "One-way rental" : "Same location return"}{" "}
-              {crossBorderReturn ? "• Cross-border return" : ""}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Dates: {pickupDateTime || "Pending"} to {returnDateTime || "Pending"}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Trip purpose: {tripPurpose.replace(/_/g, " ")}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Vehicle: {vehiclePreference.replace(/_/g, " ")} • Battery distance {minimumRangeKm || "0"} km • Seats {getSeatCapacityLabel(requiredSeats)}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Driver option: {driverOption === "chauffeur" ? "With chauffeur" : "Self-drive"}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              One-way fee: {formatUgx(estimate.oneWayReturnFee)} • Cross-border fee:{" "}
-              {formatUgx(estimate.crossBorderFee)}
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: 11 }}>
-              Selected add-ons:{" "}
-              {addOns.filter((addOn) => addOn.selected).length > 0
-                ? addOns
-                    .filter((addOn) => addOn.selected)
-                    .map((addOn) => `${addOn.name} x${Math.max(1, addOn.quantity)}`)
-                    .join(", ")
-                : "None"}
-            </Typography>
-            <Typography variant="subtitle2" sx={{ fontSize: 15, fontWeight: 700, mt: 0.5 }}>
-              Estimated total: {formatUgx(estimate.totalEstimated)}
-            </Typography>
+      <Card sx={{ ...cardSx, borderRadius: 99, bgcolor: "#EEF8F1", mb: 1.85 }}>
+        <CardContent sx={{ py: 0.75, px: 1.3, "&:last-child": { pb: 0.75 } }}>
+          <Stack direction="row" spacing={0.7} alignItems="center" justifyContent="center">
+            <CheckCircleRoundedIcon sx={{ color: rentalUi.green, fontSize: 20 }} />
+            <Typography sx={{ fontSize: 16, color: rentalUi.muted }}>{safetyText}</Typography>
           </Stack>
         </CardContent>
       </Card>
 
-      <Button
-        fullWidth
-        variant="contained"
-        onClick={handleContinueToRentalOrder}
-        sx={{
-          borderRadius: uiTokens.radius.xl,
-          py: 1.15,
-          fontSize: 14,
-          fontWeight: 700,
-          textTransform: "none",
-          bgcolor: "primary.main",
-          color: "#022C22",
-          "&:hover": { bgcolor: "#06e29a" }
+      <GradientActionButton
+        label="Find vehicles"
+        onClick={() => {
+          const durationDays = Math.max(1, Number(duration) || 1);
+          actions.updateRentalBooking({
+            rentalMode: mode,
+            startDate: "2025-05-14 10:00",
+            endDate: `2025-05-${String(14 + durationDays).padStart(2, "0")} 10:00`
+          });
+          navigate("/rental/list", { state: { mode: mode === "self_drive" ? "self" : "chauffeur" } });
         }}
-      >
-        Continue to rental order
-      </Button>
-    </ScreenScaffold>
+      />
+    </Box>
   );
 }
