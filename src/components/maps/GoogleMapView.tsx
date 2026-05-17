@@ -46,6 +46,10 @@ export interface GoogleMapViewProps {
   alerts?: LeafletAlertMarker[];
   routePolyline?: MapPoint[];
   alternativePolylines?: MapPoint[][];
+  routeProgress?: number | null;
+  routeCompletedColor?: string;
+  routeRemainingColor?: string;
+  routeBaseColor?: string;
   showTraffic?: boolean;
   showAlerts?: boolean;
   showSOS?: boolean;
@@ -95,6 +99,14 @@ function createDotIcon(color: string): google.maps.Symbol {
   };
 }
 
+function createPinUrlIcon(url: string): google.maps.Icon {
+  return {
+    url,
+    scaledSize: new google.maps.Size(34, 34),
+    anchor: new google.maps.Point(17, 34)
+  };
+}
+
 function resolveAlertColor(severity?: "low" | "medium" | "high"): string {
   if (severity === "high") return "#dc2626";
   if (severity === "medium") return "#f59e0b";
@@ -121,6 +133,18 @@ function routesEqual(a: MapPoint[], b: MapPoint[]): boolean {
     if (!pointsEqual(a[i], b[i])) return false;
   }
   return true;
+}
+
+function splitRouteByProgress(route: MapPoint[], progress: number): { completed: MapPoint[]; remaining: MapPoint[] } {
+  if (route.length < 2) {
+    return { completed: route, remaining: route };
+  }
+  const clamped = Math.max(0, Math.min(1, progress));
+  const splitIndex = Math.max(1, Math.min(route.length - 1, Math.round((route.length - 1) * clamped)));
+  return {
+    completed: route.slice(0, splitIndex + 1),
+    remaining: route.slice(splitIndex)
+  };
 }
 
 // Child component: sync center/zoom and emit zoom changes
@@ -220,6 +244,10 @@ export default function GoogleMapView({
   alerts = [],
   routePolyline = [],
   alternativePolylines = [],
+  routeProgress = null,
+  routeCompletedColor = "#16a34a",
+  routeRemainingColor = "#f97316",
+  routeBaseColor = "#ffffff",
   showTraffic = false,
   showAlerts = false,
   showSOS = false,
@@ -452,14 +480,54 @@ export default function GoogleMapView({
 
         {/* Main route */}
         {resolvedRoute.length > 1 && (
-          <Polyline
-            path={resolvedRoute}
-            options={{
-              strokeColor: "#1d4ed8",
-              strokeWeight: 5,
-              strokeOpacity: 0.95
-            }}
-          />
+          <>
+            <Polyline
+              path={resolvedRoute}
+              options={{
+                strokeColor: routeBaseColor,
+                strokeWeight: 8,
+                strokeOpacity: 0.85
+              }}
+            />
+            {typeof routeProgress === "number" ? (
+              (() => {
+                const { completed, remaining } = splitRouteByProgress(resolvedRoute, routeProgress);
+                return (
+                  <>
+                    {completed.length > 1 && (
+                      <Polyline
+                        path={completed}
+                        options={{
+                          strokeColor: routeCompletedColor,
+                          strokeWeight: 5,
+                          strokeOpacity: 0.98
+                        }}
+                      />
+                    )}
+                    {remaining.length > 1 && (
+                      <Polyline
+                        path={remaining}
+                        options={{
+                          strokeColor: routeRemainingColor,
+                          strokeWeight: 5,
+                          strokeOpacity: 0.98
+                        }}
+                      />
+                    )}
+                  </>
+                );
+              })()
+            ) : (
+              <Polyline
+                path={resolvedRoute}
+                options={{
+                  strokeColor: "#1d4ed8",
+                  strokeWeight: 5,
+                  strokeOpacity: 0.95
+                }}
+              />
+            )}
+          </>
         )}
 
         {/* Alternative routes */}
@@ -514,7 +582,18 @@ export default function GoogleMapView({
           const isCurrent =
             marker.id.toLowerCase().includes("current") ||
             marker.label?.toLowerCase().includes("current");
-          const icon = !isCurrent && marker.color ? createDotIcon(marker.color) : undefined;
+          let icon: google.maps.Symbol | google.maps.Icon | undefined;
+          if (!isCurrent) {
+            if (marker.id === "pickup") {
+              icon = createPinUrlIcon("https://maps.google.com/mapfiles/ms/icons/green-dot.png");
+            } else if (marker.id === "dropoff") {
+              icon = createPinUrlIcon("https://maps.google.com/mapfiles/ms/icons/orange-dot.png");
+            } else if (marker.id === "driver") {
+              icon = createPinUrlIcon("https://maps.google.com/mapfiles/ms/icons/blue-dot.png");
+            } else if (marker.color) {
+              icon = createDotIcon(marker.color);
+            }
+          }
           return (
             <Marker
               key={marker.id}

@@ -172,7 +172,7 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
           subtitle: "Advanced Life Support (ALS)",
           icon: <GroupsRoundedIcon sx={{ color: "#059669" }} />,
           action: "View",
-          onAction: () => {}
+          onAction: () => navigate("/ambulance/tracking")
         }
       ].map((item) => (
         <Card
@@ -306,28 +306,41 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
           zIndex: 1100
         }}
       >
-        <Stack direction="row" spacing={1.4} alignItems="center">
+        <Stack direction="row" spacing={{ xs: 1, sm: 1.4 }} alignItems="center">
           <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography sx={{ color: "#334155", fontSize: 13 }}>Total payable</Typography>
-            <Typography sx={{ fontWeight: 800, fontSize: 26, lineHeight: 1, color: "#059669" }}>{formatAmount(total)}</Typography>
+            <Typography sx={{ color: "#334155", fontSize: { xs: 12, sm: 13 } }}>Total payable</Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: { xs: 22, sm: 26 }, lineHeight: 1, color: "#059669" }}>
+              {formatAmount(total)}
+            </Typography>
           </Box>
           <Button
             variant="contained"
             startIcon={<SecurityRoundedIcon />}
             onClick={() => {
-              actions.updateAmbulanceRequest({
-                status: "en_route",
+              const requestPatch = {
                 requestedAt: request.requestedAt ?? new Date().toISOString(),
                 dispatchedAt: request.dispatchedAt ?? new Date().toISOString()
-              });
-              navigate("/ambulance/tracking");
+              };
+              actions.updateAmbulanceRequest(requestPatch);
+              if (paymentMethod === "wallet") {
+                navigate("/ambulance/payment/wallet");
+                return;
+              }
+              if (paymentMethod === "card") {
+                navigate("/ambulance/payment/card");
+                return;
+              }
+              navigate("/ambulance/payment/mobile-money");
             }}
             sx={{
-              minWidth: { xs: 210, sm: 260 },
+              minWidth: { xs: 178, sm: 230, md: 260 },
               borderRadius: 3,
-              py: 1.4,
+              px: { xs: 1.8, sm: 2.6 },
+              py: { xs: 1.05, sm: 1.4 },
               fontWeight: 800,
-              fontSize: 16,
+              fontSize: { xs: 13, sm: 16 },
+              whiteSpace: "nowrap",
+              flexShrink: 0,
               color: "#FFFFFF",
               background: "linear-gradient(90deg, #059669 0%, #EA580C 100%)",
               "&:hover": {

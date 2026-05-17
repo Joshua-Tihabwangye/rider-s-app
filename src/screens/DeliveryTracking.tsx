@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   Chip,
+  Divider,
   Dialog,
   DialogActions,
   DialogContent,
@@ -26,6 +27,12 @@ import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded";
+import CallRoundedIcon from "@mui/icons-material/CallRounded";
+import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
+import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
+import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import TwoWheelerRoundedIcon from "@mui/icons-material/TwoWheelerRounded";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import DeliveryTrackingMap from "../components/deliveries/DeliveryTrackingMap";
@@ -52,6 +59,7 @@ import {
   getDeliveryOrderModeTone
 } from "../features/delivery/orderMode";
 import { calculateRoute } from "../services/maps";
+import { uiConfig } from "../config/uiConfig";
 
 function formatDateTime(value?: string): string {
   if (!value) {
@@ -71,6 +79,16 @@ function formatDateTime(value?: string): string {
 
 function formatCurrency(amount: number): string {
   return `UGX ${Math.round(amount).toLocaleString()}`;
+}
+
+function formatTimeOnly(value?: string): string {
+  if (!value) return "--:--";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--:--";
+  return date.toLocaleTimeString("en-UG", {
+    hour: "numeric",
+    minute: "2-digit"
+  });
 }
 
 function toDateTimeLocalValue(value?: string): string {
@@ -130,6 +148,7 @@ export default function DeliveryTracking(): React.JSX.Element {
   const [routePolyline, setRoutePolyline] = useState<Array<{ lat: number; lng: number }>>([]);
   const mapRef = useRef<HTMLDivElement | null>(null);
   const timelineRef = useRef<HTMLDivElement | null>(null);
+  const lastRouteKeyRef = useRef<string>("");
 
   const order = useMemo(
     () =>
@@ -173,13 +192,20 @@ export default function DeliveryTracking(): React.JSX.Element {
     const dropoffCoordinates = currentStop?.location.coordinates ?? order?.dropoff.coordinates;
 
     if (!pickupCoordinates || !dropoffCoordinates) {
-      setRoutePolyline([]);
+      setRoutePolyline((previous) => (previous.length ? [] : previous));
       actions.updateSharedLocationState({
         deliveryPickupCoords: pickupCoordinates ?? null,
         deliveryDropoffCoords: dropoffCoordinates ?? null
       });
+      lastRouteKeyRef.current = "";
       return;
     }
+
+    const routeKey = `${pickupCoordinates.lat.toFixed(6)},${pickupCoordinates.lng.toFixed(6)}:${dropoffCoordinates.lat.toFixed(6)},${dropoffCoordinates.lng.toFixed(6)}`;
+    if (lastRouteKeyRef.current === routeKey) {
+      return;
+    }
+    lastRouteKeyRef.current = routeKey;
 
     let ignore = false;
     void calculateRoute(pickupCoordinates, dropoffCoordinates).then((route) => {
@@ -204,9 +230,9 @@ export default function DeliveryTracking(): React.JSX.Element {
 
   if (!order) {
     return (
-      <ScreenScaffold>
+      <ScreenScaffold className="evz-delivery-screen">
         <SectionHeader
-          title="Tracking"
+          title={uiConfig.delivery.labels.trackingTitle}
           subtitle="Order unavailable"
           leadingAction={
             <IconButton size="small" aria-label="Back" onClick={() => navigate(-1)}>
@@ -262,6 +288,90 @@ export default function DeliveryTracking(): React.JSX.Element {
       : nextStatus
         ? `Mark as ${getDeliveryStatusLabel(nextStatus)}`
         : "";
+  const isReferenceLayout = activeTab === "overview" && activeOverviewPanel === "timeline";
+  const nowPlusEta = new Date(Date.now() + order.tracking.etaMinutes * 60_000).toISOString();
+  const etaByLabel = formatTimeOnly(order.estimatedDropoffAt ?? nowPlusEta);
+  const pickupTimeLabel = formatTimeOnly(order.timeline.find((item) => item.status === "picked_up")?.timestamp);
+  const dropoffTimeLabel = formatTimeOnly(order.estimatedDropoffAt ?? order.timeline.find((item) => item.status === "delivered")?.timestamp);
+  const acceptedTimeLabel = formatTimeOnly(
+    order.timeline.find((item) => item.status === "accepted")?.timestamp ??
+      order.timeline.find((item) => item.status === "requested")?.timestamp
+  );
+  const inTransitTimeLabel = formatTimeOnly(
+    order.timeline.find((item) => item.status === "in_transit")?.timestamp ??
+      order.timeline.find((item) => item.status === "out_for_delivery")?.timestamp
+  );
+  const deliveredTimeLabel = formatTimeOnly(
+    order.timeline.find((item) => item.status === "delivered")?.timestamp ?? order.estimatedDropoffAt
+  );
+  const onTheWayActive = ["in_transit", "out_for_delivery"].includes(order.status);
+
+  const timelineNodes: Array<{
+    key: string;
+    label: string;
+    time: string;
+    state: "done" | "current" | "upcoming";
+    useVehicle?: boolean;
+  }> = [
+    {
+      key: "accepted",
+      label: "Courier assigned",
+      time: acceptedTimeLabel,
+      state: ["accepted", "picked_up", "in_transit", "out_for_delivery", "delivered", "partially_completed"].includes(order.status)
+        ? "done"
+        : order.status === "requested"
+          ? "current"
+          : "upcoming"
+    },
+    {
+      key: "picked_up",
+      label: "Picked up",
+      time: pickupTimeLabel,
+      state: ["picked_up", "in_transit", "out_for_delivery", "delivered", "partially_completed"].includes(order.status)
+        ? "done"
+        : "upcoming"
+    },
+    {
+      key: "in_transit",
+      label: "On the way",
+      time: inTransitTimeLabel,
+      state: onTheWayActive
+        ? "current"
+        : ["delivered", "partially_completed"].includes(order.status)
+          ? "done"
+          : "upcoming",
+      useVehicle: true
+    },
+    {
+      key: "delivered",
+      label: "Delivered",
+      time: deliveredTimeLabel,
+      state: ["delivered", "partially_completed"].includes(order.status) ? "done" : "upcoming"
+    }
+  ];
+
+  const handleContactEvent = (contactType: "call" | "chat"): void => {
+    actions.logDeliveryContactEvent(order.id, contactType);
+  };
+
+  const handleShareTracking = async (): Promise<void> => {
+    const shareText = `Track delivery ${order.id}`;
+    const shareUrl =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/deliveries/tracking/${order.id}`
+        : `/deliveries/tracking/${order.id}`;
+
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: "EVzone Delivery Tracking", text: shareText, url: shareUrl });
+      } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(shareUrl);
+      }
+      actions.logDeliveryContactEvent(order.id, "support");
+    } catch {
+      // no-op: user cancelled native share dialog
+    }
+  };
 
   const setTrackingTab = (nextTab: TrackingTab, nextOverviewPanel?: OverviewPanel): void => {
     const nextParams = new URLSearchParams(searchParams);
@@ -321,15 +431,15 @@ export default function DeliveryTracking(): React.JSX.Element {
     setCancelDialogOpen(false);
   };
 
-  const showTimelineSection = activeTab === "overview" && activeOverviewPanel === "timeline";
-  const showCourierSection = activeTab === "courier";
-  const showProofSection = activeTab === "proof";
-  const showReceiptSection = activeTab === "receipt";
-  const showSupportSection = activeTab === "support";
+  const showTimelineSection = !isReferenceLayout && activeTab === "overview" && activeOverviewPanel === "timeline";
+  const showCourierSection = !isReferenceLayout && activeTab === "courier";
+  const showProofSection = !isReferenceLayout && activeTab === "proof";
+  const showReceiptSection = !isReferenceLayout && activeTab === "receipt";
+  const showSupportSection = !isReferenceLayout && activeTab === "support";
   const tabsValue: TopTrackingTab | false = activeTab === "receipt" ? false : activeTab;
 
   return (
-    <ScreenScaffold disableTopPadding>
+    <ScreenScaffold className="evz-delivery-screen" disableTopPadding>
       {isRefreshing ? (
         <>
           <Box
@@ -372,13 +482,339 @@ export default function DeliveryTracking(): React.JSX.Element {
               showBackButton
               onBack={() => navigate(-1)}
               fullBleed
+              titleLabel={`Tracking ${order.id}`}
+              liveLabel={delivery.websocketConnected ? "Live" : "Polling"}
+              pickupTimeLabel={pickupTimeLabel}
+              dropoffTimeLabel={dropoffTimeLabel}
             />
           </Box>
 
+          {isReferenceLayout && (
+            <Stack spacing={1.05} sx={{ mt: -0.6 }} ref={timelineRef}>
+              <Card elevation={0} sx={{ borderRadius: "16px", border: "1px solid rgba(209,213,219,0.88)" }}>
+                <CardContent sx={{ p: 1.4 }}>
+                  <Box
+                    sx={{
+                      width: 44,
+                      height: 4,
+                      borderRadius: 999,
+                      bgcolor: "rgba(148,163,184,0.42)",
+                      mx: "auto",
+                      mb: 1.2
+                    }}
+                  />
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
+                    <Box>
+                    <Chip
+                      size="small"
+                      label={statusLabel}
+                      className="evz-delivery-chip"
+                      sx={{
+                        height: 24,
+                        borderRadius: "9px",
+                        fontSize: 10.5,
+                        bgcolor: "rgba(34,197,94,0.16)",
+                        color: "#15803d",
+                        mb: 0.8
+                      }}
+                    />
+                    <Typography sx={{ fontSize: { xs: 28, sm: 32 }, lineHeight: 1.06, fontWeight: 800, letterSpacing: "-0.02em", mb: 0.1 }}>
+                      {onTheWayActive ? "On the way" : statusLabel}
+                    </Typography>
+                    <Typography sx={{ fontSize: 12.5, color: "#475569", fontWeight: 500 }}>{order.id}</Typography>
+                  </Box>
+                  <Box sx={{ textAlign: "right" }}>
+                    <Typography sx={{ color: "#64748b", fontSize: 11.5, mb: 0.2 }}>Estimated arrival</Typography>
+                    <Typography sx={{ fontSize: { xs: 34, sm: 38 }, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1 }}>
+                      {Math.max(0, order.tracking.etaMinutes)}
+                      <Typography component="span" sx={{ fontSize: 15, fontWeight: 700, ml: 0.35 }}>
+                        min
+                      </Typography>
+                    </Typography>
+                    <Typography sx={{ color: "#64748b", fontSize: 11.2, mt: 0.05 }}>by {etaByLabel}</Typography>
+                    <Typography sx={{ color: "#64748b", fontSize: 10.8, mt: 0.2 }}>
+                      {order.tracking.distanceKm.toFixed(2)} km • {delivery.websocketConnected ? "Live" : "Polling"}
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                  <Stack direction="row" alignItems="center" sx={{ mt: 1.25 }}>
+                    {timelineNodes.map((step, index) => (
+                      <React.Fragment key={step.key}>
+                        <Stack sx={{ flex: 1, minWidth: 0 }} alignItems="flex-start" spacing={0.55}>
+                          <Box
+                            sx={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: "50%",
+                              border:
+                                step.state === "upcoming"
+                                  ? "1.8px solid rgba(203,213,225,0.92)"
+                                  : "1.8px solid #16a34a",
+                              bgcolor:
+                                step.state === "upcoming"
+                                  ? "rgba(255,255,255,0.98)"
+                                  : step.state === "current"
+                                    ? "rgba(220,252,231,0.95)"
+                                    : "#16a34a",
+                              color: step.state === "done" ? "#fff" : "#16a34a",
+                              display: "grid",
+                              placeItems: "center"
+                            }}
+                          >
+                            {step.useVehicle ? (
+                              <TwoWheelerRoundedIcon sx={{ fontSize: 16 }} />
+                            ) : step.state === "done" ? (
+                              <CheckCircleRoundedIcon sx={{ fontSize: 15 }} />
+                            ) : (
+                              <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "currentColor" }} />
+                            )}
+                          </Box>
+                          <Typography sx={{ fontSize: 10.8, fontWeight: step.state === "current" ? 800 : 600, lineHeight: 1.22 }}>
+                            {step.label}
+                          </Typography>
+                          <Typography sx={{ fontSize: 10, color: "#64748b" }}>{step.time}</Typography>
+                        </Stack>
+                        {index < timelineNodes.length - 1 && (
+                          <Box
+                            sx={{
+                              flex: 1,
+                              height: 3,
+                              borderRadius: 999,
+                              mx: 0.5,
+                              mt: -3.8,
+                              bgcolor: step.state === "upcoming" ? "rgba(203,213,225,0.9)" : "#16a34a"
+                            }}
+                          />
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </Stack>
+                </CardContent>
+              </Card>
+
+              {order.status === "delivered" && senderConfirmationReady ? (
+                <Card elevation={0} sx={{ borderRadius: "14px", border: "1px solid rgba(209,213,219,0.88)" }}>
+                  <CardContent sx={{ px: 1.2, py: 1 }}>
+                    <Stack spacing={0.9}>
+                      <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: "#0f172a" }}>
+                        Recipient signature confirmation
+                      </Typography>
+                      <Box
+                        component="img"
+                        src={senderConfirmationImage}
+                        alt={`Recipient signature for ${order.id}`}
+                        sx={{
+                          width: "100%",
+                          borderRadius: "12px",
+                          border: "1px solid rgba(209,213,219,0.92)",
+                          objectFit: "cover",
+                          maxHeight: 150
+                        }}
+                      />
+                      {!isReceiverView && !senderDeliveryClosed && (
+                        <Button
+                          variant="contained"
+                          onClick={() => {
+                            actions.closeSenderDelivery(order.id);
+                            navigate("/deliveries");
+                          }}
+                          sx={{
+                            textTransform: "none",
+                            borderRadius: "10px",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            py: 0.8
+                          }}
+                        >
+                          Close delivery
+                        </Button>
+                      )}
+                    </Stack>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card elevation={0} sx={{ borderRadius: "14px", border: "1px solid rgba(209,213,219,0.88)" }}>
+                  <CardContent sx={{ px: 1.2, py: 1 }}>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={0.85}>
+                      <Stack direction="row" spacing={0.9} alignItems="center">
+                        <Avatar sx={{ width: 42, height: 42, bgcolor: "#d1fae5", color: "#065f46", fontWeight: 800 }}>
+                          {(order.courier?.name ?? "CR").slice(0, 2).toUpperCase()}
+                        </Avatar>
+                        <Box>
+                          <Typography sx={{ fontSize: 13.6, fontWeight: 800 }}>
+                            {order.courier?.name ?? "Courier unavailable"}{" "}
+                            <Typography component="span" sx={{ color: "#f59e0b", fontWeight: 800 }}>
+                              ★ {order.courier?.rating?.toFixed(1) ?? "0.0"}
+                            </Typography>
+                          </Typography>
+                          <Typography sx={{ color: "#64748b", fontSize: 12 }}>
+                            {order.courier?.vehicle ?? "EV courier"} • {order.courier?.plate ?? "--"}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                      <Button
+                        variant="outlined"
+                        onClick={() => setTrackingTab("courier")}
+                        sx={{
+                          textTransform: "none",
+                          borderRadius: "10px",
+                          minWidth: 96,
+                          fontSize: 12,
+                          px: 1.1,
+                          py: 0.58,
+                          color: "#16a34a",
+                          borderColor: "rgba(22,163,74,0.7)"
+                        }}
+                      >
+                        View details
+                      </Button>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              )}
+
+              <Stack direction="row" spacing={0.75}>
+                <Button
+                  variant="outlined"
+                  startIcon={<CallRoundedIcon sx={{ fontSize: 16 }} />}
+                  onClick={() => handleContactEvent("call")}
+                  sx={{
+                    flex: 1,
+                    textTransform: "none",
+                    borderRadius: "12px",
+                    fontSize: 11.2,
+                    py: 0.78,
+                    minHeight: 36,
+                    borderColor: "rgba(22,163,74,0.7)",
+                    color: "#15803d"
+                  }}
+                >
+                  Call courier
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<ChatBubbleOutlineRoundedIcon sx={{ fontSize: 16 }} />}
+                  onClick={() => handleContactEvent("chat")}
+                  sx={{
+                    flex: 1,
+                    textTransform: "none",
+                    borderRadius: "12px",
+                    fontSize: 11.2,
+                    py: 0.78,
+                    minHeight: 36,
+                    borderColor: "rgba(22,163,74,0.7)",
+                    color: "#15803d"
+                  }}
+                >
+                  Message
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<ShareRoundedIcon sx={{ fontSize: 16 }} />}
+                  onClick={() => void handleShareTracking()}
+                  sx={{
+                    flex: 1,
+                    textTransform: "none",
+                    borderRadius: "12px",
+                    fontSize: 11.2,
+                    py: 0.78,
+                    minHeight: 36,
+                    borderColor: "rgba(22,163,74,0.7)",
+                    color: "#15803d"
+                  }}
+                >
+                  Share tracking
+                </Button>
+              </Stack>
+
+              <Card elevation={0} sx={{ borderRadius: "14px", border: "1px solid rgba(209,213,219,0.88)" }}>
+                <CardContent sx={{ px: 1.2, py: 1 }}>
+                  <Stack spacing={1.1} sx={{ position: "relative" }}>
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        left: 9,
+                        top: 35,
+                        bottom: 35,
+                        borderLeft: "2px dashed rgba(148,163,184,0.48)"
+                      }}
+                    />
+                    <Stack direction="row" alignItems="flex-start" spacing={0.9}>
+                      <PlaceRoundedIcon sx={{ fontSize: 20, color: "#16a34a", mt: 0.25 }} />
+                      <Box sx={{ flex: 1 }}>
+                        <Typography sx={{ fontSize: 11.5, color: "#64748b" }}>Pickup location</Typography>
+                        <Typography sx={{ fontSize: 14.6, fontWeight: 700 }}>{order.pickup.label}</Typography>
+                        <Typography sx={{ fontSize: 11.8, color: "#64748b" }}>{order.pickup.address}</Typography>
+                      </Box>
+                      <Chip
+                        label={pickupTimeLabel}
+                        sx={{ height: 28, bgcolor: "rgba(220,252,231,0.9)", color: "#15803d", fontWeight: 700, borderRadius: "9px", fontSize: 11 }}
+                      />
+                      <ChevronRightRoundedIcon sx={{ color: "#94a3b8", mt: 0.3, fontSize: 20 }} />
+                    </Stack>
+                    <Divider sx={{ borderStyle: "dashed" }} />
+                    <Stack direction="row" alignItems="flex-start" spacing={0.9}>
+                      <PlaceRoundedIcon sx={{ fontSize: 20, color: "#f97316", mt: 0.25 }} />
+                      <Box sx={{ flex: 1 }}>
+                        <Typography sx={{ fontSize: 11.5, color: "#64748b" }}>Drop-off location</Typography>
+                        <Typography sx={{ fontSize: 14.6, fontWeight: 700 }}>
+                          {currentStop?.location.label ?? order.dropoff.label}
+                        </Typography>
+                        <Typography sx={{ fontSize: 11.8, color: "#64748b" }}>
+                          {currentStop?.location.address ?? order.dropoff.address}
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={dropoffTimeLabel}
+                        sx={{ height: 28, bgcolor: "rgba(255,237,213,0.95)", color: "#c2410c", fontWeight: 700, borderRadius: "9px", fontSize: 11 }}
+                      />
+                      <ChevronRightRoundedIcon sx={{ color: "#94a3b8", mt: 0.3, fontSize: 20 }} />
+                    </Stack>
+                  </Stack>
+                </CardContent>
+              </Card>
+
+              <Card elevation={0} sx={{ borderRadius: "14px", border: "1px solid rgba(209,213,225,0.84)", bgcolor: "#f8faf8" }}>
+                <CardContent sx={{ py: 1, px: 1.2 }}>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={0.9}>
+                    <Stack direction="row" spacing={0.8} alignItems="center">
+                      <Typography sx={{ fontSize: 24, lineHeight: 1 }}>🌿</Typography>
+                      <Box>
+                        <Typography sx={{ fontSize: 13.4, fontWeight: 700 }}>Eco delivery. Cashless payment.</Typography>
+                        <Typography sx={{ fontSize: 11.4, color: "#64748b" }}>
+                          Thank you for choosing a greener tomorrow.
+                        </Typography>
+                      </Box>
+                    </Stack>
+                    <Button
+                      variant="outlined"
+                      onClick={() => setTrackingTab("support")}
+                      sx={{
+                        textTransform: "none",
+                        borderRadius: "10px",
+                        minWidth: 78,
+                        px: 1,
+                        py: 0.5,
+                        fontSize: 11.2,
+                        color: "#16a34a",
+                        borderColor: "rgba(22,163,74,0.55)"
+                      }}
+                    >
+                      Learn more
+                    </Button>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Stack>
+          )}
+
+          {!isReferenceLayout && (
+          <>
           <Stack direction="row" spacing={1} alignItems="flex-start" justifyContent="space-between" sx={{ mt: 1.5 }}>
             <Box sx={{ minWidth: 0 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                Tracking
+                {uiConfig.delivery.labels.trackingTitle}
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 600, color: (t) => t.palette.text.primary }}>
                 Order ID: {order.id}
@@ -531,6 +967,8 @@ export default function DeliveryTracking(): React.JSX.Element {
               </Tabs>
             </CardContent>
           </Card>
+          </>
+          )}
         </>
       )}
 
@@ -903,6 +1341,7 @@ export default function DeliveryTracking(): React.JSX.Element {
         </Card>
       )}
 
+      {!isReferenceLayout && (
       <DeliveryBottomSheet>
         <Stack spacing={1.1}>
           {isReceiverView && (
@@ -1064,6 +1503,7 @@ export default function DeliveryTracking(): React.JSX.Element {
           )}
         </Stack>
       </DeliveryBottomSheet>
+      )}
 
       {!isReceiverView && (
       <Dialog

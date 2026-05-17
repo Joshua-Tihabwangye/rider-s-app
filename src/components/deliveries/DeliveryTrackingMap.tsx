@@ -1,7 +1,7 @@
 import React from "react";
-import { Box, Chip, Typography } from "@mui/material";
+import { Box, Paper, Stack, Typography } from "@mui/material";
 import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
-import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import TwoWheelerRoundedIcon from "@mui/icons-material/TwoWheelerRounded";
 import MapShell from "../maps/MapShell";
 import { getPointAtProgress, normalizeRoute } from "../../utils/mapRoutes";
 
@@ -22,9 +22,13 @@ interface DeliveryTrackingMapProps {
   showBackButton?: boolean;
   onBack?: () => void;
   showControls?: boolean;
+  titleLabel?: string;
+  liveLabel?: string;
+  pickupTimeLabel?: string;
+  dropoffTimeLabel?: string;
 }
 
-const STANDARD_DELIVERY_MAP_HEIGHT = "clamp(320px, 56vh, 460px)";
+const STANDARD_DELIVERY_MAP_HEIGHT = "clamp(360px, 52vh, 520px)";
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -38,7 +42,6 @@ export default function DeliveryTrackingMap({
   routePolyline = [],
   courierPosition,
   etaLabel,
-  statusLabel,
   stopLabels = [],
   completedStops = 0,
   height = STANDARD_DELIVERY_MAP_HEIGHT,
@@ -46,7 +49,11 @@ export default function DeliveryTrackingMap({
   fullBleed = true,
   showBackButton = false,
   onBack,
-  showControls = false
+  showControls = false,
+  titleLabel = "Tracking",
+  liveLabel = "Live",
+  pickupTimeLabel,
+  dropoffTimeLabel
 }: DeliveryTrackingMapProps): React.JSX.Element {
   const fallbackCenter = { lat: 0.3476, lng: 32.5825 };
   const startPoint = pickupCoordinates ?? { lat: 0.3136, lng: 32.5811 };
@@ -73,76 +80,108 @@ export default function DeliveryTrackingMap({
       dropoffLocation={endPoint}
       driverLocation={courierGeoPoint}
       routePolyline={resolvedRoute.length > 1 ? resolvedRoute : [startPoint, endPoint]}
+      routeProgress={courierPosition}
+      routeCompletedColor="#16a34a"
+      routeRemainingColor="#f97316"
+      routeBaseColor="#ffffff"
+      showRouteInfo={false}
       canvasSx={{
         background:
-          "radial-gradient(circle at 25% 15%, rgba(3,205,140,0.2), rgba(236,253,245,0.95) 40%, rgba(226,232,240,0.9) 100%)"
+          "radial-gradient(circle at 24% 14%, rgba(3,205,140,0.15), rgba(245,247,250,0.92) 42%, rgba(232,240,252,0.9) 100%)"
       }}
     >
+      <Paper
+        elevation={0}
+        sx={{
+          position: "absolute",
+          left: { xs: 16, md: 22 },
+          top: { xs: "30%", md: "34%" },
+          borderRadius: "14px",
+          border: "1px solid rgba(203,213,225,0.85)",
+          bgcolor: "rgba(255,255,255,0.94)",
+          px: 1.3,
+          py: 1.05,
+          zIndex: 3,
+          minWidth: 132
+        }}
+      >
+        <Typography variant="caption" sx={{ display: "block", color: "#16a34a", fontWeight: 700, fontSize: 11 }}>
+          Pickup
+        </Typography>
+        <Typography variant="body2" sx={{ fontWeight: 700, fontSize: 13.5, lineHeight: 1.25 }}>
+          {pickupLabel}
+        </Typography>
+        {pickupTimeLabel ? (
+          <Typography variant="caption" sx={{ display: "block", mt: 0.2, color: "#64748b", fontSize: 11.5 }}>
+            {pickupTimeLabel}
+          </Typography>
+        ) : null}
+      </Paper>
+
+      <Paper
+        elevation={0}
+        sx={{
+          position: "absolute",
+          right: { xs: 16, md: 22 },
+          top: { xs: "47%", md: "52%" },
+          borderRadius: "14px",
+          border: "1px solid rgba(203,213,225,0.85)",
+          bgcolor: "rgba(255,255,255,0.95)",
+          px: 1.3,
+          py: 1.05,
+          zIndex: 3,
+          minWidth: 132
+        }}
+      >
+        <Typography variant="caption" sx={{ display: "block", color: "#f97316", fontWeight: 700, fontSize: 11 }}>
+          Drop-off
+        </Typography>
+        <Typography variant="body2" sx={{ fontWeight: 700, fontSize: 13.5, lineHeight: 1.25 }}>
+          {dropoffLabel}
+        </Typography>
+        {dropoffTimeLabel ? (
+          <Typography variant="caption" sx={{ display: "block", mt: 0.2, color: "#64748b", fontSize: 11.5 }}>
+            {dropoffTimeLabel}
+          </Typography>
+        ) : null}
+      </Paper>
+
       <Box
         sx={{
           position: "absolute",
-          inset: 0,
-          opacity: 0.24,
-          backgroundImage:
-            "linear-gradient(to right, rgba(148,163,184,0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.5) 1px, transparent 1px)",
-          backgroundSize: "34px 34px"
+          left: { xs: 16, md: 22 },
+          bottom: { xs: 16, md: 20 },
+          width: 44,
+          height: 44,
+          borderRadius: "12px",
+          bgcolor: "rgba(255,255,255,0.95)",
+          border: "1px solid rgba(203,213,225,0.9)",
+          display: "grid",
+          placeItems: "center",
+          zIndex: 4
         }}
-      />
-
-      <Box sx={{ position: "absolute", left: 18, bottom: 18, transform: "translate(0, 0)" }}>
+      >
         <MyLocationRoundedIcon sx={{ fontSize: 22, color: "#22c55e" }} />
       </Box>
 
       <Box
         sx={{
           position: "absolute",
-          top: { xs: "max(12px, env(safe-area-inset-top))", md: 12 },
-          left: showBackButton ? { xs: 62, md: 64 } : 12,
-          display: "flex",
-          gap: 1
+          left: "50%",
+          top: "54%",
+          transform: "translate(-50%, -50%)",
+          width: 64,
+          height: 64,
+          borderRadius: "50%",
+          border: "3px solid #16a34a",
+          bgcolor: "rgba(255,255,255,0.92)",
+          display: "grid",
+          placeItems: "center",
+          zIndex: 4,
+          boxShadow: "0 8px 16px rgba(15,23,42,0.18)"
         }}
       >
-        <Chip
-          size="small"
-          icon={<AccessTimeRoundedIcon sx={{ fontSize: 14 }} />}
-          label={`ETA ${etaLabel}`}
-          sx={{
-            borderRadius: 5,
-            fontSize: 11,
-            height: 24,
-            bgcolor: "rgba(15,23,42,0.74)",
-            color: "#F8FAFC"
-          }}
-        />
-        <Chip
-          size="small"
-          label={statusLabel}
-          sx={{
-            borderRadius: 5,
-            fontSize: 11,
-            height: 24,
-            bgcolor: "rgba(16,185,129,0.14)",
-            color: "#047857"
-          }}
-        />
-      </Box>
-
-      <Box
-        sx={{
-          position: "absolute",
-          left: 12,
-          bottom: 12,
-          right: 12,
-          display: "flex",
-          justifyContent: "space-between"
-        }}
-      >
-        <Typography variant="caption" sx={{ fontSize: 11, color: "rgba(15,23,42,0.8)", fontWeight: 600 }}>
-          {pickupLabel}
-        </Typography>
-        <Typography variant="caption" sx={{ fontSize: 11, color: "rgba(15,23,42,0.8)", fontWeight: 600 }}>
-          {dropoffLabel}
-        </Typography>
+        <TwoWheelerRoundedIcon sx={{ fontSize: 34, color: "#14532d" }} />
       </Box>
     </MapShell>
   );

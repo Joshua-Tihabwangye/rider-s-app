@@ -35,6 +35,7 @@ import { useAppData } from "../contexts/AppDataContext";
 import type { DeliveryOrder } from "../store/types";
 import { getDeliveryStatusLabel } from "../features/delivery/stateMachine";
 import { calculateDeliveryKpis } from "../features/delivery/analytics";
+import { uiConfig } from "../config/uiConfig";
 
 const DELIVERY_TERMINAL_STATUSES = ["delivered", "partially_completed", "cancelled", "failed"] as const;
 
@@ -153,10 +154,10 @@ function DeliveryDashboardHomeScreen(): React.JSX.Element {
   };
 
   return (
-    <ScreenScaffold>
+    <ScreenScaffold className="evz-delivery-screen evz-delivery-dashboard">
       <SectionHeader
-        title="Deliveries"
-        subtitle="Command center for sending, receiving, and delivery history"
+        title={uiConfig.delivery.labels.homeTitle}
+        subtitle={uiConfig.delivery.labels.homeSubtitle}
         leadingAction={
           <IconButton
             size="small"

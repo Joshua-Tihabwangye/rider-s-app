@@ -54,12 +54,18 @@ function clearSession(): void {
   }
 }
 
-function isValidJWT(token: string): boolean {
+function isLikelyUsableAccessToken(token: string): boolean {
   try {
+    // Accept non-JWT opaque tokens (some backends return opaque bearer tokens).
+    // If it's not JWT-shaped but non-empty, defer validation to backend requests.
+    if (!token || token.trim().length < 8) {
+      return false;
+    }
+
     // Basic JWT structure validation (header.payload.signature)
     const parts = token.split('.');
     if (parts.length !== 3) {
-      return false;
+      return true;
     }
 
     // Check if header and payload are valid base64 and JSON
@@ -73,16 +79,18 @@ function isValidJWT(token: string): boolean {
       header = JSON.parse(atob(encodedHeader));
       payload = JSON.parse(atob(encodedPayload));
     } catch {
-      return false;
+      // If decode fails, still treat as usable and let backend decide.
+      return true;
     }
 
-    // Check if token has not expired (with 5 minute grace period)
+    // Check if token has not expired (with 5 minute grace period).
+    // If expired, caller may still keep session when refresh token exists.
     if (payload.exp && payload.exp * 1000 < (Date.now() - 300000)) {
       return false;
     }
 
     // Basic structure validation
-    if (!header.alg || !payload.iat) {
+    if (!header.alg) {
       return false;
     }
 
@@ -109,6 +117,7 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
       try {
         const storedUser = localStorage.getItem(STORAGE_KEY_USER);
         const storedToken = localStorage.getItem(STORAGE_KEY_TOKEN);
+        const storedRefreshToken = localStorage.getItem(STORAGE_KEY_REFRESH_TOKEN);
 
         if (!storedUser || !storedToken) {
           clearSession();
@@ -124,8 +133,10 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
           return;
         }
 
-        // Validate token format and expiration
-        if (!isValidJWT(storedToken)) {
+        // Validate token format and expiration.
+        // If access token is stale but refresh token exists, keep session and allow
+        // API layer to refresh transparently.
+        if (!isLikelyUsableAccessToken(storedToken) && !storedRefreshToken) {
           clearSession();
           setUser(null);
           return;

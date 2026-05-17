@@ -1,0 +1,72 @@
+{
+  "brand": {
+    "name": "EVzone",
+    "colors": {
+      "green": "#03cd8c",
+      "greenDeep": "#048a62",
+      "orange": "#f97316",
+      "danger": "#ef4444"
+    },
+    "gradients": {
+      "primaryAction": "linear-gradient(100deg, #03cd8c 0%, #059669 48%, #f97316 100%)"
+    }
+  },
+  "services": {
+    "rides": "Rides",
+    "deliveries": "Deliveries",
+    "rentals": "Rentals",
+    "tours": "Tours",
+    "ambulance": "Ambulance"
+  },
+  "navigation": {
+    "home": "Home",
+    "wallet": "Wallet",
+    "settings": "Settings",
+    "more": "More"
+  },
+  "delivery": {
+    "labels": {
+      "homeTitle": "Deliveries",
+      "homeSubtitle": "Delivery command center",
+      "newTitle": "New delivery",
+      "newSubtitle": "Create and dispatch a delivery order",
+      "trackingTitle": "Track delivery",
+      "trackingSubtitle": "Live tracking and delivery timeline",
+      "notificationsTitle": "Delivery notifications",
+      "notificationsSubtitle": "Status, payment and proof alerts",
+      "ratingTitle": "Rate delivery",
+      "ratingSubtitle": "Share your courier experience",
+      "settlementTitle": "Delivery settlement",
+      "settlementSubtitle": "Review and complete delivery payment"
+    },
+    "buttons": {
+      "primary": "Continue",
+      "viewDetails": "View details",
+      "track": "Track",
+      "create": "Create order",
+      "submit": "Submit"
+    },
+    "statusLabels": {
+      "requested": "Requested",
+      "accepted": "Accepted",
+      "picked_up": "Picked up",
+      "in_transit": "In transit",
+      "delivered": "Delivered",
+      "partially_completed": "Partially completed",
+      "cancelled": "Cancelled",
+      "failed": "Failed"
+    },
+    "paymentMethods": {
+      "wallet": "Wallet",
+      "card": "Card",
+      "mobile_money": "Mobile money",
+      "cash": "Payment on delivery"
+    },
+    "placeholders": {
+      "searchTracking": "Track with delivery ID",
+      "address": "Enter address",
+      "recipientName": "Recipient name",
+      "recipientPhone": "Recipient phone"
+    }
+  }
+}

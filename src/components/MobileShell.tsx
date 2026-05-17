@@ -6,6 +6,7 @@ import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+import { uiConfig } from "../config/uiConfig";
 
 interface NavTab {
   value: string;
@@ -28,25 +29,25 @@ const CONTENT_MAX_WIDTH = {
 const NAV_TABS: NavTab[] = [
   {
     value: "home",
-    label: "Home",
+    label: uiConfig.navigation.home,
     route: "/home",
     icon: <HomeOutlinedIcon />
   },
   {
     value: "wallet",
-    label: "Wallet",
+    label: uiConfig.navigation.wallet,
     route: "/wallet",
     icon: <AccountBalanceWalletRoundedIcon />
   },
   {
     value: "settings",
-    label: "Settings",
+    label: uiConfig.navigation.settings,
     route: "/settings",
     icon: <SettingsRoundedIcon />
   },
   {
     value: "more",
-    label: "More",
+    label: uiConfig.navigation.more,
     route: "/more",
     icon: <MoreHorizRoundedIcon />
   }
