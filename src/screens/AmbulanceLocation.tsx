@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -28,7 +28,11 @@ import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded";
 import { useAppData } from "../contexts/AppDataContext";
-import { ambulanceCompactTypographySx } from "../components/ambulance/ambulanceTypography";
+import {
+  ambulanceCompactTypographySx,
+  ambulanceContainedButtonSx,
+  ambulanceGreen
+} from "../components/ambulance/ambulanceTypography";
 
 const mobilityOptions = [
   "Wheelchair assistance",
@@ -54,13 +58,17 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
   const request = ambulance.request;
 
   const [pickupAddress, setPickupAddress] = useState(
-    request.pickup?.address ?? "12 Riverside Ave, Indiranagar, Bengaluru"
+    request.pickup?.address ?? "Nakasero Hill Road, Kampala, Uganda"
   );
   const [patientName, setPatientName] = useState(request.patientName ?? "Mary Atieno");
   const [patientAge, setPatientAge] = useState(toAgeValue(request.patientAge) || "63");
   const [condition, setCondition] = useState(request.patientCondition ?? "Chest pain");
   const [mobilityNeeds, setMobilityNeeds] = useState("Wheelchair assistance");
+  const [pickupMode, setPickupMode] = useState<"current" | "map" | "manual">("manual");
+  const [pickupHint, setPickupHint] = useState("");
+  const [geoLoading, setGeoLoading] = useState(false);
   const [contentExtendedDown, setContentExtendedDown] = useState(false);
+  const pickupInputRef = useRef<HTMLInputElement | null>(null);
 
   const canContinue =
     pickupAddress.trim().length > 0 &&
@@ -73,8 +81,54 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
     return Number.isFinite(value) ? value : undefined;
   }, [patientAge]);
 
+  const useCurrentLocation = () => {
+    setPickupMode("current");
+    setPickupHint("");
+    if (!("geolocation" in navigator)) {
+      setPickupAddress("Current location unavailable on this device");
+      setPickupHint("Geolocation is not supported by your browser.");
+      return;
+    }
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setPickupAddress(
+          `Current location: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+        );
+        setPickupHint("Live coordinates fetched from your device location.");
+        setGeoLoading(false);
+      },
+      () => {
+        setPickupAddress("Kampala, Uganda");
+        setPickupHint("Unable to fetch GPS location. Fallback set to Kampala.");
+        setGeoLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
+  };
+
+  const chooseOnMap = () => {
+    setPickupMode("map");
+    setContentExtendedDown(true);
+    setPickupAddress("Pinned location on map, Kampala, Uganda");
+    setPickupHint("Map pin selected. Adjust map and continue.");
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  };
+
+  const enterManually = () => {
+    setPickupMode("manual");
+    setPickupHint("Enter the full street and landmark for faster dispatch.");
+    window.requestAnimationFrame(() => {
+      pickupInputRef.current?.focus();
+      pickupInputRef.current?.select();
+    });
+  };
+
   return (
-    <Box sx={[{ px: 2.5, pt: 2.5, pb: 16 }, ambulanceCompactTypographySx]}>
+    <Box sx={[{ px: 2.5, pt: 2.5, pb: 4 }, ambulanceCompactTypographySx]}>
       <Box
         sx={{
           mb: 2,
@@ -248,6 +302,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
 
         <TextField
           fullWidth
+          inputRef={pickupInputRef}
           value={pickupAddress}
           onChange={(event) => setPickupAddress(event.target.value)}
           InputProps={{
@@ -273,28 +328,56 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
 
         <Stack direction="row" spacing={1}>
           {[
-            { icon: <MyLocationRoundedIcon />, label: "Use current location" },
-            { icon: <MapRoundedIcon />, label: "Choose on map" },
-            { icon: <EditRoundedIcon />, label: "Enter manually" }
+            {
+              key: "current" as const,
+              icon: <MyLocationRoundedIcon />,
+              label: geoLoading ? "Locating..." : "Use current location",
+              onClick: useCurrentLocation
+            },
+            {
+              key: "map" as const,
+              icon: <MapRoundedIcon />,
+              label: "Choose on map",
+              onClick: chooseOnMap
+            },
+            {
+              key: "manual" as const,
+              icon: <EditRoundedIcon />,
+              label: "Enter manually",
+              onClick: enterManually
+            }
           ].map((action) => (
             <Button
-              key={action.label}
+              key={action.key}
               fullWidth
-              variant="outlined"
+              variant={pickupMode === action.key ? "contained" : "outlined"}
               startIcon={action.icon}
+              onClick={action.onClick}
+              disabled={geoLoading && action.key !== "current"}
               sx={{
                 borderRadius: 2,
                 py: 1,
-                borderColor: "var(--evz-border-subtle)",
-                color: "#334155",
+                borderColor: pickupMode === action.key ? ambulanceGreen : "var(--evz-border-subtle)",
+                color: pickupMode === action.key ? "#FFFFFF" : "#334155",
                 fontSize: 12,
-                lineHeight: 1.2
+                lineHeight: 1.2,
+                ...(pickupMode === action.key
+                  ? {
+                      bgcolor: ambulanceGreen,
+                      "&:hover": { bgcolor: "#0F9B5D" }
+                    }
+                  : {})
               }}
             >
               {action.label}
             </Button>
           ))}
         </Stack>
+        {pickupHint ? (
+          <Typography sx={{ mt: 1, color: "#64748B", fontSize: 11.6 }}>
+            {pickupHint}
+          </Typography>
+        ) : null}
       </Card>
 
       <Card
@@ -395,22 +478,16 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
       </Box>
 
       <Card
-        elevation={8}
+        elevation={0}
         sx={{
-          position: "fixed",
-          left: 0,
-          right: 0,
-          bottom: "calc(72px + env(safe-area-inset-bottom, 0px))",
-          mx: "auto",
-          maxWidth: { xs: "100%", md: "768px", lg: "1024px" },
-          borderRadius: 0,
-          borderTop: "1px solid var(--evz-border-subtle)",
+          mt: 1.4,
+          borderRadius: 3,
+          border: "1px solid var(--evz-border-subtle)",
           px: 2,
-          py: 1.5,
-          zIndex: 1100
+          py: 1.5
         }}
       >
-        <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} alignItems="center">
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 1, sm: 1.5 }} alignItems={{ xs: "stretch", sm: "center" }}>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
             <Box
               sx={{
@@ -452,19 +529,15 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
             }}
             endIcon={<ChevronRightRoundedIcon />}
             sx={{
-              minWidth: { xs: 168, sm: 220, md: 248 },
+              minWidth: { xs: "100%", sm: 220, md: 248 },
               borderRadius: 3,
               px: { xs: 1.8, sm: 2.4 },
-              py: { xs: 1.05, sm: 1.5 },
+              py: { xs: 0.95, sm: 1.5 },
               fontSize: { xs: 13, sm: 15 },
-              whiteSpace: "nowrap",
+              whiteSpace: { xs: "normal", sm: "nowrap" },
               flexShrink: 0,
               fontWeight: 700,
-              color: "#FFFFFF",
-              background: "linear-gradient(90deg, #059669 0%, #EA580C 100%)",
-              "&:hover": {
-                background: "linear-gradient(90deg, #047857 0%, #C2410C 100%)"
-              },
+              ...ambulanceContainedButtonSx,
               "&.Mui-disabled": {
                 color: "#E2E8F0",
                 background: "#94A3B8"

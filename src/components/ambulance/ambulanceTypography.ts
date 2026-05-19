@@ -1,5 +1,8 @@
 import type { SxProps, Theme } from "@mui/material";
 
+export const ambulanceGreen = "#11B86A";
+export const ambulanceGreenHover = "#0F9B5D";
+
 export const ambulanceCompactTypographySx: SxProps<Theme> = {
   "& .MuiTypography-root": {
     fontSize: "12.2px !important",
@@ -26,5 +29,13 @@ export const ambulanceCompactTypographySx: SxProps<Theme> = {
   },
   "& .MuiMenuItem-root": {
     fontSize: "12.2px !important"
+  }
+};
+
+export const ambulanceContainedButtonSx: SxProps<Theme> = {
+  color: "#FFFFFF",
+  bgcolor: ambulanceGreen,
+  "&:hover": {
+    bgcolor: ambulanceGreenHover
   }
 };

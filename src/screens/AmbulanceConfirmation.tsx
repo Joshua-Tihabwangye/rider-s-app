@@ -23,7 +23,10 @@ import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded";
 import { useAppData } from "../contexts/AppDataContext";
-import { ambulanceCompactTypographySx } from "../components/ambulance/ambulanceTypography";
+import {
+  ambulanceCompactTypographySx,
+  ambulanceContainedButtonSx
+} from "../components/ambulance/ambulanceTypography";
 
 interface BreakdownItem {
   label: string;
@@ -52,13 +55,13 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
   const taxes = Math.round(subtotal * 0.05);
   const total = subtotal + taxes;
 
-  const pickupLabel = request.pickup?.label ?? request.pickup?.address ?? "City General Hospital";
+  const pickupLabel = request.pickup?.label ?? request.pickup?.address ?? "Nakasero Hill Road, Kampala";
   const destinationLabel =
-    request.destination?.label ?? request.destination?.address ?? "Sunset Specialist Hospital";
+    request.destination?.label ?? request.destination?.address ?? "Mulago National Referral Hospital";
   const eta = request.status === "assigned" ? "6 min" : "8 min";
 
   return (
-    <Box sx={[{ px: 2.5, pt: 2.5, pb: 19 }, ambulanceCompactTypographySx]}>
+    <Box sx={[{ px: 2.5, pt: 2.5, pb: 4 }, ambulanceCompactTypographySx]}>
       <Box
         sx={{
           mb: 2,
@@ -117,7 +120,9 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
               }}
             />
             <Typography sx={{ color: "#475569", fontSize: 14 }}>Selected ambulance</Typography>
-            <Typography sx={{ fontWeight: 800, fontSize: 20, lineHeight: 1.2 }}>ALS Ambulance 04</Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: 20, lineHeight: 1.2 }}>
+              {request.assignedUnit ?? "EV-AMB-4"}
+            </Typography>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.2 }}>
               <AccessTimeRoundedIcon sx={{ color: "#059669" }} />
               <Box>
@@ -172,8 +177,8 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
           value: "2 Crew • Paramedic + EMT",
           subtitle: "Advanced Life Support (ALS)",
           icon: <GroupsRoundedIcon sx={{ color: "#059669" }} />,
-          action: "View",
-          onAction: () => navigate("/ambulance/tracking")
+          action: "View details",
+          onAction: () => navigate(`/ambulance/history/${request.id}/general`, { state: { requestSnapshot: request } })
         }
       ].map((item) => (
         <Card
@@ -292,19 +297,13 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
       </Stack>
 
       <Card
-        elevation={8}
+        elevation={0}
         sx={{
-          position: "fixed",
-          left: 0,
-          right: 0,
-          bottom: "calc(72px + env(safe-area-inset-bottom, 0px))",
-          mx: "auto",
-          maxWidth: { xs: "100%", md: "768px", lg: "1024px" },
-          borderRadius: 0,
-          borderTop: "1px solid var(--evz-border-subtle)",
+          mt: 1.4,
+          borderRadius: 3,
+          border: "1px solid var(--evz-border-subtle)",
           px: 2,
-          py: 1.4,
-          zIndex: 1100
+          py: 1.4
         }}
       >
         <Stack direction="row" spacing={{ xs: 1, sm: 1.4 }} alignItems="center">
@@ -342,11 +341,7 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
               fontSize: { xs: 13, sm: 16 },
               whiteSpace: "nowrap",
               flexShrink: 0,
-              color: "#FFFFFF",
-              background: "linear-gradient(90deg, #059669 0%, #EA580C 100%)",
-              "&:hover": {
-                background: "linear-gradient(90deg, #047857 0%, #C2410C 100%)"
-              }
+              ...ambulanceContainedButtonSx
             }}
           >
             Confirm emergency request

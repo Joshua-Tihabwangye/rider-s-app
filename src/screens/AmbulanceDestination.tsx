@@ -25,7 +25,10 @@ import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import HealthAndSafetyRoundedIcon from "@mui/icons-material/HealthAndSafetyRounded";
 import TransferWithinAStationRoundedIcon from "@mui/icons-material/TransferWithinAStationRounded";
 import { useAppData } from "../contexts/AppDataContext";
-import { ambulanceCompactTypographySx } from "../components/ambulance/ambulanceTypography";
+import {
+  ambulanceCompactTypographySx,
+  ambulanceContainedButtonSx
+} from "../components/ambulance/ambulanceTypography";
 
 interface HospitalOption {
   id: string;
@@ -44,9 +47,9 @@ interface AmbulanceOption {
 }
 
 const hospitals: HospitalOption[] = [
-  { id: "city-general", name: "City General Hospital", distance: "1.2 km", eta: "6 min" },
-  { id: "st-mary", name: "St. Mary's Medical Center", distance: "2.4 km", eta: "9 min" },
-  { id: "green-cross", name: "Green Cross Clinic", distance: "3.1 km", eta: "12 min" }
+  { id: "mulago", name: "Mulago National Referral Hospital", distance: "1.2 km", eta: "6 min" },
+  { id: "nakasero", name: "Nakasero Hospital", distance: "2.4 km", eta: "9 min" },
+  { id: "case", name: "Case Hospital Kampala", distance: "3.1 km", eta: "12 min" }
 ];
 
 const ambulanceOptions: AmbulanceOption[] = [
@@ -79,9 +82,10 @@ const ambulanceOptions: AmbulanceOption[] = [
 function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { ambulance, actions } = useAppData();
-  const pickupAddress = ambulance.request.pickup?.address ?? "12, MG Road, Indiranagar";
-  const patientName = ambulance.request.patientName ?? "Rohit Sharma";
+  const pickupAddress = ambulance.request.pickup?.address ?? "Nakasero Hill Road, Kampala, Uganda";
+  const patientName = ambulance.request.patientName ?? "John Ssemanda";
   const age = ambulance.request.patientAge ?? 32;
+  const patientGender = ambulance.request.patientGender ?? "male";
 
   const [query, setQuery] = useState(ambulance.request.destination?.address ?? "");
   const [selectedHospital, setSelectedHospital] = useState<HospitalOption>(hospitals[0]);
@@ -95,7 +99,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
   }, [query]);
 
   return (
-    <Box sx={[{ px: 2.5, pt: 2.5, pb: 18 }, ambulanceCompactTypographySx]}>
+    <Box sx={[{ px: 2.5, pt: 2.5, pb: 4 }, ambulanceCompactTypographySx]}>
       <Box
         sx={{
           mb: 2,
@@ -153,7 +157,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
               <Box sx={{ minWidth: 0 }}>
                 <Typography sx={{ color: "#059669", fontWeight: 600, fontSize: 14 }}>Pickup location</Typography>
                 <Typography sx={{ fontSize: { xs: 16, sm: 18 }, fontWeight: 700, lineHeight: 1.2 }}>{pickupAddress}</Typography>
-                <Typography sx={{ color: "#64748B", fontSize: 13 }}>Bengaluru, Karnataka 560038</Typography>
+                <Typography sx={{ color: "#64748B", fontSize: 13 }}>Kampala, Uganda</Typography>
               </Box>
               <Button
                 size="small"
@@ -168,7 +172,9 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
             <Box>
               <Typography sx={{ color: "#059669", fontWeight: 600, fontSize: 14 }}>Patient</Typography>
               <Typography sx={{ fontSize: 17, fontWeight: 700, lineHeight: 1.2 }}>{patientName}</Typography>
-              <Typography sx={{ color: "#475569", fontSize: 13 }}>Male • {age} years</Typography>
+              <Typography sx={{ color: "#475569", fontSize: 13 }}>
+                {patientGender.charAt(0).toUpperCase() + patientGender.slice(1)} • {age} years
+              </Typography>
             </Box>
           </Stack>
         </Stack>
@@ -372,19 +378,13 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
       </Stack>
 
       <Card
-        elevation={8}
+        elevation={0}
         sx={{
-          position: "fixed",
-          left: 0,
-          right: 0,
-          bottom: "calc(72px + env(safe-area-inset-bottom, 0px))",
-          mx: "auto",
-          maxWidth: { xs: "100%", md: "768px", lg: "1024px" },
-          borderRadius: 0,
-          borderTop: "1px solid var(--evz-border-subtle)",
+          mt: 1.4,
+          borderRadius: 3,
+          border: "1px solid var(--evz-border-subtle)",
           px: 2,
-          py: 1.2,
-          zIndex: 1100
+          py: 1.2
         }}
       >
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ xs: "stretch", sm: "center" }}>
@@ -422,11 +422,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
               fontSize: { xs: 13, sm: 16 },
               whiteSpace: "nowrap",
               flexShrink: 0,
-              color: "#FFFFFF",
-              background: "linear-gradient(90deg, #059669 0%, #EA580C 100%)",
-              "&:hover": {
-                background: "linear-gradient(90deg, #047857 0%, #C2410C 100%)"
-              }
+              ...ambulanceContainedButtonSx
             }}
           >
             Find ambulances

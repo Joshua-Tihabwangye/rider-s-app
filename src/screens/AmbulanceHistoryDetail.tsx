@@ -20,9 +20,13 @@ import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
 import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
+import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import type { AmbulanceRequest, AmbulanceStatus } from "../store/types";
 import { useAppData } from "../contexts/AppDataContext";
-import { ambulanceCompactTypographySx } from "../components/ambulance/ambulanceTypography";
+import {
+  ambulanceCompactTypographySx,
+  ambulanceContainedButtonSx
+} from "../components/ambulance/ambulanceTypography";
 
 interface LegacySnapshot {
   id: string;
@@ -237,7 +241,7 @@ export default function AmbulanceHistoryDetail(): React.JSX.Element {
       </Box>
 
       <Card elevation={0} sx={{ mb: 1.6, borderRadius: 3, border: "1px solid var(--evz-border-subtle)", p: 1.6 }}>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={1.2} alignItems={{ xs: "flex-start", sm: "center" }} sx={{ mb: 1.2 }}>
+        <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1.2 }}>
           <Box
             sx={{
               width: 66,
@@ -251,8 +255,8 @@ export default function AmbulanceHistoryDetail(): React.JSX.Element {
             <HealthAndSafetyRoundedIcon sx={{ color: emergency ? "#DC2626" : "#059669", fontSize: 34 }} />
           </Box>
 
-          <Box sx={{ flex: 1, width: "100%" }}>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={0.8} alignItems={{ xs: "flex-start", sm: "center" }} sx={{ mb: 0.35 }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Stack direction="row" spacing={0.8} alignItems="center" sx={{ mb: 0.35, flexWrap: "wrap" }}>
               <Chip
                 size="small"
                 label={emergency ? "Emergency" : "Transfer"}
@@ -269,7 +273,7 @@ export default function AmbulanceHistoryDetail(): React.JSX.Element {
             <Typography sx={{ color: "#475569", fontSize: 14 }}>Request type</Typography>
           </Box>
 
-          <Stack alignItems={{ xs: "flex-start", sm: "flex-end" }} sx={{ width: { xs: "100%", sm: "auto" } }}>
+          <Stack alignItems="flex-end" sx={{ flexShrink: 0 }}>
             <Chip
               icon={<CheckCircleRoundedIcon sx={{ fontSize: 16 }} />}
               label={toStatusLabel(status)}
@@ -316,7 +320,7 @@ export default function AmbulanceHistoryDetail(): React.JSX.Element {
           <Button
             size="small"
             endIcon={<ChevronRightRoundedIcon sx={{ fontSize: 18 }} />}
-            onClick={() => navigate("/ambulance/tracking")}
+            onClick={() => navigate(`/ambulance/history/${detail.id}/general`, { state: { requestSnapshot: detail } })}
             sx={{ bgcolor: "rgba(5,150,105,0.1)", color: "#059669", textTransform: "none", fontWeight: 700, borderRadius: 2, px: 1.5 }}
           >
             View details
@@ -361,14 +365,14 @@ export default function AmbulanceHistoryDetail(): React.JSX.Element {
           value: `${detail.patientName ?? "Rahul Sharma"} • ${detail.patientAge ?? 38} years • Male`,
           subtitle: `Condition: ${detail.patientCondition ?? "Chest pain & breathlessness"}`,
           icon: <PersonRoundedIcon sx={{ color: "#059669" }} />,
-          onView: () => navigate("/ambulance/location")
+          onView: () => navigate(`/ambulance/history/${detail.id}/general`, { state: { requestSnapshot: detail } })
         },
         {
           title: "Crew details",
           value: `${detail.driverName ?? "Dr. Arjun Mehta"} (Paramedic)`,
-          subtitle: `${detail.hospitalContactName ?? "Rohit Kumar"} (EMT)`,
+          subtitle: `${detail.hospitalContactName ?? "Aisha Namusoke"} (EMT)`,
           icon: <GroupsRoundedIcon sx={{ color: "#059669" }} />,
-          onView: () => navigate("/ambulance/tracking")
+          onView: () => navigate(`/ambulance/history/${detail.id}/general`, { state: { requestSnapshot: detail } })
         }
       ].map((item) => (
         <Card key={item.title} elevation={0} sx={{ mb: 1.2, borderRadius: 2.5, border: "1px solid var(--evz-border-subtle)", p: 1.4 }}>
@@ -425,22 +429,37 @@ export default function AmbulanceHistoryDetail(): React.JSX.Element {
         </Box>
       </Card>
 
-      <Stack direction="row" spacing={1.2}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.2}>
         <Button
           fullWidth
-          variant="contained"
-          startIcon={<ReceiptLongRoundedIcon />}
-          onClick={() => navigate("/wallet")}
+          variant="outlined"
+          startIcon={<DescriptionRoundedIcon />}
+          onClick={() => navigate(`/ambulance/history/${detail.id}/general`, { state: { requestSnapshot: detail } })}
           sx={{
             borderRadius: 2.5,
             py: 1.2,
             textTransform: "none",
             fontWeight: 700,
-            bgcolor: "rgba(5,150,105,0.12)",
             color: "#059669",
+            borderColor: "rgba(5,150,105,0.5)"
+          }}
+        >
+          Full request details
+        </Button>
+        <Button
+          fullWidth
+          variant="contained"
+          startIcon={<ReceiptLongRoundedIcon />}
+          onClick={() => navigate(`/ambulance/history/${detail.id}/receipt`)}
+          sx={{
+            borderRadius: 2.5,
+            py: 1.2,
+            textTransform: "none",
+            fontWeight: 700,
+            ...ambulanceContainedButtonSx,
             boxShadow: "none",
             "&:hover": {
-              bgcolor: "rgba(5,150,105,0.2)",
+              bgcolor: "#0F9B5D",
               boxShadow: "none"
             }
           }}
