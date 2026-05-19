@@ -8,8 +8,7 @@ import {
   Tabs,
   Tab,
   Stack,
-  Chip,
-  Avatar
+  Chip
 } from "@mui/material";
 
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
@@ -28,7 +27,7 @@ import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
 import StarHalfRoundedIcon from "@mui/icons-material/StarHalfRounded";
 import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
-import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import MicRoundedIcon from "@mui/icons-material/MicRounded";
 import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import TwoWheelerRoundedIcon from "@mui/icons-material/TwoWheelerRounded";
@@ -1086,20 +1085,58 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       });
     }, 1000);
   };
+  const recommendedRideTypes = [
+    {
+      id: "scooter-standard",
+      name: "EV Lite",
+      capacity: 1,
+      minutes: "5 min",
+      price: "UGX 48k-62k",
+      image: "/rides-ui/hero-scooter.svg"
+    },
+    {
+      id: "comfort-standard",
+      name: "EV Comfort",
+      capacity: 3,
+      minutes: "7 min",
+      price: "UGX 78k-92k",
+      image: "/rental-ui/car-city.svg"
+    },
+    {
+      id: "xl-standard",
+      name: "EV XL",
+      capacity: 6,
+      minutes: "10 min",
+      price: "UGX 120k-150k",
+      image: "/rental-ui/car-suv.svg"
+    }
+  ];
 
-
-
-  const recommendedRideTypes = ride.options.slice(0, 3).map((option, index) => ({
-    ...option,
-    minutes: option.eta.replace("mins", "min"),
-    price: option.fare.replace("UGX", "₹"),
-    image:
-      index === 0
-        ? "/rides-ui/hero-scooter.svg"
-        : index === 1
-          ? "/rental-ui/car-city.svg"
-          : "/rental-ui/car-suv.svg"
-  }));
+  const rentalLikeTypographySx = {
+    "& .MuiTypography-root": {
+      fontSize: "12.2px !important",
+      lineHeight: 1.35
+    },
+    "& .MuiInputBase-input": {
+      fontSize: "12.6px !important"
+    },
+    "& .MuiInputBase-input::placeholder": {
+      fontSize: "12.6px !important",
+      opacity: 1
+    },
+    "& .MuiFormHelperText-root": {
+      fontSize: "11px !important"
+    },
+    "& .MuiChip-label": {
+      fontSize: "12.2px !important"
+    },
+    "& .MuiButton-root": {
+      fontSize: "14px !important"
+    },
+    "& .MuiMenuItem-root": {
+      fontSize: "12.4px !important"
+    }
+  } as const;
 
   const popularDestinations = [
     {
@@ -1127,36 +1164,24 @@ function EnterDestinationMainScreen(): React.JSX.Element {
 
   return (
     <ScreenScaffold>
+      <Box sx={rentalLikeTypographySx}>
       <Stack spacing={1.4}>
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Stack direction="row" spacing={1.2} alignItems="center">
-            <Avatar
-              src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=128&q=80&auto=format&fit=crop"
-              sx={{ width: 56, height: 56, border: "2px solid #E2E8F0" }}
-            >
-              D
-            </Avatar>
-            <Box>
-              <Typography sx={{ fontSize: 17, color: "#667085" }}>Good morning</Typography>
-              <Typography sx={{ fontSize: 43 / 2, fontWeight: 700, color: "#111827", lineHeight: 1.15 }}>
-                Daniel
-              </Typography>
-            </Box>
-          </Stack>
-          <Box sx={{ position: "relative", mr: 0.5 }}>
-            <NotificationsNoneRoundedIcon sx={{ fontSize: 34, color: "#111827" }} />
-            <Box
-              sx={{
-                position: "absolute",
-                top: 3,
-                right: 2,
-                width: 9,
-                height: 9,
-                borderRadius: "50%",
-                bgcolor: "#FF8A00"
-              }}
-            />
-          </Box>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+          <Button
+            onClick={() => navigate("/home")}
+            variant="outlined"
+            sx={{
+              minWidth: 46,
+              width: 46,
+              height: 46,
+              borderRadius: 2.4,
+              borderColor: "#E4E7EC",
+              color: "#344054",
+              p: 0
+            }}
+          >
+            <ArrowBackRoundedIcon sx={{ fontSize: 24 }} />
+          </Button>
         </Box>
 
         <Card elevation={0} sx={{ borderRadius: 3, border: "1px solid #E4E7EC", p: 1.6 }}>
@@ -1204,7 +1229,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           }}
         >
           <Stack direction="row" alignItems="flex-end" spacing={1.2}>
-            <Box sx={{ flex: 1, pt: 1.8, pb: 1.2 }}>
+            <Box sx={{ flex: 1, pt: 1.8, pb: 1.2, pr: { xs: 1.8, sm: 2.8 } }}>
               <Typography sx={{ fontSize: 56 / 2, fontWeight: 700, lineHeight: 1.1, color: "#101828" }}>
                 Book a ride
               </Typography>
@@ -1225,10 +1250,11 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                 sx={{
                   textTransform: "none",
                   borderRadius: 99,
-                  px: 3,
+                  px: 3.4,
                   py: 1,
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: 700,
+                  whiteSpace: "nowrap",
                   color: "#FFFFFF",
                   background: "linear-gradient(92deg, #11B86A 0%, #78B833 50%, #FF8A00 100%)",
                   "&:hover": { background: "linear-gradient(92deg, #0F9B5D 0%, #6FA52C 50%, #E97800 100%)" }
@@ -1290,9 +1316,9 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                     }
                   })
                 }
-                sx={{ borderRadius: 2.5, border: "1px solid #E4E7EC", p: 1.1, cursor: "pointer" }}
+                sx={{ borderRadius: 2.5, border: "1px solid #E4E7EC", p: 1.1, cursor: "pointer", textAlign: "center" }}
               >
-                <Box sx={{ width: 44, height: 44, borderRadius: "50%", bgcolor: "#F3FAF7", display: "grid", placeItems: "center", mb: 0.7 }}>
+                <Box sx={{ width: 44, height: 44, borderRadius: "50%", bgcolor: "#F3FAF7", display: "grid", placeItems: "center", mb: 0.7, mx: "auto" }}>
                   {item.icon}
                 </Box>
                 <Typography sx={{ fontSize: 16, fontWeight: 600 }}>{item.title}</Typography>
@@ -1305,9 +1331,6 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         <Box>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
             <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#101828" }}>Recommended ride types</Typography>
-            <Button onClick={() => navigate("/rides/options")} sx={{ textTransform: "none", color: "#11B86A", fontWeight: 600 }}>
-              View all
-            </Button>
           </Stack>
           <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 1 }}>
             {recommendedRideTypes.map((item, idx) => (
@@ -1320,20 +1343,13 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                   border: idx === 0 ? "2px solid #11B86A" : "1px solid #E4E7EC",
                   p: 0.8,
                   cursor: "pointer",
-                  position: "relative"
+                  textAlign: "center"
                 }}
               >
-                {idx === 0 && (
-                  <Chip
-                    label="Recommended"
-                    size="small"
-                    sx={{ position: "absolute", top: 6, left: 6, height: 22, bgcolor: "#FF8A00", color: "#fff", fontWeight: 700, fontSize: 10 }}
-                  />
-                )}
                 <Box component="img" src={item.image} alt={item.name} sx={{ width: "100%", height: 90, objectFit: "contain", borderRadius: 1.5, bgcolor: "#F8FAFC", mb: 0.6 }} />
-                <Typography sx={{ fontSize: 17, fontWeight: 700, color: "#101828" }}>{item.name.replace("Car ", " ")}</Typography>
-                <Typography sx={{ fontSize: 14, color: "#667085", mb: 0.2 }}>{item.capacity ?? 1} • {item.minutes}</Typography>
-                <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#11B86A" }}>{item.price.replace(",365", "-62").replace(",900", "-92")}</Typography>
+                <Typography sx={{ fontSize: 17, fontWeight: 700, color: "#101828", textAlign: "center" }}>{item.name}</Typography>
+                <Typography sx={{ fontSize: 14, color: "#667085", mb: 0.2, textAlign: "center" }}>{item.capacity} • {item.minutes}</Typography>
+                <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#11B86A", textAlign: "center" }}>{item.price}</Typography>
               </Card>
             ))}
           </Box>
@@ -1365,6 +1381,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           </Stack>
         </Card>
       </Stack>
+      </Box>
     </ScreenScaffold>
   );
 }
