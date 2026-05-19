@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -288,12 +288,30 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
 
 function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
   const { ride, delivery, rental, tours, ambulance } = useAppData();
 
   const [filter, setFilter] = useState<TypeFilter>("all");
   const [period, setPeriod] = useState<PeriodFilter>("Month");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedQuarter, setSelectedQuarter] = useState<QuarterFilter>(getQuarter(new Date()));
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const typeParam = params.get("type")?.toLowerCase();
+    if (!typeParam) return;
+    if (typeParam === "rental") {
+      setFilter("Rental");
+    } else if (typeParam === "ride") {
+      setFilter("Ride");
+    } else if (typeParam === "delivery") {
+      setFilter("Delivery");
+    } else if (typeParam === "tour") {
+      setFilter("Tour");
+    } else if (typeParam === "ambulance") {
+      setFilter("Ambulance");
+    }
+  }, [location.search]);
 
   const periods: PeriodFilter[] = ["Today", "Week", "Month", "Quarter", "Year"];
   const quarters: QuarterFilter[] = ["Q1", "Q2", "Q3", "Q4"];

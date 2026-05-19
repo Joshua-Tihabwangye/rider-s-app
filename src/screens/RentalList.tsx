@@ -13,7 +13,6 @@ import {
 } from "@mui/material";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
 import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
@@ -67,6 +66,9 @@ export default function RentalList(): React.JSX.Element {
   const [activeFilter, setActiveFilter] = useState<FilterKey>(
     routeState?.mode === "chauffeur" ? "chauffeur" : routeState?.mode === "self" ? "self" : "all"
   );
+  const [seatFilter, setSeatFilter] = useState(false);
+  const [suvFilter, setSuvFilter] = useState(false);
+  const [lowPriceFilter, setLowPriceFilter] = useState(false);
 
   const filteredVehicles = useMemo(() => {
     return rental.vehicles.filter((vehicle) => {
@@ -75,14 +77,33 @@ export default function RentalList(): React.JSX.Element {
         return false;
       }
       if (activeFilter === "self") {
-        return (vehicle.supportedModes ?? ["self_drive"]).includes("self_drive");
+        const supportsSelf = (vehicle.supportedModes ?? ["self_drive"]).includes("self_drive");
+        if (!supportsSelf) {
+          return false;
+        }
       }
       if (activeFilter === "chauffeur") {
-        return (vehicle.supportedModes ?? []).includes("chauffeur") || vehicle.mode.toLowerCase().includes("chauffeur");
+        const supportsChauffeur =
+          (vehicle.supportedModes ?? []).includes("chauffeur") || vehicle.mode.toLowerCase().includes("chauffeur");
+        if (!supportsChauffeur) {
+          return false;
+        }
+      }
+      if (seatFilter && vehicle.seats !== 4) {
+        return false;
+      }
+      if (suvFilter) {
+        const vehicleKey = `${vehicle.name} ${vehicle.type}`.toLowerCase();
+        if (!vehicleKey.includes("suv") && !vehicleKey.includes("kona")) {
+          return false;
+        }
+      }
+      if (lowPriceFilter && parseUgx(vehicle.dailyPrice) > 2500) {
+        return false;
       }
       return true;
     });
-  }, [activeFilter, query, rental.vehicles]);
+  }, [activeFilter, lowPriceFilter, query, rental.vehicles, seatFilter, suvFilter]);
 
   const displayedVehicles = useMemo(() => filteredVehicles.slice(0, 4), [filteredVehicles]);
 
@@ -93,9 +114,7 @@ export default function RentalList(): React.JSX.Element {
           <ArrowBackRoundedIcon />
         </IconButton>
         <Typography sx={{ fontSize: "22px !important", fontWeight: 800 }}>Available rentals</Typography>
-        <IconButton sx={{ color: rentalUi.green, mr: -0.35 }}>
-          <TuneRoundedIcon />
-        </IconButton>
+        <Box sx={{ width: 36 }} />
       </Stack>
 
       <TextField
@@ -154,39 +173,45 @@ export default function RentalList(): React.JSX.Element {
         <Chip
           icon={<PersonOutlineRoundedIcon />}
           label="4 seats"
+          onClick={() => setSeatFilter((prev) => !prev)}
           sx={{
             borderRadius: 99,
             height: 40,
             flexShrink: 0,
-            border: `1px solid ${rentalUi.border}`,
-            bgcolor: "#fff",
-            "& .MuiChip-label": { px: 0.9, fontSize: "11.8px !important", fontWeight: 500 },
+            border: `1px solid ${seatFilter ? rentalUi.green : rentalUi.border}`,
+            bgcolor: seatFilter ? rentalUi.greenSoft : "#fff",
+            color: seatFilter ? rentalUi.greenDeep : rentalUi.title,
+            "& .MuiChip-label": { px: 0.9, fontSize: "11.8px !important", fontWeight: seatFilter ? 600 : 500 },
             "& .MuiChip-icon": { fontSize: 15, ml: 0.9, mr: -0.2 }
           }}
         />
         <Chip
           icon={<DirectionsCarRoundedIcon />}
           label="SUV"
+          onClick={() => setSuvFilter((prev) => !prev)}
           sx={{
             borderRadius: 99,
             height: 40,
             flexShrink: 0,
-            border: `1px solid ${rentalUi.border}`,
-            bgcolor: "#fff",
-            "& .MuiChip-label": { px: 0.9, fontSize: "11.8px !important", fontWeight: 500 },
+            border: `1px solid ${suvFilter ? rentalUi.green : rentalUi.border}`,
+            bgcolor: suvFilter ? rentalUi.greenSoft : "#fff",
+            color: suvFilter ? rentalUi.greenDeep : rentalUi.title,
+            "& .MuiChip-label": { px: 0.9, fontSize: "11.8px !important", fontWeight: suvFilter ? 600 : 500 },
             "& .MuiChip-icon": { fontSize: 15, ml: 0.9, mr: -0.2 }
           }}
         />
         <Chip
           icon={<LocalOfferRoundedIcon />}
           label="Low price"
+          onClick={() => setLowPriceFilter((prev) => !prev)}
           sx={{
             borderRadius: 99,
             height: 40,
             flexShrink: 0,
-            border: `1px solid ${rentalUi.border}`,
-            bgcolor: "#fff",
-            "& .MuiChip-label": { px: 0.9, fontSize: "11.8px !important", fontWeight: 500 },
+            border: `1px solid ${lowPriceFilter ? rentalUi.green : rentalUi.border}`,
+            bgcolor: lowPriceFilter ? rentalUi.greenSoft : "#fff",
+            color: lowPriceFilter ? rentalUi.greenDeep : rentalUi.title,
+            "& .MuiChip-label": { px: 0.9, fontSize: "11.8px !important", fontWeight: lowPriceFilter ? 600 : 500 },
             "& .MuiChip-icon": { fontSize: 15, ml: 0.9, mr: -0.2 }
           }}
         />

@@ -212,8 +212,8 @@ export default function RentalDashboard(): React.JSX.Element {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-          gap: 1,
+          gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", sm: "repeat(2, minmax(0, 1fr))" },
+          gap: 0.9,
           mb: 2
         }}
       >

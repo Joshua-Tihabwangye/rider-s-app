@@ -71,15 +71,16 @@ export default function RentalPaymentSuccess(): React.JSX.Element {
       <CroppedReferenceImage
         src={RENTAL_UI_ASSETS.banners.successHero}
         alt="Rental success"
-        height={300}
+        height={{ xs: 214, sm: 300 }}
+        fit="contain"
         scale={1}
-        sx={{ mb: 1.3 }}
+        sx={{ mb: 1.6, bgcolor: "transparent" }}
       />
 
-      <Typography sx={{ textAlign: "center", fontSize: 72/2, fontWeight: 900, lineHeight: 1.05, mb: 0.5 }}>
+      <Typography sx={{ textAlign: "center", fontSize: "40px !important", fontWeight: 900, lineHeight: 1.02, mb: 0.65 }}>
         <Box component="span" sx={{ color: rentalUi.greenDeep }}>Payment</Box> successful
       </Typography>
-      <Typography sx={{ textAlign: "center", color: rentalUi.muted, fontSize: 22/1.2, mb: 1.55 }}>
+      <Typography sx={{ textAlign: "center", color: rentalUi.muted, fontSize: "16px !important", mb: 1.95, lineHeight: 1.45 }}>
         Your rental is confirmed and all set to go.
         <br />
         We’ve sent the details to your email.
@@ -184,7 +185,7 @@ export default function RentalPaymentSuccess(): React.JSX.Element {
         type="button"
         onClick={() => {
           actions.resetRentalPayment();
-          navigate("/rental/history");
+          navigate("/history/all?type=rental");
         }}
         sx={{ border: 0, bgcolor: "transparent", color: rentalUi.greenDeep, fontWeight: 700, fontSize: 20, mx: "auto", display: "block", cursor: "pointer" }}
       >

@@ -124,7 +124,7 @@ export default function RentalWalletPayment(): React.JSX.Element {
               {!splitPayment ? <RadioButtonCheckedRoundedIcon sx={{ color: rentalUi.green }} /> : <RadioButtonUncheckedRoundedIcon sx={{ color: "#C4CEDA" }} />}
               <Box sx={{ minWidth: 0 }}>
                 <Typography sx={{ fontWeight: 700, fontSize: 15, lineHeight: 1.1 }}>Full payment</Typography>
-                <Typography sx={{ color: rentalUi.muted, fontSize: 11.2, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <Typography sx={{ color: rentalUi.muted, fontSize: 11.2, lineHeight: 1.2 }}>
                   Pay entire amount now
                 </Typography>
               </Box>
@@ -142,7 +142,7 @@ export default function RentalWalletPayment(): React.JSX.Element {
                 {splitPayment ? <RadioButtonCheckedRoundedIcon sx={{ color: rentalUi.green }} /> : <RadioButtonUncheckedRoundedIcon sx={{ color: "#C4CEDA" }} />}
                 <Box sx={{ minWidth: 0 }}>
                   <Typography sx={{ fontWeight: 700, fontSize: 15, lineHeight: 1.1 }}>Split payment</Typography>
-                  <Typography sx={{ color: rentalUi.muted, fontSize: 11.2, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <Typography sx={{ color: rentalUi.muted, fontSize: 11.2, lineHeight: 1.2 }}>
                     Pay partial now, rest later
                   </Typography>
                 </Box>

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -46,6 +46,54 @@ const purposes = [
   { key: "tour", label: "Tour", icon: <MapRoundedIcon /> }
 ] as const;
 
+type PurposeKey = (typeof purposes)[number]["key"];
+
+interface PreferenceOption {
+  key: string;
+  label: string;
+  helper: string;
+  icon: React.ReactNode;
+  defaultChecked?: boolean;
+}
+
+const preferenceCatalog: Record<PurposeKey, PreferenceOption[]> = {
+  business: [
+    { key: "ac", label: "AC", helper: "Required", icon: <AcUnitRoundedIcon sx={{ fontSize: 20 }} />, defaultChecked: true },
+    { key: "premium", label: "Premium", helper: "Executive vehicles", icon: <StarBorderRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "extra_luggage", label: "Extra luggage", helper: "More storage", icon: <LuggageRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "driver_language", label: "Driver language", helper: "Business communication", icon: <TranslateRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "quiet_ride", label: "Quiet ride", helper: "Low-noise comfort", icon: <SupportAgentRoundedIcon sx={{ fontSize: 20 }} /> }
+  ],
+  family: [
+    { key: "ac", label: "AC", helper: "Required", icon: <AcUnitRoundedIcon sx={{ fontSize: 20 }} />, defaultChecked: true },
+    { key: "child_seat", label: "Child seat", helper: "Add if needed", icon: <ChildCareRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "extra_luggage", label: "Extra luggage", helper: "More space", icon: <LuggageRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "premium", label: "Premium", helper: "Luxury vehicles", icon: <StarBorderRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "driver_language", label: "Driver language", helper: "Select language", icon: <TranslateRoundedIcon sx={{ fontSize: 20 }} /> }
+  ],
+  airport: [
+    { key: "ac", label: "AC", helper: "Required", icon: <AcUnitRoundedIcon sx={{ fontSize: 20 }} />, defaultChecked: true },
+    { key: "extra_luggage", label: "Extra luggage", helper: "For check-in bags", icon: <LuggageRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "driver_language", label: "Driver language", helper: "Arrival support", icon: <TranslateRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "priority_pickup", label: "Priority pickup", helper: "Faster handover", icon: <FlightTakeoffRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "premium", label: "Premium", helper: "Airport comfort", icon: <StarBorderRoundedIcon sx={{ fontSize: 20 }} /> }
+  ],
+  wedding: [
+    { key: "premium", label: "Premium", helper: "Luxury vehicles", icon: <StarBorderRoundedIcon sx={{ fontSize: 20 }} />, defaultChecked: true },
+    { key: "chauffeur_style", label: "Formal chauffeur", helper: "Event-ready service", icon: <SupportAgentRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "extra_luggage", label: "Extra luggage", helper: "Event accessories", icon: <LuggageRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "ac", label: "AC", helper: "Required", icon: <AcUnitRoundedIcon sx={{ fontSize: 20 }} />, defaultChecked: true },
+    { key: "driver_language", label: "Driver language", helper: "Coordination support", icon: <TranslateRoundedIcon sx={{ fontSize: 20 }} /> }
+  ],
+  tour: [
+    { key: "ac", label: "AC", helper: "Required", icon: <AcUnitRoundedIcon sx={{ fontSize: 20 }} />, defaultChecked: true },
+    { key: "extra_luggage", label: "Extra luggage", helper: "Travel gear", icon: <LuggageRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "driver_language", label: "Driver language", helper: "Guide language", icon: <TranslateRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "premium", label: "Premium", helper: "Scenic comfort", icon: <StarBorderRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "child_seat", label: "Child seat", helper: "Family tours", icon: <ChildCareRoundedIcon sx={{ fontSize: 20 }} /> }
+  ]
+};
+
 interface PreferenceRowProps {
   label: string;
   helper: string;
@@ -70,8 +118,8 @@ function PreferenceRow({ label, helper, icon, checked, onToggle }: PreferenceRow
                   fontWeight: 700,
                   lineHeight: 1.2,
                   whiteSpace: "normal",
-                  wordBreak: "normal",
-                  overflowWrap: "normal"
+                  wordBreak: "keep-all",
+                  overflowWrap: "break-word"
                 }}
               >
                 {label}
@@ -104,7 +152,7 @@ export default function RentalCustom(): React.JSX.Element {
   const { actions } = useAppData();
 
   const [mode, setMode] = useState<"self_drive" | "chauffeur">("self_drive");
-  const [purpose, setPurpose] = useState("family");
+  const [purpose, setPurpose] = useState<PurposeKey>("family");
   const [passengers, setPassengers] = useState("4");
   const [luggageKg, setLuggageKg] = useState("20");
   const [duration, setDuration] = useState("1");
@@ -113,16 +161,30 @@ export default function RentalCustom(): React.JSX.Element {
   const [budgetMax, setBudgetMax] = useState("5000");
   const [budgetUnit, setBudgetUnit] = useState<"per day" | "per trip">("per day");
 
-  const [ac, setAc] = useState(true);
-  const [childSeat, setChildSeat] = useState(false);
-  const [extraLuggage, setExtraLuggage] = useState(false);
-  const [premium, setPremium] = useState(false);
-  const [driverLanguage, setDriverLanguage] = useState(false);
+  const [selectedPreferences, setSelectedPreferences] = useState<Record<string, boolean>>({});
+  const activePreferences = useMemo(() => preferenceCatalog[purpose], [purpose]);
+
+  useEffect(() => {
+    setSelectedPreferences((previous) => {
+      const next: Record<string, boolean> = {};
+      activePreferences.forEach((item) => {
+        next[item.key] = previous[item.key] ?? Boolean(item.defaultChecked);
+      });
+      return next;
+    });
+  }, [activePreferences]);
 
   const safetyText = useMemo(
     () => "Best matching vehicles  •  Transparent pricing  •  No hidden charges",
     []
   );
+
+  const togglePreference = (key: string): void => {
+    setSelectedPreferences((previous) => ({
+      ...previous,
+      [key]: !previous[key]
+    }));
+  };
 
   return (
     <Box sx={screenShellSx}>
@@ -307,13 +369,28 @@ export default function RentalCustom(): React.JSX.Element {
         Preferences <Typography component="span" sx={{ color: rentalUi.muted, fontSize: 11, fontWeight: 500 }}>(optional)</Typography>
       </Typography>
       <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 0.8, mb: 0.8 }}>
-        <PreferenceRow label="AC" helper="Required" icon={<AcUnitRoundedIcon sx={{ fontSize: 20 }} />} checked={ac} onToggle={() => setAc((prev) => !prev)} />
-        <PreferenceRow label="Child seat" helper="Add if needed" icon={<ChildCareRoundedIcon sx={{ fontSize: 20 }} />} checked={childSeat} onToggle={() => setChildSeat((prev) => !prev)} />
-        <PreferenceRow label="Extra luggage" helper="More space" icon={<LuggageRoundedIcon sx={{ fontSize: 20 }} />} checked={extraLuggage} onToggle={() => setExtraLuggage((prev) => !prev)} />
+        {activePreferences.slice(0, 3).map((item) => (
+          <PreferenceRow
+            key={`${purpose}-${item.key}`}
+            label={item.label}
+            helper={item.helper}
+            icon={item.icon}
+            checked={Boolean(selectedPreferences[item.key])}
+            onToggle={() => togglePreference(item.key)}
+          />
+        ))}
       </Box>
       <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 0.8, mb: 2 }}>
-        <PreferenceRow label="Premium" helper="Luxury vehicles" icon={<StarBorderRoundedIcon sx={{ fontSize: 20 }} />} checked={premium} onToggle={() => setPremium((prev) => !prev)} />
-        <PreferenceRow label="Driver language" helper="Select language" icon={<TranslateRoundedIcon sx={{ fontSize: 20 }} />} checked={driverLanguage} onToggle={() => setDriverLanguage((prev) => !prev)} />
+        {activePreferences.slice(3).map((item) => (
+          <PreferenceRow
+            key={`${purpose}-${item.key}`}
+            label={item.label}
+            helper={item.helper}
+            icon={item.icon}
+            checked={Boolean(selectedPreferences[item.key])}
+            onToggle={() => togglePreference(item.key)}
+          />
+        ))}
       </Box>
 
       <Card sx={{ ...cardSx, mb: 1.7 }}>
