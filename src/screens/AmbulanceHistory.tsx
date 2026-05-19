@@ -22,6 +22,7 @@ import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import type { AmbulanceRequest } from "../store/types";
 import { useAppData } from "../contexts/AppDataContext";
+import { ambulanceCompactTypographySx } from "../components/ambulance/ambulanceTypography";
 
 type HistoryFilter = "all" | "emergency" | "transfer" | "completed";
 
@@ -193,7 +194,7 @@ function AmbulanceRequestsHistoryScreen(): React.JSX.Element {
   }, [filter, requests]);
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+    <Box sx={[{ px: 2.5, pt: 2.5, pb: 3 }, ambulanceCompactTypographySx]}>
       <Box
         sx={{
           mb: 2,

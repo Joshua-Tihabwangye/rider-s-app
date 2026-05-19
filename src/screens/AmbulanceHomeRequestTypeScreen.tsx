@@ -15,13 +15,14 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import PhoneEnabledRoundedIcon from "@mui/icons-material/PhoneEnabledRounded";
+import { ambulanceCompactTypographySx } from "../components/ambulance/ambulanceTypography";
 
 
 function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
   const navigate = useNavigate();
   
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+    <Box sx={[{ px: 2.5, pt: 2.5, pb: 3 }, ambulanceCompactTypographySx]}>
       {/* Header */}
       <Box
         sx={{

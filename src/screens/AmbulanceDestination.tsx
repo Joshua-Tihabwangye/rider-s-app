@@ -25,6 +25,7 @@ import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import HealthAndSafetyRoundedIcon from "@mui/icons-material/HealthAndSafetyRounded";
 import TransferWithinAStationRoundedIcon from "@mui/icons-material/TransferWithinAStationRounded";
 import { useAppData } from "../contexts/AppDataContext";
+import { ambulanceCompactTypographySx } from "../components/ambulance/ambulanceTypography";
 
 interface HospitalOption {
   id: string;
@@ -94,7 +95,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
   }, [query]);
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 18 }}>
+    <Box sx={[{ px: 2.5, pt: 2.5, pb: 18 }, ambulanceCompactTypographySx]}>
       <Box
         sx={{
           mb: 2,

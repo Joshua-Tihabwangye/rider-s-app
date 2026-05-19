@@ -13,6 +13,7 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
 import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded";
 import { useAppData } from "../contexts/AppDataContext";
+import { ambulanceCompactTypographySx } from "../components/ambulance/ambulanceTypography";
 
 export default function AmbulancePaymentMobileMoney(): React.JSX.Element {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ export default function AmbulancePaymentMobileMoney(): React.JSX.Element {
   const [phone, setPhone] = useState(ambulance.request.patientPhone ?? "");
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 14 }}>
+    <Box sx={[{ px: 2.5, pt: 2.5, pb: 14 }, ambulanceCompactTypographySx]}>
       <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 2 }}>
         <IconButton
           size="small"

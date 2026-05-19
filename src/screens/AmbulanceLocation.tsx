@@ -28,6 +28,7 @@ import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded";
 import { useAppData } from "../contexts/AppDataContext";
+import { ambulanceCompactTypographySx } from "../components/ambulance/ambulanceTypography";
 
 const mobilityOptions = [
   "Wheelchair assistance",
@@ -73,7 +74,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
   }, [patientAge]);
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 16 }}>
+    <Box sx={[{ px: 2.5, pt: 2.5, pb: 16 }, ambulanceCompactTypographySx]}>
       <Box
         sx={{
           mb: 2,
@@ -304,7 +305,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
           Patient details
         </Typography>
 
-        <Stack direction="row" spacing={1.25} sx={{ mb: 1.2 }}>
+        <Stack spacing={1.2} sx={{ mb: 1.4 }}>
           <TextField
             fullWidth
             label="Patient name"
@@ -333,9 +334,6 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
             }}
             sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
           />
-        </Stack>
-
-        <Stack direction="row" spacing={1.25} sx={{ mb: 1.4 }}>
           <TextField
             fullWidth
             label="Condition"

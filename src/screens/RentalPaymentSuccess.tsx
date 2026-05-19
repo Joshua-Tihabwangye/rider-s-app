@@ -80,7 +80,7 @@ export default function RentalPaymentSuccess(): React.JSX.Element {
         sx={{ mb: 1.6, bgcolor: "transparent" }}
       />
 
-      <Typography sx={{ textAlign: "center", fontSize: "52px !important", fontWeight: 900, lineHeight: 1.02, mb: 0.65 }}>
+      <Typography sx={{ textAlign: "center", fontSize: "64px !important", fontWeight: 900, lineHeight: 1.02, mb: 0.65 }}>
         <Box component="span" sx={{ color: rentalUi.greenDeep }}>Payment</Box> successful
       </Typography>
       <Typography sx={{ textAlign: "center", color: rentalUi.muted, fontSize: "16px !important", mb: 1.95, lineHeight: 1.45 }}>

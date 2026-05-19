@@ -24,6 +24,7 @@ import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded";
 import { useAppData } from "../contexts/AppDataContext";
+import { ambulanceCompactTypographySx } from "../components/ambulance/ambulanceTypography";
 import MapShell from "../components/maps/MapShell";
 import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 
@@ -131,7 +132,7 @@ function AmbulanceLiveTrackingScreen(): React.JSX.Element {
   const primaryLabel = request.status === "arrived" ? "Complete emergency trip" : "Mark ambulance arrived";
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 15 }}>
+    <Box sx={[{ px: 2.5, pt: 2.5, pb: 15 }, ambulanceCompactTypographySx]}>
       <Box
         sx={{
           mb: 1.4,

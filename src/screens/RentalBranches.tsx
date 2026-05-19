@@ -265,9 +265,11 @@ export default function RentalBranches(): React.JSX.Element {
       </Stack>
 
       <ExpandableMapPanel
-        mapHeight={{ xs: "40dvh", md: "46vh" }}
-        expandedMapHeight={{ xs: "72dvh", md: "78vh" }}
-        minMapHeight={290}
+        mapHeight={{ xs: "32dvh", md: "40vh" }}
+        expandedMapHeight={{ xs: "calc(100dvh - 126px)", md: "calc(100vh - 170px)" }}
+        minMapHeight={300}
+        buttonOffsetCollapsed={-10}
+        buttonOffsetExpanded={4}
         mapWrapperSx={{
           mx: { xs: -2, sm: -2.5 },
           width: { xs: "calc(100% + 32px)", sm: "calc(100% + 40px)" }
@@ -289,7 +291,7 @@ export default function RentalBranches(): React.JSX.Element {
           />
         }
         details={
-          <Box sx={{ pt: 1.2 }}>
+          <Box sx={{ pt: 1.45 }}>
             <Card sx={{ ...cardSx, mb: 1.2 }}>
               <CardContent sx={{ p: 1.1, "&:last-child": { pb: 1.1 } }}>
                 <Stack spacing={1}>

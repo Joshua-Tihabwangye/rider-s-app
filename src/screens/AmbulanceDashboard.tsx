@@ -16,6 +16,7 @@ import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import { useAppData } from "../contexts/AppDataContext";
+import { ambulanceCompactTypographySx } from "../components/ambulance/ambulanceTypography";
 
 function formatDateTime(value?: string): string {
   if (!value) return "Pending";
@@ -53,7 +54,7 @@ function AmbulanceDashboardHomeScreen(): React.JSX.Element {
   const activeCount = requests.filter((request) => ["requested", "assigned", "en_route", "arrived"].includes(request.status)).length;
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+    <Box sx={[{ px: 2.5, pt: 2.5, pb: 3 }, ambulanceCompactTypographySx]}>
       <Box
         sx={{
           mb: 2,

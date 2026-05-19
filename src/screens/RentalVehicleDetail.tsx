@@ -170,7 +170,7 @@ export default function RentalVehicleDetail(): React.JSX.Element {
         Spacious, comfortable, and perfect for family trips. Enjoy long drives with zero emissions.
       </Typography>
 
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 0.75, mb: 1.55 }}>
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 0.75, mb: 1.55 }}>
         <FeatureStat icon={<AirlineSeatReclineNormalRoundedIcon />} label={`${vehicle.seats} Seats`} helper="Spacious cabin" />
         <FeatureStat icon={<BatteryChargingFullRoundedIcon />} label={`${parseUgx(vehicle.range)} km`} helper="ARAI range" />
         <FeatureStat icon={<SettingsSuggestRoundedIcon />} label="Automatic" helper="Transmission" />

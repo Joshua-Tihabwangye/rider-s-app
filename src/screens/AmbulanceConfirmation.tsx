@@ -23,6 +23,7 @@ import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded";
 import { useAppData } from "../contexts/AppDataContext";
+import { ambulanceCompactTypographySx } from "../components/ambulance/ambulanceTypography";
 
 interface BreakdownItem {
   label: string;
@@ -57,7 +58,7 @@ function AmbulanceRequestConfirmationETAScreen(): React.JSX.Element {
   const eta = request.status === "assigned" ? "6 min" : "8 min";
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 19 }}>
+    <Box sx={[{ px: 2.5, pt: 2.5, pb: 19 }, ambulanceCompactTypographySx]}>
       <Box
         sx={{
           mb: 2,

@@ -22,6 +22,7 @@ import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
 import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
 import type { AmbulanceRequest, AmbulanceStatus } from "../store/types";
 import { useAppData } from "../contexts/AppDataContext";
+import { ambulanceCompactTypographySx } from "../components/ambulance/ambulanceTypography";
 
 interface LegacySnapshot {
   id: string;
@@ -127,7 +128,7 @@ export default function AmbulanceHistoryDetail(): React.JSX.Element {
 
   if (!detail) {
     return (
-      <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+      <Box sx={[{ px: 2.5, pt: 2.5, pb: 3 }, ambulanceCompactTypographySx]}>
         <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 2 }}>
           <IconButton
             size="small"
@@ -177,7 +178,7 @@ export default function AmbulanceHistoryDetail(): React.JSX.Element {
   ];
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 4 }}>
+    <Box sx={[{ px: 2.5, pt: 2.5, pb: 4 }, ambulanceCompactTypographySx]}>
       <Box
         sx={{
           mb: 2,
