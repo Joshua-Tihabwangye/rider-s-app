@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Card,
@@ -52,11 +52,17 @@ function toDisplayDate(date: Date): string {
 
 export default function RentalDates(): React.JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
   const { rental, actions } = useAppData();
+  const routeVehicleId = (location.state as { vehicleId?: string } | null)?.vehicleId;
 
   const vehicle = useMemo(
-    () => rental.vehicles.find((entry) => entry.id === rental.booking.vehicleId) ?? rental.vehicles[0] ?? null,
-    [rental.booking.vehicleId, rental.vehicles]
+    () =>
+      rental.vehicles.find((entry) => entry.id === rental.booking.vehicleId) ??
+      (routeVehicleId ? rental.vehicles.find((entry) => entry.id === routeVehicleId) : null) ??
+      rental.vehicles[0] ??
+      null,
+    [rental.booking.vehicleId, rental.vehicles, routeVehicleId]
   );
 
   const [visibleMonth, setVisibleMonth] = useState(() => new Date(2025, 4, 1));

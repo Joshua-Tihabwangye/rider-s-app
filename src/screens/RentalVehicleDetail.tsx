@@ -276,7 +276,7 @@ export default function RentalVehicleDetail(): React.JSX.Element {
             vehicleId: vehicle.id,
             rentalMode: mode
           });
-          navigate("/rental/dates");
+          navigate("/rental/dates", { state: { vehicleId: vehicle.id } });
         }}
       />
     </Box>

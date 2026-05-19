@@ -14,17 +14,16 @@ import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import LocalTaxiOutlinedIcon from "@mui/icons-material/LocalTaxiOutlined";
 import FlightTakeoffRoundedIcon from "@mui/icons-material/FlightTakeoffRounded";
-import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 
 import { useAppData } from "../contexts/AppDataContext";
 import {
-  CroppedReferenceImage,
   GradientActionButton,
   cardSx,
   rentalUi,
   screenShellSx
 } from "../components/rental/RentalRedesignUI";
-import { RENTAL_UI_ASSETS } from "../features/rental/uiAssets";
+import MapShell from "../components/maps/MapShell";
+import ExpandableMapPanel from "../components/maps/ExpandableMapPanel";
 
 interface BranchOption {
   id: string;
@@ -33,6 +32,7 @@ interface BranchOption {
   distance: string;
   hours: string;
   vehicles: number;
+  mapPoint: { lat: number; lng: number };
 }
 
 const branches: BranchOption[] = [
@@ -42,7 +42,8 @@ const branches: BranchOption[] = [
     address: "16, 5th Cross, 80 Feet Road, Koramangala, Bengaluru 560095",
     distance: "1.8 km away",
     hours: "7:00 AM - 10:00 PM",
-    vehicles: 18
+    vehicles: 18,
+    mapPoint: { lat: 12.9352, lng: 77.6245 }
   },
   {
     id: "airport_t1",
@@ -50,7 +51,8 @@ const branches: BranchOption[] = [
     address: "Kempegowda International Airport, Terminal 1, Bengaluru 562300",
     distance: "22.4 km away",
     hours: "24x7",
-    vehicles: 22
+    vehicles: 22,
+    mapPoint: { lat: 13.1986, lng: 77.7066 }
   },
   {
     id: "mg_road",
@@ -58,7 +60,8 @@ const branches: BranchOption[] = [
     address: "45, MG Road, Near Trinity Circle, Bengaluru 560001",
     distance: "4.2 km away",
     hours: "7:00 AM - 10:00 PM",
-    vehicles: 12
+    vehicles: 12,
+    mapPoint: { lat: 12.9757, lng: 77.6069 }
   },
   {
     id: "whitefield",
@@ -66,7 +69,8 @@ const branches: BranchOption[] = [
     address: "Ground Floor, VR Bengaluru, Whitefield Main Road, Bengaluru 560066",
     distance: "17.6 km away",
     hours: "7:00 AM - 10:00 PM",
-    vehicles: 16
+    vehicles: 16,
+    mapPoint: { lat: 12.9698, lng: 77.7499 }
   }
 ];
 
@@ -144,6 +148,13 @@ export default function RentalBranches(): React.JSX.Element {
   const [pickupBranch, setPickupBranch] = useState(defaultBranch);
   const [returnBranch, setReturnBranch] = useState(defaultBranch);
 
+  const pickupBranchData = branches.find((branch) => branch.name === pickupBranch) ?? branches[0];
+  const returnBranchData = branches.find((branch) => branch.name === returnBranch) ?? branches[1] ?? branches[0];
+  const mapCenter = pickupBranchData?.mapPoint ?? { lat: 12.9716, lng: 77.5946 };
+  const mapMarkers = [
+    { id: "pickup", position: pickupBranchData?.mapPoint ?? mapCenter, label: "Pickup", color: "#11B86A" },
+    { id: "return", position: returnBranchData?.mapPoint ?? mapCenter, label: "Return", color: "#FF8A00" }
+  ];
   return (
     <Box sx={screenShellSx}>
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
@@ -153,114 +164,129 @@ export default function RentalBranches(): React.JSX.Element {
         <Typography sx={{ fontSize: 22, fontWeight: 800 }}>Branches</Typography>
       </Stack>
 
-      <CroppedReferenceImage
-        src={RENTAL_UI_ASSETS.banners.branchMap}
-        alt="Branch map"
-        height={240}
-        scale={1}
-        fit="contain"
-        sx={{
-          mb: 1.5,
+      <ExpandableMapPanel
+        mapHeight={{ xs: "40dvh", md: "46vh" }}
+        expandedMapHeight={{ xs: "72dvh", md: "78vh" }}
+        minMapHeight={290}
+        mapWrapperSx={{
           mx: { xs: -2, sm: -2.5 },
-          width: { xs: "calc(100% + 32px)", sm: "calc(100% + 40px)" },
-          borderRadius: 0,
-          bgcolor: "#fff"
+          width: { xs: "calc(100% + 32px)", sm: "calc(100% + 40px)" }
         }}
-      />
+        map={
+          <MapShell
+            preset="full"
+            height="100%"
+            rounded={false}
+            showControls
+            showBackButton={false}
+            fullBleed={false}
+            interactive
+            mapCenter={mapCenter}
+            mapMarkers={mapMarkers}
+            routePolyline={[]}
+            initialZoom={10}
+            routeDistanceKm={null}
+            showRouteInfo={false}
+          />
+        }
+        details={
+          <Box sx={{ pt: 1.35 }}>
+            <Card sx={{ ...cardSx, p: 0.4, mb: 1.5 }}>
+              <Stack direction="row" spacing={0.6}>
+                <Box
+                  role="button"
+                  onClick={() => setTab("pickup")}
+                  sx={{
+                    flex: 1,
+                    borderRadius: 2.2,
+                    py: 1.1,
+                    px: 1,
+                    bgcolor: tab === "pickup" ? "#fff" : "transparent",
+                    borderBottom: tab === "pickup" ? `3px solid ${rentalUi.green}` : "3px solid transparent",
+                    cursor: "pointer"
+                  }}
+                >
+                  <Stack direction="row" justifyContent="center" spacing={0.6} alignItems="center">
+                    <DirectionsCarRoundedIcon sx={{ color: rentalUi.green }} />
+                    <Typography sx={{ fontSize: 24/1.4, fontWeight: 800, color: tab === "pickup" ? rentalUi.greenDeep : rentalUi.muted }}>Pickup</Typography>
+                  </Stack>
+                </Box>
 
-      <Card sx={{ ...cardSx, p: 0.4, mb: 1.5 }}>
-        <Stack direction="row" spacing={0.6}>
-          <Box
-            role="button"
-            onClick={() => setTab("pickup")}
-            sx={{
-              flex: 1,
-              borderRadius: 2.2,
-              py: 1.1,
-              px: 1,
-              bgcolor: tab === "pickup" ? "#fff" : "transparent",
-              borderBottom: tab === "pickup" ? `3px solid ${rentalUi.green}` : "3px solid transparent",
-              cursor: "pointer"
-            }}
-          >
-            <Stack direction="row" justifyContent="center" spacing={0.6} alignItems="center">
-              <DirectionsCarRoundedIcon sx={{ color: rentalUi.green }} />
-              <Typography sx={{ fontSize: 24/1.4, fontWeight: 800, color: tab === "pickup" ? rentalUi.greenDeep : rentalUi.muted }}>Pickup</Typography>
+                <Box
+                  role="button"
+                  onClick={() => setTab("return")}
+                  sx={{
+                    flex: 1,
+                    borderRadius: 2.2,
+                    py: 1.1,
+                    px: 1,
+                    bgcolor: tab === "return" ? "#fff" : "transparent",
+                    borderBottom: tab === "return" ? `3px solid ${rentalUi.orange}` : "3px solid transparent",
+                    cursor: "pointer"
+                  }}
+                >
+                  <Stack direction="row" justifyContent="center" spacing={0.6} alignItems="center">
+                    <LocationOnRoundedIcon sx={{ color: rentalUi.orange }} />
+                    <Typography sx={{ fontSize: 24/1.4, fontWeight: 800, color: tab === "return" ? rentalUi.orange : rentalUi.muted }}>Return</Typography>
+                  </Stack>
+                </Box>
+              </Stack>
+            </Card>
+
+            <Stack spacing={1.2} sx={{ mb: 1.4 }}>
+              {branches.map((branch) => {
+                const selected = tab === "pickup" ? pickupBranch === branch.name : returnBranch === branch.name;
+                return (
+                  <BranchCard
+                    key={branch.id}
+                    branch={branch}
+                    selected={selected}
+                    onSelect={() => {
+                      if (tab === "pickup") {
+                        setPickupBranch(branch.name);
+                      } else {
+                        setReturnBranch(branch.name);
+                      }
+                    }}
+                  />
+                );
+              })}
             </Stack>
-          </Box>
 
-          <Box
-            role="button"
-            onClick={() => setTab("return")}
-            sx={{
-              flex: 1,
-              borderRadius: 2.2,
-              py: 1.1,
-              px: 1,
-              bgcolor: tab === "return" ? "#fff" : "transparent",
-              borderBottom: tab === "return" ? `3px solid ${rentalUi.orange}` : "3px solid transparent",
-              cursor: "pointer"
-            }}
-          >
-            <Stack direction="row" justifyContent="center" spacing={0.6} alignItems="center">
-              <LocationOnRoundedIcon sx={{ color: rentalUi.orange }} />
-              <Typography sx={{ fontSize: 24/1.4, fontWeight: 800, color: tab === "return" ? rentalUi.orange : rentalUi.muted }}>Return</Typography>
-            </Stack>
-          </Box>
-        </Stack>
-      </Card>
+            <Card sx={{ ...cardSx, bgcolor: "#F1FAF6", mb: 1.55 }}>
+              <CardContent sx={{ p: 1.35, "&:last-child": { pb: 1.35 } }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.1}>
+                  <Stack direction="row" spacing={0.95} alignItems="center">
+                    <FlightTakeoffRoundedIcon sx={{ color: rentalUi.green }} />
+                    <Box>
+                      <Typography sx={{ fontWeight: 700, fontSize: 34/2 }}>Airport pickup surcharge</Typography>
+                      <Typography sx={{ color: rentalUi.muted, fontSize: 17 }}>
+                        A surcharge of ₹499 applies for pickups from Airport branches.
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <Typography sx={{ color: rentalUi.green, fontWeight: 700, fontSize: 17 }}>Learn more</Typography>
+                </Stack>
+              </CardContent>
+            </Card>
 
-      <Stack spacing={1.2} sx={{ mb: 1.4 }}>
-        {branches.map((branch) => {
-          const selected = tab === "pickup" ? pickupBranch === branch.name : returnBranch === branch.name;
-          return (
-            <BranchCard
-              key={branch.id}
-              branch={branch}
-              selected={selected}
-              onSelect={() => {
-                if (tab === "pickup") {
-                  setPickupBranch(branch.name);
-                } else {
-                  setReturnBranch(branch.name);
+            <GradientActionButton
+              label="Continue"
+              onClick={() => {
+                actions.updateRentalBooking({
+                  pickupBranch,
+                  dropoffBranch: returnBranch
+                });
+                navigate("/rental/summary");
+              }}
+              sx={{
+                "& .MuiButton-endIcon": {
+                  marginLeft: 6
                 }
               }}
             />
-          );
-        })}
-      </Stack>
-
-      <Card sx={{ ...cardSx, bgcolor: "#F1FAF6", mb: 1.55 }}>
-        <CardContent sx={{ p: 1.35, "&:last-child": { pb: 1.35 } }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.1}>
-            <Stack direction="row" spacing={0.95} alignItems="center">
-              <FlightTakeoffRoundedIcon sx={{ color: rentalUi.green }} />
-              <Box>
-                <Typography sx={{ fontWeight: 700, fontSize: 34/2 }}>Airport pickup surcharge</Typography>
-                <Typography sx={{ color: rentalUi.muted, fontSize: 17 }}>
-                  A surcharge of ₹499 applies for pickups from Airport branches.
-                </Typography>
-              </Box>
-            </Stack>
-            <Typography sx={{ color: rentalUi.green, fontWeight: 700, fontSize: 17 }}>Learn more</Typography>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <GradientActionButton
-        label="Continue"
-        onClick={() => {
-          actions.updateRentalBooking({
-            pickupBranch,
-            dropoffBranch: returnBranch
-          });
-          navigate("/rental/summary");
-        }}
-        sx={{
-          "& .MuiButton-endIcon": {
-            marginLeft: 6
-          }
-        }}
+          </Box>
+        }
       />
     </Box>
   );

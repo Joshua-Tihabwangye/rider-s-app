@@ -63,14 +63,15 @@ function PopularRentalCard({
   onClick: () => void;
 }): React.JSX.Element {
   return (
-    <Card onClick={onClick} sx={{ ...cardSx, cursor: "pointer" }}>
+    <Card onClick={onClick} sx={{ ...cardSx, cursor: "pointer", overflow: "hidden" }}>
       <CardContent sx={{ p: 0.9, "&:last-child": { pb: 0.9 } }}>
         <CroppedReferenceImage
           src={image}
           alt={name}
-          height={58}
+          height={{ xs: 84, sm: 92, md: 96 }}
+          fit="contain"
           scale={1}
-          sx={{ borderRadius: 1.8, mb: 0.65 }}
+          sx={{ borderRadius: 1.8, mb: 0.65, bgcolor: "#F8FBFF" }}
         />
         <Typography sx={{ fontWeight: 700, fontSize: 13, color: rentalUi.title, lineHeight: 1.15 }}>{name}</Typography>
         <Stack direction="row" spacing={0.8} sx={{ mt: 0.25, mb: 0.6, flexWrap: "wrap" }}>
@@ -240,7 +241,14 @@ export default function RentalDashboard(): React.JSX.Element {
           View all
         </Typography>
       </Stack>
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 0.8, mb: 2.1 }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", sm: "repeat(3, minmax(0, 1fr))" },
+          gap: 0.8,
+          mb: 2.1
+        }}
+      >
         {vehicles.map((vehicle) => (
           <PopularRentalCard
             key={vehicle.id}
@@ -268,7 +276,7 @@ export default function RentalDashboard(): React.JSX.Element {
           View all
         </Typography>
       </Stack>
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 0.8, mb: 2 }}>
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" }, gap: 0.8, mb: 2 }}>
         <Card sx={cardSx}>
           <CardContent sx={{ p: 0.95, "&:last-child": { pb: 0.95 } }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={0.7}>
@@ -277,7 +285,7 @@ export default function RentalDashboard(): React.JSX.Element {
                   <LocationOnRoundedIcon sx={{ fontSize: 18 }} />
                 </Avatar>
                 <Box sx={{ minWidth: 0 }}>
-                  <Typography sx={{ fontSize: 11.5, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <Typography sx={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.2 }}>
                     EVzone Koramangala
                   </Typography>
                   <Typography sx={{ fontSize: 10, color: rentalUi.muted }}>1.8 km away</Typography>
@@ -297,7 +305,7 @@ export default function RentalDashboard(): React.JSX.Element {
                   <LocationOnRoundedIcon sx={{ fontSize: 18 }} />
                 </Avatar>
                 <Box sx={{ minWidth: 0 }}>
-                  <Typography sx={{ fontSize: 11.5, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <Typography sx={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.2 }}>
                     EVzone Airport T1
                   </Typography>
                   <Typography sx={{ fontSize: 10, color: rentalUi.muted }}>4.6 km away</Typography>
@@ -322,7 +330,7 @@ export default function RentalDashboard(): React.JSX.Element {
                 sx={{ width: 62, borderRadius: 1.6 }}
               />
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 700, fontSize: 11.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <Typography sx={{ fontWeight: 700, fontSize: 11.5, lineHeight: 1.2 }}>
                   Eco-friendly rentals for a greener tomorrow
                 </Typography>
                 <Typography sx={{ color: rentalUi.muted, fontSize: 10 }}>Zero emissions, maximum smiles.</Typography>
