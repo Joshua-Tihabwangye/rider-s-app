@@ -27,6 +27,7 @@ import {
 } from "../components/rental/RentalRedesignUI";
 import {
   buildRentalPricing,
+  getRentalModeLabel,
   getRentalBookingVehicle,
   getRentalStatusLabel
 } from "../features/rental/booking";
@@ -43,6 +44,7 @@ export default function RiderScreen90RentalBookingDetailViewCanvas_v2(): React.J
   const vehicle = getRentalBookingVehicle(rental.vehicles, booking, rental.selectedVehicleId);
   const pricing = buildRentalPricing(vehicle, booking);
   const status = getRentalStatusLabel(booking.status);
+  const modeLabel = getRentalModeLabel(booking);
 
   return (
     <Box sx={{ ...screenShellSx, pb: { xs: 13, sm: 6 } }}>
@@ -99,7 +101,7 @@ export default function RiderScreen90RentalBookingDetailViewCanvas_v2(): React.J
             <Stack direction="row" spacing={0.75} alignItems="center">
               <DirectionsCarRoundedIcon sx={{ color: rentalUi.green, fontSize: 17 }} />
               <Typography sx={{ color: rentalUi.muted, minWidth: 72 }}>Mode</Typography>
-              <Typography sx={{ fontWeight: 700 }}>{vehicle?.mode ?? "Self-drive"}</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{modeLabel}</Typography>
             </Stack>
           </Stack>
         </CardContent>

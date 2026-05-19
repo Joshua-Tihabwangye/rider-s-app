@@ -26,6 +26,7 @@ import {
   screenShellSx
 } from "../components/rental/RentalRedesignUI";
 import { getVehicleImageFromName } from "../features/rental/uiAssets";
+import { getRentalModeLabel, getRentalVehicleLabel, parseRentalDateTime } from "../features/rental/booking";
 
 const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -50,6 +51,29 @@ function toDisplayDate(date: Date): string {
   });
 }
 
+function toStorageDateTime(date: Date, time24: string): string {
+  const [hoursRaw, minutesRaw] = time24.split(":");
+  const hours = Number(hoursRaw);
+  const minutes = Number(minutesRaw);
+  const safeHours = Number.isFinite(hours) ? hours : 10;
+  const safeMinutes = Number.isFinite(minutes) ? minutes : 0;
+  const composed = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    safeHours,
+    safeMinutes,
+    0,
+    0
+  );
+  const yyyy = composed.getFullYear();
+  const mm = String(composed.getMonth() + 1).padStart(2, "0");
+  const dd = String(composed.getDate()).padStart(2, "0");
+  const hh = String(composed.getHours()).padStart(2, "0");
+  const min = String(composed.getMinutes()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+}
+
 export default function RentalDates(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
@@ -65,11 +89,35 @@ export default function RentalDates(): React.JSX.Element {
     [rental.booking.vehicleId, rental.vehicles, routeVehicleId]
   );
 
-  const [visibleMonth, setVisibleMonth] = useState(() => new Date(2025, 4, 1));
-  const [pickupDate, setPickupDate] = useState(() => atMidnight(new Date(2025, 4, 14)));
-  const [returnDate, setReturnDate] = useState(() => atMidnight(new Date(2025, 4, 18)));
-  const [pickupTime, setPickupTime] = useState("10:00");
-  const [returnTime, setReturnTime] = useState("10:00");
+  const bookingModeLabel = getRentalModeLabel(rental.booking);
+  const vehicleLabel = getRentalVehicleLabel(vehicle?.name);
+
+  const initialPickupDate = useMemo(() => {
+    const parsed = parseRentalDateTime(rental.booking.startDate);
+    return atMidnight(parsed ?? new Date(2025, 4, 14));
+  }, [rental.booking.startDate]);
+  const initialReturnDate = useMemo(() => {
+    const parsed = parseRentalDateTime(rental.booking.endDate);
+    return atMidnight(parsed ?? new Date(2025, 4, 18));
+  }, [rental.booking.endDate]);
+  const initialPickupTime = useMemo(() => {
+    const parsed = parseRentalDateTime(rental.booking.startDate);
+    if (!parsed) return "10:00";
+    return `${String(parsed.getHours()).padStart(2, "0")}:${String(parsed.getMinutes()).padStart(2, "0")}`;
+  }, [rental.booking.startDate]);
+  const initialReturnTime = useMemo(() => {
+    const parsed = parseRentalDateTime(rental.booking.endDate);
+    if (!parsed) return "10:00";
+    return `${String(parsed.getHours()).padStart(2, "0")}:${String(parsed.getMinutes()).padStart(2, "0")}`;
+  }, [rental.booking.endDate]);
+
+  const [visibleMonth, setVisibleMonth] = useState(
+    () => new Date(initialPickupDate.getFullYear(), initialPickupDate.getMonth(), 1)
+  );
+  const [pickupDate, setPickupDate] = useState(() => initialPickupDate);
+  const [returnDate, setReturnDate] = useState(() => initialReturnDate);
+  const [pickupTime, setPickupTime] = useState(initialPickupTime);
+  const [returnTime, setReturnTime] = useState(initialReturnTime);
   const [selectionMode, setSelectionMode] = useState<"pickup" | "return">("pickup");
 
   const calendarDays = useMemo(() => {
@@ -96,18 +144,6 @@ export default function RentalDates(): React.JSX.Element {
 
   const pickupDateLabel = toDisplayDate(pickupDate);
   const returnDateLabel = toDisplayDate(returnDate);
-
-  const formatTime12h = (time24: string): string => {
-    const [rawHour, rawMinute] = time24.split(":");
-    const hour = Number(rawHour);
-    const minute = Number(rawMinute);
-    if (Number.isNaN(hour) || Number.isNaN(minute)) {
-      return "10:00 AM";
-    }
-    const suffix = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour % 12 || 12;
-    return `${String(hour12).padStart(2, "0")}:${String(minute).padStart(2, "0")} ${suffix}`;
-  };
 
   const handleDatePick = (picked: Date): void => {
     const day = atMidnight(picked);
@@ -157,11 +193,11 @@ export default function RentalDates(): React.JSX.Element {
               sx={{ width: 136, borderRadius: 2.5 }}
             />
             <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography sx={{ fontSize: 20, fontWeight: 800 }}>City EV</Typography>
+              <Typography sx={{ fontSize: 20, fontWeight: 800 }}>{vehicleLabel}</Typography>
               <Typography sx={{ color: rentalUi.muted, fontSize: 14 }}>Electric • Automatic • {vehicle.seats} Seats</Typography>
               <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }}>
                 <DirectionsCarRoundedIcon sx={{ color: rentalUi.green }} />
-                <Typography sx={{ color: rentalUi.greenDeep, fontWeight: 700, fontSize: 14 }}>Self-drive</Typography>
+                <Typography sx={{ color: rentalUi.greenDeep, fontWeight: 700, fontSize: 14 }}>{bookingModeLabel}</Typography>
               </Stack>
             </Box>
           </Stack>
@@ -322,10 +358,12 @@ export default function RentalDates(): React.JSX.Element {
       <GradientActionButton
         label="Choose branches"
         onClick={() => {
+          const nextStartDate = toStorageDateTime(pickupDate, pickupTime);
+          const nextEndDate = toStorageDateTime(returnDate, returnTime);
           actions.updateRentalBooking({
             vehicleId: vehicle.id,
-            startDate: `${pickupDateLabel} • ${formatTime12h(pickupTime)}`,
-            endDate: `${returnDateLabel} • ${formatTime12h(returnTime)}`
+            startDate: nextStartDate,
+            endDate: nextEndDate
           });
           navigate("/rental/branches");
         }}

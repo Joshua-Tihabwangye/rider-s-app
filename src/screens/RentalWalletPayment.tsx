@@ -28,6 +28,7 @@ import {
   screenShellSx
 } from "../components/rental/RentalRedesignUI";
 import { RENTAL_UI_ASSETS, getVehicleImageFromName } from "../features/rental/uiAssets";
+import { estimateRentalDays, formatRentalDateTime, getRentalVehicleLabel } from "../features/rental/booking";
 
 export default function RentalWalletPayment(): React.JSX.Element {
   const navigate = useNavigate();
@@ -51,7 +52,10 @@ export default function RentalWalletPayment(): React.JSX.Element {
 
   const amountDue = activePayment.amount;
   const walletInsufficient = walletBalance < amountDue;
-  const vehicleLabel = vehicle?.name.includes("Kona") ? "Family SUV" : vehicle?.name ?? "EV rental";
+  const vehicleLabel = vehicle?.name ? getRentalVehicleLabel(vehicle.name) : "EV rental";
+  const startDateDisplay = formatRentalDateTime(rental.booking.startDate);
+  const endDateDisplay = formatRentalDateTime(rental.booking.endDate);
+  const durationDays = estimateRentalDays(rental.booking.startDate, rental.booking.endDate);
 
   return (
     <Box sx={{ ...screenShellSx, pb: { xs: 13, sm: 6 } }}>
@@ -180,7 +184,7 @@ export default function RentalWalletPayment(): React.JSX.Element {
           <Stack direction="row" spacing={0.65} alignItems="center">
             <CalendarMonthRoundedIcon sx={{ color: rentalUi.muted, fontSize: 19 }} />
             <Typography sx={{ color: rentalUi.muted, fontSize: 16.5 }}>
-              24 May, 10:00 AM – 26 May, 10:00 AM  •  2 days
+              {startDateDisplay} – {endDateDisplay}  •  {durationDays} day{durationDays === 1 ? "" : "s"}
             </Typography>
           </Stack>
         </CardContent>

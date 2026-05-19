@@ -128,14 +128,15 @@ export default function RentalBranches(): React.JSX.Element {
 
   const countries = useMemo(() => getRentalCountries(), []);
   const pickupLocations = useMemo(() => getPickupLocations(), []);
+  const defaultCountryCode = countries.find((country) => country.code === "UG")?.code ?? countries[0]?.code ?? "UG";
 
   const [tab, setTab] = useState<"pickup" | "return">("pickup");
-  const [pickupCountryCode, setPickupCountryCode] = useState(countries[0]?.code ?? "UG");
+  const [pickupCountryCode, setPickupCountryCode] = useState(defaultCountryCode);
   const [pickupRegion, setPickupRegion] = useState("");
   const [pickupLocationId, setPickupLocationId] = useState("");
 
   const [returnInAnotherCountry, setReturnInAnotherCountry] = useState(false);
-  const [returnCountryCode, setReturnCountryCode] = useState(countries[0]?.code ?? "UG");
+  const [returnCountryCode, setReturnCountryCode] = useState(defaultCountryCode);
   const [returnRegion, setReturnRegion] = useState("");
   const [returnLocationId, setReturnLocationId] = useState("");
 
@@ -147,7 +148,8 @@ export default function RentalBranches(): React.JSX.Element {
       return;
     }
     if (!pickupRegions.some((region) => region.name === pickupRegion)) {
-      setPickupRegion(pickupRegions[0]!.name);
+      const kampalaRegion = pickupRegions.find((region) => region.name.toLowerCase() === "kampala");
+      setPickupRegion(kampalaRegion?.name ?? pickupRegions[0]!.name);
     }
   }, [pickupRegion, pickupRegions]);
 
@@ -182,7 +184,8 @@ export default function RentalBranches(): React.JSX.Element {
       return;
     }
     if (!returnRegions.some((region) => region.name === returnRegion)) {
-      setReturnRegion(returnRegions[0]!.name);
+      const kampalaRegion = returnRegions.find((region) => region.name.toLowerCase() === "kampala");
+      setReturnRegion(kampalaRegion?.name ?? returnRegions[0]!.name);
     }
   }, [returnRegion, returnRegions]);
 

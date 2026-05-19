@@ -234,7 +234,7 @@ export default function RentalCardPayment(): React.JSX.Element {
               <Box sx={{ minWidth: 0 }}>
                 <Typography sx={{ fontWeight: 700, fontSize: 15, mb: 0.2 }}>Billing address</Typography>
                 <Typography sx={{ color: rentalUi.muted, fontSize: 13, lineHeight: 1.35 }}>
-                  123 Green Avenue, Koramangala, Bengaluru, Karnataka 560034, India
+                  Plot 12, Nsambya Road, Kampala, Uganda
                 </Typography>
               </Box>
             </Stack>

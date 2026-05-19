@@ -62,35 +62,40 @@ const preferenceCatalog: Record<PurposeKey, PreferenceOption[]> = {
     { key: "premium", label: "Premium", helper: "Executive vehicles", icon: <StarBorderRoundedIcon sx={{ fontSize: 20 }} /> },
     { key: "extra_luggage", label: "Extra luggage", helper: "More storage", icon: <LuggageRoundedIcon sx={{ fontSize: 20 }} /> },
     { key: "driver_language", label: "Driver language", helper: "Business communication", icon: <TranslateRoundedIcon sx={{ fontSize: 20 }} /> },
-    { key: "quiet_ride", label: "Quiet ride", helper: "Low-noise comfort", icon: <SupportAgentRoundedIcon sx={{ fontSize: 20 }} /> }
+    { key: "quiet_ride", label: "Quiet ride", helper: "Low-noise comfort", icon: <SupportAgentRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "wifi", label: "Wi-Fi", helper: "Work connectivity", icon: <BusinessCenterRoundedIcon sx={{ fontSize: 20 }} /> }
   ],
   family: [
     { key: "ac", label: "AC", helper: "Required", icon: <AcUnitRoundedIcon sx={{ fontSize: 20 }} />, defaultChecked: true },
     { key: "child_seat", label: "Child seat", helper: "Add if needed", icon: <ChildCareRoundedIcon sx={{ fontSize: 20 }} /> },
     { key: "extra_luggage", label: "Extra luggage", helper: "More space", icon: <LuggageRoundedIcon sx={{ fontSize: 20 }} /> },
     { key: "premium", label: "Premium", helper: "Luxury vehicles", icon: <StarBorderRoundedIcon sx={{ fontSize: 20 }} /> },
-    { key: "driver_language", label: "Driver language", helper: "Select language", icon: <TranslateRoundedIcon sx={{ fontSize: 20 }} /> }
+    { key: "driver_language", label: "Driver language", helper: "Select language", icon: <TranslateRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "pet_friendly", label: "Pet friendly", helper: "Family pets", icon: <FavoriteBorderRoundedIcon sx={{ fontSize: 20 }} /> }
   ],
   airport: [
     { key: "ac", label: "AC", helper: "Required", icon: <AcUnitRoundedIcon sx={{ fontSize: 20 }} />, defaultChecked: true },
     { key: "extra_luggage", label: "Extra luggage", helper: "For check-in bags", icon: <LuggageRoundedIcon sx={{ fontSize: 20 }} /> },
     { key: "driver_language", label: "Driver language", helper: "Arrival support", icon: <TranslateRoundedIcon sx={{ fontSize: 20 }} /> },
     { key: "priority_pickup", label: "Priority pickup", helper: "Faster handover", icon: <FlightTakeoffRoundedIcon sx={{ fontSize: 20 }} /> },
-    { key: "premium", label: "Premium", helper: "Airport comfort", icon: <StarBorderRoundedIcon sx={{ fontSize: 20 }} /> }
+    { key: "premium", label: "Premium", helper: "Airport comfort", icon: <StarBorderRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "meet_assist", label: "Meet assist", helper: "Arrival guidance", icon: <SupportAgentRoundedIcon sx={{ fontSize: 20 }} /> }
   ],
   wedding: [
     { key: "premium", label: "Premium", helper: "Luxury vehicles", icon: <StarBorderRoundedIcon sx={{ fontSize: 20 }} />, defaultChecked: true },
     { key: "chauffeur_style", label: "Formal chauffeur", helper: "Event-ready service", icon: <SupportAgentRoundedIcon sx={{ fontSize: 20 }} /> },
     { key: "extra_luggage", label: "Extra luggage", helper: "Event accessories", icon: <LuggageRoundedIcon sx={{ fontSize: 20 }} /> },
     { key: "ac", label: "AC", helper: "Required", icon: <AcUnitRoundedIcon sx={{ fontSize: 20 }} />, defaultChecked: true },
-    { key: "driver_language", label: "Driver language", helper: "Coordination support", icon: <TranslateRoundedIcon sx={{ fontSize: 20 }} /> }
+    { key: "driver_language", label: "Driver language", helper: "Coordination support", icon: <TranslateRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "decor", label: "Decor setup", helper: "Ceremony styling", icon: <FavoriteBorderRoundedIcon sx={{ fontSize: 20 }} /> }
   ],
   tour: [
     { key: "ac", label: "AC", helper: "Required", icon: <AcUnitRoundedIcon sx={{ fontSize: 20 }} />, defaultChecked: true },
     { key: "extra_luggage", label: "Extra luggage", helper: "Travel gear", icon: <LuggageRoundedIcon sx={{ fontSize: 20 }} /> },
     { key: "driver_language", label: "Driver language", helper: "Guide language", icon: <TranslateRoundedIcon sx={{ fontSize: 20 }} /> },
     { key: "premium", label: "Premium", helper: "Scenic comfort", icon: <StarBorderRoundedIcon sx={{ fontSize: 20 }} /> },
-    { key: "child_seat", label: "Child seat", helper: "Family tours", icon: <ChildCareRoundedIcon sx={{ fontSize: 20 }} /> }
+    { key: "child_seat", label: "Child seat", helper: "Family tours", icon: <ChildCareRoundedIcon sx={{ fontSize: 20 }} /> },
+    { key: "snacks", label: "Snacks stop", helper: "Planned breaks", icon: <MapRoundedIcon sx={{ fontSize: 20 }} /> }
   ]
 };
 
@@ -104,37 +109,18 @@ interface PreferenceRowProps {
 
 function PreferenceRow({ label, helper, icon, checked, onToggle }: PreferenceRowProps): React.JSX.Element {
   return (
-    <Card sx={{ ...cardSx, borderRadius: 1.9 }}>
-      <CardContent sx={{ p: 1.05, pr: 1.2, "&:last-child": { pb: 1.05 } }}>
-        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={0.9}>
-          <Stack direction="row" spacing={0.8} alignItems="flex-start" sx={{ minWidth: 0, flex: 1 }}>
-            <Box sx={{ color: checked ? rentalUi.green : rentalUi.muted, mt: 0.05 }}>
-              {icon}
-            </Box>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography
-                sx={{
-                  fontSize: 11.5,
-                  fontWeight: 700,
-                  lineHeight: 1.2,
-                  whiteSpace: "normal",
-                  wordBreak: "keep-all",
-                  overflowWrap: "break-word"
-                }}
-              >
-                {label}
-              </Typography>
-              <Typography sx={{ fontSize: 10, color: rentalUi.muted, mt: 0.35 }}>{helper}</Typography>
-            </Box>
-          </Stack>
+    <Card sx={{ ...cardSx, borderRadius: 1.9, minHeight: 94 }}>
+      <CardContent sx={{ p: 1.05, "&:last-child": { pb: 1.05 } }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.35 }}>
+          <Box sx={{ color: checked ? rentalUi.green : rentalUi.muted, display: "grid", placeItems: "center" }}>
+            {icon}
+          </Box>
           <Checkbox
             checked={checked}
             onChange={onToggle}
             sx={{
               color: rentalUi.green,
               p: 0,
-              mt: 0.1,
-              ml: 0.6,
               flexShrink: 0,
               width: 20,
               height: 20,
@@ -142,6 +128,12 @@ function PreferenceRow({ label, helper, icon, checked, onToggle }: PreferenceRow
             }}
           />
         </Stack>
+        <Typography sx={{ fontSize: 11.2, fontWeight: 700, lineHeight: 1.2 }}>
+          {label}
+        </Typography>
+        <Typography sx={{ fontSize: 10.2, color: rentalUi.muted, mt: 0.3, lineHeight: 1.2 }}>
+          {helper}
+        </Typography>
       </CardContent>
     </Card>
   );
@@ -368,20 +360,8 @@ export default function RentalCustom(): React.JSX.Element {
       <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 1 }}>
         Preferences <Typography component="span" sx={{ color: rentalUi.muted, fontSize: 11, fontWeight: 500 }}>(optional)</Typography>
       </Typography>
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 0.8, mb: 0.8 }}>
-        {activePreferences.slice(0, 3).map((item) => (
-          <PreferenceRow
-            key={`${purpose}-${item.key}`}
-            label={item.label}
-            helper={item.helper}
-            icon={item.icon}
-            checked={Boolean(selectedPreferences[item.key])}
-            onToggle={() => togglePreference(item.key)}
-          />
-        ))}
-      </Box>
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 0.8, mb: 2 }}>
-        {activePreferences.slice(3).map((item) => (
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 0.8, mb: 2 }}>
+        {activePreferences.map((item) => (
           <PreferenceRow
             key={`${purpose}-${item.key}`}
             label={item.label}

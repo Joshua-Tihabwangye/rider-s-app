@@ -36,11 +36,70 @@ export function formatUgx(amount: number): string {
   return `UGX ${Math.round(amount).toLocaleString()}`;
 }
 
+export function parseRentalDateTime(value?: string): Date | null {
+  if (!value?.trim()) {
+    return null;
+  }
+
+  const raw = value.trim();
+  const normalized =
+    raw
+      .replace(/\u2022/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/.test(normalized)) {
+    const isoLike = normalized.replace(" ", "T");
+    const parsedIsoLike = new Date(isoLike);
+    if (!Number.isNaN(parsedIsoLike.getTime())) {
+      return parsedIsoLike;
+    }
+  }
+
+  const parsed = new Date(normalized);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed;
+  }
+
+  return null;
+}
+
+export function formatRentalDateTime(value?: string): string {
+  const parsed = parseRentalDateTime(value);
+  if (!parsed) {
+    return value?.trim() || "Not selected";
+  }
+
+  return parsed.toLocaleString("en-UG", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true
+  });
+}
+
+export function getRentalVehicleLabel(vehicleName?: string): string {
+  const lower = (vehicleName ?? "").toLowerCase();
+  if (lower.includes("van")) {
+    return "EV Van";
+  }
+  if (lower.includes("kona") || lower.includes("suv")) {
+    return "Family SUV";
+  }
+  if (lower.includes("tesla") || lower.includes("sedan")) {
+    return "Executive EV";
+  }
+  return "City EV";
+}
+
 export function estimateRentalDays(startDate?: string, endDate?: string): number {
   if (startDate?.trim() && endDate?.trim()) {
-    const parsedStart = new Date(startDate);
-    const parsedEnd = new Date(endDate);
-    if (!Number.isNaN(parsedStart.getTime()) && !Number.isNaN(parsedEnd.getTime()) && parsedEnd > parsedStart) {
+    const parsedStart = parseRentalDateTime(startDate);
+    const parsedEnd = parseRentalDateTime(endDate);
+    if (parsedStart && parsedEnd && parsedEnd > parsedStart) {
       const dayMs = 24 * 60 * 60 * 1000;
       const diffMs = parsedEnd.getTime() - parsedStart.getTime();
       return Math.max(1, Math.ceil(diffMs / dayMs));

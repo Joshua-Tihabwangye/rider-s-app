@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import MicNoneRoundedIcon from "@mui/icons-material/MicNoneRounded";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
@@ -103,14 +104,17 @@ function PopularRentalCard({
 export default function RentalDashboard(): React.JSX.Element {
   const navigate = useNavigate();
   const { rental, actions } = useAppData();
-  const vehicles = rental.vehicles.slice(0, 3);
+  const vehicles = rental.vehicles.slice(0, 4);
 
   return (
     <Box sx={screenShellSx}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.8 }}>
-        <Avatar sx={{ width: 42, height: 42, bgcolor: "#E6EDF4", color: rentalUi.title, fontWeight: 700 }}>
-          R
-        </Avatar>
+        <IconButton
+          onClick={() => navigate("/home")}
+          sx={{ width: 42, height: 42, border: `1px solid ${rentalUi.border}`, bgcolor: "#fff" }}
+        >
+          <ArrowBackRoundedIcon />
+        </IconButton>
         <Typography sx={{ color: rentalUi.title, fontSize: 18, fontWeight: 800, textAlign: "center", flex: 1 }}>
           Vehicle rentals
         </Typography>
@@ -244,7 +248,7 @@ export default function RentalDashboard(): React.JSX.Element {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", sm: "repeat(3, minmax(0, 1fr))" },
+          gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", sm: "repeat(2, minmax(0, 1fr))" },
           gap: 0.8,
           mb: 2.1
         }}
@@ -286,7 +290,7 @@ export default function RentalDashboard(): React.JSX.Element {
                 </Avatar>
                 <Box sx={{ minWidth: 0 }}>
                   <Typography sx={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.2 }}>
-                    EVzone Koramangala
+                    Nsambya EV Hub
                   </Typography>
                   <Typography sx={{ fontSize: 10, color: rentalUi.muted }}>1.8 km away</Typography>
                   <Typography sx={{ fontSize: 10, color: rentalUi.greenDeep }}>Open until 9:00 PM</Typography>
@@ -306,7 +310,7 @@ export default function RentalDashboard(): React.JSX.Element {
                 </Avatar>
                 <Box sx={{ minWidth: 0 }}>
                   <Typography sx={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.2 }}>
-                    EVzone Airport T1
+                    Entebbe Airport EV Desk
                   </Typography>
                   <Typography sx={{ fontSize: 10, color: rentalUi.muted }}>4.6 km away</Typography>
                   <Typography sx={{ fontSize: 10, color: rentalUi.greenDeep }}>Open 24x7</Typography>
