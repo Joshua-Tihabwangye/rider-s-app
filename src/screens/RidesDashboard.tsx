@@ -1184,44 +1184,12 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           </Button>
         </Box>
 
-        <Card elevation={0} sx={{ borderRadius: 3, border: "1px solid #E4E7EC", p: 1.6 }}>
-          <Stack spacing={1.1}>
-            <Stack direction="row" spacing={1.1} alignItems="center" onClick={() => navigate("/rides/enter/details")} sx={{ cursor: "pointer" }}>
-              <PlaceRoundedIcon sx={{ fontSize: 29, color: "#11B86A" }} />
-              <Typography sx={{ flex: 1, fontSize: 20, fontWeight: 600, color: "#667085" }}>Where to?</Typography>
-              <MicRoundedIcon sx={{ fontSize: 28, color: "#11B86A" }} />
-            </Stack>
-            <Box sx={{ borderTop: "1px solid #EAECF0" }} />
-            <Stack direction="row" spacing={1} alignItems="center">
-              <MyLocationRoundedIcon sx={{ fontSize: 28, color: "#11B86A" }} />
-              <Typography sx={{ flex: 1, fontSize: 17, color: "#101828" }}>
-                {currentLocation ? "Current location" : "Location unavailable"}
-              </Typography>
-              <Button
-                variant="outlined"
-                size="small"
-                sx={{
-                  textTransform: "none",
-                  borderRadius: 2.5,
-                  borderColor: "#11B86A",
-                  color: "#11B86A",
-                  px: 2.1,
-                  fontWeight: 600
-                }}
-                onClick={() => navigate("/rides/enter/details")}
-              >
-                Change
-              </Button>
-            </Stack>
-          </Stack>
-        </Card>
-
         <Card
           elevation={0}
           sx={{
             borderRadius: 3,
             border: "1px solid #E4E7EC",
-            p: 1.4,
+            p: 1.45,
             bgcolor: "#F8FBF9",
             backgroundImage: "url('/rides-ui/hero-scooter.svg')",
             backgroundSize: "cover",
@@ -1229,7 +1197,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           }}
         >
           <Stack direction="row" alignItems="flex-end" spacing={1.2}>
-            <Box sx={{ flex: 1, pt: 1.8, pb: 1.2, pr: { xs: 1.8, sm: 2.8 } }}>
+            <Box sx={{ flex: 1, pt: 2.4, pb: 1.5, pr: { xs: 2.8, sm: 3.6 } }}>
               <Typography sx={{ fontSize: 56 / 2, fontWeight: 700, lineHeight: 1.1, color: "#101828" }}>
                 Book a ride
               </Typography>
@@ -1263,7 +1231,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                 Book Now
               </Button>
             </Box>
-            <Box sx={{ width: { xs: 170, sm: 210 }, height: { xs: 170, sm: 210 }, flexShrink: 0 }} />
+            <Box sx={{ width: { xs: 178, sm: 220 }, height: { xs: 178, sm: 220 }, flexShrink: 0 }} />
           </Stack>
         </Card>
 
@@ -1348,8 +1316,6 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               >
                 <Box component="img" src={item.image} alt={item.name} sx={{ width: "100%", height: 90, objectFit: "contain", borderRadius: 1.5, bgcolor: "#F8FAFC", mb: 0.6 }} />
                 <Typography sx={{ fontSize: 17, fontWeight: 700, color: "#101828", textAlign: "center" }}>{item.name}</Typography>
-                <Typography sx={{ fontSize: 14, color: "#667085", mb: 0.2, textAlign: "center" }}>{item.capacity} • {item.minutes}</Typography>
-                <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#11B86A", textAlign: "center" }}>{item.price}</Typography>
               </Card>
             ))}
           </Box>

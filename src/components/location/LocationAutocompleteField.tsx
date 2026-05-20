@@ -77,6 +77,7 @@ export default function LocationAutocompleteField({
       disablePortal={false}
       blurOnSelect
       clearOnBlur={false}
+      disableClearable={Boolean(customEndAdornment)}
       includeInputInList={false}
       disabled={disabled}
       options={suggestions}
@@ -123,12 +124,12 @@ export default function LocationAutocompleteField({
             ...textFieldProps?.InputProps,
             startAdornment: (
               <>
-                <InputAdornment position="start">
+                <InputAdornment position="start" sx={{ mr: 0.5 }}>
                   {customStartAdornment ?? (
                     <SearchRoundedIcon sx={{ fontSize: 19, color: "text.secondary" }} />
                   )}
                 </InputAdornment>
-                {params.InputProps.startAdornment}
+                {!customStartAdornment ? params.InputProps.startAdornment : null}
               </>
             ),
             endAdornment: (

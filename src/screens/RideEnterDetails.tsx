@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -20,18 +20,16 @@ import {
 } from "@mui/material";
 
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
+import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
-import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
-import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SwapVertRoundedIcon from "@mui/icons-material/SwapVertRounded";
 import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
-import Avatar from "@mui/material/Avatar";
 import ScreenScaffold from "../components/ScreenScaffold";
 import MapShell from "../components/maps/MapShell";
 import SwitchRiderModal from "../components/SwitchRiderModal";
@@ -195,9 +193,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [rideType, setRideType] = useState(
 		normalizeRideType(initialState.rideType || ride.request.rideType),
 	);
+	const [tripOwnerChosen, setTripOwnerChosen] = useState(false);
 	const [tripType, setTripType] = useState(
 		initialState.tripType || ride.request.tripType || "One Way",
 	);
+	const [tripTypeChosen, setTripTypeChosen] = useState(false);
 	const [schedule, setSchedule] = useState(initialState.schedule || (ride.request.schedule === "later" ? "Schedule for later" : "Now"));
 	const [scheduleTime, setScheduleTime] = useState(
 		initialState.scheduleTime || ride.request.scheduleTime || "",
@@ -253,7 +253,24 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [isMultiStopMode, setIsMultiStopMode] = useState(
 		initialState.isMultiStopMode || tripType === "Multi-stop",
 	);
+	const [selectedRideLevel, setSelectedRideLevel] = useState(
+		initialState.serviceLevel || ride.request.serviceLevel || ride.options[0]?.id || "scooter",
+	);
 	const MAX_STOPS = 6; // Allow up to 6 stops in multi-stop mode
+
+	const rideTypeCards = ride.options.slice(0, 3).map((option, index) => ({
+		id: option.id,
+		name:
+			index === 0 ? "EV Lite" : index === 1 ? "EV Comfort" : "EV XL",
+		capacity: option.capacity ?? (index === 0 ? 1 : index === 1 ? 3 : 6),
+		image:
+			index === 0
+				? "/rides-ui/hero-scooter.svg"
+				: index === 1
+					? "/rental-ui/car-city.svg"
+					: "/rental-ui/car-suv.svg",
+		price: option.fare.replace("UGX", "UGX ").replace(",", "")
+	}));
 
 	// Calculate route when both pickup and destination have coordinates
 	useEffect(() => {
@@ -431,6 +448,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 			passengers,
 			tripType,
 			rideType,
+			serviceLevel: selectedRideLevel,
 			schedule: scheduleMode,
 			scheduleTime: scheduleMode === "later" ? scheduleTime : "",
 			riderType: isContactRide ? "contact" : "personal",
@@ -453,6 +471,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 		isScheduled,
 		schedule,
 		scheduleTime,
+		selectedRideLevel,
 		riderType,
 		selectedContact,
 		bookedPersonName,
@@ -476,7 +495,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 			(tripType !== "Round Trip" || (returnDate && returnTime));
 	const hasBookForSomeoneDetails =
 		bookedPersonName.trim().length > 1 && bookedPersonPhone.trim().length >= 7;
-	const canSubmit = canContinue && (!isBookingForSomeone || hasBookForSomeoneDetails);
+	const canSubmit =
+		canContinue &&
+		tripOwnerChosen &&
+		tripTypeChosen &&
+		(!isBookingForSomeone || hasBookForSomeoneDetails);
 
 	const handleSwitchLocations = () => {
 		const tempPickup = pickup;
@@ -559,7 +582,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 			const missingCoordinates =
 				!pickupCoords ||
 				(!isMultiStopMode && !destinationCoords);
+			const missingSelectors = !tripOwnerChosen || !tripTypeChosen;
 			setErrorMessage(
+				missingSelectors
+					? "Choose trip owner and type of trip before continuing."
+					:
 				missingCoordinates
 					? "Select pickup and destination first."
 					: isBookingForSomeone
@@ -594,6 +621,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 			destinationCoords,
 			passengers,
 			rideType,
+			serviceLevel: selectedRideLevel,
 			tripType,
 			schedule: schedule === "Now" ? null : schedule,
 			scheduleTime,
@@ -679,6 +707,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 			destination,
 			passengers,
 			rideType,
+			serviceLevel: selectedRideLevel,
 			tripType,
 			schedule,
 			scheduleTime,
@@ -734,6 +763,22 @@ function EnterDestinationScreen(): React.JSX.Element {
 		},
 		overflow: "visible",
 	} as const;
+	const routeSummary = useMemo(() => {
+		const distance = sharedLocationState.routeDistanceKm;
+		const duration = sharedLocationState.routeDurationMin;
+		if (!distance || !duration) return null;
+		const distanceLabel =
+			distance >= 100
+				? `${Math.round(distance)} km`
+				: distance >= 10
+					? `${distance.toFixed(1)} km`
+					: `${distance.toFixed(2)} km`;
+		const durationLabel =
+			duration < 60
+				? `${Math.max(1, Math.round(duration))} min`
+				: `${Math.floor(duration / 60)} hr ${Math.round(duration % 60)} min`;
+		return `${distanceLabel} • ${durationLabel}`;
+	}, [sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
 
 	return (
 			<ScreenScaffold
@@ -741,7 +786,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 				disableBottomPadding
 				contentSx={{
 					gap: 0,
-					pb: { xs: "calc(8px + env(safe-area-inset-bottom, 0px))", md: 1 },
+					pb: {
+						xs: "calc(92px + env(safe-area-inset-bottom, 0px))",
+						md: "calc(84px + env(safe-area-inset-bottom, 0px))"
+					},
 				}}
 			>
 				<Box
@@ -754,6 +802,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 				>
 						<MapShell
 							showControls={false}
+							showRouteInfo={false}
 							resizeKey={isMapExpanded ? "expanded" : "default"}
 							sx={{
 								height: isMapExpanded ? mapExpandedHeight : mapNormalHeight,
@@ -770,17 +819,32 @@ function EnterDestinationScreen(): React.JSX.Element {
 						canvasSx={{
 							background:
 								theme.palette.mode === "light"
-								? "linear-gradient(160deg, #D6E9FF 0%, #E5F3FF 22%, #F5EED9 22%, #F5EED9 100%)"
+								? "linear-gradient(160deg, #F2F4F7 0%, #EEF2F6 68%, #E8F5EE 100%)"
 								: "linear-gradient(160deg, #1B2D3E 0%, #223A4F 25%, #1A2533 25%, #1A2533 100%)",
 					}}
 				/>
 					<IconButton
-						onClick={() => setIsMapExpanded(!isMapExpanded)}
 						sx={{
 							position: "absolute",
-							left: "50%",
-							bottom: -18,
-							transform: "translateX(-50%)",
+							right: { xs: 16, md: 22 },
+							bottom: { xs: 20, md: 24 },
+							zIndex: 7,
+							width: 46,
+							height: 46,
+							bgcolor: "rgba(255,255,255,0.95)",
+							border: "1px solid #E4E7EC",
+							boxShadow: "0 4px 12px rgba(16,24,40,0.12)"
+						}}
+					>
+						<MyLocationRoundedIcon sx={{ color: "#344054" }} />
+					</IconButton>
+						<IconButton
+							onClick={() => setIsMapExpanded(!isMapExpanded)}
+							sx={{
+								position: "absolute",
+								left: "50%",
+								bottom: -28,
+								transform: "translateX(-50%)",
 							zIndex: 6,
 						width: 42,
 						height: 42,
@@ -806,22 +870,48 @@ function EnterDestinationScreen(): React.JSX.Element {
 					) : (
 						<KeyboardArrowUpRoundedIcon sx={{ color: theme.palette.text.primary }} />
 					)}
-				</IconButton>
-				</Box>
+					</IconButton>
+					</Box>
+					{routeSummary && (
+						<Box sx={{ pt: 4.2, pb: 0.9, display: "flex", justifyContent: "flex-start" }}>
+							<Box
+								sx={{
+									px: 1.8,
+									py: 0.85,
+									borderRadius: "999px",
+									bgcolor: "#0B1530",
+									border: "1px solid rgba(16,185,129,0.35)",
+									color: "#F8FAFC",
+									fontWeight: 700,
+									fontSize: 13.5,
+									boxShadow: "0 6px 14px rgba(2,6,23,0.28)"
+								}}
+							>
+								{routeSummary}
+							</Box>
+						</Box>
+					)}
 
-				{/* Trip Setup Card - Neutral Background */}
+					{/* Trip Setup Card - Neutral Background */}
 				<SmoothHeightPanel open>
-					<Box sx={{ pt: 4 }}>
+					<Box
+						sx={{
+							pt: 2.5,
+							mt: -1.5,
+							bgcolor: contentBg,
+							borderTopLeftRadius: 28,
+							borderTopRightRadius: 28,
+							borderTop: "1px solid #EAECF0",
+							px: { xs: 1, md: 1.5 }
+						}}
+					>
 				<Card
 				elevation={0}
 				sx={{
-					borderRadius: 3,
+					borderRadius: 4,
 					bgcolor: contentBg,
-					border:
-						theme.palette.mode === "light"
-							? "1px solid rgba(0,0,0,0.1)"
-							: "1px solid rgba(255,255,255,0.1)",
-					boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+					border: "1px solid #E4E7EC",
+					boxShadow: "0 2px 8px rgba(16,24,40,0.06)",
 				}}
 			>
 					<CardContent sx={{ px: 2, py: 2 }}>
@@ -901,18 +991,42 @@ function EnterDestinationScreen(): React.JSX.Element {
 									}}
 								/>
 							</Box>
-
-							{/* Single Destination Mode */}
-							{!isMultiStopMode && (
-								<Box
+							<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: -0.4 }}>
+								<Typography sx={{ fontSize: 12.5, color: "#667085" }}>
+									Pickup location
+								</Typography>
+								<Button
+									size="small"
+									startIcon={<MyLocationRoundedIcon sx={{ fontSize: 16 }} />}
+									onClick={() => {
+										setPickup("Current location");
+										if (sharedLocationState.riderLocation) {
+											setPickupCoords(sharedLocationState.riderLocation);
+											updateSharedLocationState({
+												pickupCoords: sharedLocationState.riderLocation
+											});
+										}
+									}}
 									sx={{
-										display: "flex",
-										gap: 1,
-										alignItems: "flex-start",
+										textTransform: "none",
+										fontWeight: 700,
+										fontSize: 12,
+										color: "#12B76A",
+										px: 1.2,
+										borderRadius: 99,
+										border: "1px solid #A6F4C5",
+										bgcolor: "#ECFDF3"
 									}}
 								>
-									<LocationAutocompleteField
-										value={destination}
+									Use current
+								</Button>
+							</Stack>
+
+							{/* Single Destination Mode */}
+								{!isMultiStopMode && (
+									<Box>
+										<LocationAutocompleteField
+											value={destination}
 										onValueChange={(nextValue) => {
 											setDestination(nextValue);
 											setShowError(false);
@@ -940,61 +1054,20 @@ function EnterDestinationScreen(): React.JSX.Element {
 											setShowError(false);
 											setErrorMessage("");
 										}}
-										placeholder="Destination place"
-										nearbyCoordinates={pickupCoords}
-										textFieldProps={{
-											fullWidth: true,
-											size: "small",
-											variant: "outlined",
-											InputProps: {
-												startAdornment: (
-													<Box
-														sx={{
-															width: 24,
-															height: 24,
-															borderRadius: "50%",
-															bgcolor:
-																theme.palette.mode === "light" ? "#9E9E9E" : "#757575",
-															color: "#FFFFFF",
-															display: "flex",
-															alignItems: "center",
-															justifyContent: "center",
-															fontSize: 12,
-															fontWeight: 600
-														}}
-													>
-														A
-													</Box>
-												),
-												endAdornment: destination ? (
-													<IconButton
-														size="small"
-														onClick={() => {
-															setDestination("");
-															setDestinationCoords(null);
-															updateSharedLocationState({
-																destinationCoords: null,
-																routePolyline: [],
-																routeAlternativePolylines: [],
-																routeDistanceKm: null,
-																routeDurationMin: null
-															});
-														}}
-														sx={{
-															color: theme.palette.text.secondary,
-															"&:hover": {
-																bgcolor:
-																	theme.palette.mode === "light"
-																		? "rgba(0,0,0,0.05)"
-																		: "rgba(255,255,255,0.05)"
-															}
-														}}
-													>
-														<CloseRoundedIcon sx={{ fontSize: 18 }} />
-													</IconButton>
-												) : undefined
-											}
-										}}
+											placeholder="Enter drop-off location"
+											nearbyCoordinates={pickupCoords}
+											textFieldProps={{
+												fullWidth: true,
+												size: "small",
+												variant: "outlined",
+												InputProps: {
+													startAdornment: (
+														<PlaceRoundedIcon
+															sx={{ fontSize: 19, color: "#F79009" }}
+														/>
+													)
+												}
+											}}
 										sx={{
 											flex: 1,
 											"& .MuiOutlinedInput-root": {
@@ -1017,46 +1090,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 													borderColor: accentGreen
 												}
 											}
-										}}
-									/>
-									{/* Date & Time Selector beside destination */}
-									<Button
-										variant="outlined"
-										onClick={handleScheduleClick}
-										startIcon={
-											<CalendarTodayRoundedIcon
-												sx={{ fontSize: 16 }}
-											/>
-										}
-										sx={{
-											minWidth: 100,
-											borderRadius: 5,
-											textTransform: "none",
-											borderColor:
-												theme.palette.mode === "light"
-													? "rgba(0,0,0,0.15)"
-													: "rgba(255,255,255,0.2)",
-											color: isScheduled
-												? "#4CAF50"
-												: theme.palette.text.primary,
-											bgcolor:
-												theme.palette.mode === "light"
-													? "rgba(0,0,0,0.05)"
-													: "rgba(255,255,255,0.05)",
-											"&:hover": {
-												borderColor: isScheduled
-													? "#4CAF50"
-													: accentGreen,
-												bgcolor: "rgba(3,205,140,0.1)",
-											},
-											fontSize: 12,
-											px: 1.5,
-										}}
-									>
-										{isScheduled ? scheduleTime : schedule}
-									</Button>
-								</Box>
-							)}
+											}}
+										/>
+									</Box>
+								)}
 
 							{/* Multi-Stop Mode - Show multiple stop fields */}
 							{isMultiStopMode && (
@@ -1067,14 +1104,15 @@ function EnterDestinationScreen(): React.JSX.Element {
 											index === stops.length - 1;
 										const isSquare = stop.id === "B"; // Stop B is square per spec
 										return (
-											<Box
-												key={stop.id}
-												sx={{
-													display: "flex",
-													gap: 1,
-													alignItems: "center",
-												}}
-											>
+						<Box
+							key={stop.id}
+							sx={{
+								display: "flex",
+								gap: 1,
+								alignItems: "center",
+								width: "100%",
+							}}
+						>
 													<LocationAutocompleteField
 														value={stop.value}
 														onValueChange={(nextValue) => {
@@ -1170,8 +1208,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 																)
 															}
 														}}
-														sx={{
-															"& .MuiOutlinedInput-root": {
+							sx={{
+								flex: 1,
+								width: "100%",
+								"& .MuiOutlinedInput-root": {
 																borderRadius: 5,
 																bgcolor:
 																	theme.palette.mode === "light"
@@ -1248,47 +1288,6 @@ function EnterDestinationScreen(): React.JSX.Element {
 										/>
 									)}
 
-									{/* Date & Time Selector for Multi-Stop Mode */}
-									<Button
-										variant="outlined"
-										onClick={handleScheduleClick}
-										startIcon={
-											<CalendarTodayRoundedIcon
-												sx={{ fontSize: 18 }}
-											/>
-										}
-										endIcon={
-											<KeyboardArrowDownRoundedIcon
-												sx={{ fontSize: 18 }}
-											/>
-										}
-										sx={{
-											borderRadius: 5,
-											textTransform: "none",
-											borderColor:
-												theme.palette.mode === "light"
-													? "rgba(0,0,0,0.15)"
-													: "rgba(255,255,255,0.2)",
-											color: isScheduled
-												? "#4CAF50"
-												: theme.palette.text.primary,
-											bgcolor:
-												theme.palette.mode === "light"
-													? "rgba(0,0,0,0.05)"
-													: "rgba(255,255,255,0.05)",
-											"&:hover": {
-												borderColor: isScheduled
-													? "#4CAF50"
-													: accentGreen,
-												bgcolor: "rgba(3,205,140,0.1)",
-											},
-											justifyContent: "flex-start",
-										}}
-									>
-										{isScheduled
-											? `${schedule} – ${scheduleTime}`
-											: schedule}
-									</Button>
 								</>
 							)}
 						</Stack>
@@ -1326,59 +1325,28 @@ function EnterDestinationScreen(): React.JSX.Element {
 						}}
 					>
 						<CardContent sx={{ px: 2, py: 1.5 }}>
-							<FormControl fullWidth size="small">
-								<Select
-									value={
-										selectedContact
-											? `contact-${selectedContact.id}`
-											: rideType
-									}
-									onChange={(e) => {
-										const newValue = e.target.value;
-										if (newValue === "__add_contact__") {
-											setShowSwitchRiderModal(true);
-											return;
-										}
-										if (
-											newValue === "Personal" ||
-											newValue === "Business"
-										) {
-											setRideType(newValue);
-											setSelectedContact(null);
-											setRiderType("personal");
-										}
-									}}
-									renderValue={(value) => {
-										if (selectedContact) {
-											return (
-												<Box
-													sx={{
-														display: "flex",
-														alignItems: "center",
-														gap: 1,
-													}}
-												>
-													<Avatar
-														sx={{
-															width: 24,
-															height: 24,
-															bgcolor: "#4CAF50",
-															color: "#FFFFFF",
-															fontSize: 12,
-															fontWeight: 600,
-														}}
-													>
-														{
-															selectedContact.initials
-														}
-													</Avatar>
-													<Typography>
-														{selectedContact.name}
-													</Typography>
-												</Box>
-											);
-										}
-										return (
+							<Stack direction="row" spacing={1} alignItems="flex-end">
+								<FormControl fullWidth size="small">
+									<Typography sx={{ fontSize: 12, color: "#667085", mb: 0.6 }}>
+										Choose trip owner
+									</Typography>
+									<Select
+										value={tripOwnerChosen ? rideType : "__choose_owner__"}
+										displayEmpty
+										onChange={(e) => {
+											const newValue = e.target.value;
+											if (newValue === "__choose_owner__") {
+												setTripOwnerChosen(false);
+												return;
+											}
+											if (newValue === "Personal" || newValue === "Business") {
+												setRideType(newValue);
+												setSelectedContact(null);
+												setRiderType("personal");
+												setTripOwnerChosen(true);
+											}
+										}}
+										renderValue={(value) => (
 											<Box
 												sx={{
 													display: "flex",
@@ -1392,40 +1360,38 @@ function EnterDestinationScreen(): React.JSX.Element {
 														color: accentGreen,
 													}}
 												/>
-												<Typography>
-													{rideType}
+												<Typography sx={{ fontSize: 13.5 }}>
+													{tripOwnerChosen ? (value === "Business" ? "Organization" : value) : "Choose"}
 												</Typography>
 											</Box>
-										);
-									}}
-									sx={{
-										borderRadius: 5,
-										bgcolor:
-											theme.palette.mode === "light"
-												? "rgba(0,0,0,0.05)"
-												: "rgba(255,255,255,0.05)",
-										color: theme.palette.text.primary,
-										"& .MuiOutlinedInput-notchedOutline": {
-											borderColor:
+										)}
+										sx={{
+											borderRadius: 5,
+											bgcolor:
 												theme.palette.mode === "light"
-													? "rgba(0,0,0,0.15)"
-													: "rgba(255,255,255,0.2)",
-										},
-										"&:hover .MuiOutlinedInput-notchedOutline":
-											{
-												borderColor: accentGreen,
+													? "rgba(0,0,0,0.05)"
+													: "rgba(255,255,255,0.05)",
+											color: theme.palette.text.primary,
+											"& .MuiOutlinedInput-notchedOutline": {
+												borderColor:
+													theme.palette.mode === "light"
+														? "rgba(0,0,0,0.15)"
+														: "rgba(255,255,255,0.2)",
 											},
-										"&.Mui-focused .MuiOutlinedInput-notchedOutline":
-											{
-												borderColor: accentGreen,
-											},
-									}}
-								>
-									{selectedContact && (
-										<MenuItem
-											value={`contact-${selectedContact.id}`}
-											disabled
-										>
+											"&:hover .MuiOutlinedInput-notchedOutline":
+												{
+													borderColor: accentGreen,
+												},
+											"&.Mui-focused .MuiOutlinedInput-notchedOutline":
+												{
+													borderColor: accentGreen,
+												},
+										}}
+									>
+										<MenuItem value="__choose_owner__" disabled>
+											Choose
+										</MenuItem>
+										<MenuItem value="Personal">
 											<Box
 												sx={{
 													display: "flex",
@@ -1433,66 +1399,58 @@ function EnterDestinationScreen(): React.JSX.Element {
 													gap: 1,
 												}}
 											>
-												<Avatar
-													sx={{
-														width: 24,
-														height: 24,
-														bgcolor: "#4CAF50",
-														color: "#FFFFFF",
-														fontSize: 12,
-														fontWeight: 600,
-													}}
-												>
-													{selectedContact.initials}
-												</Avatar>
-												<Typography>
-													{selectedContact.name}
-												</Typography>
+												<PersonRoundedIcon
+													sx={{ fontSize: 18 }}
+												/>
+												Personal
 											</Box>
 										</MenuItem>
-									)}
-									<MenuItem value="Personal">
-										<Box
-											sx={{
-												display: "flex",
-												alignItems: "center",
-												gap: 1,
-											}}
-										>
-											<PersonRoundedIcon
-												sx={{ fontSize: 18 }}
-											/>
-											Personal
-										</Box>
-									</MenuItem>
-									<MenuItem value="Business">
-										<Box
-											sx={{
-												display: "flex",
-												alignItems: "center",
-												gap: 1,
-											}}
-										>
-											<DirectionsCarRoundedIcon
-												sx={{ fontSize: 18 }}
-											/>
-											Business
-										</Box>
-									</MenuItem>
-									<MenuItem value="__add_contact__">
-										<Box
-											sx={{
-												display: "flex",
-												alignItems: "center",
-												gap: 1,
-											}}
-										>
-											<PhoneIphoneRoundedIcon sx={{ fontSize: 18 }} />
-											Add Contact
-										</Box>
-									</MenuItem>
-								</Select>
-							</FormControl>
+										<MenuItem value="Business">
+											<Box
+												sx={{
+													display: "flex",
+													alignItems: "center",
+													gap: 1,
+												}}
+											>
+												<DirectionsCarRoundedIcon
+													sx={{ fontSize: 18 }}
+												/>
+												Organization
+											</Box>
+										</MenuItem>
+									</Select>
+								</FormControl>
+								<Button
+									variant="outlined"
+									onClick={handleScheduleClick}
+									startIcon={<CalendarTodayRoundedIcon sx={{ fontSize: 16 }} />}
+									sx={{
+										minWidth: 104,
+										height: 40,
+										borderRadius: 5,
+										textTransform: "none",
+										borderColor:
+											theme.palette.mode === "light"
+												? "rgba(0,0,0,0.15)"
+												: "rgba(255,255,255,0.2)",
+										color: isScheduled ? "#4CAF50" : theme.palette.text.primary,
+										bgcolor:
+											theme.palette.mode === "light"
+												? "rgba(0,0,0,0.05)"
+												: "rgba(255,255,255,0.05)",
+										"&:hover": {
+											borderColor: isScheduled ? "#4CAF50" : accentGreen,
+											bgcolor: "rgba(3,205,140,0.1)",
+										},
+										fontSize: 11.5,
+										px: 0.9,
+										whiteSpace: "nowrap",
+									}}
+								>
+									{isScheduled ? scheduleTime : schedule}
+								</Button>
+							</Stack>
 						</CardContent>
 					</Card>
 
@@ -1510,15 +1468,24 @@ function EnterDestinationScreen(): React.JSX.Element {
 					>
 						<CardContent sx={{ px: 2, py: 1.5 }}>
 							<FormControl fullWidth size="small">
+								<Typography sx={{ fontSize: 12, color: "#667085", mb: 0.6 }}>
+									Choose type of Trip
+								</Typography>
 								<Select
-									value={tripType}
+									value={tripTypeChosen ? tripType : "__choose_trip__"}
+									displayEmpty
 									onChange={(e) => {
 										const newValue = e.target.value;
+										if (newValue === "__choose_trip__") {
+											setTripTypeChosen(false);
+											return;
+										}
 										if (
 											newValue === "One Way" ||
 											newValue === "Round Trip"
 										) {
 											setTripType(newValue);
+											setTripTypeChosen(true);
 											setIsMultiStopMode(false);
 											if (newValue === "One Way") {
 												setReturnDate(null);
@@ -1527,6 +1494,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 											}
 										} else if (newValue === "Multi-stop") {
 											setTripType("Multi-stop");
+											setTripTypeChosen(true);
 											setIsMultiStopMode(true);
 											// Initialize stops if empty - convert current destination to first stop
 											if (stops.length === 0) {
@@ -1560,7 +1528,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 													color: accentGreen,
 												}}
 											/>
-											<Typography>{value}</Typography>
+											<Typography sx={{ fontSize: 13.5 }}>{tripTypeChosen ? value : "Choose"}</Typography>
 										</Box>
 									)}
 									sx={{
@@ -1580,13 +1548,16 @@ function EnterDestinationScreen(): React.JSX.Element {
 											{
 												borderColor: accentGreen,
 											},
-										"&.Mui-focused .MuiOutlinedInput-notchedOutline":
-											{
-												borderColor: accentGreen,
-											},
-									}}
-								>
-									<MenuItem value="One Way">
+											"&.Mui-focused .MuiOutlinedInput-notchedOutline":
+												{
+													borderColor: accentGreen,
+												},
+										}}
+									>
+										<MenuItem value="__choose_trip__" disabled>
+											Choose
+										</MenuItem>
+										<MenuItem value="One Way">
 										<Box
 											sx={{
 												display: "flex",
@@ -1780,19 +1751,16 @@ function EnterDestinationScreen(): React.JSX.Element {
 							>
 								Passengers
 							</Typography>
-							<Stack
-								direction="row"
-								spacing={1}
-								sx={{
-									flexWrap: "nowrap",
-									overflowX: "auto",
-									"&::-webkit-scrollbar": { display: "none" },
-									scrollbarWidth: "none",
-									mb: 1.5,
-								}}
-							>
-								{passengerOptions.map((pax: number) => (
-									<Chip
+								<Box
+									sx={{
+										display: "grid",
+										gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+										gap: 1,
+										mb: 1.5,
+									}}
+								>
+									{passengerOptions.map((pax: number) => (
+										<Chip
 										key={pax}
 										label={pax}
 										size="small"
@@ -1801,14 +1769,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 											setCustomPassengers("");
 										}}
 										sx={{
-											minWidth: 48,
-											width: 48,
-											height: 48,
-											borderRadius: 2,
-											fontSize: 14,
-											fontWeight: 600,
-											flexShrink: 0,
-											bgcolor:
+												width: "100%",
+												height: 44,
+												borderRadius: 2,
+												fontSize: 13,
+												fontWeight: 600,
+												bgcolor:
 												passengers === pax &&
 												!customPassengers
 													? lightGreen
@@ -1841,11 +1807,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 															  "light"
 															? "rgba(0,0,0,0.1)"
 															: "rgba(255,255,255,0.1)",
-											},
-										}}
-									/>
-								))}
-							</Stack>
+												},
+											}}
+										/>
+									))}
+								</Box>
 							<TextField
 								fullWidth
 								type="number"
@@ -1915,44 +1881,49 @@ function EnterDestinationScreen(): React.JSX.Element {
 							/>
 						</CardContent>
 					</Card>
+
+						<Typography sx={{ fontSize: 14, fontWeight: 700, color: "#101828", mb: 0.2 }}>
+							Choose ride type
+						</Typography>
+						<Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 1 }}>
+							{rideTypeCards.map((item) => (
+								<Card
+								key={item.id}
+								elevation={0}
+								onClick={() => setSelectedRideLevel(item.id)}
+								sx={{
+									borderRadius: 2.5,
+									border: selectedRideLevel === item.id ? "1.5px solid #12B76A" : "1px solid #E4E7EC",
+									bgcolor: selectedRideLevel === item.id ? "#F6FEF9" : "#FFFFFF",
+									cursor: "pointer"
+								}}
+								>
+									<CardContent sx={{ p: 1.1, textAlign: "center", "&:last-child": { pb: 1.1 } }}>
+										<Box component="img" src={item.image} alt={item.name} sx={{ width: "88%", mx: "auto", height: 74, objectFit: "contain", mb: 0.6, display: "block" }} />
+										<Typography sx={{ fontSize: 15, fontWeight: 700, color: "#101828", lineHeight: 1.2, textAlign: "center" }}>
+											{item.name}
+										</Typography>
+										<Typography sx={{ fontSize: 12, color: "#667085", mb: 0.3, textAlign: "center" }}>
+											{item.capacity} seats
+										</Typography>
+										<Typography sx={{ fontSize: 15, fontWeight: 700, color: "#12B76A", textAlign: "center" }}>
+											{item.price}
+										</Typography>
+									</CardContent>
+							</Card>
+						))}
+					</Box>
 				</Stack>
 
 				{/* Inline Action Section */}
-			<Box
-				sx={{
-					mt: 2,
-					bgcolor: contentBg,
-					border:
-						theme.palette.mode === "light"
-							? "1px solid rgba(0,0,0,0.08)"
-							: "1px solid rgba(255,255,255,0.1)",
-					borderRadius: 2,
-					px: 2,
-					py: 1.5,
-				}}
-			>
-				{/* Test Navigation to Sharing Passengers Screen - Remove in production */}
-				<Button
-					fullWidth
-					onClick={() => navigate("/rides/trip/sharing")}
+				<Box
 					sx={{
-						mb: 1,
-						color: accentGreen,
-						textTransform: "none",
-						fontSize: 12,
-						fontWeight: 600,
-						border: "1px solid #03CD8C",
-						borderRadius: 2,
-						py: 0.6,
-						"&:hover": {
-							bgcolor: "rgba(3,205,140,0.1)",
-						},
+						mt: 1.5,
+						px: 0.5,
+						pt: 0.75,
+						pb: 0.4,
 					}}
-					startIcon={<GroupRoundedIcon />}
 				>
-					View Sharing Passengers (Test)
-				</Button>
-
 				{/* Continue Button */}
 				<Button
 					fullWidth
@@ -1963,18 +1934,22 @@ function EnterDestinationScreen(): React.JSX.Element {
 					}}
 					disabled={!canSubmit}
 					sx={{
-						borderRadius: 2,
-						py: 0.9,
-						fontSize: 13.5,
-						fontWeight: 600,
+						borderRadius: 99,
+						py: 1.15,
+						fontSize: 16,
+						fontWeight: 700,
 						textTransform: "none",
-						bgcolor: canSubmit ? "#000000" : "rgba(0,0,0,0.2)",
+						bgcolor: canSubmit ? undefined : "rgba(0,0,0,0.2)",
+						background: canSubmit
+							? "linear-gradient(92deg, #12B76A 0%, #6FBF3A 52%, #F79009 100%)"
+							: undefined,
 						color: "#FFFFFF",
 						boxShadow: "none",
 						"&:hover": {
-							bgcolor: canSubmit
-								? "#333333"
-								: "rgba(0,0,0,0.3)",
+							background: canSubmit
+								? "linear-gradient(92deg, #0EA75F 0%, #65AE34 52%, #E98607 100%)"
+								: undefined,
+							bgcolor: canSubmit ? undefined : "rgba(0,0,0,0.3)",
 							boxShadow: "none",
 						},
 						"&.Mui-disabled": {
@@ -1983,8 +1958,13 @@ function EnterDestinationScreen(): React.JSX.Element {
 							opacity: 1,
 						},
 					}}
+					endIcon={
+						<Box sx={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px solid rgba(255,255,255,0.95)", display: "grid", placeItems: "center" }}>
+							<ArrowForwardRoundedIcon sx={{ fontSize: 16 }} />
+						</Box>
+					}
 				>
-					Continue
+					Continue to options
 				</Button>
 			</Box>
 					</Box>
