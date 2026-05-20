@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Avatar,
@@ -34,8 +34,37 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const [arrivalTime, setArrivalTime] = useState(activeTrip?.etaMinutes ?? 5);
   const [chatOpen, setChatOpen] = useState(false);
   const [driverProgress, setDriverProgress] = useState(0.82);
+  const companyOrange = "#F79009";
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const driverLocation = getApproachPoint(routePolyline, driverProgress);
+  const routeSummary = useMemo(() => {
+    const distance = sharedLocationState.routeDistanceKm;
+    const duration = sharedLocationState.routeDurationMin;
+    if (!distance || !duration) return null;
+    const distanceLabel =
+      distance >= 100
+        ? `${Math.round(distance)} km`
+        : distance >= 10
+          ? `${distance.toFixed(1)} km`
+          : `${distance.toFixed(2)} km`;
+    const durationLabel =
+      duration < 60
+        ? `${Math.max(1, Math.round(duration))} min`
+        : `${Math.floor(duration / 60)} hr ${Math.round(duration % 60)} min`;
+    return `${distanceLabel} • ${durationLabel}`;
+  }, [sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
+  const vehicleImage = useMemo(() => {
+    const model = (vehicle?.model ?? "").toLowerCase();
+    if (model.includes("suv")) return "/rental-ui/car-suv.svg";
+    if (model.includes("van")) return "/rental-ui/car-van.svg";
+    if (model.includes("scooter")) return "/rides-ui/hero-scooter.svg";
+    return "/rental-ui/car-city.svg";
+  }, [vehicle?.model]);
+  const callTarget = useMemo(() => {
+    const raw = driver?.phone || "+256700000000";
+    const cleaned = raw.replace(/[^\d+]/g, "");
+    return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
+  }, [driver?.phone]);
 
   useEffect(() => {
     setRideStatus("driver_on_way");
@@ -78,8 +107,14 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   };
 
   const handleCall = () => {
-    if (driver?.phone) {
-      window.location.href = `tel:${driver.phone}`;
+    const href = `tel:${callTarget}`;
+    try {
+      const opened = window.open(href, "_self");
+      if (!opened) {
+        window.location.href = href;
+      }
+    } catch {
+      window.location.href = href;
     }
   };
 
@@ -106,11 +141,17 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
         containerSx={topMapBleedSx}
         mapHeight={{ xs: "52dvh", md: "54vh" }}
         expandedMapHeight={{ xs: "78dvh", md: "76vh" }}
+        buttonOffsetCollapsed={8}
+        buttonOffsetExpanded={14}
+        detailsWrapperSx={{
+          mt: 1.5
+        }}
         map={
           <MapShell
             preset="compact"
             sx={{ height: "100%" }}
             showControls={false}
+            showRouteInfo={false}
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
             driverLocation={driverLocation}
@@ -123,6 +164,24 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
         }
         details={
           <>
+            {routeSummary && (
+              <Box sx={{ pt: 0.25, pb: 0.6, display: "flex", justifyContent: "flex-start" }}>
+                <Box
+                  sx={{
+                    px: 1.8,
+                    py: 0.75,
+                    borderRadius: "999px",
+                    bgcolor: "#0B1530",
+                    border: `1px solid ${companyOrange}`,
+                    color: "#F8FAFC",
+                    fontWeight: 700,
+                    fontSize: 13
+                  }}
+                >
+                  {routeSummary}
+                </Box>
+              </Box>
+            )}
             <Box sx={{ pt: 0.5 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
                 Driver is on the way
@@ -170,10 +229,26 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
                     </Box>
                   </Stack>
                   <Stack direction="row" spacing={0.5}>
-                    <IconButton size="small" onClick={handleCall}>
+                    <IconButton
+                      size="small"
+                      onClick={handleCall}
+                      component="a"
+                      href={`tel:${callTarget}`}
+                      sx={{
+                        border: `1px solid rgba(247, 144, 9, 0.35)`,
+                        color: companyOrange
+                      }}
+                    >
                       <PhoneRoundedIcon sx={{ fontSize: 18 }} />
                     </IconButton>
-                    <IconButton size="small" onClick={() => setChatOpen(true)}>
+                    <IconButton
+                      size="small"
+                      onClick={() => setChatOpen(true)}
+                      sx={{
+                        border: "1px solid rgba(3, 205, 140, 0.35)",
+                        color: "#03CD8C"
+                      }}
+                    >
                       <MessageRoundedIcon sx={{ fontSize: 18 }} />
                     </IconButton>
                   </Stack>
@@ -196,16 +271,34 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
                 <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
                   Vehicle details
                 </Typography>
-                <Stack spacing={0.7} sx={{ mt: 0.8 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    Number plate: {vehicle?.plate ?? "UAX 278C"}
-                  </Typography>
-                  <Typography variant="body2">
-                    Model: {vehicle?.model ?? "Tesla Model 3"}
-                  </Typography>
-                  <Typography variant="body2">
-                    Color: {vehicle?.color ?? "Pearl White"}
-                  </Typography>
+                <Stack direction="row" spacing={1.25} sx={{ mt: 0.8 }} alignItems="center">
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack spacing={0.7}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        Number plate: {vehicle?.plate ?? "UAX 278C"}
+                      </Typography>
+                      <Typography variant="body2">
+                        Model: {vehicle?.model ?? "Tesla Model 3"}
+                      </Typography>
+                      <Typography variant="body2">
+                        Color: {vehicle?.color ?? "Pearl White"}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                  <Box
+                    component="img"
+                    src={vehicleImage}
+                    alt={vehicle?.model ?? "Vehicle"}
+                    sx={{
+                      width: 84,
+                      height: 56,
+                      objectFit: "contain",
+                      borderRadius: 1.5,
+                      bgcolor: "rgba(247, 144, 9, 0.08)",
+                      border: "1px solid rgba(247, 144, 9, 0.2)",
+                      p: 0.4
+                    }}
+                  />
                 </Stack>
               </CardContent>
             </Card>
@@ -215,6 +308,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
               sx={{
                 borderRadius: uiTokens.radius.sm,
                 bgcolor: "#1E3A5F",
+                border: `1px solid ${companyOrange}`,
                 overflow: "hidden"
               }}
             >

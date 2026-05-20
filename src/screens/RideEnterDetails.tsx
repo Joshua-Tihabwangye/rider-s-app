@@ -250,19 +250,17 @@ function EnterDestinationScreen(): React.JSX.Element {
 				  }))
 				: []),
 	);
-	const [isMultiStopMode, setIsMultiStopMode] = useState(
-		initialState.isMultiStopMode || tripType === "Multi-stop",
-	);
 	const [selectedRideLevel, setSelectedRideLevel] = useState(
 		initialState.serviceLevel || ride.request.serviceLevel || ride.options[0]?.id || "scooter",
 	);
 	const MAX_STOPS = 6; // Allow up to 6 stops in multi-stop mode
+	const isMultiStopMode = tripTypeChosen && tripType === "Multi-stop";
 
 	const rideTypeCards = ride.options.slice(0, 3).map((option, index) => ({
 		id: option.id,
 		name:
 			index === 0 ? "EV Lite" : index === 1 ? "EV Comfort" : "EV XL",
-		capacity: option.capacity ?? (index === 0 ? 1 : index === 1 ? 3 : 6),
+		capacity: index === 0 ? 1 : index === 1 ? 4 : 7,
 		image:
 			index === 0
 				? "/rides-ui/hero-scooter.svg"
@@ -669,7 +667,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 			bookedPersonPhone: bookedPersonPhone.trim(),
 		};
 
-		navigate("/rides/options", {
+		navigate("/rides/searching", {
 			state: tripState,
 		});
 	};
@@ -896,24 +894,28 @@ function EnterDestinationScreen(): React.JSX.Element {
 				<SmoothHeightPanel open>
 					<Box
 						sx={{
-							pt: 2.5,
-							mt: -1.5,
-							bgcolor: contentBg,
-							borderTopLeftRadius: 28,
-							borderTopRightRadius: 28,
-							borderTop: "1px solid #EAECF0",
-							px: { xs: 1, md: 1.5 }
+							pt: 1.25,
+							mt: 0,
+							bgcolor: "transparent",
+							borderTopLeftRadius: 0,
+							borderTopRightRadius: 0,
+							borderTop: "none",
+							px: {
+								xs: 0.75,
+								md: 1.5,
+							},
 						}}
 					>
 				<Card
-				elevation={0}
-				sx={{
-					borderRadius: 4,
-					bgcolor: contentBg,
-					border: "1px solid #E4E7EC",
-					boxShadow: "0 2px 8px rgba(16,24,40,0.06)",
-				}}
-			>
+					elevation={0}
+					sx={{
+						borderRadius: 4,
+						bgcolor: contentBg,
+						border: "1px solid #E4E7EC",
+						boxShadow: "0 2px 8px rgba(16,24,40,0.06)",
+						mb: "5px",
+					}}
+				>
 					<CardContent sx={{ px: 2, py: 2 }}>
 						<Stack spacing={2}>
 							{/* Origin Field with Green Pin */}
@@ -1068,9 +1070,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 													)
 												}
 											}}
-										sx={{
-											flex: 1,
-											"& .MuiOutlinedInput-root": {
+											sx={{
+												flex: 1,
+												"& .MuiOutlinedInput-root": {
 												borderRadius: 5,
 												bgcolor:
 													theme.palette.mode === "light"
@@ -1086,12 +1088,18 @@ function EnterDestinationScreen(): React.JSX.Element {
 												"&:hover fieldset": {
 													borderColor: accentGreen
 												},
-												"&.Mui-focused fieldset": {
-													borderColor: accentGreen
+													"&.Mui-focused fieldset": {
+														borderColor: accentGreen
+													}
+												},
+												"& .MuiInputAdornment-positionStart": {
+													mr: 0.35
+												},
+												"& .MuiInputBase-input": {
+													pl: 0
 												}
-											}
-											}}
-										/>
+												}}
+											/>
 									</Box>
 								)}
 
@@ -1208,10 +1216,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 																)
 															}
 														}}
-							sx={{
-								flex: 1,
-								width: "100%",
-								"& .MuiOutlinedInput-root": {
+								sx={{
+									flex: 1,
+									width: "100%",
+									"& .MuiOutlinedInput-root": {
 																borderRadius: 5,
 																bgcolor:
 																	theme.palette.mode === "light"
@@ -1230,6 +1238,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 																"&.Mui-focused fieldset": {
 																	borderColor: accentGreen
 																}
+															},
+															"& .MuiInputAdornment-positionStart": {
+																mr: 0.35
+															},
+															"& .MuiInputBase-input": {
+																pl: 0
 															}
 														}}
 													/>
@@ -1311,7 +1325,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 				)}
 
 				{/* Trip Type Options */}
-				<Stack spacing={1.5} sx={{ mb: 2 }}>
+					<Stack spacing={1.5} sx={{ mb: 2, mt: "5px" }}>
 					{/* Ride Type Dropdown */}
 					<Card
 						elevation={0}
@@ -1474,29 +1488,28 @@ function EnterDestinationScreen(): React.JSX.Element {
 								<Select
 									value={tripTypeChosen ? tripType : "__choose_trip__"}
 									displayEmpty
-									onChange={(e) => {
-										const newValue = e.target.value;
-										if (newValue === "__choose_trip__") {
-											setTripTypeChosen(false);
-											return;
-										}
+										onChange={(e) => {
+											const newValue = e.target.value;
+											if (newValue === "__choose_trip__") {
+												setTripTypeChosen(false);
+												setTripType("One Way");
+												return;
+											}
 										if (
 											newValue === "One Way" ||
 											newValue === "Round Trip"
-										) {
-											setTripType(newValue);
-											setTripTypeChosen(true);
-											setIsMultiStopMode(false);
-											if (newValue === "One Way") {
-												setReturnDate(null);
-												setReturnTime(null);
-												setReturnDateTime(null);
-											}
-										} else if (newValue === "Multi-stop") {
-											setTripType("Multi-stop");
-											setTripTypeChosen(true);
-											setIsMultiStopMode(true);
-											// Initialize stops if empty - convert current destination to first stop
+											) {
+												setTripType(newValue);
+												setTripTypeChosen(true);
+												if (newValue === "One Way") {
+													setReturnDate(null);
+													setReturnTime(null);
+													setReturnDateTime(null);
+												}
+											} else if (newValue === "Multi-stop") {
+												setTripType("Multi-stop");
+												setTripTypeChosen(true);
+												// Initialize stops if empty - convert current destination to first stop
 											if (stops.length === 0) {
 												if (destination.trim()) {
 													setStops([
@@ -1885,7 +1898,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 						<Typography sx={{ fontSize: 14, fontWeight: 700, color: "#101828", mb: 0.2 }}>
 							Choose ride type
 						</Typography>
-						<Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 1 }}>
+						<Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 1, width: "100%" }}>
 							{rideTypeCards.map((item) => (
 								<Card
 								key={item.id}
@@ -1919,7 +1932,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 				<Box
 					sx={{
 						mt: 1.5,
-						px: 0.5,
+						px: 0,
 						pt: 0.75,
 						pb: 0.4,
 					}}

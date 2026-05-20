@@ -124,7 +124,7 @@ export default function LocationAutocompleteField({
             ...textFieldProps?.InputProps,
             startAdornment: (
               <>
-                <InputAdornment position="start" sx={{ mr: 0.5 }}>
+                <InputAdornment position="start" sx={{ mr: 0.25 }}>
                   {customStartAdornment ?? (
                     <SearchRoundedIcon sx={{ fontSize: 19, color: "text.secondary" }} />
                   )}
@@ -136,7 +136,7 @@ export default function LocationAutocompleteField({
               <>
                 {loading ? <CircularProgress color="inherit" size={18} /> : null}
                 {customEndAdornment}
-                {params.InputProps.endAdornment}
+                {!customEndAdornment ? params.InputProps.endAdornment : null}
               </>
             )
           }}

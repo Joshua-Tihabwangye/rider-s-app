@@ -218,7 +218,8 @@ export const SEED_SETTINGS: SettingsState = {
     quietRide: false,
     temperature: "Normal",
     luggageAssistance: true,
-    accessibilityNeeds: false
+    accessibilityNeeds: false,
+    womenDriverPreferred: false
   },
   delivery: {
     callBeforeDropoff: true,

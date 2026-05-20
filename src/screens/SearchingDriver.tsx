@@ -236,7 +236,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
             Keep searching
           </Button>
           <Button
-            onClick={() => navigate("/rides/options")}
+            onClick={() => navigate("/rides/enter/details")}
             variant="contained"
             sx={{ textTransform: "none", bgcolor: "#EF4444", "&:hover": { bgcolor: "#DC2626" } }}
           >

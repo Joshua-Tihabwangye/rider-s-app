@@ -112,6 +112,7 @@ export interface RidePreferences {
   temperature: "Cool" | "Normal" | "Warm";
   luggageAssistance: boolean;
   accessibilityNeeds: boolean;
+  womenDriverPreferred: boolean;
 }
 
 export interface DeliveryPreferences {

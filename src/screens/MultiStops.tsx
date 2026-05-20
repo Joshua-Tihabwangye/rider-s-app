@@ -177,10 +177,10 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 			return;
 		}
 
-		navigate("/rides/options", {
-			state: {
-				pickup,
-				stops: stops.filter((stop: Stop) => stop.value.trim() !== ""),
+			navigate("/rides/enter/details", {
+				state: {
+					pickup,
+					stops: stops.filter((stop: Stop) => stop.value.trim() !== ""),
 				rideType,
 				tripDirection,
 				passengers,

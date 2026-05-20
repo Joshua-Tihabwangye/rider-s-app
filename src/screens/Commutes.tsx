@@ -187,7 +187,7 @@ function CommuteCard(): React.JSX.Element {
             size="small"
             onClick={(e) => {
               e.stopPropagation();
-              navigate("/rides/options");
+              navigate("/rides/enter/details");
             }}
             sx={{
               borderRadius: 5,

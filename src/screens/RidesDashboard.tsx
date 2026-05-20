@@ -1305,7 +1305,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               <Card
                 key={item.id}
                 elevation={0}
-                onClick={() => navigate("/rides/options", { state: { selectedRide: item.id } })}
+                onClick={() => navigate("/rides/enter/details", { state: { selectedRide: item.id } })}
                 sx={{
                   borderRadius: 2.5,
                   border: idx === 0 ? "2px solid #11B86A" : "1px solid #E4E7EC",

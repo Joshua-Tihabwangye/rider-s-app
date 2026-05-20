@@ -48,7 +48,7 @@ function SwitchRiderChooserScreen(): React.JSX.Element {
       return;
     }
 
-    navigate("/rides/options", {
+    navigate("/rides/enter/details", {
       state: {
         ...initialState,
         riderType: "personal"

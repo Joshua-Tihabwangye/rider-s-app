@@ -24,7 +24,6 @@ import RoundTripDetails from "../screens/RoundTripDetails";
 import QuickPreferences from "../screens/QuickPreferences";
 import SetupPreferences from "../screens/SetupPreferences";
 import DriverPreferences from "../screens/DriverPreferences";
-import RideOptions from "../screens/RideOptions";
 import Payment from "../screens/Payment";
 import PaymentGatewayFlow, { PaymentSuccessScreen } from "../screens/PaymentGatewayFlow";
 import SearchingDriver from "../screens/SearchingDriver";
@@ -206,7 +205,7 @@ export default function AppRouter(): React.JSX.Element {
 						path="preferences/driver"
 						element={<DriverPreferences />}
 					/>
-					<Route path="options" element={<RideOptions />} />
+					<Route path="options" element={<Navigate to="/rides/enter/details" replace />} />
 					<Route path="payment" element={<Payment />} />
 					<Route path="payment/gateway/:gatewayId" element={<PaymentGatewayFlow />} />
 					<Route path="payment/success" element={<PaymentSuccessScreen />} />
