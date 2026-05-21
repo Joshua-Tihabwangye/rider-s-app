@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Chip,
@@ -37,6 +37,33 @@ const AUTO_ADD_STOP_TRIGGER_MS = 15_000;
 const AUTO_CONTINUE_REQUEST_TRIGGER_MS = 15_000;
 const START_PROGRESS_PERCENT = 40;
 const START_DISTANCE_KM = 22;
+const SIMULATION_MS_PER_LEG_MIN = 4_500;
+
+function normalizeLegDuration(etaMinutes?: number): number {
+  return Math.max(3, Math.round(etaMinutes ?? 6));
+}
+
+function areLegsEquivalent(
+  current:
+    | Array<{ id: string; status: string; startedAt?: string; completedAt?: string }>
+    | undefined,
+  next:
+    | Array<{ id: string; status: string; startedAt?: string; completedAt?: string }>
+    | undefined
+): boolean {
+  if (!current && !next) return true;
+  if (!current || !next) return false;
+  if (current.length !== next.length) return false;
+  return current.every((leg, index) => {
+    const target = next[index];
+    return (
+      leg.id === target.id &&
+      leg.status === target.status &&
+      leg.startedAt === target.startedAt &&
+      leg.completedAt === target.completedAt
+    );
+  });
+}
 
 function parseDistanceKm(value?: string): number {
   const parsed = Number.parseFloat((value ?? "").replace(/[^\d.]/g, ""));
@@ -60,16 +87,21 @@ function formatRemainingDuration(ms: number): string {
 
 function TripInProgressBasicScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
   const { ride, sharedLocationState, actions } = useAppData();
   const {
     markTemporaryStopContinuePromptShown,
     resumeTripAfterTemporaryStop,
+    setActiveTrip,
     setRideStatus,
     simulateDriverAddStopRequest,
     updateRideTrip,
     updateSharedLocationState
   } = actions;
   const activeTrip = ride.activeTrip;
+  const isFromDriverVerification = Boolean(
+    (location.state as { fromDriverVerification?: boolean } | null)?.fromDriverVerification
+  );
   const temporaryStop = ride.temporaryStop;
   const safetyCheck = ride.safetyCheck;
   const isSafetyCheckPending = safetyCheck?.status === "safety_check_pending";
@@ -77,6 +109,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   const [showContinueTripDialog, setShowContinueTripDialog] = useState(false);
   const [hasAutoSimulatedStopRequest, setHasAutoSimulatedStopRequest] = useState(false);
   const [driverProgress, setDriverProgress] = useState(0);
+  const hasHandledReloadResetRef = useRef(false);
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const isTripPaused =
     temporaryStop?.status === "paused_at_stop";
@@ -87,6 +120,62 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     parseDistanceKm(activeTrip?.distance) ??
     START_DISTANCE_KM;
   const totalFareDisplay = activeTrip?.fareEstimate || "UGX 0";
+
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === "undefined") {
+      return;
+    }
+    if (hasHandledReloadResetRef.current) {
+      return;
+    }
+    // Preserve active trip state when we have an actual trip context,
+    // especially when entering from Driver Arrived -> Start trip.
+    if (
+      isFromDriverVerification ||
+      Boolean(activeTrip?.startedAt) ||
+      activeTrip?.status === "in_progress" ||
+      activeTrip?.status === "ongoing"
+    ) {
+      return;
+    }
+    const navigationEntries = window.performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
+    const isReloadNavigation =
+      navigationEntries[0]?.type === "reload" ||
+      ((window.performance as Performance & { navigation?: { type?: number } }).navigation?.type === 1);
+    if (!isReloadNavigation) {
+      return;
+    }
+    hasHandledReloadResetRef.current = true;
+
+    setActiveTrip(null);
+    updateSharedLocationState({
+      driverLocation: null,
+      routePolyline: [],
+      routeAlternativePolylines: [],
+      routeDistanceKm: null,
+      routeDurationMin: null
+    });
+    setRideStatus("idle");
+    navigate("/rides/enter/details", { replace: true, state: { resetFromRefresh: true } });
+  }, [
+    activeTrip?.startedAt,
+    activeTrip?.status,
+    isFromDriverVerification,
+    navigate,
+    setActiveTrip,
+    setRideStatus,
+    updateSharedLocationState
+  ]);
+  const tripLegs = activeTrip?.legs ?? [];
+  const legDurationWeight = useMemo(
+    () => tripLegs.reduce((sum, leg) => sum + normalizeLegDuration(leg.etaMinutes), 0),
+    [tripLegs]
+  );
+  const tripSimulationDurationMs = useMemo(() => {
+    if (tripLegs.length === 0) return TRIP_SIMULATION_DURATION_MS;
+    const dynamicDuration = legDurationWeight * SIMULATION_MS_PER_LEG_MIN;
+    return Math.max(TRIP_SIMULATION_DURATION_MS, dynamicDuration);
+  }, [legDurationWeight, tripLegs.length]);
   const compactRouteLabel = useMemo(() => {
     const distance = sharedLocationState.routeDistanceKm;
     const duration = sharedLocationState.routeDurationMin;
@@ -115,7 +204,10 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   }, [driverProgress, routePolyline, sharedLocationState.destinationCoords, sharedLocationState.pickupCoords]);
 
   useEffect(() => {
-    if (!activeTrip?.startedAt) {
+    if (!activeTrip) {
+      return;
+    }
+    if (!activeTrip.startedAt) {
       updateRideTrip({ startedAt: new Date().toISOString() });
       return;
     }
@@ -195,11 +287,66 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   }, [clockNowMs, isTripPaused, temporaryStop?.pauseStartedAt, temporaryStop?.totalPausedDurationMs, tripStartMs]);
 
   const tripElapsedLabel = formatElapsedDuration(tripElapsedMs);
-  const simProgressRatio = Math.min(1, tripElapsedMs / TRIP_SIMULATION_DURATION_MS);
+  const simProgressRatio = Math.min(1, tripElapsedMs / tripSimulationDurationMs);
+  const legProgress = useMemo(() => {
+    if (tripLegs.length === 0) {
+      return {
+        activeLegIndex: 0,
+        activeLegRatio: simProgressRatio,
+        completedLegCount: simProgressRatio >= 1 ? 1 : 0
+      };
+    }
+    const targetWeight = legDurationWeight * simProgressRatio;
+    let cumulativeWeight = 0;
+    let completedLegCount = 0;
+    let activeLegIndex = tripLegs.length - 1;
+    let activeLegRatio = simProgressRatio >= 1 ? 1 : 0;
+
+    for (let index = 0; index < tripLegs.length; index += 1) {
+      const legWeight = normalizeLegDuration(tripLegs[index]?.etaMinutes);
+      const legStartWeight = cumulativeWeight;
+      const legEndWeight = cumulativeWeight + legWeight;
+      if (targetWeight >= legEndWeight) {
+        completedLegCount += 1;
+        cumulativeWeight = legEndWeight;
+        activeLegIndex = Math.min(index + 1, tripLegs.length - 1);
+        activeLegRatio = 0;
+        continue;
+      }
+      activeLegIndex = index;
+      activeLegRatio = Math.max(0, Math.min(1, (targetWeight - legStartWeight) / legWeight));
+      break;
+    }
+
+    if (simProgressRatio >= 1) {
+      completedLegCount = tripLegs.length;
+      activeLegIndex = Math.max(0, tripLegs.length - 1);
+      activeLegRatio = 1;
+    }
+
+    return {
+      activeLegIndex,
+      activeLegRatio,
+      completedLegCount
+    };
+  }, [legDurationWeight, simProgressRatio, tripLegs]);
   const progress = START_PROGRESS_PERCENT + simProgressRatio * (100 - START_PROGRESS_PERCENT);
-  const distanceCovered = START_DISTANCE_KM + simProgressRatio * (totalDistance - START_DISTANCE_KM);
-  const remainingSimulationMs = Math.max(0, TRIP_SIMULATION_DURATION_MS - tripElapsedMs);
+  const distanceCovered = useMemo(() => {
+    if (tripLegs.length === 0) {
+      return START_DISTANCE_KM + simProgressRatio * (totalDistance - START_DISTANCE_KM);
+    }
+    const completedDistance = tripLegs.reduce((sum, leg, index) => {
+      if (index < legProgress.completedLegCount) {
+        return sum + (leg.distanceKm ?? 0);
+      }
+      return sum;
+    }, 0);
+    const activeDistance = tripLegs[legProgress.activeLegIndex]?.distanceKm ?? 0;
+    return completedDistance + activeDistance * legProgress.activeLegRatio;
+  }, [legProgress.activeLegIndex, legProgress.activeLegRatio, legProgress.completedLegCount, simProgressRatio, totalDistance, tripLegs]);
+  const remainingSimulationMs = Math.max(0, tripSimulationDurationMs - tripElapsedMs);
   const remainingSimulationLabel = formatRemainingDuration(remainingSimulationMs);
+  const activeLeg = tripLegs[legProgress.activeLegIndex];
 
   useEffect(() => {
     if (!activeTrip?.id) return;
@@ -217,9 +364,93 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   ]);
 
   useEffect(() => {
+    if (!activeTrip?.id || tripLegs.length === 0) return;
+    const nowIso = new Date().toISOString();
+    const allCompleted = simProgressRatio >= 1;
+    const nextLegs = tripLegs.map((leg, index) => {
+      if (allCompleted || index < legProgress.completedLegCount) {
+        return {
+          ...leg,
+          status: "completed" as const,
+          startedAt: leg.startedAt ?? nowIso,
+          completedAt: leg.completedAt ?? nowIso
+        };
+      }
+      if (index === legProgress.activeLegIndex) {
+        return {
+          ...leg,
+          status: "in_progress" as const,
+          startedAt: leg.startedAt ?? nowIso,
+          completedAt: undefined
+        };
+      }
+      return {
+        ...leg,
+        status: "pending" as const,
+        completedAt: undefined
+      };
+    });
+    const nextCurrentLegIndex = allCompleted
+      ? Math.max(0, tripLegs.length - 1)
+      : legProgress.activeLegIndex;
+    const nextRemainingLegs = allCompleted
+      ? 0
+      : Math.max(1, tripLegs.length - legProgress.completedLegCount);
+    const currentLeg = nextLegs[nextCurrentLegIndex];
+    const currentRouteSummary =
+      currentLeg && !allCompleted
+        ? `${currentLeg.from.label || currentLeg.from.address} → ${currentLeg.to.label || currentLeg.to.address} (${nextCurrentLegIndex + 1}/${tripLegs.length})`
+        : activeTrip.routeSummary;
+
+    const didLegsChange = !areLegsEquivalent(
+      activeTrip.legs?.map((leg) => ({
+        id: leg.id,
+        status: leg.status,
+        startedAt: leg.startedAt,
+        completedAt: leg.completedAt
+      })),
+      nextLegs.map((leg) => ({
+        id: leg.id,
+        status: leg.status,
+        startedAt: leg.startedAt,
+        completedAt: leg.completedAt
+      }))
+    );
+
+    if (
+      !didLegsChange &&
+      activeTrip.currentLegIndex === nextCurrentLegIndex &&
+      activeTrip.remainingLegs === nextRemainingLegs &&
+      activeTrip.isReturnLeg === Boolean(currentLeg?.isReturnLeg)
+    ) {
+      return;
+    }
+
+    updateRideTrip({
+      legs: nextLegs,
+      currentLegIndex: nextCurrentLegIndex,
+      remainingLegs: nextRemainingLegs,
+      isReturnLeg: Boolean(currentLeg?.isReturnLeg),
+      routeSummary: currentRouteSummary
+    });
+  }, [
+    activeTrip?.currentLegIndex,
+    activeTrip?.id,
+    activeTrip?.isReturnLeg,
+    activeTrip?.legs,
+    activeTrip?.remainingLegs,
+    activeTrip?.routeSummary,
+    legProgress.activeLegIndex,
+    legProgress.completedLegCount,
+    simProgressRatio,
+    tripLegs,
+    updateRideTrip
+  ]);
+
+  useEffect(() => {
     if (!activeTrip?.id) return;
     if (isTripPaused || isAddStopRequested) return;
-    if (tripElapsedMs < TRIP_SIMULATION_DURATION_MS) return;
+    if (tripElapsedMs < tripSimulationDurationMs) return;
     updateRideTrip({
       status: "completed",
       completedAt: new Date().toISOString()
@@ -232,11 +463,13 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         estimatedTime: "1 min 30 sec",
         totalFare: totalFareDisplay,
         fare: totalFareDisplay,
-        distance: `${totalDistance} km`
+        distance: `${totalDistance.toFixed(1)} km`,
+        stops: activeTrip?.routePoints ?? []
       }
     });
   }, [
     activeTrip?.id,
+    activeTrip?.routePoints,
     isAddStopRequested,
     isTripPaused,
     navigate,
@@ -244,6 +477,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     totalDistance,
     totalFareDisplay,
     tripElapsedMs,
+    tripSimulationDurationMs,
     updateRideTrip
   ]);
 
@@ -324,7 +558,8 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         estimatedTime: "1 min 30 sec",
         totalFare: totalFareDisplay,
         fare: totalFareDisplay,
-        distance: `${totalDistance} km`
+        distance: `${totalDistance.toFixed(1)} km`,
+        stops: activeTrip?.routePoints ?? []
       }
     });
   };
@@ -400,7 +635,12 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {routePolyline.length > 1 ? activeTrip?.routeSummary ?? "Trip in progress" : "Select pickup and destination first."}
+            {activeTrip?.routeSummary ??
+              (activeLeg
+                ? `${activeLeg.from.label || activeLeg.from.address} → ${activeLeg.to.label || activeLeg.to.address}`
+                : routePolyline.length > 1
+                  ? "Trip in progress"
+                  : "Select pickup and destination first.")}
           </Typography>
           <Stack direction="row" spacing={1}>
             {temporaryStop?.status === "idle" && (
@@ -419,6 +659,12 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             )}
           </Stack>
         </Box>
+        {tripLegs.length > 1 && (
+          <Typography variant="caption" sx={{ color: "text.secondary", mt: 0.45, display: "block" }}>
+            Leg {Math.min(tripLegs.length, legProgress.activeLegIndex + 1)} of {tripLegs.length}
+            {activeLeg?.isReturnLeg ? " • Return leg" : ""}
+          </Typography>
+        )}
         {isTripPaused && (
           <Box
             sx={{
@@ -530,6 +776,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                 }}
               >
                   Estimated remaining trip simulation time: {remainingSimulationLabel}
+                  {tripLegs.length > 1 ? ` • ${Math.max(0, tripLegs.length - legProgress.completedLegCount)} legs left` : ""}
                 </Typography>
 
               {/* Progress bar with car icon */}
@@ -576,7 +823,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                   Distance
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 13 }}>
-                  {totalDistance} Km total
+                  {totalDistance.toFixed(1)} Km total
                 </Typography>
               </Box>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -584,7 +831,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                   Distance Covered
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 13 }}>
-                  {Math.round(distanceCovered)} Km completed
+                  {distanceCovered.toFixed(1)} Km completed
                 </Typography>
               </Box>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

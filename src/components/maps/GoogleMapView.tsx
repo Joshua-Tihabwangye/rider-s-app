@@ -123,18 +123,6 @@ function isValidPoint(point: MapPoint | null | undefined): point is MapPoint {
   );
 }
 
-function pointsEqual(a: MapPoint, b: MapPoint): boolean {
-  return a.lat === b.lat && a.lng === b.lng;
-}
-
-function routesEqual(a: MapPoint[], b: MapPoint[]): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i += 1) {
-    if (!pointsEqual(a[i], b[i])) return false;
-  }
-  return true;
-}
-
 function splitRouteByProgress(route: MapPoint[], progress: number): { completed: MapPoint[]; remaining: MapPoint[] } {
   if (route.length < 2) {
     return { completed: route, remaining: route };
@@ -273,7 +261,6 @@ export default function GoogleMapView({
     setMapTypeId(LAYER_TO_MAPTYPE[layer] || "roadmap");
   }, [layer]);
 
-  const [resolvedRoute, setResolvedRoute] = useState<MapPoint[]>(routePolyline);
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rawApiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "").trim();
@@ -284,11 +271,7 @@ export default function GoogleMapView({
     libraries: LIBRARIES
   });
 
-  // Update route if prop changes (no auto-routing for now)
-  useEffect(() => {
-    const validRoute = routePolyline.filter(isValidPoint);
-    setResolvedRoute((prev) => (routesEqual(prev, validRoute) ? prev : validRoute));
-  }, [routePolyline]);
+  const resolvedRoute = useMemo(() => routePolyline.filter(isValidPoint), [routePolyline]);
 
   // Combine all markers
   const combinedMarkers = useMemo(() => {
@@ -456,7 +439,6 @@ export default function GoogleMapView({
         </button>
       )}
       <GoogleMap
-        key={`${center.lat.toFixed(6)}-${center.lng.toFixed(6)}-${zoom}-${recenterKey}`}
         center={{ lat: center.lat, lng: center.lng }}
         zoom={zoom}
         mapTypeId={mapTypeId}

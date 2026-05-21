@@ -33,6 +33,22 @@ function SearchingForDriverScreen(): React.JSX.Element {
   const [searchTime, setSearchTime] = useState(0);
   const [driverProgress, setDriverProgress] = useState(0);
   const companyOrange = "#F79009";
+  const routeSummary = React.useMemo(() => {
+    const distance = sharedLocationState.routeDistanceKm;
+    const duration = sharedLocationState.routeDurationMin;
+    if (!distance || !duration) return null;
+    const distanceLabel =
+      distance >= 100
+        ? `${Math.round(distance)} km`
+        : distance >= 10
+          ? `${distance.toFixed(1)} km`
+          : `${distance.toFixed(2)} km`;
+    const durationLabel =
+      duration < 60
+        ? `${Math.max(1, Math.round(duration))} min`
+        : `${Math.floor(duration / 60)} hr ${Math.round(duration % 60)} min`;
+    return `${distanceLabel} • ${durationLabel}`;
+  }, [sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const fallbackRoute = React.useMemo(() => {
     if (routePolyline.length > 1) return routePolyline;
@@ -110,7 +126,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
       xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
       md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
     },
-    overflow: "hidden"
+    overflow: "visible"
   } as const;
 
   return (
@@ -119,14 +135,15 @@ function SearchingForDriverScreen(): React.JSX.Element {
         containerSx={topMapBleedSx}
         mapHeight={{ xs: "52dvh", md: "54vh" }}
         expandedMapHeight={{ xs: "78dvh", md: "76vh" }}
-        buttonOffsetCollapsed={-28}
+        buttonOffsetCollapsed={-18}
         buttonOffsetExpanded={14}
-        detailsWrapperSx={{ mt: 1 }}
+        detailsWrapperSx={{ mt: 1.2 }}
         map={
           <MapShell
             preset="compact"
             sx={{ height: "100%" }}
             showControls={false}
+            showRouteInfo={false}
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
             driverLocation={driverLocation}
@@ -139,6 +156,24 @@ function SearchingForDriverScreen(): React.JSX.Element {
         }
         details={
           <Stack spacing={1.25}>
+            {routeSummary && (
+              <Box sx={{ pt: 0.25, pb: 0.2, display: "flex", justifyContent: "flex-start" }}>
+                <Box
+                  sx={{
+                    px: 1.25,
+                    py: 0.45,
+                    borderRadius: "999px",
+                    bgcolor: "#0B1530",
+                    border: "1px solid rgba(247,144,9,0.45)",
+                    color: "#F8FAFC",
+                    fontWeight: 700,
+                    fontSize: 11
+                  }}
+                >
+                  {routeSummary}
+                </Box>
+              </Box>
+            )}
             <Box sx={{ pt: 0.5 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
                 Searching for driver{dots}

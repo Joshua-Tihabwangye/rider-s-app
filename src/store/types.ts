@@ -166,16 +166,41 @@ export interface RideRequest {
   origin: RideLocation | null;
   destination: RideLocation | null;
   stops: RideLocation[];
+  routeMode?: "single_stop" | "multi_stop";
+  routePoints?: RideLocation[];
   passengers: number;
   schedule: "now" | "later";
   scheduleTime?: string;
   tripType: "One Way" | "Round Trip" | "Multi-stop";
+  tripMode?: "one_way" | "round_trip";
+  returnToOrigin?: boolean;
+  maxStops?: number;
+  roundTripConfig?: {
+    returnDateTime?: string | null;
+    sameDay?: boolean;
+    returnPattern?: "direct" | "reverse_stops";
+  };
   rideType: "Personal" | "Business";
   serviceLevel?: string;
   serviceClass?: "standard" | "premium";
   riderType?: "personal" | "contact";
   riderContact?: { name: string; phone: string } | null;
   notes?: string;
+}
+
+export type RideLegStatus = "pending" | "in_progress" | "completed" | "skipped";
+
+export interface RideTripLeg {
+  id: string;
+  from: RideLocation;
+  to: RideLocation;
+  order: number;
+  isReturnLeg?: boolean;
+  status: RideLegStatus;
+  etaMinutes?: number;
+  distanceKm?: number;
+  startedAt?: string;
+  completedAt?: string;
 }
 
 export interface DriverProfile {
@@ -196,6 +221,8 @@ export interface VehicleProfile {
 export interface RideTrip {
   id: string;
   status: RideStatus;
+  routeMode?: "single_stop" | "multi_stop";
+  tripMode?: "one_way" | "round_trip";
   otp: string;
   etaMinutes: number;
   fareEstimate: string;
@@ -203,6 +230,13 @@ export interface RideTrip {
   routeSummary: string;
   pickup: RideLocation | null;
   dropoff: RideLocation | null;
+  routePoints?: RideLocation[];
+  legs?: RideTripLeg[];
+  currentLegIndex?: number;
+  totalLegs?: number;
+  remainingLegs?: number;
+  completedStopIds?: string[];
+  isReturnLeg?: boolean;
   driver: DriverProfile | null;
   vehicle: VehicleProfile | null;
   lastKnownLocation?: RideLocation | null;

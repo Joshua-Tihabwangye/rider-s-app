@@ -14,12 +14,13 @@ import {
 	Stack,
 	Select,
 	MenuItem,
-	FormControl,
-	Menu,
-	Alert,
-} from "@mui/material";
+		FormControl,
+		Menu,
+		Alert,
+	} from "@mui/material";
 
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded";
@@ -29,7 +30,7 @@ import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SwapVertRoundedIcon from "@mui/icons-material/SwapVertRounded";
-import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
+	import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import MapShell from "../components/maps/MapShell";
 import SwitchRiderModal from "../components/SwitchRiderModal";
@@ -38,14 +39,100 @@ import AddStopModal from "../components/AddStopModal";
 import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
 import LocationAutocompleteField from "../components/location/LocationAutocompleteField";
 import { useAppData } from "../contexts/AppDataContext";
-import { calculateRoute, geocodeAddress } from "../services/maps";
+import { calculateRouteThroughPoints, geocodeAddress } from "../services/maps";
 import { getLocationPermissionState, watchLiveLocation } from "../services/location";
+import {
+	DEFAULT_ROUND_TRIP_RETURN_PATTERN,
+	type RoundTripReturnPattern,
+	RIDE_MAX_STOPS
+} from "../features/rides/constants";
 
 interface Stop {
 	id: string;
 	value: string;
 	coordinates?: { lat: number; lng: number };
 	address?: string;
+}
+
+type RouteModeOption = "single_stop" | "multi_stop";
+type TripModeOption = "one_way" | "round_trip";
+
+function inferRouteMode(value: unknown): RouteModeOption {
+	if (value === "multi_stop" || value === "Multi-stop") {
+		return "multi_stop";
+	}
+	return "single_stop";
+}
+
+function inferTripMode(value: unknown): TripModeOption {
+	if (value === "round_trip" || value === "Round Trip") {
+		return "round_trip";
+	}
+	return "one_way";
+}
+
+function deriveTripTypeLabel(routeMode: RouteModeOption, tripMode: TripModeOption): "One Way" | "Round Trip" | "Multi-stop" {
+	if (routeMode === "multi_stop") {
+		return "Multi-stop";
+	}
+	return tripMode === "round_trip" ? "Round Trip" : "One Way";
+}
+
+function cleanStopAddress(value: string): string {
+	return value.trim().replace(/\s+/g, " ");
+}
+
+function removeConsecutiveDuplicateStops(stops: Stop[]): Stop[] {
+	return stops.reduce<Stop[]>((acc, stop) => {
+		const normalized = cleanStopAddress(stop.address || stop.value);
+		if (!normalized) return acc;
+		const previous = acc[acc.length - 1];
+		if (previous) {
+			const previousAddress = cleanStopAddress(previous.address || previous.value).toLowerCase();
+			if (previousAddress === normalized.toLowerCase()) {
+				return acc;
+			}
+		}
+		acc.push({ ...stop, value: normalized, address: normalized });
+		return acc;
+	}, []);
+}
+
+function uniqueStops(stops: Stop[]): Stop[] {
+	const seen = new Set<string>();
+	return stops.filter((stop) => {
+		const key = cleanStopAddress(stop.address || stop.value).toLowerCase();
+		if (!key || seen.has(key)) return false;
+		seen.add(key);
+		return true;
+	});
+}
+
+function toInputDate(date: Date): string {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, "0");
+	const day = String(date.getDate()).padStart(2, "0");
+	return `${year}-${month}-${day}`;
+}
+
+function toInputTime(date: Date): string {
+	const hour = String(date.getHours()).padStart(2, "0");
+	const minute = String(date.getMinutes()).padStart(2, "0");
+	return `${hour}:${minute}`;
+}
+
+function formatScheduleDateLabel(date: Date): string {
+	const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+	const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	return `${dayNames[date.getDay()]}, ${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function formatScheduleTimeLabel(date: Date): string {
+	return date.toLocaleTimeString([], {
+		hour: "2-digit",
+		minute: "2-digit",
+		hour12: true
+	});
 }
 
 type RideTypeOption = "Personal" | "Business";
@@ -194,16 +281,44 @@ function EnterDestinationScreen(): React.JSX.Element {
 		normalizeRideType(initialState.rideType || ride.request.rideType),
 	);
 	const [tripOwnerChosen, setTripOwnerChosen] = useState(false);
-	const [tripType, setTripType] = useState(
-		initialState.tripType || ride.request.tripType || "One Way",
+	const [routeMode, setRouteMode] = useState<RouteModeOption>(
+		inferRouteMode(initialState.routeMode || initialState.tripType || ride.request.tripType),
 	);
-	const [tripTypeChosen, setTripTypeChosen] = useState(false);
+	const [tripMode, setTripMode] = useState<TripModeOption>(
+		inferTripMode(initialState.tripMode || ride.request.tripMode || initialState.tripType || ride.request.tripType),
+	);
+	const [tripConfigChosen, setTripConfigChosen] = useState(true);
+	const now = useMemo(() => new Date(), []);
+	const initialScheduledDateTime = useMemo(() => {
+		if (initialState.scheduledDateTime) {
+			const parsed = new Date(initialState.scheduledDateTime);
+			if (!Number.isNaN(parsed.getTime())) {
+				return parsed;
+			}
+		}
+		if (typeof ride.request.scheduleTime === "string" && ride.request.scheduleTime) {
+			const parsed = new Date(ride.request.scheduleTime);
+			if (!Number.isNaN(parsed.getTime())) {
+				return parsed;
+			}
+		}
+		return null;
+	}, [initialState.scheduledDateTime, ride.request.scheduleTime]);
 	const [schedule, setSchedule] = useState(initialState.schedule || (ride.request.schedule === "later" ? "Schedule for later" : "Now"));
 	const [scheduleTime, setScheduleTime] = useState(
 		initialState.scheduleTime || ride.request.scheduleTime || "",
 	);
 	const [isScheduled, setIsScheduled] = useState(
 		initialState.isScheduled || ride.request.schedule === "later" || false,
+	);
+	const [selectedDate, setSelectedDate] = useState<string>(
+		initialScheduledDateTime ? toInputDate(initialScheduledDateTime) : toInputDate(now),
+	);
+	const [selectedTime, setSelectedTime] = useState<string>(
+		initialScheduledDateTime ? toInputTime(initialScheduledDateTime) : toInputTime(new Date(now.getTime() + 30 * 60 * 1000)),
+	);
+	const [scheduledDateTimeIso, setScheduledDateTimeIso] = useState<string | null>(
+		initialScheduledDateTime ? initialScheduledDateTime.toISOString() : null,
 	);
 	const [returnDate, setReturnDate] = useState(
 		initialState.returnDate || null,
@@ -213,6 +328,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 	);
 	const [returnDateTime, setReturnDateTime] = useState(
 		initialState.returnDateTime || null,
+	);
+	const [returnPattern, setReturnPattern] = useState<RoundTripReturnPattern>(
+		initialState.returnPattern ||
+			ride.request.roundTripConfig?.returnPattern ||
+			DEFAULT_ROUND_TRIP_RETURN_PATTERN,
 	);
 	const [scheduleMenuAnchor, setScheduleMenuAnchor] =
 		useState<HTMLElement | null>(null);
@@ -253,8 +373,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [selectedRideLevel, setSelectedRideLevel] = useState(
 		initialState.serviceLevel || ride.request.serviceLevel || ride.options[0]?.id || "scooter",
 	);
-	const MAX_STOPS = 6; // Allow up to 6 stops in multi-stop mode
-	const isMultiStopMode = tripTypeChosen && tripType === "Multi-stop";
+	const MAX_STOPS = RIDE_MAX_STOPS;
+	const isMultiStopMode = routeMode === "multi_stop";
+	const isRoundTripMode = tripMode === "round_trip";
+	const tripType = deriveTripTypeLabel(routeMode, tripMode);
 
 	const rideTypeCards = ride.options.slice(0, 3).map((option, index) => ({
 		id: option.id,
@@ -270,72 +392,130 @@ function EnterDestinationScreen(): React.JSX.Element {
 		price: option.fare.replace("UGX", "UGX ").replace(",", "")
 	}));
 
-	// Calculate route when both pickup and destination have coordinates
+	// Calculate route with waypoints for multi-stop and round-trip.
 	useEffect(() => {
 		const calculateAndSetRoute = async () => {
-				if (pickupCoords && destinationCoords) {
-					const routeKey = `${pickupCoords.lat.toFixed(5)},${pickupCoords.lng.toFixed(5)}->${destinationCoords.lat.toFixed(5)},${destinationCoords.lng.toFixed(5)}`;
-					const now = Date.now();
-					if (lastRouteQueryRef.current?.key === routeKey && now - lastRouteQueryRef.current.at < 10000) {
-						return;
-					}
-					lastRouteQueryRef.current = { key: routeKey, at: now };
-					setIsCalculatingRoute(true);
-					try {
-						const route = await calculateRoute(pickupCoords, destinationCoords);
-						if (route) {
-							setRoutePolyline(route.path);
-							setRouteAlternatives(route.alternativePaths);
-							// Update shared location state with route
-							updateSharedLocationState({
-								pickupCoords,
-								destinationCoords,
-								routePolyline: route.path,
-								routeAlternativePolylines: route.alternativePaths,
-								routeDistanceKm: route.distanceKm,
-								routeDurationMin: route.durationMin
-							});
-					} else {
-						lastRouteQueryRef.current = null;
-						setRoutePolyline([]);
-						setRouteAlternatives([]);
-							updateSharedLocationState({
-								pickupCoords,
-								destinationCoords,
-								routePolyline: [],
-								routeAlternativePolylines: [],
-								routeDistanceKm: null,
-								routeDurationMin: null
-							});
-						}
-					} catch (error) {
-						console.error("Failed to calculate route:", error);
-						setRoutePolyline([]);
-						setRouteAlternatives([]);
-						updateSharedLocationState({
-							pickupCoords,
-							destinationCoords,
-							routePolyline: [],
-							routeAlternativePolylines: [],
-							routeDistanceKm: null,
-							routeDurationMin: null
-						});
-					}
-					setIsCalculatingRoute(false);
+			if (!pickupCoords) {
+				setRoutePolyline([]);
+				setRouteAlternatives([]);
+				updateSharedLocationState({
+					routePolyline: [],
+					routeAlternativePolylines: [],
+					routeDistanceKm: null,
+					routeDurationMin: null
+				});
+				return;
+			}
+
+			const normalizedStops = removeConsecutiveDuplicateStops(stops);
+			const coordinateStops = normalizedStops.filter((stop) => Boolean(stop.coordinates));
+			const isMultiStop = routeMode === "multi_stop";
+			const isRoundTrip = tripMode === "round_trip";
+			const routeDestinationCoords =
+				isMultiStop
+					? coordinateStops[coordinateStops.length - 1]?.coordinates ?? null
+					: destinationCoords;
+			const waypointCoords = isMultiStop
+				? coordinateStops
+						.slice(0, Math.max(0, coordinateStops.length - 1))
+						.map((stop) => stop.coordinates!)
+				: [];
+
+			const baseRoutePoints = [
+				pickupCoords,
+				...waypointCoords,
+				...(routeDestinationCoords ? [routeDestinationCoords] : [])
+			];
+
+			const roundTripTail =
+				isRoundTrip && routeDestinationCoords
+					? returnPattern === "reverse_stops"
+						? [...waypointCoords].reverse().concat([pickupCoords])
+						: [pickupCoords]
+					: [];
+
+			const routePointCandidates = baseRoutePoints.concat(roundTripTail);
+			const routePoints = routePointCandidates.filter((point, index, points) => {
+				if (!point) return false;
+				if (index === 0) return true;
+				const previous = points[index - 1];
+				if (!previous) return true;
+				return (
+					Math.abs(previous.lat - point.lat) > 0.000001 ||
+					Math.abs(previous.lng - point.lng) > 0.000001
+				);
+			});
+
+			if (routePoints.length < 2) {
+				setRoutePolyline([]);
+				setRouteAlternatives([]);
+				updateSharedLocationState({
+					pickupCoords,
+					destinationCoords: routeDestinationCoords,
+					routePolyline: [],
+					routeAlternativePolylines: [],
+					routeDistanceKm: null,
+					routeDurationMin: null
+				});
+				return;
+			}
+
+			const routeKey = routePoints
+				.map((point) => `${point.lat.toFixed(5)},${point.lng.toFixed(5)}`)
+				.join("->");
+			const now = Date.now();
+			if (
+				lastRouteQueryRef.current?.key === routeKey &&
+				now - lastRouteQueryRef.current.at < 10000
+			) {
+				return;
+			}
+			lastRouteQueryRef.current = { key: routeKey, at: now };
+			setIsCalculatingRoute(true);
+			try {
+				const route = await calculateRouteThroughPoints(routePoints);
+				if (route) {
+					setRoutePolyline(route.path);
+					setRouteAlternatives(route.alternativePaths);
+					updateSharedLocationState({
+						pickupCoords,
+						destinationCoords: routeDestinationCoords,
+						routePolyline: route.path,
+						routeAlternativePolylines: route.alternativePaths,
+						routeDistanceKm: route.distanceKm,
+						routeDurationMin: route.durationMin
+					});
 				} else {
+					lastRouteQueryRef.current = null;
 					setRoutePolyline([]);
 					setRouteAlternatives([]);
 					updateSharedLocationState({
+						pickupCoords,
+						destinationCoords: routeDestinationCoords,
 						routePolyline: [],
 						routeAlternativePolylines: [],
 						routeDistanceKm: null,
 						routeDurationMin: null
 					});
 				}
+			} catch (error) {
+				console.error("Failed to calculate route:", error);
+				setRoutePolyline([]);
+				setRouteAlternatives([]);
+				updateSharedLocationState({
+					pickupCoords,
+					destinationCoords: routeDestinationCoords,
+					routePolyline: [],
+					routeAlternativePolylines: [],
+					routeDistanceKm: null,
+					routeDurationMin: null
+				});
+			}
+			setIsCalculatingRoute(false);
 		};
 
-		calculateAndSetRoute();
-	}, [pickupCoords, destinationCoords, updateSharedLocationState]);
+		void calculateAndSetRoute();
+	}, [destinationCoords, pickupCoords, returnPattern, routeMode, stops, tripMode, updateSharedLocationState]);
 
 	useEffect(() => {
 		let mounted = true;
@@ -389,11 +569,55 @@ function EnterDestinationScreen(): React.JSX.Element {
 			setScheduleTime(initialState.scheduleTime || "");
 			setIsScheduled(initialState.isScheduled || false);
 		}
+		if (initialState.scheduledDateTime) {
+			const parsed = new Date(initialState.scheduledDateTime);
+			if (!Number.isNaN(parsed.getTime())) {
+				setSelectedDate(toInputDate(parsed));
+				setSelectedTime(toInputTime(parsed));
+				setScheduledDateTimeIso(parsed.toISOString());
+			}
+		}
+		if (initialState.routeMode === "single_stop" || initialState.routeMode === "multi_stop") {
+			setRouteMode(initialState.routeMode);
+			setTripConfigChosen(true);
+		}
+		if (initialState.tripMode === "one_way" || initialState.tripMode === "round_trip") {
+			setTripMode(initialState.tripMode);
+			setTripConfigChosen(true);
+		}
+		if (initialState.returnPattern === "direct" || initialState.returnPattern === "reverse_stops") {
+			setReturnPattern(initialState.returnPattern);
+		}
 	}, [
 		initialState.schedule,
 		initialState.scheduleTime,
 		initialState.isScheduled,
+		initialState.scheduledDateTime,
+		initialState.routeMode,
+		initialState.tripMode,
+		initialState.returnPattern,
 	]);
+
+	useEffect(() => {
+		if (!isScheduled) {
+			setSchedule("Now");
+			setScheduleTime("");
+			setScheduledDateTimeIso(null);
+			return;
+		}
+
+		if (!selectedDate || !selectedTime) {
+			return;
+		}
+
+		const nextScheduledDate = new Date(`${selectedDate}T${selectedTime}:00`);
+		if (Number.isNaN(nextScheduledDate.getTime())) {
+			return;
+		}
+		setSchedule(formatScheduleDateLabel(nextScheduledDate));
+		setScheduleTime(formatScheduleTimeLabel(nextScheduledDate));
+		setScheduledDateTimeIso(nextScheduledDate.toISOString());
+	}, [isScheduled, selectedDate, selectedTime]);
 
 	// Update selected contact when returning from Switch Rider modal
 	useEffect(() => {
@@ -411,7 +635,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 			pickup.trim().length > 0
 				? { label: pickup, address: pickup, coordinates: pickupCoords ?? undefined }
 				: null;
-		const destinationLocation =
+		const explicitDestinationLocation =
 			destination.trim().length > 0
 				? {
 						label: destination,
@@ -419,15 +643,39 @@ function EnterDestinationScreen(): React.JSX.Element {
 						coordinates: destinationCoords ?? undefined,
 				  }
 				: null;
-		const stopLocations = stops
-			.filter((stop) => stop.value.trim().length > 0)
+		const stopLocations = uniqueStops(removeConsecutiveDuplicateStops(stops))
 			.map((stop) => ({
 				label: stop.value,
 				address: stop.address || stop.value,
 				coordinates: stop.coordinates,
 			}));
-		const scheduleMode =
-			isScheduled || schedule === "Schedule for later" ? "later" : "now";
+		const normalizedTripMode = tripMode;
+		const isRoundTrip = normalizedTripMode === "round_trip";
+		const usesStopsAsRoutePoints = routeMode === "multi_stop";
+		const destinationLocation =
+			usesStopsAsRoutePoints
+				? stopLocations[stopLocations.length - 1] ?? null
+				: explicitDestinationLocation;
+		const intermediateStops =
+			usesStopsAsRoutePoints
+				? stopLocations.slice(0, Math.max(0, stopLocations.length - 1))
+				: [];
+		const routePoints = [
+			...(originLocation ? [originLocation] : []),
+			...intermediateStops,
+			...(destinationLocation ? [destinationLocation] : []),
+		];
+		const normalizedRoutePoints = (() => {
+			if (!isRoundTrip || !originLocation || !destinationLocation) {
+				return routePoints;
+			}
+			const reverseStops =
+				returnPattern === "reverse_stops"
+					? [...intermediateStops].reverse()
+					: [];
+			return [...routePoints, ...reverseStops, originLocation];
+		})();
+		const scheduleMode = isScheduled ? "later" : "now";
 		const contactName =
 			selectedContact?.name ||
 			selectedContact?.fullName ||
@@ -442,9 +690,19 @@ function EnterDestinationScreen(): React.JSX.Element {
 		actions.updateRideRequest({
 			origin: originLocation,
 			destination: destinationLocation,
-			stops: stopLocations,
+			stops: intermediateStops,
+			routePoints: normalizedRoutePoints,
 			passengers,
 			tripType,
+			tripMode: normalizedTripMode,
+			routeMode,
+			returnToOrigin: isRoundTrip,
+			maxStops: MAX_STOPS,
+			roundTripConfig: {
+				returnDateTime: returnDateTime || null,
+				sameDay: true,
+				returnPattern
+			},
 			rideType,
 			serviceLevel: selectedRideLevel,
 			schedule: scheduleMode,
@@ -465,10 +723,14 @@ function EnterDestinationScreen(): React.JSX.Element {
 		stops,
 		passengers,
 		tripType,
+		routeMode,
+		tripMode,
 		rideType,
 		isScheduled,
 		schedule,
 		scheduleTime,
+		returnDateTime,
+		returnPattern,
 		selectedRideLevel,
 		riderType,
 		selectedContact,
@@ -480,23 +742,27 @@ function EnterDestinationScreen(): React.JSX.Element {
 
 	const passengerOptions = [1, 2, 3, 4, 5, 6];
 	const scheduleOptions = ["Now", "Schedule for later"];
+	const normalizedRouteStops = uniqueStops(removeConsecutiveDuplicateStops(stops));
+	const hasDuplicateStops =
+		normalizedRouteStops.length !== removeConsecutiveDuplicateStops(stops).length;
+	const hasStopLimitExceeded = normalizedRouteStops.length > RIDE_MAX_STOPS;
 
 	const canContinue = isMultiStopMode
 		? pickup.trim() !== "" &&
 			Boolean(pickupCoords) &&
-			stops.some((stop: Stop) => stop.value.trim() !== "") &&
-			(tripType !== "Round Trip" || (returnDate && returnTime))
+			normalizedRouteStops.length > 0 &&
+			(!isRoundTripMode || (returnDate && returnTime))
 		: pickup.trim() !== "" &&
 			Boolean(pickupCoords) &&
 			destination.trim() !== "" &&
 			Boolean(destinationCoords) &&
-			(tripType !== "Round Trip" || (returnDate && returnTime));
+			(!isRoundTripMode || (returnDate && returnTime));
 	const hasBookForSomeoneDetails =
 		bookedPersonName.trim().length > 1 && bookedPersonPhone.trim().length >= 7;
 	const canSubmit =
 		canContinue &&
 		tripOwnerChosen &&
-		tripTypeChosen &&
+		tripConfigChosen &&
 		(!isBookingForSomeone || hasBookForSomeoneDetails);
 
 	const handleSwitchLocations = () => {
@@ -525,9 +791,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 					passengers,
 					rideType,
 					tripType,
+					routeMode,
+					tripMode,
 					schedule,
 					scheduleTime,
 					isScheduled,
+					returnPattern,
 				},
 			});
 		} else {
@@ -550,9 +819,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 					passengers,
 					rideType,
 					tripType,
+					routeMode,
+					tripMode,
 					schedule,
 					scheduleTime,
 					isScheduled,
+					returnPattern,
 				},
 			});
 		} else {
@@ -580,7 +852,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 			const missingCoordinates =
 				!pickupCoords ||
 				(!isMultiStopMode && !destinationCoords);
-			const missingSelectors = !tripOwnerChosen || !tripTypeChosen;
+			const missingSelectors = !tripOwnerChosen || !tripConfigChosen;
 			setErrorMessage(
 				missingSelectors
 					? "Choose trip owner and type of trip before continuing."
@@ -595,18 +867,41 @@ function EnterDestinationScreen(): React.JSX.Element {
 			return;
 		}
 
+		if (hasStopLimitExceeded) {
+			setErrorMessage(`You can only add up to ${RIDE_MAX_STOPS} stops.`);
+			setShowError(true);
+			return;
+		}
+
+		if (hasDuplicateStops) {
+			setErrorMessage("Please remove duplicate stops before continuing.");
+			setShowError(true);
+			return;
+		}
+
+		if (isMultiStopMode && normalizedRouteStops.length < 1) {
+			setErrorMessage("Add at least one stop before continuing.");
+			setShowError(true);
+			return;
+		}
+
+		if (!isMultiStopMode && !destination.trim()) {
+			setErrorMessage("Please select a destination before continuing.");
+			setShowError(true);
+			return;
+		}
+
 		// Validate scheduled date/time hasn't expired
-		if (isScheduled && initialState.scheduledDateTime) {
-			// Handle both Date objects and ISO strings
-			const scheduledDate =
-				initialState.scheduledDateTime instanceof Date
-					? initialState.scheduledDateTime
-					: new Date(initialState.scheduledDateTime);
-			if (scheduledDate <= new Date()) {
+		if (isScheduled) {
+			if (!scheduledDateTimeIso) {
 				setShowError(true);
-				alert(
-					"The scheduled date and time has expired. Please select a new time.",
-				);
+				setErrorMessage("Please choose a date and time for Ride Later.");
+				return;
+			}
+			const scheduledDate = new Date(scheduledDateTimeIso);
+			if (Number.isNaN(scheduledDate.getTime()) || scheduledDate <= new Date()) {
+				setShowError(true);
+				setErrorMessage("The selected date/time has expired. Please choose a future time.");
 				return;
 			}
 		}
@@ -621,7 +916,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 			rideType,
 			serviceLevel: selectedRideLevel,
 			tripType,
-			schedule: schedule === "Now" ? null : schedule,
+			routeMode,
+			tripMode,
+			schedule: isScheduled ? schedule : null,
 			scheduleTime,
 			isScheduled,
 			selectedContact,
@@ -632,17 +929,14 @@ function EnterDestinationScreen(): React.JSX.Element {
 			returnDate,
 			returnTime,
 			returnDateTime,
+			returnPattern,
 		};
 
 		// Create a clean, serializable state object
 		// Convert Date objects to ISO strings for serialization
 		const tripState = {
 			...baseState,
-			scheduledDateTime: initialState.scheduledDateTime
-				? initialState.scheduledDateTime instanceof Date
-					? initialState.scheduledDateTime.toISOString()
-					: initialState.scheduledDateTime
-				: null,
+			scheduledDateTime: scheduledDateTimeIso,
 			// Ensure selectedContact is a plain object (not containing any non-serializable data)
 			selectedContact: baseState.selectedContact
 				? {
@@ -657,9 +951,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 			returnDate: baseState.returnDate || null,
 			returnTime: baseState.returnTime || null,
 			returnDateTime: baseState.returnDateTime || null,
+			routeMode,
+			tripMode,
+			returnPattern,
 			// Include stops data if in multi-stop mode
 			stops: isMultiStopMode
-				? stops.filter((stop: Stop) => stop.value.trim() !== "")
+				? normalizedRouteStops
 				: [],
 			isMultiStopMode: isMultiStopMode,
 			bookForSomeone: isBookingForSomeone,
@@ -707,15 +1004,13 @@ function EnterDestinationScreen(): React.JSX.Element {
 			rideType,
 			serviceLevel: selectedRideLevel,
 			tripType,
+			routeMode,
+			tripMode,
 			schedule,
 			scheduleTime,
 			isScheduled,
 			// Convert Date to ISO string if it exists
-			scheduledDateTime: initialState.scheduledDateTime
-				? initialState.scheduledDateTime instanceof Date
-					? initialState.scheduledDateTime.toISOString()
-					: initialState.scheduledDateTime
-				: null,
+			scheduledDateTime: scheduledDateTimeIso,
 			// Ensure selectedContact is a plain object
 			selectedContact: selectedContact
 				? {
@@ -730,6 +1025,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 			bookForSomeone: isBookingForSomeone,
 			bookedPersonName: bookedPersonName.trim(),
 			bookedPersonPhone: bookedPersonPhone.trim(),
+			returnPattern,
 		};
 	};
 
@@ -889,6 +1185,26 @@ function EnterDestinationScreen(): React.JSX.Element {
 							</Box>
 						</Box>
 					)}
+
+					<Box sx={{ pt: routeSummary ? 0 : 4.2, pb: 0.6, display: "flex", alignItems: "center", gap: 1 }}>
+						<IconButton
+							size="small"
+							onClick={() => navigate(-1)}
+							sx={{
+								width: 38,
+								height: 38,
+								borderRadius: "12px",
+								bgcolor: theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
+								border: "1px solid rgba(148,163,184,0.25)",
+								boxShadow: "0 4px 12px rgba(15,23,42,0.12)"
+							}}
+						>
+							<ArrowBackIosNewRoundedIcon sx={{ fontSize: 16 }} />
+						</IconButton>
+						<Typography sx={{ fontSize: 14, fontWeight: 700, color: theme.palette.text.primary }}>
+							Ride details
+						</Typography>
+					</Box>
 
 					{/* Trip Setup Card - Neutral Background */}
 				<SmoothHeightPanel open>
@@ -1324,11 +1640,54 @@ function EnterDestinationScreen(): React.JSX.Element {
 					</Alert>
 				)}
 
-				{/* Trip Type Options */}
-					<Stack spacing={1.5} sx={{ mb: 2, mt: "5px" }}>
-					{/* Ride Type Dropdown */}
-					<Card
-						elevation={0}
+					{/* Trip Type Options */}
+						<Stack spacing={1.5} sx={{ mb: 2, mt: "5px" }}>
+						<Card
+							elevation={0}
+							sx={{
+								borderRadius: 2,
+								bgcolor: contentBg,
+								border:
+									theme.palette.mode === "light"
+										? "1px solid rgba(0,0,0,0.1)"
+										: "1px solid rgba(255,255,255,0.1)",
+							}}
+						>
+							<CardContent sx={{ px: 2, py: 1.5 }}>
+								<Typography sx={{ fontSize: 12, color: "#667085", mb: 0.8 }}>
+									Schedule
+								</Typography>
+								<Button
+									fullWidth
+									onClick={handleScheduleClick}
+									startIcon={<CalendarTodayRoundedIcon sx={{ fontSize: 17 }} />}
+									endIcon={<KeyboardArrowDownRoundedIcon sx={{ fontSize: 18 }} />}
+									sx={{
+										justifyContent: "space-between",
+										textTransform: "none",
+										borderRadius: 5,
+										py: 0.95,
+										px: 1.3,
+										fontSize: 13,
+										fontWeight: 700,
+										color: isScheduled ? "#F79009" : theme.palette.text.primary,
+										bgcolor: isScheduled ? "rgba(247,144,9,0.08)" : "rgba(3,205,140,0.08)",
+										border: isScheduled ? "1px solid rgba(247,144,9,0.45)" : "1px solid rgba(3,205,140,0.38)",
+										"&:hover": {
+											bgcolor: isScheduled ? "rgba(247,144,9,0.12)" : "rgba(3,205,140,0.12)"
+										}
+									}}
+								>
+									{isScheduled
+										? `${schedule}${scheduleTime ? ` • ${scheduleTime}` : ""}`
+										: "Now"}
+								</Button>
+							</CardContent>
+						</Card>
+
+						{/* Ride Type Dropdown */}
+						<Card
+							elevation={0}
 						sx={{
 							borderRadius: 2,
 							bgcolor: contentBg,
@@ -1339,12 +1698,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 						}}
 					>
 						<CardContent sx={{ px: 2, py: 1.5 }}>
-							<Stack direction="row" spacing={1} alignItems="flex-end">
+							<Stack spacing={1.3}>
 								<FormControl fullWidth size="small">
 									<Typography sx={{ fontSize: 12, color: "#667085", mb: 0.6 }}>
 										Choose trip owner
 									</Typography>
-									<Select
+										<Select
 										value={tripOwnerChosen ? rideType : "__choose_owner__"}
 										displayEmpty
 										onChange={(e) => {
@@ -1433,42 +1792,13 @@ function EnterDestinationScreen(): React.JSX.Element {
 												Organization
 											</Box>
 										</MenuItem>
-									</Select>
-								</FormControl>
-								<Button
-									variant="outlined"
-									onClick={handleScheduleClick}
-									startIcon={<CalendarTodayRoundedIcon sx={{ fontSize: 16 }} />}
-									sx={{
-										minWidth: 104,
-										height: 40,
-										borderRadius: 5,
-										textTransform: "none",
-										borderColor:
-											theme.palette.mode === "light"
-												? "rgba(0,0,0,0.15)"
-												: "rgba(255,255,255,0.2)",
-										color: isScheduled ? "#4CAF50" : theme.palette.text.primary,
-										bgcolor:
-											theme.palette.mode === "light"
-												? "rgba(0,0,0,0.05)"
-												: "rgba(255,255,255,0.05)",
-										"&:hover": {
-											borderColor: isScheduled ? "#4CAF50" : accentGreen,
-											bgcolor: "rgba(3,205,140,0.1)",
-										},
-										fontSize: 11.5,
-										px: 0.9,
-										whiteSpace: "nowrap",
-									}}
-								>
-									{isScheduled ? scheduleTime : schedule}
-								</Button>
-							</Stack>
-						</CardContent>
-					</Card>
+										</Select>
+									</FormControl>
+								</Stack>
+							</CardContent>
+						</Card>
 
-					{/* Trip Direction Dropdown */}
+					{/* Route + Trip Mode */}
 					<Card
 						elevation={0}
 						sx={{
@@ -1483,49 +1813,40 @@ function EnterDestinationScreen(): React.JSX.Element {
 						<CardContent sx={{ px: 2, py: 1.5 }}>
 							<FormControl fullWidth size="small">
 								<Typography sx={{ fontSize: 12, color: "#667085", mb: 0.6 }}>
-									Choose type of Trip
+									Route mode
 								</Typography>
 								<Select
-									value={tripTypeChosen ? tripType : "__choose_trip__"}
+									value={routeMode}
 									displayEmpty
 										onChange={(e) => {
 											const newValue = e.target.value;
-											if (newValue === "__choose_trip__") {
-												setTripTypeChosen(false);
-												setTripType("One Way");
-												return;
-											}
-										if (
-											newValue === "One Way" ||
-											newValue === "Round Trip"
-											) {
-												setTripType(newValue);
-												setTripTypeChosen(true);
-												if (newValue === "One Way") {
-													setReturnDate(null);
-													setReturnTime(null);
-													setReturnDateTime(null);
+											if (newValue === "multi_stop" || newValue === "single_stop") {
+												setRouteMode(newValue);
+												setTripConfigChosen(true);
+												if (newValue === "multi_stop" && stops.length === 0) {
+													if (destination.trim()) {
+														setStops([
+															{
+																id: "A",
+																value: destination,
+																address: destination,
+																coordinates: destinationCoords ?? undefined
+															},
+														]);
+														setDestination("");
+														setDestinationCoords(null);
+													} else {
+														setStops([{ id: "A", value: "" }]);
+													}
 												}
-											} else if (newValue === "Multi-stop") {
-												setTripType("Multi-stop");
-												setTripTypeChosen(true);
-												// Initialize stops if empty - convert current destination to first stop
-											if (stops.length === 0) {
-												if (destination.trim()) {
-													setStops([
-														{
-															id: "A",
-															value: destination,
-														},
-													]);
-													setDestination("");
-												} else {
-													setStops([
-														{ id: "A", value: "" },
-													]);
+												if (newValue === "single_stop" && !destination.trim() && stops.length > 0) {
+													const fallback = stops[stops.length - 1];
+													if (fallback?.value?.trim()) {
+														setDestination(fallback.value.trim());
+														setDestinationCoords(fallback.coordinates ?? null);
+													}
 												}
 											}
-										}
 									}}
 									renderValue={(value) => (
 										<Box
@@ -1535,13 +1856,15 @@ function EnterDestinationScreen(): React.JSX.Element {
 												gap: 1,
 											}}
 										>
-											<DirectionsCarRoundedIcon
-												sx={{
-													fontSize: 18,
-													color: accentGreen,
-												}}
-											/>
-											<Typography sx={{ fontSize: 13.5 }}>{tripTypeChosen ? value : "Choose"}</Typography>
+												<DirectionsCarRoundedIcon
+													sx={{
+														fontSize: 18,
+														color: accentGreen,
+													}}
+												/>
+											<Typography sx={{ fontSize: 13.5 }}>
+												{value === "multi_stop" ? "Multi-stop" : "Single destination"}
+											</Typography>
 										</Box>
 									)}
 									sx={{
@@ -1567,10 +1890,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 												},
 										}}
 									>
-										<MenuItem value="__choose_trip__" disabled>
-											Choose
-										</MenuItem>
-										<MenuItem value="One Way">
+										<MenuItem value="single_stop">
 										<Box
 											sx={{
 												display: "flex",
@@ -1581,24 +1901,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 											<DirectionsCarRoundedIcon
 												sx={{ fontSize: 18 }}
 											/>
-											One Way
+											Single destination
 										</Box>
 									</MenuItem>
-									<MenuItem value="Round Trip">
-										<Box
-											sx={{
-												display: "flex",
-												alignItems: "center",
-												gap: 1,
-											}}
-										>
-											<DirectionsCarRoundedIcon
-												sx={{ fontSize: 18 }}
-											/>
-											Round Trip
-										</Box>
-									</MenuItem>
-									<MenuItem value="Multi-stop">
+									<MenuItem value="multi_stop">
 										<Box
 											sx={{
 												display: "flex",
@@ -1614,11 +1920,62 @@ function EnterDestinationScreen(): React.JSX.Element {
 									</MenuItem>
 								</Select>
 							</FormControl>
+							<Stack direction="row" spacing={1} sx={{ mt: 1.25 }}>
+								<Button
+									size="small"
+									variant={tripMode === "one_way" ? "contained" : "outlined"}
+									onClick={() => {
+										setTripMode("one_way");
+										setTripConfigChosen(true);
+										setReturnDate(null);
+										setReturnTime(null);
+										setReturnDateTime(null);
+										setReturnPattern(DEFAULT_ROUND_TRIP_RETURN_PATTERN);
+									}}
+									sx={{
+										flex: 1,
+										textTransform: "none",
+										borderRadius: 5,
+										fontSize: 12,
+										bgcolor: tripMode === "one_way" ? "#03CD8C" : undefined,
+										color: tripMode === "one_way" ? "#FFFFFF" : "#475467",
+										borderColor: "rgba(3,205,140,0.5)",
+										"&:hover": {
+											bgcolor: tripMode === "one_way" ? "#01B77D" : "rgba(3,205,140,0.1)"
+										}
+									}}
+								>
+									One way
+								</Button>
+								<Button
+									size="small"
+									variant={tripMode === "round_trip" ? "contained" : "outlined"}
+									onClick={() => {
+										setTripMode("round_trip");
+										setTripConfigChosen(true);
+										setShowTripTypeModal(true);
+									}}
+									sx={{
+										flex: 1,
+										textTransform: "none",
+										borderRadius: 5,
+										fontSize: 12,
+										bgcolor: tripMode === "round_trip" ? "#F79009" : undefined,
+										color: tripMode === "round_trip" ? "#FFFFFF" : "#475467",
+										borderColor: "rgba(247,144,9,0.55)",
+										"&:hover": {
+											bgcolor: tripMode === "round_trip" ? "#E98607" : "rgba(247,144,9,0.08)"
+										}
+									}}
+								>
+									Round trip
+								</Button>
+							</Stack>
 						</CardContent>
 					</Card>
 
-					{/* Return Date & Time Section - Only shown when Round Trip is selected */}
-					{tripType === "Round Trip" && (
+					{/* Return Date & Time Section - Only shown for round trip mode */}
+					{isRoundTripMode && (
 						<Card
 							elevation={0}
 							sx={{
@@ -1737,6 +2094,51 @@ function EnterDestinationScreen(): React.JSX.Element {
 										/>
 									</IconButton>
 								</Box>
+								<Stack spacing={0.65} sx={{ mt: 1.25 }}>
+									<Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+										Return pattern
+									</Typography>
+									<Stack direction="row" spacing={1}>
+										<Button
+											size="small"
+											onClick={() => setReturnPattern("direct")}
+											variant={returnPattern === "direct" ? "contained" : "outlined"}
+											sx={{
+												flex: 1,
+												textTransform: "none",
+												borderRadius: 5,
+												fontSize: 12,
+												bgcolor: returnPattern === "direct" ? "#F79009" : undefined,
+												color: returnPattern === "direct" ? "#FFFFFF" : "#475467",
+												borderColor: "rgba(247,144,9,0.5)",
+												"&:hover": {
+													bgcolor: returnPattern === "direct" ? "#E98607" : "rgba(247,144,9,0.1)"
+												}
+											}}
+										>
+											Direct return
+										</Button>
+										<Button
+											size="small"
+											onClick={() => setReturnPattern("reverse_stops")}
+											variant={returnPattern === "reverse_stops" ? "contained" : "outlined"}
+											sx={{
+												flex: 1,
+												textTransform: "none",
+												borderRadius: 5,
+												fontSize: 12,
+												bgcolor: returnPattern === "reverse_stops" ? "#03CD8C" : undefined,
+												color: returnPattern === "reverse_stops" ? "#FFFFFF" : "#475467",
+												borderColor: "rgba(3,205,140,0.5)",
+												"&:hover": {
+													bgcolor: returnPattern === "reverse_stops" ? "#01B77D" : "rgba(3,205,140,0.12)"
+												}
+											}}
+										>
+											Reverse stops
+										</Button>
+									</Stack>
+								</Stack>
 					</CardContent>
 				</Card>
 			)}
@@ -2024,7 +2426,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 			<TripTypeModal
 				open={showTripTypeModal}
 				onClose={() => setShowTripTypeModal(false)}
-				currentTripType={tripType}
+				currentTripType={isRoundTripMode ? "Round Trip" : "One Way"}
 				departureDate={
 					isScheduled && schedule
 						? new Date(initialState.scheduledDateTime || new Date())
@@ -2036,7 +2438,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 				existingReturnDate={returnDate}
 				existingReturnTime={returnTime}
 				onSelect={(data) => {
-					setTripType(data.tripType);
+					setTripMode(data.tripType === "Round Trip" ? "round_trip" : "one_way");
+					setTripConfigChosen(true);
 					if (data.tripType === "Round Trip") {
 						setReturnDate(data.returnDate);
 						setReturnTime(data.returnTime);
@@ -2045,6 +2448,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 						setReturnDate(null);
 						setReturnTime(null);
 						setReturnDateTime(null);
+						setReturnPattern(DEFAULT_ROUND_TRIP_RETURN_PATTERN);
 					}
 				}}
 			/>

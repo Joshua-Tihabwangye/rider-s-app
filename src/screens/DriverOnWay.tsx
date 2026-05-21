@@ -31,6 +31,12 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const activeTrip = ride.activeTrip;
   const driver = activeTrip?.driver;
   const vehicle = activeTrip?.vehicle;
+  const legs = activeTrip?.legs ?? [];
+  const currentLegIndex = Math.min(
+    Math.max(activeTrip?.currentLegIndex ?? 0, 0),
+    Math.max(0, legs.length - 1)
+  );
+  const currentLeg = legs[currentLegIndex];
   const [arrivalTime, setArrivalTime] = useState(activeTrip?.etaMinutes ?? 5);
   const [chatOpen, setChatOpen] = useState(false);
   const [driverProgress, setDriverProgress] = useState(0.82);
@@ -182,6 +188,40 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
                 </Box>
               </Box>
             )}
+            {legs.length > 1 && (
+              <Stack direction="row" spacing={0.8} sx={{ pb: 0.2 }}>
+                <Box
+                  sx={{
+                    px: 1.2,
+                    py: 0.45,
+                    borderRadius: "999px",
+                    bgcolor: "rgba(2,132,199,0.12)",
+                    border: "1px solid rgba(2,132,199,0.35)",
+                    color: "#0369A1",
+                    fontWeight: 700,
+                    fontSize: 11
+                  }}
+                >
+                  {`Leg ${currentLegIndex + 1} of ${legs.length}`}
+                </Box>
+                {Boolean(currentLeg?.isReturnLeg) && (
+                  <Box
+                    sx={{
+                      px: 1.1,
+                      py: 0.45,
+                      borderRadius: "999px",
+                      bgcolor: "rgba(247,144,9,0.13)",
+                      border: "1px solid rgba(247,144,9,0.45)",
+                      color: "#B45309",
+                      fontWeight: 700,
+                      fontSize: 11
+                    }}
+                  >
+                    Return leg
+                  </Box>
+                )}
+              </Stack>
+            )}
             <Box sx={{ pt: 0.5 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
                 Driver is on the way
@@ -268,6 +308,11 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
               }}
             >
               <CardContent sx={{ px: 2, py: 1.8 }}>
+                {currentLeg && (
+                  <Typography variant="caption" sx={{ display: "block", color: (t) => t.palette.text.secondary, mb: 0.8 }}>
+                    Current leg: {currentLeg.from.label || currentLeg.from.address} → {currentLeg.to.label || currentLeg.to.address}
+                  </Typography>
+                )}
                 <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
                   Vehicle details
                 </Typography>

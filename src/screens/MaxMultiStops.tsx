@@ -31,8 +31,9 @@ import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import PageHeader from "../components/PageHeader";
+import { RIDE_MAX_STOPS } from "../features/rides/constants";
 
-const MAX_STOPS = 6; // A-F
+const MAX_STOPS = RIDE_MAX_STOPS; // A-F
 
 function EnterDestinationMaxStopsScreen(): React.JSX.Element {
 	const navigate = useNavigate();

@@ -236,10 +236,20 @@ const SEED_RIDE_REQUEST: RideRequest = {
   },
   destination: null,
   stops: [],
+  routeMode: "single_stop",
+  routePoints: [],
   passengers: 1,
   schedule: "now",
   scheduleTime: "",
   tripType: "One Way",
+  tripMode: "one_way",
+  returnToOrigin: false,
+  maxStops: 6,
+  roundTripConfig: {
+    returnDateTime: null,
+    sameDay: true,
+    returnPattern: "direct"
+  },
   rideType: "Personal",
   serviceLevel: "car-mini",
   serviceClass: "standard",
@@ -250,6 +260,7 @@ const SEED_RIDE_REQUEST: RideRequest = {
 const SEED_ACTIVE_TRIP: RideTrip = {
   id: "ride_1024",
   status: "driver_on_way",
+  routeMode: "single_stop",
   otp: "256836",
   etaMinutes: 6,
   fareEstimate: "UGX 12,500",
@@ -263,6 +274,37 @@ const SEED_ACTIVE_TRIP: RideTrip = {
     label: "Nakasero",
     address: "Nakasero Rd, Kampala"
   },
+  routePoints: [
+    {
+      label: "Bugolobi",
+      address: "Bugolobi, Kampala"
+    },
+    {
+      label: "Nakasero",
+      address: "Nakasero Rd, Kampala"
+    }
+  ],
+  tripMode: "one_way",
+  legs: [
+    {
+      id: "leg_1",
+      from: {
+        label: "Bugolobi",
+        address: "Bugolobi, Kampala"
+      },
+      to: {
+        label: "Nakasero",
+        address: "Nakasero Rd, Kampala"
+      },
+      order: 0,
+      status: "in_progress"
+    }
+  ],
+  currentLegIndex: 0,
+  totalLegs: 1,
+  remainingLegs: 1,
+  completedStopIds: [],
+  isReturnLeg: false,
   driver: {
     id: "drv_001",
     name: "Tim Smith",

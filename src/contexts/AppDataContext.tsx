@@ -14,6 +14,8 @@ import type {
   RideState,
   RideRequest,
   RideTrip,
+  RideLocation,
+  RideTripLeg,
   RideStatus,
   DeliveryState,
   DeliveryDraft,
@@ -114,6 +116,7 @@ import {
   updateRiderTripTracking,
 } from "../services/api/riderApi";
 import { createRiderSocket } from "../services/riderSocket";
+import { DEFAULT_ROUND_TRIP_RETURN_PATTERN, RIDE_MAX_STOPS } from "../features/rides/constants";
 
 interface AppState extends AppData {
   settings: SettingsState;
@@ -436,6 +439,204 @@ function updateEmergencyContactsDefault(contacts: EmergencyContact[], id: string
 
 function formatCurrencyUGX(amount: number): string {
   return `UGX ${Math.round(amount).toLocaleString()}`;
+}
+
+function estimateRideLegDistanceKm(from: RideLocation, to: RideLocation): number {
+  const fromCoords = from.coordinates;
+  const toCoords = to.coordinates;
+  if (!fromCoords || !toCoords) {
+    return 2.5;
+  }
+  const latFactor = 111.32;
+  const lngFactor = 111.32 * Math.cos(((fromCoords.lat + toCoords.lat) / 2) * (Math.PI / 180));
+  const dLat = (toCoords.lat - fromCoords.lat) * latFactor;
+  const dLng = (toCoords.lng - fromCoords.lng) * lngFactor;
+  return Math.max(0.4, Math.sqrt(dLat * dLat + dLng * dLng));
+}
+
+function estimateRideLegDurationMin(distanceKm: number): number {
+  // 30-35 km/h city assumptions with buffers for lights/turns.
+  return Math.max(3, Math.round(distanceKm * 2.25));
+}
+
+function normalizeRideRequest(request: RideRequest): RideRequest {
+  const routeMode = request.routeMode ?? (request.tripType === "Multi-stop" ? "multi_stop" : "single_stop");
+  const tripMode = request.tripMode ?? (request.tripType === "Round Trip" ? "round_trip" : "one_way");
+  const returnPattern = request.roundTripConfig?.returnPattern ?? DEFAULT_ROUND_TRIP_RETURN_PATTERN;
+  const validStops = request.stops.filter((stop) => stop.label?.trim() || stop.address?.trim());
+  const routePointsFromRequest = request.routePoints?.filter((point) => point.label?.trim() || point.address?.trim()) ?? [];
+  const basePoints =
+    routePointsFromRequest.length > 0
+      ? routePointsFromRequest
+      : [
+          ...(request.origin ? [request.origin] : []),
+          ...validStops,
+          ...(request.destination ? [request.destination] : [])
+        ];
+  const routePoints = [...basePoints];
+  const returnToOrigin = request.returnToOrigin ?? tripMode === "round_trip";
+
+  if (tripMode === "round_trip" && returnToOrigin && routePoints.length >= 2 && request.origin) {
+    if (returnPattern === "reverse_stops" && routePointsFromRequest.length === 0 && validStops.length > 0) {
+      routePoints.push(...[...validStops].reverse());
+    }
+    const lastPoint = routePoints[routePoints.length - 1];
+    const sameAsOrigin =
+      !!lastPoint &&
+      ((lastPoint.label && lastPoint.label === request.origin.label) ||
+        (lastPoint.address && lastPoint.address === request.origin.address));
+    if (!sameAsOrigin) {
+      routePoints.push(request.origin);
+    }
+  }
+
+  const hasRoundTripReturnLeg =
+    tripMode === "round_trip" &&
+    returnToOrigin &&
+    routePoints.length >= 3;
+  const normalizedOrigin = routePoints[0] ?? request.origin ?? null;
+  const normalizedDestination = hasRoundTripReturnLeg
+    ? request.destination ?? routePoints[routePoints.length - 2] ?? null
+    : routePoints.length > 1
+      ? routePoints[routePoints.length - 1] ?? null
+      : request.destination ?? null;
+  const normalizedStops = tripMode === "round_trip"
+    ? validStops
+    : hasRoundTripReturnLeg
+      ? routePoints.slice(1, Math.max(1, routePoints.length - 2))
+      : routePoints.slice(1, Math.max(1, routePoints.length - 1));
+
+  return {
+    ...request,
+    origin: normalizedOrigin,
+    destination: normalizedDestination,
+    stops: normalizedStops,
+    routePoints,
+    routeMode,
+    tripMode,
+    returnToOrigin,
+    maxStops: request.maxStops ?? RIDE_MAX_STOPS,
+    roundTripConfig: {
+      returnDateTime: request.roundTripConfig?.returnDateTime ?? null,
+      sameDay: request.roundTripConfig?.sameDay ?? true,
+      returnPattern
+    }
+  };
+}
+
+function buildRideLegsFromRoutePoints(routePoints: RideLocation[], tripMode: "one_way" | "round_trip"): RideTripLeg[] {
+  if (routePoints.length < 2) {
+    return [];
+  }
+  const legs: RideTripLeg[] = [];
+  for (let index = 0; index < routePoints.length - 1; index += 1) {
+    const from = routePoints[index];
+    const to = routePoints[index + 1];
+    if (!from || !to) continue;
+    const distanceKm = estimateRideLegDistanceKm(from, to);
+    const etaMinutes = estimateRideLegDurationMin(distanceKm);
+    const lastIndex = routePoints.length - 2;
+    legs.push({
+      id: `leg_${index + 1}`,
+      from,
+      to,
+      order: index,
+      status: index === 0 ? "in_progress" : "pending",
+      distanceKm,
+      etaMinutes,
+      isReturnLeg: tripMode === "round_trip" && index === lastIndex
+    });
+  }
+  return legs;
+}
+
+function createRideTripFromRequest(state: AppState): RideTrip | null {
+  const request = normalizeRideRequest(state.ride.request);
+  if (!request.origin || !request.destination) {
+    return null;
+  }
+  const routePoints = request.routePoints ?? [];
+  const legs = buildRideLegsFromRoutePoints(routePoints, request.tripMode ?? "one_way");
+  const totalDistanceKm = legs.reduce((sum, leg) => sum + (leg.distanceKm ?? 0), 0);
+  const totalEtaMinutes = legs.reduce((sum, leg) => sum + (leg.etaMinutes ?? 0), 0);
+  const completedStopIds: string[] = [];
+  const stopCountSurcharge = Math.max(0, (routePoints.length - 2) * 3500);
+  const roundTripSurcharge = request.tripMode === "round_trip" ? 5000 : 0;
+  const distanceComponent = totalDistanceKm * 2600;
+  const baseFare = 8000;
+  const fareTotal = Math.round(baseFare + distanceComponent + stopCountSurcharge + roundTripSurcharge);
+  const originLabel = request.origin.label || request.origin.address || "Pickup";
+  const destinationLabel = request.destination.label || request.destination.address || "Destination";
+
+  return {
+    id: `ride_${Date.now()}`,
+    status: "searching",
+    routeMode: request.routeMode ?? "single_stop",
+    tripMode: request.tripMode ?? "one_way",
+    otp: "256836",
+    etaMinutes: Math.max(4, totalEtaMinutes),
+    fareEstimate: formatCurrencyUGX(fareTotal),
+    distance: `${totalDistanceKm.toFixed(1)} km`,
+    routeSummary: `${originLabel} → ${destinationLabel}${routePoints.length > 2 ? ` (${routePoints.length - 2} stops)` : ""}`,
+    pickup: request.origin,
+    dropoff: request.destination,
+    routePoints,
+    legs,
+    currentLegIndex: legs.length > 0 ? 0 : undefined,
+    totalLegs: legs.length,
+    remainingLegs: legs.length,
+    completedStopIds,
+    isReturnLeg: false,
+    driver: null,
+    vehicle: null
+  };
+}
+
+function applyRideStatusToLegs(
+  legs: RideTripLeg[] | undefined,
+  status: RideStatus,
+  currentLegIndex: number | undefined
+): { legs: RideTripLeg[] | undefined; currentLegIndex: number | undefined; remainingLegs: number | undefined; isReturnLeg: boolean | undefined } {
+  if (!legs || legs.length === 0) {
+    return { legs, currentLegIndex, remainingLegs: undefined, isReturnLeg: undefined };
+  }
+  const nextLegs = legs.map((leg) => ({ ...leg }));
+  let nextIndex = currentLegIndex ?? 0;
+
+  if (status === "in_progress" || status === "ongoing") {
+    const target = nextLegs[nextIndex];
+    if (target && target.status === "pending") {
+      target.status = "in_progress";
+      target.startedAt = target.startedAt ?? new Date().toISOString();
+    }
+  }
+
+  if (status === "completed") {
+    const target = nextLegs[nextIndex];
+    if (target) {
+      target.status = "completed";
+      target.completedAt = target.completedAt ?? new Date().toISOString();
+    }
+    for (let i = nextIndex + 1; i < nextLegs.length; i += 1) {
+      const leg = nextLegs[i];
+      if (leg && leg.status === "pending") {
+        leg.status = "completed";
+        leg.completedAt = leg.completedAt ?? new Date().toISOString();
+      }
+    }
+  }
+
+  const completedCount = nextLegs.filter((leg) => leg.status === "completed").length;
+  const remainingLegs = Math.max(0, nextLegs.length - completedCount);
+  const safeIndex = Math.min(Math.max(nextIndex, 0), Math.max(0, nextLegs.length - 1));
+  const activeLeg = nextLegs[safeIndex];
+
+  return {
+    legs: nextLegs,
+    currentLegIndex: safeIndex,
+    remainingLegs,
+    isReturnLeg: activeLeg?.isReturnLeg
+  };
 }
 
 function getPaymentMethodType(methods: PaymentMethod[], paymentMethodId: string): PaymentMethodType {
@@ -970,8 +1171,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
           delivery: { ...state.settings.delivery, ...action.payload }
         }
       };
-    case "ride/request":
-      return { ...state, ride: { ...state.ride, request: { ...state.ride.request, ...action.payload } } };
+    case "ride/request": {
+      const mergedRequest = normalizeRideRequest({ ...state.ride.request, ...action.payload });
+      return { ...state, ride: { ...state.ride, request: mergedRequest } };
+    }
     case "ride/trip":
       return {
         ...state,
@@ -990,6 +1193,15 @@ function appReducer(state: AppState, action: AppAction): AppState {
                   routeSummary: "",
                   pickup: null,
                   dropoff: null,
+                  routePoints: [],
+                  routeMode: "single_stop",
+                  legs: [],
+                  currentLegIndex: 0,
+                  totalLegs: 0,
+                  remainingLegs: 0,
+                  completedStopIds: [],
+                  tripMode: "one_way",
+                  isReturnLeg: false,
                   driver: null,
                   vehicle: null,
                   ...action.payload
@@ -997,17 +1209,31 @@ function appReducer(state: AppState, action: AppAction): AppState {
               : null
         }
       };
-    case "ride/status":
+    case "ride/status": {
+      if (!state.ride.activeTrip) {
+        return state;
+      }
+      const activeTrip = { ...state.ride.activeTrip, status: action.payload };
+      const legState = applyRideStatusToLegs(activeTrip.legs, action.payload, activeTrip.currentLegIndex);
+      const nextTrip: RideTrip = {
+        ...activeTrip,
+        legs: legState.legs,
+        currentLegIndex: legState.currentLegIndex,
+        remainingLegs: legState.remainingLegs ?? activeTrip.remainingLegs,
+        isReturnLeg: legState.isReturnLeg ?? activeTrip.isReturnLeg
+      };
       return {
         ...state,
         ride: {
           ...state.ride,
-          activeTrip: state.ride.activeTrip
-            ? { ...state.ride.activeTrip, status: action.payload }
-            : state.ride.activeTrip
+          activeTrip: nextTrip
         }
       };
+    }
     case "ride/set-active":
+      if (state.ride.activeTrip === action.payload) {
+        return state;
+      }
       return { ...state, ride: { ...state.ride, activeTrip: action.payload } };
     case "ride/history":
       return { ...state, ride: { ...state.ride, history: action.payload } };
@@ -2508,6 +2734,13 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   const setRideStatus = useCallback((status: RideStatus) => {
     dispatch({ type: "ride/status", payload: status });
 
+    if (status === "searching" && !state.ride.activeTrip) {
+      const localTrip = createRideTripFromRequest(state);
+      if (localTrip) {
+        dispatch({ type: "ride/set-active", payload: localTrip });
+      }
+    }
+
     if (!riderBackendEnabled || typeof window === "undefined") {
       return;
     }
@@ -2520,7 +2753,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       if (state.ride.activeTrip?.status === "searching") {
         return;
       }
-      const requestPayload = state.ride.request;
+      const requestPayload = normalizeRideRequest(state.ride.request);
       if (!requestPayload.origin || !requestPayload.destination) {
         return;
       }
@@ -2538,7 +2771,22 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         dropoffLat: dropoffCoords.lat,
         dropoffLng: dropoffCoords.lng,
         routeSummary:
+          (requestPayload.routePoints ?? [])
+            .map((point) => point.label || point.address)
+            .filter(Boolean)
+            .join(" -> ") ||
           `${requestPayload.origin.label} -> ${requestPayload.destination.label}`,
+        routeMode: requestPayload.routeMode,
+        tripType: requestPayload.tripType,
+        tripMode: requestPayload.tripMode,
+        returnToOrigin: requestPayload.returnToOrigin,
+        waypoints: (requestPayload.stops ?? [])
+          .map((point) => ({
+            label: point.label,
+            address: point.address,
+            lat: point.coordinates?.lat,
+            lng: point.coordinates?.lng
+          })),
       })
         .then((trip) => {
           dispatch({ type: "ride/set-active", payload: mapApiTripToRideTrip(trip) });

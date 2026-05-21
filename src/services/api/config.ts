@@ -18,11 +18,19 @@ function normalizeSocketBaseUrl(value: string | undefined, apiBaseUrl: string): 
   return apiBaseUrl.replace(/\/api(?:\/v\d+)?$/, "");
 }
 
-export const USE_BACKEND = parseBooleanFlag(env.VITE_USE_BACKEND, true);
 export const API_BASE_URL = normalizeBaseUrl(env.VITE_API_BASE_URL);
 export const SOCKET_BASE_URL = normalizeSocketBaseUrl(env.VITE_SOCKET_BASE_URL, API_BASE_URL);
 export const SOCKET_PATH = (env.VITE_SOCKET_PATH || "/socket.io").trim() || "/socket.io";
 export const APP_ID = (env.VITE_APP_ID || "rider").trim() || "rider";
+export const FRONTEND_ONLY_MODE = parseBooleanFlag(
+  env.VITE_FRONTEND_ONLY_MODE,
+  false
+);
+export const USE_BACKEND = parseBooleanFlag(env.VITE_USE_BACKEND, false) && !FRONTEND_ONLY_MODE;
+export const ENABLE_COMPAT_BOOTSTRAP = parseBooleanFlag(
+  env.VITE_ENABLE_COMPAT_BOOTSTRAP,
+  USE_BACKEND
+) && USE_BACKEND;
 export const BACKEND_FLAG_EVENT = "evzone:backend-flag";
 const BACKEND_FLAG_STORAGE_KEY = `evzone_backend_flag_${APP_ID}`;
 
@@ -49,6 +57,7 @@ interface CanonicalRouteEnvelope {
 
 function readStoredBackendFlag(): boolean | undefined {
   if (typeof window === "undefined") return undefined;
+  if (FRONTEND_ONLY_MODE) return false;
   const raw = window.localStorage.getItem(BACKEND_FLAG_STORAGE_KEY);
   if (!raw) return undefined;
 
@@ -66,10 +75,15 @@ let runtimeCanonicalContract: CanonicalRouteContract | null = null;
 let runtimeCanonicalLoadPromise: Promise<CanonicalRouteContract | null> | null = null;
 
 export function getBackendEnabled(): boolean {
-  return runtimeBackendEnabled ?? USE_BACKEND;
+  if (FRONTEND_ONLY_MODE) return false;
+  return USE_BACKEND && (runtimeBackendEnabled ?? true);
 }
 
 export function setBackendEnabled(enabled: boolean): void {
+  if (FRONTEND_ONLY_MODE) {
+    runtimeBackendEnabled = false;
+    return;
+  }
   runtimeBackendEnabled = enabled;
   if (typeof window === "undefined") return;
   window.localStorage.setItem(
@@ -80,6 +94,9 @@ export function setBackendEnabled(enabled: boolean): void {
 }
 
 export async function loadBackendRuntimeFlag(force = false): Promise<boolean> {
+  if (FRONTEND_ONLY_MODE) {
+    return false;
+  }
   if (typeof window === "undefined") {
     return getBackendEnabled();
   }
@@ -114,6 +131,9 @@ export function getCanonicalRouteContract(): CanonicalRouteContract | null {
 }
 
 export async function loadCanonicalRouteContract(force = false): Promise<CanonicalRouteContract | null> {
+  if (FRONTEND_ONLY_MODE) {
+    return null;
+  }
   if (typeof window === "undefined") {
     return runtimeCanonicalContract;
   }
@@ -140,7 +160,7 @@ export async function loadCanonicalRouteContract(force = false): Promise<Canonic
   return runtimeCanonicalLoadPromise;
 }
 
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && ENABLE_COMPAT_BOOTSTRAP) {
   void loadBackendRuntimeFlag().catch(() => undefined);
   void loadCanonicalRouteContract().catch(() => undefined);
 }

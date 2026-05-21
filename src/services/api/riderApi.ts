@@ -59,6 +59,16 @@ export interface CreateRiderTripRequestPayload {
   dropoffLat: number;
   dropoffLng: number;
   routeSummary?: string;
+  routeMode?: "single_stop" | "multi_stop";
+  tripType?: "One Way" | "Round Trip" | "Multi-stop";
+  tripMode?: "one_way" | "round_trip";
+  returnToOrigin?: boolean;
+  waypoints?: Array<{
+    label: string;
+    address: string;
+    lat?: number;
+    lng?: number;
+  }>;
 }
 
 export interface UpdateRiderTripTrackingPayload {
@@ -263,44 +273,66 @@ export async function getRiderNotifications(): Promise<RiderNotificationApi[]> {
 
 // Mapper: backend RiderTripApi → frontend RideTrip
 export function mapApiTripToRideTrip(apiTrip: RiderTripApi): RideTrip {
+  const pickup: RideTrip["pickup"] = {
+    address: apiTrip.pickup,
+    coordinates: apiTrip.pickupLocation,
+    label: apiTrip.pickup,
+  };
+  const dropoff: RideTrip["dropoff"] = {
+    address: apiTrip.dropoff,
+    coordinates: apiTrip.dropoffLocation,
+    label: apiTrip.dropoff,
+  };
   return {
     id: apiTrip.id,
     status: mapApiTripStatusToRideStatus(apiTrip.status),
+    routeMode: "single_stop",
+    tripMode: "one_way",
     otp: apiTrip.otpCode,
     etaMinutes: 0, // Backend may not send ETA; fallback to 0 or derive from other fields if available
     fareEstimate: "", // Not in RiderTripApi; fill from elsewhere if needed
     distance: "", // Not in RiderTripApi
     routeSummary: apiTrip.pickup + " → " + apiTrip.dropoff,
-    pickup: {
-      address: apiTrip.pickup,
-      coordinates: apiTrip.pickupLocation,
-      label: apiTrip.pickup, // could be shortened
-    },
-    dropoff: {
-      address: apiTrip.dropoff,
-      coordinates: apiTrip.dropoffLocation,
-      label: apiTrip.dropoff,
-    },
+    pickup,
+    dropoff,
+    routePoints: pickup && dropoff ? [pickup, dropoff] : [],
+    legs:
+      pickup && dropoff
+        ? [
+            {
+              id: "leg_1",
+              from: pickup,
+              to: dropoff,
+              order: 0,
+              status: "pending",
+              isReturnLeg: false,
+            }
+          ]
+        : [],
+    currentLegIndex: 0,
+    totalLegs: 1,
+    remainingLegs: 1,
+    completedStopIds: [],
+    isReturnLeg: false,
     driver: null, // Populate from separate driver endpoint if available
     vehicle: null, // Populate from separate vehicle endpoint if available
     lastKnownLocation: undefined,
-    startedAt: apiTrip.startedAt,
-    completedAt: apiTrip.completedAt,
+    startedAt: apiTrip.startedAt ? new Date(apiTrip.startedAt).toISOString() : undefined,
+    completedAt: apiTrip.completedAt ? new Date(apiTrip.completedAt).toISOString() : undefined,
   };
 }
 
 function mapApiTripStatusToRideStatus(status: RiderTripApi["status"]): RideTrip["status"] {
-  // Map backend status strings to frontend RideStatus enum/type
-  const mapping: Record<string, RideTrip["status"]> = {
-    requested: "requested",
+  const mapping: Record<RiderTripApi["status"], RideTrip["status"]> = {
+    requested: "searching",
     driver_assigned: "driver_assigned",
-    driver_arriving: "driver_arriving",
-    arrived: "arrived",
+    driver_arriving: "driver_on_way",
+    arrived: "driver_arrived",
     in_progress: "in_progress",
     completed: "completed",
-    cancelled: "cancelled",
+    cancelled: "cancelled"
   };
-  return mapping[status] || "requested";
+  return mapping[status] ?? "searching";
 }
 
 // Existing functions (getRiderNotifications, getRiderTripHistory, getRiderActiveTrip, createRiderTripRequest, updateRiderTripTracking) are below...

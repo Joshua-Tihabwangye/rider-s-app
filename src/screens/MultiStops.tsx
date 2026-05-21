@@ -30,8 +30,9 @@ import ScreenScaffold from "../components/ScreenScaffold";
 import PageHeader from "../components/PageHeader";
 import AddStopModal from "../components/AddStopModal";
 import { uiTokens } from "../design/tokens";
+import { RIDE_MAX_STOPS } from "../features/rides/constants";
 
-const MAX_STOPS = 5; // Maximum for RA39, navigate to RA40 for 6 stops
+const MAX_STOPS = RIDE_MAX_STOPS;
 
 function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 	const navigate = useNavigate();
@@ -167,12 +168,20 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 	};
 
 	const handleContinue = () => {
-		// Validation: pickup and at least one stop with value required
-		const hasValidStops = stops.some(
-			(stop: Stop) => stop.value.trim() !== "",
+		const normalizedStops = stops
+			.map((stop) => ({ ...stop, value: stop.value.trim() }))
+			.filter((stop) => stop.value !== "");
+		const hasValidStops = normalizedStops.length > 0;
+		const uniqueStops = new Set(
+			normalizedStops.map((stop) => stop.value.toLowerCase()),
 		);
+		const hasDuplicateStops = uniqueStops.size !== normalizedStops.length;
 
 		if (!pickup.trim() || !hasValidStops) {
+			setShowError(true);
+			return;
+		}
+		if (hasDuplicateStops) {
 			setShowError(true);
 			return;
 		}
@@ -180,7 +189,7 @@ function EnterDestinationMultipleStopsScreen(): React.JSX.Element {
 			navigate("/rides/enter/details", {
 				state: {
 					pickup,
-					stops: stops.filter((stop: Stop) => stop.value.trim() !== ""),
+					stops: normalizedStops,
 				rideType,
 				tripDirection,
 				passengers,
