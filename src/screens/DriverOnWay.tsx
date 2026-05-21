@@ -140,11 +140,11 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
       <ExpandableMapPanel
         containerSx={topMapBleedSx}
         mapHeight={{ xs: "52dvh", md: "54vh" }}
-        expandedMapHeight={{ xs: "78dvh", md: "76vh" }}
+        expandedMapHeight={{ xs: "86dvh", md: "84vh" }}
         buttonOffsetCollapsed={8}
         buttonOffsetExpanded={14}
         detailsWrapperSx={{
-          mt: 1.5
+          mt: 0.75
         }}
         map={
           <MapShell
@@ -163,7 +163,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
           />
         }
         details={
-          <>
+          <Stack spacing={0.75}>
             {routeSummary && (
               <Box sx={{ pt: 0.25, pb: 0.6, display: "flex", justifyContent: "flex-start" }}>
                 <Box
@@ -198,11 +198,11 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
                 bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
                 border: (t) =>
                   t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
+                    ? "1px solid rgba(247,144,9,0.35)"
+                    : "1px solid rgba(249,115,22,0.45)"
               }}
             >
-              <CardContent sx={{ px: 1.75, py: 1.5 }}>
+              <CardContent sx={{ px: 2, py: 1.8 }}>
                 <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="space-between">
                   <Stack direction="row" spacing={1.25} alignItems="center">
                     <Avatar
@@ -263,11 +263,11 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
                 bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
                 border: (t) =>
                   t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
+                    ? "1px solid rgba(3,205,140,0.42)"
+                    : "1px solid rgba(16,185,129,0.5)"
               }}
             >
-              <CardContent sx={{ px: 1.75, py: 1.5 }}>
+              <CardContent sx={{ px: 2, py: 1.8 }}>
                 <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
                   Vehicle details
                 </Typography>
@@ -372,7 +372,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
                 Change
               </Button>
             </Stack>
-          </>
+          </Stack>
         }
       />
 

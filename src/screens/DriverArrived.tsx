@@ -24,6 +24,23 @@ import DriverChatRoom from "../components/DriverChatRoom";
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
+
+function toRadians(value: number): number {
+  return (value * Math.PI) / 180;
+}
+
+function distanceKmBetween(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const earthRadiusKm = 6371;
+  const dLat = toRadians(b.lat - a.lat);
+  const dLng = toRadians(b.lng - a.lng);
+  const lat1 = toRadians(a.lat);
+  const lat2 = toRadians(b.lat);
+  const sinLat = Math.sin(dLat / 2);
+  const sinLng = Math.sin(dLng / 2);
+  const h = sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLng * sinLng;
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
 
 function DriverHasArrivedScreen(): React.JSX.Element {
   const navigate = useNavigate();
@@ -38,23 +55,40 @@ function DriverHasArrivedScreen(): React.JSX.Element {
   const vehicle = activeTrip?.vehicle;
   const otp = (activeTrip?.otp?.trim() || "256836").replace(/\s+/g, "").slice(0, 6);
   const [chatOpen, setChatOpen] = useState(false);
+  const [arrivalProgress, setArrivalProgress] = useState(0.84);
+  const companyOrange = "#F79009";
+  const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
+  const fallbackRoute = React.useMemo(() => {
+    if (routePolyline.length > 1) return routePolyline;
+    if (sharedLocationState.pickupCoords && sharedLocationState.destinationCoords) {
+      return [sharedLocationState.pickupCoords, sharedLocationState.destinationCoords];
+    }
+    return [];
+  }, [routePolyline, sharedLocationState.destinationCoords, sharedLocationState.pickupCoords]);
+  const driverLocation = React.useMemo(() => {
+    return (
+      getApproachPoint(fallbackRoute, arrivalProgress) ??
+      sharedLocationState.driverLocation ??
+      sharedLocationState.pickupCoords ??
+      null
+    );
+  }, [arrivalProgress, fallbackRoute, sharedLocationState.driverLocation, sharedLocationState.pickupCoords]);
+  const approachDistanceKm = React.useMemo(() => {
+    if (!driverLocation || !sharedLocationState.pickupCoords) {
+      return sharedLocationState.routeDistanceKm;
+    }
+    return Math.max(0.05, distanceKmBetween(driverLocation, sharedLocationState.pickupCoords));
+  }, [driverLocation, sharedLocationState.pickupCoords, sharedLocationState.routeDistanceKm]);
+  const approachDurationMin = React.useMemo(() => {
+    if (!approachDistanceKm) {
+      return sharedLocationState.routeDurationMin;
+    }
+    return Math.max(1, Math.round(approachDistanceKm / 0.42));
+  }, [approachDistanceKm, sharedLocationState.routeDurationMin]);
 
   useEffect(() => {
     if (ride.activeTrip?.status !== "driver_arrived") {
       setRideStatus("driver_arrived");
-    }
-    const pickupCoords = sharedLocationState.pickupCoords ?? null;
-    const previous = sharedLocationState.driverLocation ?? null;
-    if (
-      !(
-        (!previous && !pickupCoords) ||
-        (previous &&
-          pickupCoords &&
-          previous.lat === pickupCoords.lat &&
-          previous.lng === pickupCoords.lng)
-      )
-    ) {
-      updateSharedLocationState({ driverLocation: pickupCoords });
     }
     const verificationTimer = window.setTimeout(() => {
       if (ride.activeTrip?.status === "driver_arrived") {
@@ -73,11 +107,30 @@ function DriverHasArrivedScreen(): React.JSX.Element {
     ride.activeTrip?.startedAt,
     ride.activeTrip?.status,
     setRideStatus,
-    sharedLocationState.driverLocation,
-    sharedLocationState.pickupCoords,
-    updateRideTrip,
-    updateSharedLocationState
+    updateRideTrip
   ]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setArrivalProgress((prev) => Math.min(prev + 0.035, 1));
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const previous = sharedLocationState.driverLocation;
+    const next = driverLocation;
+    if (
+      (!previous && !next) ||
+      (previous &&
+        next &&
+        previous.lat === next.lat &&
+        previous.lng === next.lng)
+    ) {
+      return;
+    }
+    updateSharedLocationState({ driverLocation });
+  }, [driverLocation, sharedLocationState.driverLocation, updateSharedLocationState]);
 
   const handleStartTrip = () => {
     updateRideTrip({
@@ -117,23 +170,45 @@ function DriverHasArrivedScreen(): React.JSX.Element {
         containerSx={topMapBleedSx}
         mapHeight={{ xs: "52dvh", md: "54vh" }}
         expandedMapHeight={{ xs: "78dvh", md: "76vh" }}
+        buttonOffsetCollapsed={8}
+        buttonOffsetExpanded={14}
+        detailsWrapperSx={{ mt: 0.75 }}
         map={
           <MapShell
             preset="compact"
             sx={{ height: "100%" }}
             showControls={false}
+            showRouteInfo={false}
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
-            driverLocation={sharedLocationState.pickupCoords}
-            routePolyline={sharedLocationState.routePolyline}
+            driverLocation={driverLocation}
+            routePolyline={fallbackRoute}
             routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
-            routeDistanceKm={sharedLocationState.routeDistanceKm}
-            routeDurationMin={sharedLocationState.routeDurationMin}
+            routeDistanceKm={approachDistanceKm}
+            routeDurationMin={approachDurationMin}
             canvasSx={{ background: uiTokens.map.canvasEmphasis }}
           />
         }
         details={
-          <>
+          <Stack spacing={0.75}>
+            {!!approachDistanceKm && !!approachDurationMin && (
+              <Box sx={{ pt: 0.15, pb: 0.35, display: "flex", justifyContent: "flex-start" }}>
+                <Box
+                  sx={{
+                    px: 1.25,
+                    py: 0.5,
+                    borderRadius: "999px",
+                    bgcolor: "#0B1530",
+                    border: "1px solid rgba(3,205,140,0.55)",
+                    color: "#F8FAFC",
+                    fontWeight: 700,
+                    fontSize: 11
+                  }}
+                >
+                  {`${approachDistanceKm.toFixed(2)} km • ${Math.round(approachDurationMin)} min`}
+                </Box>
+              </Box>
+            )}
             <Box sx={{ pt: 0.5 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
                 Driver arrived
@@ -150,11 +225,11 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                 bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
                 border: (t) =>
                   t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
+                    ? "1px solid rgba(247,144,9,0.36)"
+                    : "1px solid rgba(249,115,22,0.46)"
               }}
             >
-              <CardContent sx={{ px: 1.75, py: 1.5 }}>
+              <CardContent sx={{ px: 2, py: 1.8 }}>
                 <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="space-between">
                   <Stack direction="row" spacing={1.25} alignItems="center">
                     <Avatar
@@ -181,10 +256,18 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                     </Box>
                   </Stack>
                   <Stack direction="row" spacing={0.5}>
-                    <IconButton size="small" onClick={handleCall}>
+                    <IconButton
+                      size="small"
+                      onClick={handleCall}
+                      sx={{ border: "1px solid rgba(247,144,9,0.35)", color: companyOrange }}
+                    >
                       <PhoneRoundedIcon sx={{ fontSize: 18 }} />
                     </IconButton>
-                    <IconButton size="small" onClick={() => setChatOpen(true)}>
+                    <IconButton
+                      size="small"
+                      onClick={() => setChatOpen(true)}
+                      sx={{ border: "1px solid rgba(3,205,140,0.35)", color: "#03CD8C" }}
+                    >
                       <MessageRoundedIcon sx={{ fontSize: 18 }} />
                     </IconButton>
                   </Stack>
@@ -199,11 +282,11 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                 bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
                 border: (t) =>
                   t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
+                    ? "1px solid rgba(3,205,140,0.42)"
+                    : "1px solid rgba(16,185,129,0.5)"
               }}
             >
-              <CardContent sx={{ px: 1.75, py: 1.5 }}>
+              <CardContent sx={{ px: 2, py: 1.8 }}>
                 <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} alignItems="stretch">
                   <Box sx={{ flex: 1, width: "100%" }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
@@ -228,14 +311,14 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                       />
                     </Stack>
 
-                    <Stack direction="row" spacing={1} sx={{ mb: 1.25, flexWrap: "wrap" }} useFlexGap>
+                    <Stack direction="row" spacing={0.75} sx={{ mb: 1.25, flexWrap: "nowrap" }} useFlexGap>
                       {otp.split("").map((digit, index) => (
                         <Box
                           key={`${digit}-${index}`}
                           sx={{
-                            minWidth: 44,
-                            height: 52,
-                            px: 1.1,
+                            minWidth: 40,
+                            height: 48,
+                            px: 0.9,
                             borderRadius: 2,
                             display: "flex",
                             alignItems: "center",
@@ -244,7 +327,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                             border: "1px solid rgba(3,205,140,0.28)"
                           }}
                         >
-                          <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: "0.02em", lineHeight: 1 }}>
+                          <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: "0.02em", lineHeight: 1 }}>
                             {digit}
                           </Typography>
                         </Box>
@@ -287,7 +370,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                           color: "#0F172A"
                         }}
                       >
-                        OTP {otp}
+                        Scan QR
                       </Typography>
                       <Box
                         sx={{
@@ -351,6 +434,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                 fontWeight: 700,
                 textTransform: "none",
                 bgcolor: "#16A34A",
+                boxShadow: "0 10px 22px rgba(247,144,9,0.22)",
                 color: "#FFFFFF",
                 "&:hover": {
                   bgcolor: "#15803D"
@@ -359,7 +443,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
             >
               Start trip
             </Button>
-          </>
+          </Stack>
         }
       />
 

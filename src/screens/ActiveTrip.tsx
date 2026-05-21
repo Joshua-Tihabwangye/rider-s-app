@@ -87,6 +87,22 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     parseDistanceKm(activeTrip?.distance) ??
     START_DISTANCE_KM;
   const totalFareDisplay = activeTrip?.fareEstimate || "UGX 0";
+  const compactRouteLabel = useMemo(() => {
+    const distance = sharedLocationState.routeDistanceKm;
+    const duration = sharedLocationState.routeDurationMin;
+    if (!distance || !duration) return null;
+    const distanceLabel =
+      distance >= 100
+        ? `${Math.round(distance)} km`
+        : distance >= 10
+          ? `${distance.toFixed(1)} km`
+          : `${distance.toFixed(2)} km`;
+    const durationLabel =
+      duration < 60
+        ? `${Math.max(1, Math.round(duration))} min`
+        : `${Math.floor(duration / 60)} hr ${Math.round(duration % 60)} min`;
+    return `${distanceLabel} • ${durationLabel}`;
+  }, [sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
 
   // Calculate driver location along the route
   const driverLocation = React.useMemo(() => {
@@ -336,11 +352,15 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         containerSx={topMapBleedSx}
         mapHeight={{ xs: "56dvh", md: "60vh" }}
         expandedMapHeight={{ xs: "82dvh", md: "78vh" }}
+        buttonOffsetCollapsed={8}
+        buttonOffsetExpanded={14}
+        detailsWrapperSx={{ mt: 0.75 }}
         map={
           <MapShell
             preset="full"
             sx={{ height: "100%" }}
             showControls={false}
+            showRouteInfo={false}
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
             driverLocation={driverLocation}
@@ -354,8 +374,27 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           />
         }
         details={
-          <>
-      <Box sx={{ pt: 2, pb: 1, px: 2 }}>
+          <Stack spacing={0.85}>
+      {compactRouteLabel && (
+        <Box sx={{ pt: 0.1, pb: 0.35, display: "flex", justifyContent: "flex-start" }}>
+          <Box
+            sx={{
+              px: 1.2,
+              py: 0.5,
+              borderRadius: "999px",
+              bgcolor: "#0B1530",
+              border: "1px solid rgba(3,205,140,0.55)",
+              color: "#F8FAFC",
+              fontWeight: 700,
+              fontSize: 11
+            }}
+          >
+            {compactRouteLabel}
+          </Box>
+        </Box>
+      )}
+
+      <Box sx={{ pt: 0.55, pb: 0.2 }}>
         <Typography variant="h5" sx={{ fontWeight: 800, color: 'var(--evz-text-main, #0f172a)' }}>
           Active Trip
         </Typography>
@@ -378,14 +417,6 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                 Simulate add stop
               </Button>
             )}
-            <Button
-              size="small"
-              variant="contained"
-              onClick={() => navigate("/rides/sos")}
-              sx={{ bgcolor: 'var(--evz-danger)', color: '#fff', px: 2, borderRadius: 2 }}
-            >
-              SOS
-            </Button>
           </Stack>
         </Box>
         {isTripPaused && (
@@ -417,7 +448,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
 
       {/* Trip Info Section (Bottom Card) */}
-      <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.lg, pb: uiTokens.spacing.lg }}>
+      <Box sx={{ pt: uiTokens.spacing.lg, pb: uiTokens.spacing.lg }}>
         <Card
           elevation={0}
           sx={{
@@ -629,7 +660,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         </Button>
       </Box>
 
-          </>
+          </Stack>
         }
       />
 

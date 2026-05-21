@@ -134,7 +134,7 @@ export default function ExpandableMapPanel({
             left: "50%",
             bottom: isExpanded ? buttonOffsetExpanded : buttonOffsetCollapsed,
             transform: "translateX(-50%)",
-            zIndex: 9,
+            zIndex: 14,
             borderRadius: 999,
             px: 1.4,
             py: 0.4,

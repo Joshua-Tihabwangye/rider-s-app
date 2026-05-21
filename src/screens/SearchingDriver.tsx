@@ -5,7 +5,6 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -16,7 +15,6 @@ import {
   Typography
 } from "@mui/material";
 
-import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import LocalTaxiRoundedIcon from "@mui/icons-material/LocalTaxiRounded";
 import MapShell from "../components/maps/MapShell";
 import ExpandableMapPanel from "../components/maps/ExpandableMapPanel";
@@ -34,6 +32,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [searchTime, setSearchTime] = useState(0);
   const [driverProgress, setDriverProgress] = useState(0);
+  const companyOrange = "#F79009";
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const fallbackRoute = React.useMemo(() => {
     if (routePolyline.length > 1) return routePolyline;
@@ -120,6 +119,9 @@ function SearchingForDriverScreen(): React.JSX.Element {
         containerSx={topMapBleedSx}
         mapHeight={{ xs: "52dvh", md: "54vh" }}
         expandedMapHeight={{ xs: "78dvh", md: "76vh" }}
+        buttonOffsetCollapsed={-28}
+        buttonOffsetExpanded={14}
+        detailsWrapperSx={{ mt: 1 }}
         map={
           <MapShell
             preset="compact"
@@ -133,30 +135,10 @@ function SearchingForDriverScreen(): React.JSX.Element {
             routeDistanceKm={sharedLocationState.routeDistanceKm}
             routeDurationMin={sharedLocationState.routeDurationMin}
             canvasSx={{ background: uiTokens.map.canvasEmphasis }}
-          >
-            <Chip
-              size="small"
-              icon={<RefreshRoundedIcon sx={{ fontSize: 14 }} />}
-              label="Searching Nearby"
-              sx={{
-                position: "absolute",
-                bottom: 20,
-                left: "50%",
-                transform: "translateX(-50%)",
-                borderRadius: 5,
-                fontSize: 11,
-                height: 28,
-                px: 1,
-                bgcolor: "rgba(15,23,42,0.92)",
-                color: "#F9FAFB",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                border: "1px solid rgba(255,255,255,0.1)"
-              }}
-            />
-          </MapShell>
+          />
         }
         details={
-          <>
+          <Stack spacing={1.25}>
             <Box sx={{ pt: 0.5 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
                 Searching for driver{dots}
@@ -175,13 +157,13 @@ function SearchingForDriverScreen(): React.JSX.Element {
                 bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
                 border: (t) =>
                   t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
+                    ? "1px solid rgba(247,144,9,0.38)"
+                    : "1px solid rgba(249,115,22,0.48)"
               }}
             >
               <CardContent sx={{ px: 1.75, py: 2 }}>
                 <Stack direction="row" spacing={1.3} alignItems="center">
-                  <CircularProgress size={20} thickness={5} />
+                  <CircularProgress size={20} thickness={5} sx={{ color: companyOrange }} />
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {routeReady ? "Searching nearby drivers" : "Route unavailable"}
@@ -205,12 +187,20 @@ function SearchingForDriverScreen(): React.JSX.Element {
                 borderRadius: uiTokens.radius.xl,
                 py: 0.9,
                 fontSize: 12,
-                textTransform: "none"
+                textTransform: "none",
+                borderColor: routeReady ? "rgba(247,144,9,0.55)" : undefined,
+                color: routeReady ? companyOrange : undefined,
+                "&:hover": routeReady
+                  ? {
+                      borderColor: companyOrange,
+                      bgcolor: "rgba(247,144,9,0.08)"
+                    }
+                  : undefined
               }}
             >
               {routeReady ? "Cancel request" : "Back to trip setup"}
             </Button>
-          </>
+          </Stack>
         }
       />
 
