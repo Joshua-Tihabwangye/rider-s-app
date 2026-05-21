@@ -223,6 +223,7 @@ interface AppActions {
   dismissReminders: (ids: number[]) => void;
   simulateDriverAddStopRequest: (requestNote?: string) => void;
   simulateDriverContinueTripRequest: (requestNote?: string) => void;
+  resetTemporaryStopState: () => void;
   respondToTemporaryStopRequest: (decision: "confirm" | "decline") => void;
   resumeTripAfterTemporaryStop: () => void;
   markTemporaryStopContinuePromptShown: () => void;
@@ -464,21 +465,23 @@ function normalizeRideRequest(request: RideRequest): RideRequest {
   const tripMode = request.tripMode ?? (request.tripType === "Round Trip" ? "round_trip" : "one_way");
   const returnPattern = request.roundTripConfig?.returnPattern ?? DEFAULT_ROUND_TRIP_RETURN_PATTERN;
   const validStops = request.stops.filter((stop) => stop.label?.trim() || stop.address?.trim());
+  const validStopsByMode = routeMode === "multi_stop" ? validStops : [];
   const routePointsFromRequest = request.routePoints?.filter((point) => point.label?.trim() || point.address?.trim()) ?? [];
+  const shouldPreferRoutePointsFromRequest = routeMode === "multi_stop" || tripMode === "round_trip";
   const basePoints =
-    routePointsFromRequest.length > 0
+    shouldPreferRoutePointsFromRequest && routePointsFromRequest.length > 0
       ? routePointsFromRequest
       : [
           ...(request.origin ? [request.origin] : []),
-          ...validStops,
+          ...validStopsByMode,
           ...(request.destination ? [request.destination] : [])
         ];
   const routePoints = [...basePoints];
   const returnToOrigin = request.returnToOrigin ?? tripMode === "round_trip";
 
   if (tripMode === "round_trip" && returnToOrigin && routePoints.length >= 2 && request.origin) {
-    if (returnPattern === "reverse_stops" && routePointsFromRequest.length === 0 && validStops.length > 0) {
-      routePoints.push(...[...validStops].reverse());
+    if (returnPattern === "reverse_stops" && routePointsFromRequest.length === 0 && validStopsByMode.length > 0) {
+      routePoints.push(...[...validStopsByMode].reverse());
     }
     const lastPoint = routePoints[routePoints.length - 1];
     const sameAsOrigin =
@@ -501,7 +504,7 @@ function normalizeRideRequest(request: RideRequest): RideRequest {
       ? routePoints[routePoints.length - 1] ?? null
       : request.destination ?? null;
   const normalizedStops = tripMode === "round_trip"
-    ? validStops
+    ? validStopsByMode
     : hasRoundTripReturnLeg
       ? routePoints.slice(1, Math.max(1, routePoints.length - 2))
       : routePoints.slice(1, Math.max(1, routePoints.length - 1));
@@ -2966,6 +2969,25 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     state.ride.temporaryStop.status
   ]);
 
+  const resetTemporaryStopState = useCallback(() => {
+    dispatch({
+      type: "ride/set-temporary-stop",
+      payload: {
+        status: "idle",
+        requestNote: "",
+        requestId: null,
+        requestedAt: null,
+        confirmedAt: null,
+        resumedAt: null,
+        pauseStartedAt: null,
+        continuePromptDueAt: null,
+        continuePromptShownAt: null,
+        totalPausedDurationMs: 0,
+        timerPaused: false
+      }
+    });
+  }, []);
+
   const resumeTripAfterTemporaryStop = useCallback(() => {
     const nowMs = Date.now();
     const nowIso = new Date(nowMs).toISOString();
@@ -3982,6 +4004,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       dismissReminders,
       simulateDriverAddStopRequest,
       simulateDriverContinueTripRequest,
+      resetTemporaryStopState,
       respondToTemporaryStopRequest,
       resumeTripAfterTemporaryStop,
       markTemporaryStopContinuePromptShown,
@@ -4044,6 +4067,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       dismissReminders,
       simulateDriverAddStopRequest,
       simulateDriverContinueTripRequest,
+      resetTemporaryStopState,
       respondToTemporaryStopRequest,
       resumeTripAfterTemporaryStop,
       markTemporaryStopContinuePromptShown,

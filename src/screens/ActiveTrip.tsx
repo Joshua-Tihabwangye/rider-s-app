@@ -70,6 +70,15 @@ function parseDistanceKm(value?: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function parseCurrencyAmount(value?: string): number {
+  const parsed = Number.parseFloat((value ?? "").replace(/[^\d.]/g, ""));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatCurrencyUGX(amount: number): string {
+  return `UGX ${Math.max(0, Math.round(amount)).toLocaleString()}`;
+}
+
 function formatElapsedDuration(ms: number): string {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
   const hours = Math.floor(totalSeconds / 3600);
@@ -110,6 +119,8 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   const [hasAutoSimulatedStopRequest, setHasAutoSimulatedStopRequest] = useState(false);
   const [driverProgress, setDriverProgress] = useState(0);
   const hasHandledReloadResetRef = useRef(false);
+  const continueRequestRetryTimerRef = useRef<number | null>(null);
+  const addStopRequestRetryTimerRef = useRef<number | null>(null);
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const isTripPaused =
     temporaryStop?.status === "paused_at_stop";
@@ -119,7 +130,20 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     sharedLocationState.routeDistanceKm ??
     parseDistanceKm(activeTrip?.distance) ??
     START_DISTANCE_KM;
-  const totalFareDisplay = activeTrip?.fareEstimate || "UGX 0";
+  const estimatedFareAmount = useMemo(() => {
+    const currentFareAmount = parseCurrencyAmount(activeTrip?.fareEstimate);
+    if (currentFareAmount > 0) {
+      return currentFareAmount;
+    }
+
+    const baseFare = 8000;
+    const distanceComponent = Math.max(0, totalDistance) * 2600;
+    const roundTripSurcharge = activeTrip?.tripMode === "round_trip" ? 5000 : 0;
+    const extraStopCount = Math.max(0, (activeTrip?.routePoints?.length ?? 0) - 2);
+    const stopSurcharge = extraStopCount * 3500;
+    return baseFare + distanceComponent + roundTripSurcharge + stopSurcharge;
+  }, [activeTrip?.fareEstimate, activeTrip?.routePoints?.length, activeTrip?.tripMode, totalDistance]);
+  const totalFareDisplay = formatCurrencyUGX(estimatedFareAmount);
 
   useEffect(() => {
     if (!import.meta.env.DEV || typeof window === "undefined") {
@@ -530,6 +554,17 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     temporaryStop?.pauseStartedAt
   ]);
 
+  useEffect(() => {
+    return () => {
+      if (continueRequestRetryTimerRef.current !== null) {
+        window.clearTimeout(continueRequestRetryTimerRef.current);
+      }
+      if (addStopRequestRetryTimerRef.current !== null) {
+        window.clearTimeout(addStopRequestRetryTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleRating = () => {
     navigate("/rides/rating");
   };
@@ -541,6 +576,10 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   const handleMapRecenter = () => undefined;
 
   const handleContinueTrip = () => {
+    if (continueRequestRetryTimerRef.current !== null) {
+      window.clearTimeout(continueRequestRetryTimerRef.current);
+      continueRequestRetryTimerRef.current = null;
+    }
     resumeTripAfterTemporaryStop();
     setShowContinueTripDialog(false);
   };
@@ -861,27 +900,43 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           }}
         >
           <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.md }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <Box>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "auto 1fr" },
+                gap: 1.25,
+                alignItems: "end"
+              }}
+            >
+              <Box sx={{ minWidth: { sm: 190 } }}>
                 <Typography
                   variant="caption"
                   sx={{ color: (theme) => theme.palette.text.secondary, fontSize: 11, display: "block", mb: uiTokens.spacing.xxs }}
                 >
-                  Total Fare
+                  Estimated Total Fare
                 </Typography>
                 <Typography
                   variant="h6"
                   sx={{
                     fontWeight: 700,
                     letterSpacing: "-0.01em",
-                    color: (theme) => theme.palette.text.primary
+                    color: (theme) => theme.palette.text.primary,
+                    whiteSpace: "nowrap"
                   }}
                 >
                   {totalFareDisplay}
                 </Typography>
               </Box>
-              <Typography variant="caption" sx={{ color: (theme) => theme.palette.text.secondary }}>
-                Payment will be available after trip completion.
+              <Typography
+                variant="caption"
+                sx={{
+                  color: (theme) => theme.palette.text.secondary,
+                  justifySelf: { sm: "end" },
+                  textAlign: { xs: "left", sm: "right" },
+                  maxWidth: { sm: 250 }
+                }}
+              >
+                Fare estimate is available during the trip and updates as the ride progresses.
               </Typography>
             </Box>
           </CardContent>
@@ -912,7 +967,12 @@ function TripInProgressBasicScreen(): React.JSX.Element {
       />
 
       {/* Add Stop Request Dialog */}
-      <Dialog open={isAddStopRequested && !isSafetyCheckPending} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
+      <Dialog
+        open={isAddStopRequested && !isSafetyCheckPending}
+        onClose={() => undefined}
+        disableEscapeKeyDown
+        PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}
+      >
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <PauseCircleIcon sx={{ color: "#F59E0B" }} />
           <Typography fontWeight="bold">Driver requested a stop</Typography>
@@ -928,13 +988,30 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={() => actions.respondToTemporaryStopRequest("decline")}
+            onClick={() => {
+              actions.respondToTemporaryStopRequest("decline");
+              if (addStopRequestRetryTimerRef.current !== null) {
+                window.clearTimeout(addStopRequestRetryTimerRef.current);
+              }
+              addStopRequestRetryTimerRef.current = window.setTimeout(() => {
+                addStopRequestRetryTimerRef.current = null;
+                simulateDriverAddStopRequest(
+                  "Your driver has requested to add a temporary stop."
+                );
+              }, 5000);
+            }}
             sx={{ color: "#B45309", textTransform: "none" }}
           >
             Cancel
           </Button>
           <Button
-            onClick={() => actions.respondToTemporaryStopRequest("confirm")}
+            onClick={() => {
+              if (addStopRequestRetryTimerRef.current !== null) {
+                window.clearTimeout(addStopRequestRetryTimerRef.current);
+                addStopRequestRetryTimerRef.current = null;
+              }
+              actions.respondToTemporaryStopRequest("confirm");
+            }}
             variant="contained"
             sx={{ borderRadius: uiTokens.radius.xl, textTransform: "none", bgcolor: "#22c55e", "&:hover": { bgcolor: "#16A34A" } }}
           >
@@ -946,7 +1023,8 @@ function TripInProgressBasicScreen(): React.JSX.Element {
       {/* Continue Trip Request Dialog */}
       <Dialog
         open={showContinueTripDialog && isTripPaused && !isSafetyCheckPending}
-        onClose={() => setShowContinueTripDialog(false)}
+        onClose={() => undefined}
+        disableEscapeKeyDown
         PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}
       >
         <DialogTitle>
@@ -956,7 +1034,21 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           <Typography>Your driver is ready to continue the trip. Do you want to continue now?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowContinueTripDialog(false)} sx={{ color: "#B45309", textTransform: "none" }}>
+          <Button
+            onClick={() => {
+              setShowContinueTripDialog(false);
+              if (continueRequestRetryTimerRef.current !== null) {
+                window.clearTimeout(continueRequestRetryTimerRef.current);
+              }
+              continueRequestRetryTimerRef.current = window.setTimeout(() => {
+                continueRequestRetryTimerRef.current = null;
+                actions.simulateDriverContinueTripRequest(
+                  "Your driver has requested to continue the trip."
+                );
+              }, 5000);
+            }}
+            sx={{ color: "#B45309", textTransform: "none" }}
+          >
             Not continuing
           </Button>
           <Button

@@ -46,6 +46,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { ride, sharedLocationState, actions } = useAppData();
   const {
+    resetTemporaryStopState,
     setRideStatus,
     updateRideTrip,
     updateSharedLocationState
@@ -98,6 +99,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
     }
     const verificationTimer = window.setTimeout(() => {
       if (ride.activeTrip?.status === "driver_arrived") {
+        resetTemporaryStopState();
         updateRideTrip({
           startedAt: ride.activeTrip?.startedAt ?? new Date().toISOString(),
           status: "in_progress"
@@ -112,6 +114,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
     navigate,
     ride.activeTrip?.startedAt,
     ride.activeTrip?.status,
+    resetTemporaryStopState,
     setRideStatus,
     updateRideTrip
   ]);
@@ -139,6 +142,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
   }, [driverLocation, sharedLocationState.driverLocation, updateSharedLocationState]);
 
   const handleStartTrip = () => {
+    resetTemporaryStopState();
     updateRideTrip({
       startedAt: activeTrip?.startedAt ?? new Date().toISOString(),
       status: "in_progress"

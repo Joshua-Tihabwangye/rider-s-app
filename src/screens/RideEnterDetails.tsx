@@ -964,10 +964,14 @@ function EnterDestinationScreen(): React.JSX.Element {
 			bookedPersonPhone: bookedPersonPhone.trim(),
 		};
 
-		navigate("/rides/searching", {
-			state: tripState,
-		});
-	};
+		// Always start a fresh ride flow so previous trip legs/status don't leak
+		// into a newly selected trip mode (single, round trip, or multi-stop).
+		actions.setActiveTrip(null);
+			actions.resetTemporaryStopState();
+			navigate("/rides/searching", {
+				state: tripState,
+			});
+		};
 
 	const handleSwitchRiderContinue = (riderData: {
 		riderType: string;
