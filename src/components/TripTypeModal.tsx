@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "@mui/material/styles";
 import {
   Box,
@@ -11,26 +11,12 @@ import {
   Card,
   CardContent,
   Stack,
-  Alert
+  Alert,
+  TextField
 } from "@mui/material";
 
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
-import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
-
-interface DateOption {
-  day: number;
-  month: string;
-  monthNum: number;
-  year: number;
-  fullDate: Date;
-}
-
-interface TimeOption {
-  hour: string;
-  minute: string;
-  period: string;
-}
 
 interface TripTypeModalProps {
   open: boolean;
@@ -48,105 +34,152 @@ interface TripTypeModalProps {
   existingReturnTime?: string;
 }
 
-// Generate date options
-const generateDateOptions = (): DateOption[] => {
-  const dates = [];
-  const today = new Date();
-  for (let i = 0; i < 60; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    dates.push({
-      day: date.getDate(),
-      month: date.toLocaleString('default', { month: 'short' }),
-      monthNum: date.getMonth() + 1,
-      year: date.getFullYear(),
-      fullDate: date
-    });
-  }
-  return dates;
-};
+function toDateTimeLocalValue(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
 
-function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate, departureTime, existingReturnDate, existingReturnTime }: TripTypeModalProps): React.JSX.Element {
+function getDefaultReturnDateTimeValue(): string {
+  const next = new Date();
+  next.setDate(next.getDate() + 1);
+  const rounded = Math.ceil(next.getMinutes() / 5) * 5;
+  if (rounded >= 60) {
+    next.setHours(next.getHours() + 1, 0, 0, 0);
+  } else {
+    next.setMinutes(rounded, 0, 0);
+  }
+  return toDateTimeLocalValue(next);
+}
+
+function parseExistingReturnDateTime(existingReturnDate?: string, existingReturnTime?: string): string | null {
+  if (!existingReturnDate || !existingReturnTime) {
+    return null;
+  }
+
+  const dateMatch = existingReturnDate.match(/(\w+),\s*(\d{1,2})\s*(\w+)\s*(\d{4})/);
+  const timeMatch = existingReturnTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!dateMatch || !timeMatch) {
+    return null;
+  }
+
+  const monthMap: Record<string, number> = {
+    Jan: 0,
+    Feb: 1,
+    Mar: 2,
+    Apr: 3,
+    May: 4,
+    Jun: 5,
+    Jul: 6,
+    Aug: 7,
+    Sep: 8,
+    Oct: 9,
+    Nov: 10,
+    Dec: 11
+  };
+
+  const day = Number.parseInt(dateMatch[2] ?? "", 10);
+  const monthIndex = monthMap[dateMatch[3] ?? ""];
+  const year = Number.parseInt(dateMatch[4] ?? "", 10);
+  const hour12 = Number.parseInt(timeMatch[1] ?? "", 10);
+  const minute = Number.parseInt(timeMatch[2] ?? "", 10);
+  const period = (timeMatch[3] ?? "").toUpperCase();
+
+  if (!Number.isFinite(day) || !Number.isFinite(year) || !Number.isFinite(hour12) || !Number.isFinite(minute) || monthIndex === undefined) {
+    return null;
+  }
+
+  const hour24 = period === "PM" && hour12 !== 12 ? hour12 + 12 : period === "AM" && hour12 === 12 ? 0 : hour12;
+  const date = new Date(year, monthIndex, day, hour24, minute, 0, 0);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return toDateTimeLocalValue(date);
+}
+
+function parseDepartureDateTime(departureDate?: Date | string, departureTime?: string): Date {
+  if (!departureDate) {
+    return new Date();
+  }
+
+  const baseDate = departureDate instanceof Date ? new Date(departureDate) : new Date(departureDate);
+  if (Number.isNaN(baseDate.getTime())) {
+    return new Date();
+  }
+
+  if (!departureTime) {
+    return baseDate;
+  }
+
+  const timeMatch = departureTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!timeMatch) {
+    return baseDate;
+  }
+
+  const hour12 = Number.parseInt(timeMatch[1] ?? "", 10);
+  const minute = Number.parseInt(timeMatch[2] ?? "", 10);
+  const period = (timeMatch[3] ?? "").toUpperCase();
+  if (!Number.isFinite(hour12) || !Number.isFinite(minute)) {
+    return baseDate;
+  }
+
+  const hour24 = period === "PM" && hour12 !== 12 ? hour12 + 12 : period === "AM" && hour12 === 12 ? 0 : hour12;
+  baseDate.setHours(hour24, minute, 0, 0);
+  return baseDate;
+}
+
+function formatReturnDateLabel(date: Date): string {
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${dayNames[date.getDay()]}, ${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function formatReturnTimeLabel(date: Date): string {
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true
+  });
+}
+
+function TripTypeModal({
+  open,
+  onClose,
+  currentTripType,
+  onSelect,
+  departureDate,
+  departureTime,
+  existingReturnDate,
+  existingReturnTime
+}: TripTypeModalProps): React.JSX.Element {
   const theme = useTheme();
-  const dateScrollRef = useRef<HTMLDivElement>(null);
-  const timeScrollRef = useRef<HTMLDivElement>(null);
-  
+
   const [selectedTripType, setSelectedTripType] = useState<string>(currentTripType || "One Way");
-  const [returnDate, setReturnDate] = useState<DateOption | null>(null);
-  const [returnTime, setReturnTime] = useState<TimeOption | null>(null);
+  const [returnDateTimeValue, setReturnDateTimeValue] = useState<string>("");
   const [validationError, setValidationError] = useState<string>("");
-  
-  const dateOptions = generateDateOptions();
-  
-  // Update selectedTripType when currentTripType changes (when modal opens)
+
   useEffect(() => {
-    if (open) {
-      if (currentTripType) {
-        setSelectedTripType(currentTripType);
-      }
-      // If Round Trip is already selected and we have existing return date/time, restore them
-      if (currentTripType === "Round Trip" && existingReturnDate && existingReturnTime) {
-        // Parse existing return date string (e.g., "Wed, 26 Sep 2024")
-        const dateMatch = existingReturnDate.match(/(\w+),\s*(\d+)\s*(\w+)\s*(\d+)/);
-        if (dateMatch && dateMatch[2] && dateMatch[3] && dateMatch[4]) {
-          const day = dateMatch[2];
-          const month = dateMatch[3];
-          const year = dateMatch[4];
-          const foundDate = dateOptions.find(d => 
-            d.day === parseInt(day) && 
-            d.month === month && 
-            d.year === parseInt(year)
-          );
-          if (foundDate) {
-            setReturnDate(foundDate);
-          }
-        }
-        // Parse existing return time string (e.g., "11:35 PM")
-        const timeMatch = existingReturnTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-        if (timeMatch && timeMatch[1] && timeMatch[2] && timeMatch[3]) {
-          const hour = timeMatch[1];
-          const minute = timeMatch[2];
-          const period = timeMatch[3];
-          setReturnTime({
-            hour: String(parseInt(hour)).padStart(2, '0'),
-            minute: minute,
-            period: period.toUpperCase()
-          });
-        }
-      } else if (currentTripType === "One Way") {
-        // Reset return date/time when switching from Round Trip to One Way
-        setReturnDate(null);
-        setReturnTime(null);
-        setValidationError("");
-      }
-    } else {
-      // Reset state when modal closes
+    if (!open) {
       setValidationError("");
+      return;
     }
-  }, [open, currentTripType, existingReturnDate, existingReturnTime, dateOptions]);
-  
-  // Initialize return date/time when Round Trip is selected
-  useEffect(() => {
-    if (open && selectedTripType === "Round Trip" && !returnDate && !existingReturnDate) {
-      // Set default return date to tomorrow or same day if departure is in future
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const defaultDate = dateOptions.find(d => 
-        d.fullDate.getTime() >= tomorrow.getTime()
-      ) || dateOptions[1];
-      if (defaultDate) {
-        setReturnDate(defaultDate);
-      }
-      
-      // Set default return time (11:35 PM as per spec)
-      setReturnTime({
-        hour: "11",
-        minute: "35",
-        period: "PM"
-      });
+
+    const tripType = currentTripType || "One Way";
+    setSelectedTripType(tripType);
+
+    if (tripType === "Round Trip") {
+      const restored = parseExistingReturnDateTime(existingReturnDate, existingReturnTime);
+      setReturnDateTimeValue(restored ?? getDefaultReturnDateTimeValue());
+      return;
     }
-  }, [selectedTripType, open, returnDate, existingReturnDate, dateOptions]);
-  
+
+    setReturnDateTimeValue("");
+  }, [currentTripType, existingReturnDate, existingReturnTime, open]);
+
   const accentGreen = "#03CD8C";
   const contentBg = theme.palette.mode === "light" ? "#FFFFFF" : theme.palette.background.paper;
 
@@ -156,66 +189,25 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
     }
   };
 
-  // Validate return date/time is after departure
   const validateReturnDateTime = (): boolean => {
     if (selectedTripType !== "Round Trip") {
       return true;
     }
 
-    if (!returnDate || !returnTime) {
-      setValidationError("Please select return date and time");
+    if (!returnDateTimeValue) {
+      setValidationError("Please select return date and time.");
       return false;
     }
 
-    // Parse departure date/time
-    let departureDateTime: Date | null = null;
-    if (departureDate && departureTime) {
-      const depDate = departureDate instanceof Date ? departureDate : new Date(departureDate);
-      // Handle time format: "05:54 PM" or "11:35 PM"
-      const timeMatch = departureTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-      if (timeMatch && timeMatch[1] && timeMatch[2] && timeMatch[3]) {
-        const depHour = timeMatch[1];
-        const depMinute = timeMatch[2];
-        const depPeriod = timeMatch[3];
-        const depHour24 = depPeriod.toUpperCase() === 'PM' && parseInt(depHour) !== 12 
-          ? parseInt(depHour) + 12 
-          : depPeriod.toUpperCase() === 'AM' && parseInt(depHour) === 12
-          ? 0
-          : parseInt(depHour);
-        departureDateTime = new Date(
-          depDate.getFullYear(),
-          depDate.getMonth(),
-          depDate.getDate(),
-          depHour24,
-          parseInt(depMinute)
-        );
-      } else {
-        // If format doesn't match, use current time
-        departureDateTime = new Date();
-      }
-    } else {
-      // If no departure date/time, use current time
-      departureDateTime = new Date();
+    const returnDateTime = new Date(returnDateTimeValue);
+    if (Number.isNaN(returnDateTime.getTime())) {
+      setValidationError("Please enter a valid return date and time.");
+      return false;
     }
 
-    // At this point, we know returnDate and returnTime are not null due to the check above
-    // Parse return date/time
-    const returnHour24 = returnTime.period === 'PM' && parseInt(returnTime.hour) !== 12 
-      ? parseInt(returnTime.hour) + 12 
-      : returnTime.period === 'AM' && parseInt(returnTime.hour) === 12
-      ? 0
-      : parseInt(returnTime.hour);
-    
-    const returnDateTime = new Date(
-      returnDate.fullDate.getFullYear(),
-      returnDate.fullDate.getMonth(),
-      returnDate.fullDate.getDate(),
-      returnHour24,
-      parseInt(returnTime.minute)
-    );
-
+    const departureDateTime = parseDepartureDateTime(departureDate, departureTime);
     if (returnDateTime <= departureDateTime) {
-      setValidationError("Return date and time must be after departure");
+      setValidationError("Return date and time must be after departure.");
       return false;
     }
 
@@ -225,49 +217,37 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
 
   const handleConfirm = (): void => {
     if (selectedTripType === "Round Trip") {
-      if (!validateReturnDateTime() || !returnDate || !returnTime) {
+      if (!validateReturnDateTime()) {
         return;
       }
-      
-      // Format return date and time
-      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const dayName = dayNames[returnDate.fullDate.getDay()];
-      const returnDateString = `${dayName}, ${returnDate.day} ${returnDate.month} ${returnDate.year}`;
-      const returnTimeString = `${returnTime.hour}:${returnTime.minute} ${returnTime.period}`;
-      
-      if (onSelect) {
-        onSelect({
-          tripType: selectedTripType,
-          returnDate: returnDateString,
-          returnTime: returnTimeString,
-          returnDateTime: new Date(
-            returnDate.fullDate.getFullYear(),
-            returnDate.fullDate.getMonth(),
-            returnDate.fullDate.getDate(),
-            returnTime.period === 'PM' && parseInt(returnTime.hour) !== 12 
-              ? parseInt(returnTime.hour) + 12 
-              : returnTime.period === 'AM' && parseInt(returnTime.hour) === 12
-              ? 0
-              : parseInt(returnTime.hour),
-            parseInt(returnTime.minute)
-          ).toISOString()
-        });
+
+      const returnDateTime = new Date(returnDateTimeValue);
+      if (Number.isNaN(returnDateTime.getTime())) {
+        setValidationError("Please enter a valid return date and time.");
+        return;
       }
-    } else {
-      if (onSelect) {
-        onSelect({
-          tripType: selectedTripType,
-          returnDate: null,
-          returnTime: null,
-          returnDateTime: null
-        });
-      }
+
+      onSelect?.({
+        tripType: selectedTripType,
+        returnDate: formatReturnDateLabel(returnDateTime),
+        returnTime: formatReturnTimeLabel(returnDateTime),
+        returnDateTime: returnDateTime.toISOString()
+      });
+      onClose();
+      return;
     }
+
+    onSelect?.({
+      tripType: selectedTripType,
+      returnDate: null,
+      returnTime: null,
+      returnDateTime: null
+    });
     onClose();
   };
 
-  const canConfirm = selectedTripType === "One Way" || 
-    (selectedTripType === "Round Trip" && returnDate && returnTime);
+  const canConfirm = selectedTripType === "One Way" || Boolean(returnDateTimeValue);
+  const minimumReturnDateTime = toDateTimeLocalValue(parseDepartureDateTime(departureDate, departureTime));
 
   const tripTypeOptions = [
     { value: "One Way", label: "One Way" },
@@ -283,7 +263,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
       BackdropProps={{
         timeout: 300,
         sx: {
-          backgroundColor: 'rgba(0, 0, 0, 0.5)'
+          backgroundColor: "rgba(0, 0, 0, 0.5)"
         }
       }}
       onClick={handleBackdropClick}
@@ -291,21 +271,20 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
       <Fade in={open}>
         <Paper
           sx={{
-            position: 'absolute',
+            position: "absolute",
             bottom: 0,
             left: 0,
             right: 0,
             borderTopLeftRadius: 5,
             borderTopRightRadius: 5,
             bgcolor: contentBg,
-            maxHeight: '90vh',
-            overflow: 'auto',
-            outline: 'none'
+            maxHeight: "90vh",
+            overflow: "auto",
+            outline: "none"
           }}
           onClick={(e) => e.stopPropagation()}
         >
           <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-            {/* Header */}
             <Typography
               variant="h6"
               sx={{
@@ -319,7 +298,6 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
               Ride Type
             </Typography>
 
-            {/* Trip Type Options */}
             <Stack spacing={2} sx={{ mb: 3 }}>
               {tripTypeOptions.map((option) => {
                 const isSelected = selectedTripType === option.value;
@@ -330,41 +308,26 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                     onClick={() => {
                       setSelectedTripType(option.value);
                       setValidationError("");
-                      // Initialize return date/time immediately when Round Trip is selected
-                      if (option.value === "Round Trip" && !returnDate && !existingReturnDate) {
-                        const tomorrow = new Date();
-                        tomorrow.setDate(tomorrow.getDate() + 1);
-                        const defaultDate = dateOptions.find(d => 
-                          d.fullDate.getTime() >= tomorrow.getTime()
-                        ) || dateOptions[1];
-                        if (defaultDate) {
-                          setReturnDate(defaultDate);
-                        }
-                        setReturnTime({
-                          hour: "11",
-                          minute: "35",
-                          period: "PM"
-                        });
-                      } else if (option.value === "One Way") {
-                        setReturnDate(null);
-                        setReturnTime(null);
+                      if (option.value === "Round Trip" && !returnDateTimeValue) {
+                        setReturnDateTimeValue(getDefaultReturnDateTimeValue());
+                      }
+                      if (option.value === "One Way") {
+                        setReturnDateTimeValue("");
                       }
                     }}
                     sx={{
                       borderRadius: 2,
                       bgcolor: contentBg,
                       border: isSelected
-                          ? "2px solid #03CD8C"
+                        ? "2px solid #03CD8C"
                         : theme.palette.mode === "light"
-                        ? "1px solid rgba(0,0,0,0.15)"
-                        : "1px solid rgba(255,255,255,0.2)",
+                          ? "1px solid rgba(0,0,0,0.15)"
+                          : "1px solid rgba(255,255,255,0.2)",
                       cursor: "pointer",
                       opacity: isSelected ? 1 : 0.6,
                       transition: "all 0.2s ease",
                       "&:hover": {
-                        bgcolor: theme.palette.mode === "light"
-                          ? "rgba(0,0,0,0.02)"
-                          : "rgba(255,255,255,0.02)",
+                        bgcolor: theme.palette.mode === "light" ? "rgba(0,0,0,0.02)" : "rgba(255,255,255,0.02)",
                         borderColor: accentGreen
                       }
                     }}
@@ -381,9 +344,7 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                           variant="body1"
                           sx={{
                             fontWeight: isSelected ? 600 : 500,
-                            color: isSelected
-                              ? theme.palette.text.primary
-                              : theme.palette.text.secondary
+                            color: isSelected ? theme.palette.text.primary : theme.palette.text.secondary
                           }}
                         >
                           {option.label}
@@ -395,7 +356,6 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
               })}
             </Stack>
 
-            {/* Return Trip Selector - Only shown when Round Trip is selected */}
             {selectedTripType === "Round Trip" && (
               <Box sx={{ mb: 3 }}>
                 <Typography
@@ -409,355 +369,46 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
                   Return Trip
                 </Typography>
 
-                {/* Validation Error */}
                 {validationError && (
                   <Alert severity="error" sx={{ mb: 2 }}>
                     {validationError}
                   </Alert>
                 )}
 
-                {/* Date Picker */}
-                <Box sx={{ mb: 3 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <CalendarTodayRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          fontWeight: 600,
-                          color: theme.palette.text.primary
-                        }}
-                      >
-                        Date
-                      </Typography>
-                    </Box>
-                    {returnDate && (
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontWeight: 500,
-                          color: theme.palette.text.secondary
-                        }}
-                      >
-                        {(() => {
-                          const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                          const dayName = dayNames[returnDate.fullDate.getDay()];
-                          return `${dayName}, ${returnDate.day} ${returnDate.month}`;
-                        })()}
-                      </Typography>
-                    )}
+                <Stack spacing={1.2}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <CalendarTodayRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                      Return date & time
+                    </Typography>
                   </Box>
-                  <Box
-                    ref={dateScrollRef}
-                    sx={{
-                      display: "flex",
-                      gap: 2,
-                      overflowX: "auto",
-                      pb: 1,
-                      "&::-webkit-scrollbar": {
-                        display: "none"
-                      },
-                      scrollbarWidth: "none"
+
+                  <TextField
+                    fullWidth
+                    type="datetime-local"
+                    value={returnDateTimeValue}
+                    onChange={(event) => {
+                      setReturnDateTimeValue(event.target.value);
+                      setValidationError("");
                     }}
-                  >
-                    {dateOptions.map((date, index) => {
-                      const isSelected = returnDate && 
-                        returnDate.day === date.day &&
-                        returnDate.month === date.month &&
-                        returnDate.year === date.year;
-                      
-                      return (
-                        <Box
-                          key={index}
-                          onClick={() => {
-                            setReturnDate(date);
-                            setValidationError("");
-                          }}
-                          sx={{
-                            minWidth: 80,
-                            textAlign: "center",
-                            p: 1.5,
-                            borderRadius: 2,
-                            cursor: "pointer",
-                            bgcolor: isSelected
-                              ? accentGreen
-                              : theme.palette.mode === "light"
-                                ? "rgba(0,0,0,0.05)"
-                                : "rgba(255,255,255,0.05)",
-                            border: isSelected
-                              ? "none"
-                              : `1px solid ${theme.palette.mode === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"}`,
-                            transition: "all 0.2s ease",
-                            "&:hover": {
-                              bgcolor: isSelected
-                                ? accentGreen
-                                : theme.palette.mode === "light"
-                                  ? "rgba(0,0,0,0.1)"
-                                  : "rgba(255,255,255,0.1)"
-                            }
-                          }}
-                        >
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              display: "block",
-                              fontSize: 11,
-                              color: isSelected
-                                ? "#FFFFFF"
-                                : theme.palette.text.secondary,
-                              mb: 0.5
-                            }}
-                          >
-                            {date.month}
-                          </Typography>
-                          <Typography
-                            variant="h6"
-                            sx={{
-                              fontWeight: 600,
-                              color: isSelected
-                                ? "#FFFFFF"
-                                : theme.palette.text.primary
-                            }}
-                          >
-                            {date.day}
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              display: "block",
-                              fontSize: 11,
-                              color: isSelected
-                                ? "#FFFFFF"
-                                : theme.palette.text.secondary,
-                              mt: 0.5
-                            }}
-                          >
-                            {date.year}
-                          </Typography>
-                        </Box>
-                      );
-                    })}
-                  </Box>
-                </Box>
-
-                {/* Time Picker */}
-                <Box sx={{ mb: 2 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <AccessTimeRoundedIcon sx={{ fontSize: 18, color: accentGreen }} />
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          fontWeight: 600,
-                          color: theme.palette.text.primary
-                        }}
-                      >
-                        Time
-                      </Typography>
-                    </Box>
-                    {returnTime && (
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontWeight: 500,
-                          color: theme.palette.text.secondary
-                        }}
-                      >
-                        {returnTime.hour}:{returnTime.minute} {returnTime.period}
-                      </Typography>
-                    )}
-                  </Box>
-                  <Box
+                    inputProps={{ min: minimumReturnDateTime }}
                     sx={{
-                      display: "flex",
-                      gap: 1.5,
-                      alignItems: "center"
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2
+                      }
                     }}
-                  >
-                    {/* Hour Selector */}
-                    <Box
-                      ref={timeScrollRef}
-                      sx={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 1,
-                        maxHeight: 200,
-                        overflowY: "auto",
-                        "&::-webkit-scrollbar": {
-                          width: 4
-                        },
-                        "&::-webkit-scrollbar-thumb": {
-                          bgcolor: accentGreen,
-                          borderRadius: 2
-                        }
-                      }}
-                    >
-                      {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => {
-                        const hourStr = String(hour).padStart(2, '0');
-                        const isSelected = returnTime && returnTime.hour === hourStr;
-                        return (
-                          <Box
-                            key={hour}
-                            onClick={() => {
-                              if (returnTime) {
-                                setReturnTime({ ...returnTime, hour: hourStr });
-                                setValidationError("");
-                              }
-                            }}
-                            sx={{
-                              p: 1.5,
-                              borderRadius: 2,
-                              textAlign: "center",
-                              cursor: "pointer",
-                              bgcolor: isSelected
-                                ? accentGreen
-                                : "transparent",
-                              color: isSelected
-                                ? "#FFFFFF"
-                                : theme.palette.text.primary,
-                              transition: "all 0.2s ease",
-                              "&:hover": {
-                                bgcolor: isSelected
-                                  ? accentGreen
-                                  : theme.palette.mode === "light"
-                                    ? "rgba(0,0,0,0.05)"
-                                    : "rgba(255,255,255,0.05)"
-                              }
-                            }}
-                          >
-                            <Typography sx={{ fontWeight: 600 }}>
-                              {hourStr}
-                            </Typography>
-                          </Box>
-                        );
-                      })}
-                    </Box>
+                    helperText="Pick when the return leg should start."
+                  />
 
-                    <Typography sx={{ fontSize: 24, color: theme.palette.text.primary }}>:</Typography>
-
-                    {/* Minute Selector */}
-                    <Box
-                      sx={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 1,
-                        maxHeight: 200,
-                        overflowY: "auto",
-                        "&::-webkit-scrollbar": {
-                          width: 4
-                        },
-                        "&::-webkit-scrollbar-thumb": {
-                          bgcolor: accentGreen,
-                          borderRadius: 2
-                        }
-                      }}
-                    >
-                      {Array.from({ length: 60 }, (_, i) => i).filter((_, i) => i % 5 === 0).map((minute) => {
-                        const minuteStr = String(minute).padStart(2, '0');
-                        const isSelected = returnTime && returnTime.minute === minuteStr;
-                        return (
-                          <Box
-                            key={minute}
-                            onClick={() => {
-                              if (returnTime) {
-                                setReturnTime({ ...returnTime, minute: minuteStr });
-                                setValidationError("");
-                              }
-                            }}
-                            sx={{
-                              p: 1.5,
-                              borderRadius: 2,
-                              textAlign: "center",
-                              cursor: "pointer",
-                              bgcolor: isSelected
-                                ? accentGreen
-                                : "transparent",
-                              color: isSelected
-                                ? "#FFFFFF"
-                                : theme.palette.text.primary,
-                              transition: "all 0.2s ease",
-                              "&:hover": {
-                                bgcolor: isSelected
-                                  ? accentGreen
-                                  : theme.palette.mode === "light"
-                                    ? "rgba(0,0,0,0.05)"
-                                    : "rgba(255,255,255,0.05)"
-                              }
-                            }}
-                          >
-                            <Typography sx={{ fontWeight: 600 }}>
-                              {minuteStr}
-                            </Typography>
-                          </Box>
-                        );
-                      })}
-                    </Box>
-
-                    {/* AM/PM Selector */}
-                    <Box
-                      sx={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 1,
-                        maxHeight: 200,
-                        overflowY: "auto",
-                        "&::-webkit-scrollbar": {
-                          width: 4
-                        },
-                        "&::-webkit-scrollbar-thumb": {
-                          bgcolor: accentGreen,
-                          borderRadius: 2
-                        }
-                      }}
-                    >
-                      {['AM', 'PM'].map((period) => {
-                        const isSelected = returnTime && returnTime.period === period;
-                        return (
-                          <Box
-                            key={period}
-                            onClick={() => {
-                              if (returnTime) {
-                                setReturnTime({ ...returnTime, period });
-                                setValidationError("");
-                              }
-                            }}
-                            sx={{
-                              p: 1.5,
-                              borderRadius: 2,
-                              textAlign: "center",
-                              cursor: "pointer",
-                              bgcolor: isSelected
-                                ? accentGreen
-                                : "transparent",
-                              color: isSelected
-                                ? "#FFFFFF"
-                                : theme.palette.text.primary,
-                              transition: "all 0.2s ease",
-                              "&:hover": {
-                                bgcolor: isSelected
-                                  ? accentGreen
-                                  : theme.palette.mode === "light"
-                                    ? "rgba(0,0,0,0.05)"
-                                    : "rgba(255,255,255,0.05)"
-                              }
-                            }}
-                          >
-                            <Typography sx={{ fontWeight: 600 }}>
-                              {period}
-                            </Typography>
-                          </Box>
-                        );
-                      })}
-                    </Box>
-                  </Box>
-                </Box>
+                  {returnDateTimeValue && !Number.isNaN(new Date(returnDateTimeValue).getTime()) && (
+                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                      Return trip: {formatReturnDateLabel(new Date(returnDateTimeValue))} • {formatReturnTimeLabel(new Date(returnDateTimeValue))}
+                    </Typography>
+                  )}
+                </Stack>
               </Box>
             )}
 
-            {/* Confirm/Continue Button */}
             <Button
               fullWidth
               variant="contained"
@@ -793,4 +444,3 @@ function TripTypeModal({ open, onClose, currentTripType, onSelect, departureDate
 }
 
 export default TripTypeModal;
-

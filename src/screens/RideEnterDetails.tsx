@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -20,7 +20,6 @@ import {
 	} from "@mui/material";
 
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded";
@@ -56,6 +55,14 @@ interface Stop {
 
 type RouteModeOption = "single_stop" | "multi_stop";
 type TripModeOption = "one_way" | "round_trip";
+type RouteModeSelectionValue = "__choose_route__" | RouteModeOption | "round_trip";
+type RequiredFieldKey =
+	| "pickup"
+	| "destination"
+	| "stops"
+	| "tripOwner"
+	| "routeMode"
+	| "returnDateTime";
 
 function inferRouteMode(value: unknown): RouteModeOption {
 	if (value === "multi_stop" || value === "Multi-stop") {
@@ -154,68 +161,16 @@ function SmoothHeightPanel({
 	open,
 	children,
 }: SmoothHeightPanelProps): React.JSX.Element {
-	const contentRef = useRef<HTMLDivElement | null>(null);
-	const rafRef = useRef<number | null>(null);
-	const [height, setHeight] = useState<string>(open ? "auto" : "0px");
-	const [opacity, setOpacity] = useState(open ? 1 : 0);
-
-	useLayoutEffect(() => {
-		const node = contentRef.current;
-		if (!node) return;
-		if (rafRef.current !== null) {
-			window.cancelAnimationFrame(rafRef.current);
-		}
-
-		if (open) {
-			const currentHeight = node.getBoundingClientRect().height;
-			const targetHeight = node.scrollHeight;
-			setHeight(`${currentHeight}px`);
-			rafRef.current = window.requestAnimationFrame(() => {
-				setOpacity(1);
-				setHeight(`${targetHeight}px`);
-			});
-			return;
-		}
-
-		const currentHeight = node.getBoundingClientRect().height;
-		setHeight(`${currentHeight}px`);
-		rafRef.current = window.requestAnimationFrame(() => {
-			setHeight("0px");
-			setOpacity(0);
-		});
-	}, [open]);
-
-	useEffect(() => {
-		return () => {
-			if (rafRef.current !== null) {
-				window.cancelAnimationFrame(rafRef.current);
-			}
-		};
-	}, []);
-
 	return (
 		<Box
-			onTransitionEnd={(event) => {
-				if (
-					event.target !== event.currentTarget ||
-					event.propertyName !== "height"
-				) {
-					return;
-				}
-				if (open) {
-					setHeight("auto");
-				}
-			}}
 			sx={{
-				height,
-				opacity,
-				overflow: "hidden",
-				transition:
-					"height 320ms ease-in-out, opacity 220ms ease-in-out",
-				willChange: "height, opacity",
+				height: open ? "auto" : "0px",
+				opacity: open ? 1 : 0,
+				overflow: open ? "visible" : "hidden",
+				transition: "opacity 220ms ease-in-out",
 			}}
 		>
-			<Box ref={contentRef}>{children}</Box>
+			<Box>{children}</Box>
 		</Box>
 	);
 }
@@ -282,12 +237,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 	);
 	const [tripOwnerChosen, setTripOwnerChosen] = useState(false);
 	const [routeMode, setRouteMode] = useState<RouteModeOption>(
-		inferRouteMode(initialState.routeMode || initialState.tripType || ride.request.tripType),
+		inferRouteMode(initialState.routeMode || initialState.tripType),
 	);
 	const [tripMode, setTripMode] = useState<TripModeOption>(
-		inferTripMode(initialState.tripMode || ride.request.tripMode || initialState.tripType || ride.request.tripType),
+		inferTripMode(initialState.tripMode || initialState.tripType),
 	);
-	const [tripConfigChosen, setTripConfigChosen] = useState(true);
+	const [tripConfigChosen, setTripConfigChosen] = useState(false);
 	const now = useMemo(() => new Date(), []);
 	const initialScheduledDateTime = useMemo(() => {
 		if (initialState.scheduledDateTime) {
@@ -338,6 +293,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 		useState<HTMLElement | null>(null);
 	const [showError, setShowError] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
+	const [fieldErrors, setFieldErrors] = useState<Partial<Record<RequiredFieldKey, string>>>({});
 	const [showSwitchRiderModal, setShowSwitchRiderModal] = useState(false);
 	const [routePolyline, setRoutePolyline] = useState<{ lat: number; lng: number }[]>([]);
 	const [routeAlternatives, setRouteAlternatives] = useState<Array<{ lat: number; lng: number }[]>>([]);
@@ -747,23 +703,125 @@ function EnterDestinationScreen(): React.JSX.Element {
 		normalizedRouteStops.length !== removeConsecutiveDuplicateStops(stops).length;
 	const hasStopLimitExceeded = normalizedRouteStops.length > RIDE_MAX_STOPS;
 
-	const canContinue = isMultiStopMode
-		? pickup.trim() !== "" &&
-			Boolean(pickupCoords) &&
-			normalizedRouteStops.length > 0 &&
-			(!isRoundTripMode || (returnDate && returnTime))
-		: pickup.trim() !== "" &&
-			Boolean(pickupCoords) &&
-			destination.trim() !== "" &&
-			Boolean(destinationCoords) &&
-			(!isRoundTripMode || (returnDate && returnTime));
 	const hasBookForSomeoneDetails =
 		bookedPersonName.trim().length > 1 && bookedPersonPhone.trim().length >= 7;
-	const canSubmit =
-		canContinue &&
-		tripOwnerChosen &&
-		tripConfigChosen &&
-		(!isBookingForSomeone || hasBookForSomeoneDetails);
+
+	const clearFieldError = (field: RequiredFieldKey): void => {
+		setFieldErrors((prev) => {
+			if (!prev[field]) return prev;
+			const next = { ...prev };
+			delete next[field];
+			return next;
+		});
+	};
+
+	const clearAllFieldErrors = (): void => {
+		setFieldErrors({});
+	};
+
+	const routeModeSelectionValue: RouteModeSelectionValue = !tripConfigChosen
+		? "__choose_route__"
+		: isRoundTripMode
+			? "round_trip"
+			: routeMode;
+
+	const handleRouteModeSelectionChange = (selected: string): void => {
+		setShowError(false);
+		setErrorMessage("");
+		if (selected === "__choose_route__") {
+			setTripConfigChosen(false);
+			clearFieldError("routeMode");
+			return;
+		}
+
+		setTripConfigChosen(true);
+		clearFieldError("routeMode");
+
+		if (selected === "round_trip") {
+			setRouteMode("single_stop");
+			setTripMode("round_trip");
+			setShowTripTypeModal(true);
+			return;
+		}
+
+		if (selected === "multi_stop") {
+			setRouteMode("multi_stop");
+			setTripMode("one_way");
+			setReturnDate(null);
+			setReturnTime(null);
+			setReturnDateTime(null);
+			setReturnPattern(DEFAULT_ROUND_TRIP_RETURN_PATTERN);
+			if (stops.length === 0) {
+				if (destination.trim()) {
+					setStops([
+						{
+							id: "A",
+							value: destination,
+							address: destination,
+							coordinates: destinationCoords ?? undefined
+						}
+					]);
+					setDestination("");
+					setDestinationCoords(null);
+				} else {
+					setStops([{ id: "A", value: "" }]);
+				}
+			}
+			return;
+		}
+
+		if (selected === "single_stop") {
+			setRouteMode("single_stop");
+			setTripMode("one_way");
+			setReturnDate(null);
+			setReturnTime(null);
+			setReturnDateTime(null);
+			setReturnPattern(DEFAULT_ROUND_TRIP_RETURN_PATTERN);
+			if (!destination.trim() && stops.length > 0) {
+				const fallback = stops[stops.length - 1];
+				if (fallback?.value?.trim()) {
+					setDestination(fallback.value.trim());
+					setDestinationCoords(fallback.coordinates ?? null);
+				}
+			}
+		}
+	};
+
+	const getMissingFieldErrors = (): Partial<Record<RequiredFieldKey, string>> => {
+		const nextErrors: Partial<Record<RequiredFieldKey, string>> = {};
+
+		if (!pickup.trim() || !pickupCoords) {
+			nextErrors.pickup = "Choose pickup location.";
+		}
+
+		if (!tripOwnerChosen) {
+			nextErrors.tripOwner = "Choose trip owner.";
+		}
+
+		if (!tripConfigChosen) {
+			nextErrors.routeMode = "Choose route mode.";
+		}
+
+		if (tripConfigChosen) {
+			if (isMultiStopMode) {
+				if (normalizedRouteStops.length < 1) {
+					nextErrors.stops = "Add at least one stop.";
+				}
+			} else if (!destination.trim() || !destinationCoords) {
+				nextErrors.destination = "Choose destination.";
+			}
+
+			if (isRoundTripMode && (!returnDate || !returnTime)) {
+				nextErrors.returnDateTime = "Select return date and time.";
+			}
+		}
+
+		if (isBookingForSomeone && !hasBookForSomeoneDetails) {
+			nextErrors.tripOwner = "Complete booked person details.";
+		}
+
+		return nextErrors;
+	};
 
 	const handleSwitchLocations = () => {
 		const tempPickup = pickup;
@@ -780,6 +838,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 		});
 		setShowError(false);
 		setErrorMessage("");
+		clearAllFieldErrors();
 	};
 
 	const handleScheduleSelect = (option: string): void => {
@@ -848,24 +907,17 @@ function EnterDestinationScreen(): React.JSX.Element {
 			[key: string]: unknown;
 		} | null = null,
 	): void => {
-		if (!canSubmit) {
-			const missingCoordinates =
-				!pickupCoords ||
-				(!isMultiStopMode && !destinationCoords);
-			const missingSelectors = !tripOwnerChosen || !tripConfigChosen;
-			setErrorMessage(
-				missingSelectors
-					? "Choose trip owner and type of trip before continuing."
-					:
-				missingCoordinates
-					? "Select pickup and destination first."
-					: isBookingForSomeone
-						? "Please complete destination plus person name and phone number before continuing."
-						: "Please select a destination before continuing.",
-			);
+		const missingFieldErrors = getMissingFieldErrors();
+		if (Object.keys(missingFieldErrors).length > 0) {
+			setFieldErrors(missingFieldErrors);
+			setErrorMessage("Please complete all highlighted fields before continuing.");
 			setShowError(true);
 			return;
 		}
+
+		clearAllFieldErrors();
+		setShowError(false);
+		setErrorMessage("");
 
 		if (hasStopLimitExceeded) {
 			setErrorMessage(`You can only add up to ${RIDE_MAX_STOPS} stops.`);
@@ -1042,8 +1094,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const lightGreen = "rgba(3,205,140,0.1)"; // Light green for active passenger selection
 	const mapNormalHeight = { xs: "42dvh", md: "48vh" } as const;
 	const mapExpandedHeight = {
-		xs: "calc(58dvh - env(safe-area-inset-bottom, 0px))",
-		md: "64vh",
+		xs: "calc(70dvh - env(safe-area-inset-bottom, 0px))",
+		md: "74vh",
 	} as const;
 	const topMapBleedSx = {
 		position: "relative",
@@ -1058,6 +1110,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 		mr: {
 			xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
 			md: "calc(var(--rider-shell-content-px-md, 24px) * -1)",
+		},
+		mb: {
+			xs: 5,
+			md: 5.5,
 		},
 		overflow: "visible",
 	} as const;
@@ -1136,42 +1192,57 @@ function EnterDestinationScreen(): React.JSX.Element {
 					>
 						<MyLocationRoundedIcon sx={{ color: "#344054" }} />
 					</IconButton>
-						<IconButton
+						<Button
 							onClick={() => setIsMapExpanded(!isMapExpanded)}
+							aria-label={isMapExpanded ? "Show details panel" : "Expand map"}
 							sx={{
 								position: "absolute",
 								left: "50%",
-								bottom: -28,
+								bottom: isMapExpanded ? -16 : -20,
 								transform: "translateX(-50%)",
-							zIndex: 6,
-						width: 42,
-						height: 42,
-						borderRadius: "50%",
-						backgroundColor: theme.palette.mode === "light"
-							? "rgba(255,255,255,0.9)"
-							: "rgba(0,0,0,0.7)",
-						border: theme.palette.mode === "light"
-							? "1px solid rgba(0,0,0,0.1)"
-							: "1px solid rgba(255,255,255,0.1)",
-						backdropFilter: "blur(8px)",
-						boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-						transition: "all 0.3s ease",
-						"&:hover": {
-							backgroundColor: theme.palette.mode === "light"
-								? "rgba(255,255,255,1)"
-								: "rgba(0,0,0,0.8)",
-						}
-					}}
-				>
-					{isMapExpanded ? (
-						<KeyboardArrowDownRoundedIcon sx={{ color: theme.palette.text.primary }} />
-					) : (
-						<KeyboardArrowUpRoundedIcon sx={{ color: theme.palette.text.primary }} />
-					)}
-					</IconButton>
-					</Box>
+								zIndex: 14,
+								borderRadius: 999,
+								px: 1.4,
+								py: 0.4,
+								minWidth: 0,
+								bgcolor: "var(--evz-map-overlay-bg)",
+								border: "1px solid var(--evz-map-control-border)",
+								backdropFilter: "blur(8px)",
+								WebkitBackdropFilter: "blur(8px)",
+								boxShadow: "0 2px 10px rgba(2,6,23,0.2)",
+								transition: "all 0.3s ease",
+								textTransform: "none",
+								color: "#334155",
+								fontSize: 12,
+								fontWeight: 700,
+								"&:hover": { bgcolor: "var(--evz-map-control-bg)" }
+							}}
+						>
+							{isMapExpanded ? <KeyboardArrowUpRoundedIcon sx={{ mr: 0.3 }} /> : <KeyboardArrowDownRoundedIcon sx={{ mr: 0.3 }} />}
+							{isMapExpanded ? "Show details" : "Extend map"}
+						</Button>
+						<Typography
+							sx={{
+								position: "absolute",
+								top: { xs: 14, md: 18 },
+								left: "50%",
+								transform: "translateX(-50%)",
+								zIndex: 7,
+								fontSize: 14,
+								fontWeight: 700,
+								color: "#FFFFFF",
+								bgcolor: "rgba(15,23,42,0.55)",
+								px: 1.2,
+								py: 0.35,
+								borderRadius: 99,
+								backdropFilter: "blur(4px)"
+							}}
+						>
+							Ride details
+						</Typography>
+						</Box>
 					{routeSummary && (
-						<Box sx={{ pt: 4.2, pb: 0.9, display: "flex", justifyContent: "flex-start" }}>
+						<Box sx={{ mt: 0.2, mb: 1.1, display: "flex", justifyContent: "flex-start" }}>
 							<Box
 								sx={{
 									px: 1.8,
@@ -1190,28 +1261,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 						</Box>
 					)}
 
-					<Box sx={{ pt: routeSummary ? 0 : 4.2, pb: 0.6, display: "flex", alignItems: "center", gap: 1 }}>
-						<IconButton
-							size="small"
-							onClick={() => navigate(-1)}
-							sx={{
-								width: 38,
-								height: 38,
-								borderRadius: "12px",
-								bgcolor: theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-								border: "1px solid rgba(148,163,184,0.25)",
-								boxShadow: "0 4px 12px rgba(15,23,42,0.12)"
-							}}
-						>
-							<ArrowBackIosNewRoundedIcon sx={{ fontSize: 16 }} />
-						</IconButton>
-						<Typography sx={{ fontSize: 14, fontWeight: 700, color: theme.palette.text.primary }}>
-							Ride details
-						</Typography>
-					</Box>
-
-					{/* Trip Setup Card - Neutral Background */}
-				<SmoothHeightPanel open>
+						{/* Trip Setup Card - Neutral Background */}
+					<SmoothHeightPanel open>
 					<Box
 						sx={{
 							pt: 1.25,
@@ -1245,11 +1296,17 @@ function EnterDestinationScreen(): React.JSX.Element {
 									size="small"
 									variant="outlined"
 									value={pickup}
-										onChange={(e) => setPickup(e.target.value)}
+										onChange={(e) => {
+											setPickup(e.target.value);
+											clearFieldError("pickup");
+										}}
 										onFocus={() => {
 											setShowError(false);
 											setErrorMessage("");
+											clearFieldError("pickup");
 										}}
+									error={Boolean(fieldErrors.pickup)}
+									helperText={fieldErrors.pickup || " "}
 									InputProps={{
 										startAdornment: (
 											<InputAdornment position="start">
@@ -1310,6 +1367,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 												borderColor: accentGreen,
 											},
 										},
+										"& .MuiFormHelperText-root": {
+											mt: 0.7,
+											mb: -0.25,
+										},
 									}}
 								/>
 							</Box>
@@ -1322,6 +1383,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 									startIcon={<MyLocationRoundedIcon sx={{ fontSize: 16 }} />}
 									onClick={() => {
 										setPickup("Current location");
+										clearFieldError("pickup");
 										if (sharedLocationState.riderLocation) {
 											setPickupCoords(sharedLocationState.riderLocation);
 											updateSharedLocationState({
@@ -1353,6 +1415,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 											setDestination(nextValue);
 											setShowError(false);
 											setErrorMessage("");
+											clearFieldError("destination");
 											if (!nextValue.trim()) {
 												setDestinationCoords(null);
 												updateSharedLocationState({
@@ -1367,6 +1430,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 										onSelectLocation={(selection) => {
 											setDestination(selection.address);
 											setDestinationCoords(selection.coordinates);
+											clearFieldError("destination");
 											setRouteAlternatives([]);
 											updateSharedLocationState({
 												destinationCoords: selection.coordinates,
@@ -1382,6 +1446,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 												fullWidth: true,
 												size: "small",
 												variant: "outlined",
+												error: Boolean(fieldErrors.destination),
+												helperText: fieldErrors.destination || " ",
 												InputProps: {
 													startAdornment: (
 														<PlaceRoundedIcon
@@ -1402,7 +1468,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 												"& fieldset": {
 													borderColor:
 														theme.palette.mode === "light"
-															? "rgba(0,0,0,0.15)"
+															? fieldErrors.destination
+																? "#D92D20"
+																: "rgba(0,0,0,0.15)"
 															: "rgba(255,255,255,0.2)"
 												},
 												"&:hover fieldset": {
@@ -1417,6 +1485,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 												},
 												"& .MuiInputBase-input": {
 													pl: 0
+												},
+												"& .MuiFormHelperText-root": {
+													mt: 0.7,
+													mb: -0.25
 												}
 												}}
 											/>
@@ -1445,6 +1517,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 														value={stop.value}
 														onValueChange={(nextValue) => {
 															const newStops = [...stops];
+															clearFieldError("stops");
 															if (newStops[index]) {
 																newStops[index] = {
 																	...newStops[index],
@@ -1457,6 +1530,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 														}}
 														onSelectLocation={(selection) => {
 															const newStops = [...stops];
+															clearFieldError("stops");
 															if (newStops[index]) {
 																newStops[index] = {
 																	...newStops[index],
@@ -1473,6 +1547,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 															fullWidth: true,
 															size: "small",
 															variant: "outlined",
+															error: Boolean(fieldErrors.stops) && !stop.value.trim(),
+															helperText:
+																Boolean(fieldErrors.stops) && !stop.value.trim()
+																	? fieldErrors.stops
+																	: " ",
 															InputProps: {
 																startAdornment: (
 																	isLast ? (
@@ -1549,7 +1628,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 																"& fieldset": {
 																	borderColor:
 																		theme.palette.mode === "light"
-																			? "rgba(0,0,0,0.15)"
+																			? Boolean(fieldErrors.stops) && !stop.value.trim()
+																				? "#D92D20"
+																				: "rgba(0,0,0,0.15)"
 																			: "rgba(255,255,255,0.2)"
 																},
 																"&:hover fieldset": {
@@ -1564,6 +1645,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 															},
 															"& .MuiInputBase-input": {
 																pl: 0
+															},
+															"& .MuiFormHelperText-root": {
+																mt: 0.7,
+																mb: -0.25
 															}
 														}}
 													/>
@@ -1580,6 +1665,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 											placeholder="Add stop."
 											onClick={() => {
 												if (stops.length < MAX_STOPS) {
+													clearFieldError("stops");
 													setShowAddStopModal(true);
 												}
 											}}
@@ -1711,6 +1797,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 										value={tripOwnerChosen ? rideType : "__choose_owner__"}
 										displayEmpty
 										onChange={(e) => {
+											setShowError(false);
+											setErrorMessage("");
 											const newValue = e.target.value;
 											if (newValue === "__choose_owner__") {
 												setTripOwnerChosen(false);
@@ -1721,6 +1809,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 												setSelectedContact(null);
 												setRiderType("personal");
 												setTripOwnerChosen(true);
+												clearFieldError("tripOwner");
 											}
 										}}
 										renderValue={(value) => (
@@ -1752,7 +1841,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 											"& .MuiOutlinedInput-notchedOutline": {
 												borderColor:
 													theme.palette.mode === "light"
-														? "rgba(0,0,0,0.15)"
+														? fieldErrors.tripOwner
+															? "#D92D20"
+															: "rgba(0,0,0,0.15)"
 														: "rgba(255,255,255,0.2)",
 											},
 											"&:hover .MuiOutlinedInput-notchedOutline":
@@ -1797,6 +1888,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 											</Box>
 										</MenuItem>
 										</Select>
+										{fieldErrors.tripOwner && (
+											<Typography sx={{ mt: 0.7, fontSize: 12, color: "#D92D20" }}>
+												{fieldErrors.tripOwner}
+											</Typography>
+										)}
 									</FormControl>
 								</Stack>
 							</CardContent>
@@ -1820,38 +1916,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 									Route mode
 								</Typography>
 								<Select
-									value={routeMode}
+									value={routeModeSelectionValue}
 									displayEmpty
-										onChange={(e) => {
-											const newValue = e.target.value;
-											if (newValue === "multi_stop" || newValue === "single_stop") {
-												setRouteMode(newValue);
-												setTripConfigChosen(true);
-												if (newValue === "multi_stop" && stops.length === 0) {
-													if (destination.trim()) {
-														setStops([
-															{
-																id: "A",
-																value: destination,
-																address: destination,
-																coordinates: destinationCoords ?? undefined
-															},
-														]);
-														setDestination("");
-														setDestinationCoords(null);
-													} else {
-														setStops([{ id: "A", value: "" }]);
-													}
-												}
-												if (newValue === "single_stop" && !destination.trim() && stops.length > 0) {
-													const fallback = stops[stops.length - 1];
-													if (fallback?.value?.trim()) {
-														setDestination(fallback.value.trim());
-														setDestinationCoords(fallback.coordinates ?? null);
-													}
-												}
-											}
-									}}
+									onChange={(e) => handleRouteModeSelectionChange(String(e.target.value))}
 									renderValue={(value) => (
 										<Box
 											sx={{
@@ -1867,7 +1934,13 @@ function EnterDestinationScreen(): React.JSX.Element {
 													}}
 												/>
 											<Typography sx={{ fontSize: 13.5 }}>
-												{value === "multi_stop" ? "Multi-stop" : "Single destination"}
+												{value === "__choose_route__"
+													? "Choose"
+													: value === "multi_stop"
+														? "Multi-stop"
+														: value === "round_trip"
+															? "Round trip"
+															: "Single destination"}
 											</Typography>
 										</Box>
 									)}
@@ -1881,7 +1954,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 										"& .MuiOutlinedInput-notchedOutline": {
 											borderColor:
 												theme.palette.mode === "light"
-													? "rgba(0,0,0,0.15)"
+													? fieldErrors.routeMode
+														? "#D92D20"
+														: "rgba(0,0,0,0.15)"
 													: "rgba(255,255,255,0.2)",
 										},
 										"&:hover .MuiOutlinedInput-notchedOutline":
@@ -1894,6 +1969,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 												},
 										}}
 									>
+										<MenuItem value="__choose_route__" disabled>
+											Choose
+										</MenuItem>
 										<MenuItem value="single_stop">
 										<Box
 											sx={{
@@ -1922,59 +2000,27 @@ function EnterDestinationScreen(): React.JSX.Element {
 											Multi-stop
 										</Box>
 									</MenuItem>
+									<MenuItem value="round_trip">
+										<Box
+											sx={{
+												display: "flex",
+												alignItems: "center",
+												gap: 1,
+											}}
+										>
+											<DirectionsCarRoundedIcon
+												sx={{ fontSize: 18 }}
+											/>
+											Round trip
+										</Box>
+									</MenuItem>
 								</Select>
+								{fieldErrors.routeMode && (
+									<Typography sx={{ mt: 0.7, fontSize: 12, color: "#D92D20" }}>
+										{fieldErrors.routeMode}
+									</Typography>
+								)}
 							</FormControl>
-							<Stack direction="row" spacing={1} sx={{ mt: 1.25 }}>
-								<Button
-									size="small"
-									variant={tripMode === "one_way" ? "contained" : "outlined"}
-									onClick={() => {
-										setTripMode("one_way");
-										setTripConfigChosen(true);
-										setReturnDate(null);
-										setReturnTime(null);
-										setReturnDateTime(null);
-										setReturnPattern(DEFAULT_ROUND_TRIP_RETURN_PATTERN);
-									}}
-									sx={{
-										flex: 1,
-										textTransform: "none",
-										borderRadius: 5,
-										fontSize: 12,
-										bgcolor: tripMode === "one_way" ? "#03CD8C" : undefined,
-										color: tripMode === "one_way" ? "#FFFFFF" : "#475467",
-										borderColor: "rgba(3,205,140,0.5)",
-										"&:hover": {
-											bgcolor: tripMode === "one_way" ? "#01B77D" : "rgba(3,205,140,0.1)"
-										}
-									}}
-								>
-									One way
-								</Button>
-								<Button
-									size="small"
-									variant={tripMode === "round_trip" ? "contained" : "outlined"}
-									onClick={() => {
-										setTripMode("round_trip");
-										setTripConfigChosen(true);
-										setShowTripTypeModal(true);
-									}}
-									sx={{
-										flex: 1,
-										textTransform: "none",
-										borderRadius: 5,
-										fontSize: 12,
-										bgcolor: tripMode === "round_trip" ? "#F79009" : undefined,
-										color: tripMode === "round_trip" ? "#FFFFFF" : "#475467",
-										borderColor: "rgba(247,144,9,0.55)",
-										"&:hover": {
-											bgcolor: tripMode === "round_trip" ? "#E98607" : "rgba(247,144,9,0.08)"
-										}
-									}}
-								>
-									Round trip
-								</Button>
-							</Stack>
 						</CardContent>
 					</Card>
 
@@ -1985,8 +2031,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 							sx={{
 								borderRadius: 2,
 								bgcolor: contentBg,
-								border:
-									theme.palette.mode === "light"
+								border: fieldErrors.returnDateTime
+									? "1px solid #D92D20"
+									: theme.palette.mode === "light"
 										? "1px solid rgba(0,0,0,0.1)"
 										: "1px solid rgba(255,255,255,0.1)",
 							}}
@@ -2078,9 +2125,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 									</Box>
 									<IconButton
 										size="small"
-										onClick={() =>
-											setShowTripTypeModal(true)
-										}
+										onClick={() => {
+											clearFieldError("returnDateTime");
+											setShowTripTypeModal(true);
+										}}
 										sx={{
 											borderRadius: 5,
 											bgcolor:
@@ -2098,6 +2146,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 										/>
 									</IconButton>
 								</Box>
+								{fieldErrors.returnDateTime && (
+									<Typography sx={{ mt: 0.9, fontSize: 12, color: "#D92D20" }}>
+										{fieldErrors.returnDateTime}
+									</Typography>
+								)}
 								<Stack spacing={0.65} sx={{ mt: 1.25 }}>
 									<Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
 										Return pattern
@@ -2351,30 +2404,18 @@ function EnterDestinationScreen(): React.JSX.Element {
 						e.preventDefault();
 						handleContinue();
 					}}
-					disabled={!canSubmit}
 					sx={{
 						borderRadius: 99,
 						py: 1.15,
 						fontSize: 16,
 						fontWeight: 700,
 						textTransform: "none",
-						bgcolor: canSubmit ? undefined : "rgba(0,0,0,0.2)",
-						background: canSubmit
-							? "linear-gradient(92deg, #12B76A 0%, #6FBF3A 52%, #F79009 100%)"
-							: undefined,
+						background: "linear-gradient(92deg, #12B76A 0%, #6FBF3A 52%, #F79009 100%)",
 						color: "#FFFFFF",
 						boxShadow: "none",
 						"&:hover": {
-							background: canSubmit
-								? "linear-gradient(92deg, #0EA75F 0%, #65AE34 52%, #E98607 100%)"
-								: undefined,
-							bgcolor: canSubmit ? undefined : "rgba(0,0,0,0.3)",
+							background: "linear-gradient(92deg, #0EA75F 0%, #65AE34 52%, #E98607 100%)",
 							boxShadow: "none",
-						},
-						"&.Mui-disabled": {
-							bgcolor: "rgba(0,0,0,0.2)",
-							color: "#FFFFFF",
-							opacity: 1,
 						},
 					}}
 					endIcon={
@@ -2444,6 +2485,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 				onSelect={(data) => {
 					setTripMode(data.tripType === "Round Trip" ? "round_trip" : "one_way");
 					setTripConfigChosen(true);
+					clearFieldError("routeMode");
+					clearFieldError("returnDateTime");
 					if (data.tripType === "Round Trip") {
 						setReturnDate(data.returnDate);
 						setReturnTime(data.returnTime);
@@ -2467,6 +2510,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 					coordinates?: { lat: number; lng: number };
 					address?: string;
 				}) => {
+					clearFieldError("stops");
 					// Re-index existing stops and add new one
 					const reindexed = stops.map((s: Stop, idx: number) => ({
 						...s,

@@ -34,7 +34,7 @@ import { getPointAtProgress, normalizeRoute } from "../utils/mapRoutes";
 
 const TRIP_SIMULATION_DURATION_MS = 90_000;
 const AUTO_ADD_STOP_TRIGGER_MS = 15_000;
-const AUTO_CONTINUE_REQUEST_TRIGGER_MS = 15_000;
+const AUTO_CONTINUE_REQUEST_TRIGGER_MS = 10_000;
 const START_PROGRESS_PERCENT = 40;
 const START_DISTANCE_KM = 22;
 const SIMULATION_MS_PER_LEG_MIN = 4_500;
@@ -1045,7 +1045,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                 actions.simulateDriverContinueTripRequest(
                   "Your driver has requested to continue the trip."
                 );
-              }, 5000);
+              }, 10000);
             }}
             sx={{ color: "#B45309", textTransform: "none" }}
           >

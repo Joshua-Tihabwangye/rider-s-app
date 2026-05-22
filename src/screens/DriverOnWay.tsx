@@ -59,6 +59,25 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
         : `${Math.floor(duration / 60)} hr ${Math.round(duration % 60)} min`;
     return `${distanceLabel} • ${durationLabel}`;
   }, [sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
+  const selectedRideClass = useMemo(() => {
+    const selectedLevelId = ride.request.serviceLevel;
+    if (selectedLevelId) {
+      const selectedOption = ride.options.find((option) => option.id === selectedLevelId);
+      if (selectedOption?.name) {
+        return selectedOption.name;
+      }
+    }
+    if (vehicle?.category) {
+      return vehicle.category;
+    }
+    if (ride.request.serviceClass === "premium") {
+      return "Premium";
+    }
+    if (ride.request.serviceClass === "standard") {
+      return "Standard";
+    }
+    return "EV Comfort";
+  }, [ride.options, ride.request.serviceClass, ride.request.serviceLevel, vehicle?.category]);
   const vehicleImage = useMemo(() => {
     const model = (vehicle?.model ?? "").toLowerCase();
     if (model.includes("suv")) return "/rental-ui/car-suv.svg";
@@ -328,6 +347,9 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
                       <Typography variant="body2">
                         Color: {vehicle?.color ?? "Pearl White"}
                       </Typography>
+                      <Typography variant="body2">
+                        Ride class: {selectedRideClass}
+                      </Typography>
                     </Stack>
                   </Box>
                   <Box
@@ -352,8 +374,8 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
               elevation={0}
               sx={{
                 borderRadius: uiTokens.radius.sm,
-                bgcolor: "#1E3A5F",
-                border: `1px solid ${companyOrange}`,
+                bgcolor: companyOrange,
+                border: "1px solid #DC6803",
                 overflow: "hidden"
               }}
             >
@@ -366,7 +388,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
 
             <Typography
               variant="caption"
-              sx={{ display: "block", fontSize: 11, color: (t) => t.palette.text.secondary }}
+              sx={{ display: "block", fontSize: 12.5, fontWeight: 700, color: (t) => t.palette.text.secondary }}
             >
               OTP will be shown once the driver arrives for pickup verification.
             </Typography>

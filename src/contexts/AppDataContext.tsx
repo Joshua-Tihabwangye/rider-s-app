@@ -293,7 +293,9 @@ function createInitialState(baseState: AppState): AppState {
 
     return {
       ...baseState,
-      ride: persisted.ride ? { ...baseState.ride, ...persisted.ride } : baseState.ride,
+      // Keep ride setup fresh on every full reload so route mode/trip mode and
+      // destination draft selections always return to defaults.
+      ride: baseState.ride,
       delivery: persisted.delivery ? { ...baseState.delivery, ...persisted.delivery } : baseState.delivery,
       rental: persisted.rental
         ? { ...baseState.rental, ...persisted.rental, vehicles: mergedRentalVehicles }
@@ -302,9 +304,7 @@ function createInitialState(baseState: AppState): AppState {
       ambulance: persisted.ambulance
         ? { ...baseState.ambulance, ...persisted.ambulance }
         : baseState.ambulance,
-      sharedLocationState: persisted.sharedLocationState
-        ? { ...baseState.sharedLocationState, ...persisted.sharedLocationState }
-        : baseState.sharedLocationState
+      sharedLocationState: baseState.sharedLocationState
     };
   } catch {
     return baseState;
@@ -3856,12 +3856,10 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     }
 
     const persistedState: Partial<AppState> = {
-      ride: state.ride,
       delivery: state.delivery,
       rental: state.rental,
       tours: state.tours,
-      ambulance: state.ambulance,
-      sharedLocationState: state.sharedLocationState
+      ambulance: state.ambulance
     };
 
     try {
@@ -3870,12 +3868,10 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       // Ignore persistence failures so workflow interactions keep working.
     }
   }, [
-    state.ride,
     state.delivery,
     state.rental,
     state.tours,
-    state.ambulance,
-    state.sharedLocationState
+    state.ambulance
   ]);
 
   useEffect(() => {
