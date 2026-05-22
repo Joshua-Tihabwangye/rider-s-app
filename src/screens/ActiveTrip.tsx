@@ -216,6 +216,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         : `${Math.floor(duration / 60)} hr ${Math.round(duration % 60)} min`;
     return `${distanceLabel} • ${durationLabel}`;
   }, [sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
+  const companyOrange = "#F79009";
 
   // Calculate driver location along the route
   const driverLocation = React.useMemo(() => {
@@ -657,7 +658,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
               py: 0.5,
               borderRadius: "999px",
               bgcolor: "#0B1530",
-              border: "1px solid rgba(3,205,140,0.55)",
+              border: `1px solid ${companyOrange}`,
               color: "#F8FAFC",
               fontWeight: 700,
               fontSize: 11
@@ -671,6 +672,9 @@ function TripInProgressBasicScreen(): React.JSX.Element {
       <Box sx={{ pt: 0.55, pb: 0.2 }}>
         <Typography variant="h5" sx={{ fontWeight: 800, color: 'var(--evz-text-main, #0f172a)' }}>
           Active Trip
+        </Typography>
+        <Typography variant="caption" sx={{ color: "#B45309", fontWeight: 600, display: "block", mt: 0.2 }}>
+          Green route tracking with orange safety checks.
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>

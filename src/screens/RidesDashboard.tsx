@@ -34,6 +34,7 @@ import TwoWheelerRoundedIcon from "@mui/icons-material/TwoWheelerRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import FlightTakeoffRoundedIcon from "@mui/icons-material/FlightTakeoffRounded";
 import WorkRoundedIcon from "@mui/icons-material/WorkRounded";
+import LocalOfferRoundedIcon from "@mui/icons-material/LocalOfferRounded";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -1239,7 +1240,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             {[
               { label: "Ride Now", icon: <TwoWheelerRoundedIcon sx={{ fontSize: 29, color: "#11B86A" }} />, onClick: () => navigate("/rides/enter/details") },
               { label: "Book for someone", icon: <PersonRoundedIcon sx={{ fontSize: 29, color: "#F97316" }} />, onClick: () => navigate("/rides/enter/details", { state: { bookForSomeone: true } }) },
-              { label: "Book for someone", icon: <PersonRoundedIcon sx={{ fontSize: 29, color: "#11B86A" }} />, onClick: () => navigate("/rides/enter/details", { state: { bookForSomeone: true } }) },
+              { label: "Promotions", icon: <LocalOfferRoundedIcon sx={{ fontSize: 29, color: "#11B86A" }} />, onClick: () => navigate("/rides/promotions") },
               { label: "Wallet", icon: <AccountBalanceWalletRoundedIcon sx={{ fontSize: 29, color: "#F97316" }} />, onClick: () => navigate("/wallet") }
             ].map((item, index) => (
               <Box

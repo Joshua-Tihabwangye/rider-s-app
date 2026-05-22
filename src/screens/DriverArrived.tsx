@@ -257,7 +257,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
               <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
                 Driver arrived
               </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+              <Typography variant="caption" sx={{ fontSize: 11, color: "#B45309", fontWeight: 600 }}>
                 Verify OTP or QR before starting the trip.
               </Typography>
             </Box>
@@ -343,7 +343,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                         <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
                           Rider OTP
                         </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: "#B45309" }}>
                           Driver can enter this code instead of scanning the QR.
                         </Typography>
                       </Box>
@@ -383,7 +383,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                       ))}
                     </Stack>
 
-                    <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                    <Typography variant="caption" sx={{ fontSize: 11, color: "#B45309", fontWeight: 600 }}>
                       Share this OTP with the driver before trip start.
                     </Typography>
                   </Box>
@@ -464,7 +464,8 @@ function DriverHasArrivedScreen(): React.JSX.Element {
               variant="caption"
               sx={{
                 textAlign: "center",
-                color: (t) => t.palette.text.secondary,
+                color: "#B45309",
+                fontWeight: 600,
                 fontSize: 11,
                 display: "block"
               }}

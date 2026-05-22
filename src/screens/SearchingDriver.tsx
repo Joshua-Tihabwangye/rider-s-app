@@ -178,7 +178,10 @@ function SearchingForDriverScreen(): React.JSX.Element {
               <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
                 Searching for driver{dots}
               </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+              <Typography
+                variant="caption"
+                sx={{ fontSize: 11, color: routeReady ? "#047857" : (t) => t.palette.text.secondary, fontWeight: routeReady ? 600 : 500 }}
+              >
                 {routeReady
                   ? "Matching you with the nearest available EV driver."
                   : "Select pickup and destination first."}
@@ -203,7 +206,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {routeReady ? "Searching nearby drivers" : "Route unavailable"}
                     </Typography>
-                    <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                    <Typography variant="caption" sx={{ fontSize: 11, color: routeReady ? "#B45309" : (t) => t.palette.text.secondary, fontWeight: routeReady ? 600 : 500 }}>
                       {routeReady
                         ? "Hold on while we find the closest available driver."
                         : "Go back and confirm both pickup and destination coordinates."}
