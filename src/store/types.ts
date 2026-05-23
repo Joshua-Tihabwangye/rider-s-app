@@ -185,6 +185,13 @@ export interface RideRequest {
   serviceClass?: "standard" | "premium";
   riderType?: "personal" | "contact";
   riderContact?: { name: string; phone: string } | null;
+  bookedFor?: {
+    source: "self" | "contact" | "manual";
+    name?: string;
+    phone?: string;
+    relation?: string;
+    contactId?: number | string;
+  } | null;
   notes?: string;
 }
 
@@ -239,6 +246,13 @@ export interface RideTrip {
   isReturnLeg?: boolean;
   driver: DriverProfile | null;
   vehicle: VehicleProfile | null;
+  bookedFor?: {
+    source: "self" | "contact" | "manual";
+    name?: string;
+    phone?: string;
+    relation?: string;
+    contactId?: number | string;
+  } | null;
   lastKnownLocation?: RideLocation | null;
   startedAt?: string;
   completedAt?: string;

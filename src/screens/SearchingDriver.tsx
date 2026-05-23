@@ -26,7 +26,7 @@ import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 function SearchingForDriverScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
-  const { sharedLocationState, actions } = useAppData();
+  const { ride, sharedLocationState, actions } = useAppData();
   const { setRideStatus, updateSharedLocationState } = actions;
   const [dots, setDots] = useState(".");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -60,6 +60,12 @@ function SearchingForDriverScreen(): React.JSX.Element {
   const routeReady =
     Boolean(sharedLocationState.pickupCoords) &&
     Boolean(sharedLocationState.destinationCoords);
+  const bookedForLabel = React.useMemo(() => {
+    const bookedFor = ride.activeTrip?.bookedFor ?? ride.request.bookedFor;
+    if (!bookedFor || bookedFor.source === "self") return "For: You";
+    const name = bookedFor.name?.trim() || "Booked rider";
+    return `For: ${name}${bookedFor.phone ? ` (${bookedFor.phone})` : ""}`;
+  }, [ride.activeTrip?.bookedFor, ride.request.bookedFor]);
 
   // Calculate driver location along the route
   const driverLocation = React.useMemo(() => {
@@ -177,6 +183,9 @@ function SearchingForDriverScreen(): React.JSX.Element {
             <Box sx={{ pt: 0.5 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
                 Searching for driver{dots}
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11, color: "#F79009", fontWeight: 700, display: "block" }}>
+                {bookedForLabel}
               </Typography>
               <Typography
                 variant="caption"

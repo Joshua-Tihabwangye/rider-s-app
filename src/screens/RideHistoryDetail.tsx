@@ -38,6 +38,7 @@ interface DetailTripData {
   pickup: { location: string; timestamp: string };
   dropoff: { location: string; timestamp: string };
   sharedPassengers: Array<{ name: string; initials: string; id: string }>;
+  bookedForLabel: string;
   tripStats: { distance: number; distanceCovered: number; totalTime: string };
   booking: { bookedAt: string; travelDate: string; tripDistance: string; fare: string };
   driver: { name: string; vehicle: string; licensePlate: string; rating: number };
@@ -164,6 +165,10 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
           timestamp: formatTimeLabel(completedAt || startedAt)
         },
         sharedPassengers: [],
+        bookedForLabel:
+          historyTrip.bookedFor && historyTrip.bookedFor.source !== "self"
+            ? `For: ${historyTrip.bookedFor.name || "Booked rider"}${historyTrip.bookedFor.phone ? ` (${historyTrip.bookedFor.phone})` : ""}`
+            : "For: You",
         tripStats: {
           distance: distanceKm,
           distanceCovered: coveredDistance,
@@ -221,6 +226,16 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
         pickup: { location: pickupLocation, timestamp: routeStops[0].time },
         dropoff: { location: dropoffLocation, timestamp: routeStops[1].time },
         sharedPassengers: [],
+        bookedForLabel:
+          (() => {
+            const bookedFor = rideDataFromState.bookedFor as { source?: unknown; name?: unknown; phone?: unknown } | undefined;
+            if (bookedFor && bookedFor.source !== "self") {
+              const name = asString(bookedFor.name, "Booked rider");
+              const phone = asString(bookedFor.phone, "");
+              return `For: ${name}${phone ? ` (${phone})` : ""}`;
+            }
+            return "For: You";
+          })(),
         tripStats: {
           distance: distanceKm,
           distanceCovered: routeState?.historyType === "upcoming" ? 0 : stateStatus === "Completed" ? distanceKm : 0,
@@ -251,6 +266,7 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
       pickup: { location: "Pickup", timestamp: "--" },
       dropoff: { location: "Drop-off", timestamp: "--" },
       sharedPassengers: [],
+      bookedForLabel: "For: You",
       tripStats: { distance: 0, distanceCovered: 0, totalTime: "Not started" },
       booking: { bookedAt: "--", travelDate: "--", tripDistance: "--", fare: "UGX 0" },
       driver: { name: "Driver", vehicle: "EV", licensePlate: "--", rating: 4.5 },
@@ -364,6 +380,9 @@ function CompletedTripSummaryScreen(): React.JSX.Element {
                 </Typography>
               </Box>
             </Box>
+            <Typography variant="caption" sx={{ fontSize: 11, color: "#B45309", fontWeight: 700, display: "block", mt: uiTokens.spacing.sm }}>
+              {tripData.bookedForLabel}
+            </Typography>
           </Box>
 
           <Box sx={{ pt: uiTokens.spacing.mdPlus, borderTop: "1px solid", borderColor: (t) => t.palette.divider }}>

@@ -29,6 +29,12 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const { ride, sharedLocationState, actions } = useAppData();
   const { setRideStatus, updateSharedLocationState } = actions;
   const activeTrip = ride.activeTrip;
+  const bookedForLabel = useMemo(() => {
+    const bookedFor = activeTrip?.bookedFor ?? ride.request.bookedFor;
+    if (!bookedFor || bookedFor.source === "self") return "For: You";
+    const name = bookedFor.name?.trim() || "Booked rider";
+    return `For: ${name}${bookedFor.phone ? ` (${bookedFor.phone})` : ""}`;
+  }, [activeTrip?.bookedFor, ride.request.bookedFor]);
   const driver = activeTrip?.driver;
   const vehicle = activeTrip?.vehicle;
   const legs = activeTrip?.legs ?? [];
@@ -244,6 +250,9 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
             <Box sx={{ pt: 0.5 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
                 Driver is on the way
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: 11, color: "#F79009", fontWeight: 700, display: "block" }}>
+                {bookedForLabel}
               </Typography>
               <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
                 Your driver is heading to your location now.

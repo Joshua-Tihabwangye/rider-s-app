@@ -523,7 +523,16 @@ function normalizeRideRequest(request: RideRequest): RideRequest {
       returnDateTime: request.roundTripConfig?.returnDateTime ?? null,
       sameDay: request.roundTripConfig?.sameDay ?? true,
       returnPattern
-    }
+    },
+    bookedFor:
+      request.bookedFor ??
+      (request.riderType === "contact" && request.riderContact
+        ? {
+            source: "contact",
+            name: request.riderContact.name,
+            phone: request.riderContact.phone
+          }
+        : { source: "self" })
   };
 }
 
@@ -591,7 +600,8 @@ function createRideTripFromRequest(state: AppState): RideTrip | null {
     completedStopIds,
     isReturnLeg: false,
     driver: null,
-    vehicle: null
+    vehicle: null,
+    bookedFor: request.bookedFor ?? null
   };
 }
 
@@ -1225,11 +1235,19 @@ function appReducer(state: AppState, action: AppAction): AppState {
         remainingLegs: legState.remainingLegs ?? activeTrip.remainingLegs,
         isReturnLeg: legState.isReturnLeg ?? activeTrip.isReturnLeg
       };
+      const shouldArchive = action.payload === "completed" || action.payload === "cancelled";
+      const nextHistory = shouldArchive
+        ? [
+            nextTrip,
+            ...state.ride.history.filter((trip) => trip.id !== nextTrip.id)
+          ]
+        : state.ride.history;
       return {
         ...state,
         ride: {
           ...state.ride,
-          activeTrip: nextTrip
+          activeTrip: nextTrip,
+          history: nextHistory
         }
       };
     }
@@ -2790,9 +2808,17 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
             lat: point.coordinates?.lat,
             lng: point.coordinates?.lng
           })),
+        bookedFor: requestPayload.bookedFor ?? null
       })
         .then((trip) => {
-          dispatch({ type: "ride/set-active", payload: mapApiTripToRideTrip(trip) });
+          const mappedTrip = mapApiTripToRideTrip(trip);
+          dispatch({
+            type: "ride/set-active",
+            payload: {
+              ...mappedTrip,
+              bookedFor: mappedTrip.bookedFor ?? requestPayload.bookedFor ?? null
+            }
+          });
         })
         .catch((error) => {
           console.warn("Rider backend trip request failed. Keeping local ride flow.", error);

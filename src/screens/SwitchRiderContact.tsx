@@ -204,13 +204,7 @@ function SwitchRiderContactSelectedScreen(): React.JSX.Element {
       }
     };
 
-    const shouldReturnToRideDetails =
-      "pickup" in routeState ||
-      "destination" in routeState ||
-      "bookForSomeone" in routeState ||
-      "rideType" in routeState;
-
-    navigate(shouldReturnToRideDetails ? "/rides/enter/details" : "/rides/switch-rider/summary", {
+    navigate("/rides/switch-rider/summary", {
       state: nextState
     });
   };

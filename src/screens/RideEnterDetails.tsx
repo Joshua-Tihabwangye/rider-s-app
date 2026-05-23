@@ -307,7 +307,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 	);
 	const initialRiderType = initialState.riderType || ride.request.riderType || "personal";
 	const [riderType, setRiderType] = useState(
-		initialRiderType === "contact" ? "personal" : initialRiderType,
+		initialRiderType,
 	);
 	const [bookedPersonName, setBookedPersonName] = useState(
 		initialState.bookedPersonName || ride.request.riderContact?.name || "",
@@ -587,6 +587,14 @@ function EnterDestinationScreen(): React.JSX.Element {
 	}, [initialState.selectedContact, initialState.riderType]);
 
 	useEffect(() => {
+		if (!isBookingForSomeone) return;
+		setTripOwnerChosen(true);
+		if (riderType === "personal") {
+			setRiderType("manual");
+		}
+	}, [isBookingForSomeone, riderType]);
+
+	useEffect(() => {
 		const originLocation =
 			pickup.trim().length > 0
 				? { label: pickup, address: pickup, coordinates: pickupCoords ?? undefined }
@@ -641,7 +649,18 @@ function EnterDestinationScreen(): React.JSX.Element {
 			selectedContact?.phone || selectedContact?.phoneNumber || "";
 		const manualBookedName = bookedPersonName.trim();
 		const manualBookedPhone = bookedPersonPhone.trim();
-		const isContactRide = isBookingForSomeone || riderType === "contact";
+		const isContactRide =
+			isBookingForSomeone || riderType === "contact" || riderType === "manual";
+		const bookedForName = isBookingForSomeone
+			? manualBookedName
+			: riderType === "contact"
+				? contactName
+				: "";
+		const bookedForPhone = isBookingForSomeone
+			? manualBookedPhone
+			: riderType === "contact"
+				? contactPhone
+				: "";
 
 		actions.updateRideRequest({
 			origin: originLocation,
@@ -672,6 +691,15 @@ function EnterDestinationScreen(): React.JSX.Element {
 					: riderType === "contact" && contactName
 						? { name: contactName, phone: contactPhone }
 						: null,
+			bookedFor: isContactRide
+				? {
+					source: riderType === "manual" || isBookingForSomeone ? "manual" : "contact",
+					name: bookedForName || undefined,
+					phone: bookedForPhone || undefined,
+					relation: selectedContact?.relation || undefined,
+					contactId: selectedContact?.id
+				  }
+				: { source: "self" },
 		});
 	}, [
 		pickup,
@@ -694,6 +722,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 		bookedPersonPhone,
 		isBookingForSomeone,
 		actions.updateRideRequest,
+		routeMode,
+		tripMode,
+		tripType,
+		returnDateTime,
+		returnPattern,
+		MAX_STOPS,
 	]);
 
 	const passengerOptions = [1, 2, 3, 4, 5, 6];
@@ -794,7 +828,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 			nextErrors.pickup = "Choose pickup location.";
 		}
 
-		if (!tripOwnerChosen) {
+		if (!isBookingForSomeone && !tripOwnerChosen) {
 			nextErrors.tripOwner = "Choose trip owner.";
 		}
 
@@ -1014,6 +1048,22 @@ function EnterDestinationScreen(): React.JSX.Element {
 			bookForSomeone: isBookingForSomeone,
 			bookedPersonName: bookedPersonName.trim(),
 			bookedPersonPhone: bookedPersonPhone.trim(),
+			bookedFor:
+				isBookingForSomeone || riderType === "contact" || riderType === "manual"
+					? {
+						source: riderType === "manual" || isBookingForSomeone ? "manual" : "contact",
+						name:
+							bookedPersonName.trim() ||
+							(baseState.selectedContact?.name as string | undefined) ||
+							undefined,
+						phone:
+							bookedPersonPhone.trim() ||
+							(baseState.selectedContact?.phone as string | undefined) ||
+							undefined,
+						relation: baseState.selectedContact?.relation as string | undefined,
+						contactId: baseState.selectedContact?.id as number | undefined
+					  }
+					: { source: "self" },
 		};
 
 		// Always start a fresh ride flow so previous trip legs/status don't leak
@@ -1043,9 +1093,19 @@ function EnterDestinationScreen(): React.JSX.Element {
 		if (riderData.selectedContact) {
 			setSelectedContact(riderData.selectedContact);
 			setRiderType(riderData.riderType || "contact");
+			setBookedPersonName(riderData.selectedContact.name || "");
+			setBookedPersonPhone(riderData.selectedContact.phone || "");
+		} else if (riderData.riderType === "manual") {
+			setSelectedContact(null);
+			setRiderType("manual");
+			if (typeof riderData.manualPhone === "string") {
+				setBookedPersonPhone(riderData.manualPhone);
+			}
 		} else if (riderData.riderType === "personal") {
 			setSelectedContact(null);
 			setRiderType("personal");
+			setBookedPersonName("");
+			setBookedPersonPhone("");
 		}
 		// Continue with the trip
 		handleContinue(riderData);
@@ -1081,6 +1141,16 @@ function EnterDestinationScreen(): React.JSX.Element {
 			bookForSomeone: isBookingForSomeone,
 			bookedPersonName: bookedPersonName.trim(),
 			bookedPersonPhone: bookedPersonPhone.trim(),
+			bookedFor:
+				isBookingForSomeone || riderType === "contact" || riderType === "manual"
+					? {
+						source: riderType === "manual" || isBookingForSomeone ? "manual" : "contact",
+						name: bookedPersonName.trim() || selectedContact?.name,
+						phone: bookedPersonPhone.trim() || selectedContact?.phone,
+						relation: selectedContact?.relation,
+						contactId: selectedContact?.id
+					  }
+					: { source: "self" },
 			returnPattern,
 		};
 	};
@@ -1776,127 +1846,171 @@ function EnterDestinationScreen(): React.JSX.Element {
 						</Card>
 
 						{/* Ride Type Dropdown */}
+						{!isBookingForSomeone && (
+							<Card
+								elevation={0}
+								sx={{
+									borderRadius: 2,
+									bgcolor: contentBg,
+									border:
+										theme.palette.mode === "light"
+											? "1px solid rgba(0,0,0,0.1)"
+											: "1px solid rgba(255,255,255,0.1)",
+								}}
+							>
+								<CardContent sx={{ px: 2, py: 1.5 }}>
+									<Stack spacing={1.3}>
+										<FormControl fullWidth size="small">
+											<Typography sx={{ fontSize: 12, color: "#667085", mb: 0.6 }}>
+												Choose trip owner
+											</Typography>
+											<Select
+												value={tripOwnerChosen ? rideType : "__choose_owner__"}
+												displayEmpty
+												onChange={(e) => {
+													setShowError(false);
+													setErrorMessage("");
+													const newValue = e.target.value;
+													if (newValue === "__choose_owner__") {
+														setTripOwnerChosen(false);
+														return;
+													}
+													if (newValue === "Personal" || newValue === "Business") {
+														setRideType(newValue);
+														setSelectedContact(null);
+														setRiderType("personal");
+														setTripOwnerChosen(true);
+														clearFieldError("tripOwner");
+													}
+												}}
+												renderValue={(value) => (
+													<Box
+														sx={{
+															display: "flex",
+															alignItems: "center",
+															gap: 1,
+														}}
+													>
+														<PersonRoundedIcon
+															sx={{
+																fontSize: 18,
+																color: accentGreen,
+															}}
+														/>
+														<Typography sx={{ fontSize: 13.5 }}>
+															{tripOwnerChosen ? (value === "Business" ? "Organization" : value) : "Choose"}
+														</Typography>
+													</Box>
+												)}
+												sx={{
+													borderRadius: 5,
+													bgcolor:
+														theme.palette.mode === "light"
+															? "rgba(0,0,0,0.05)"
+															: "rgba(255,255,255,0.05)",
+													color: theme.palette.text.primary,
+													"& .MuiOutlinedInput-notchedOutline": {
+														borderColor:
+															theme.palette.mode === "light"
+																? fieldErrors.tripOwner
+																	? "#D92D20"
+																	: "rgba(0,0,0,0.15)"
+																: "rgba(255,255,255,0.2)",
+													},
+													"&:hover .MuiOutlinedInput-notchedOutline":
+														{
+															borderColor: accentGreen,
+														},
+													"&.Mui-focused .MuiOutlinedInput-notchedOutline":
+														{
+															borderColor: accentGreen,
+														},
+												}}
+											>
+												<MenuItem value="__choose_owner__" disabled>
+													Choose
+												</MenuItem>
+												<MenuItem value="Personal">
+													<Box
+														sx={{
+															display: "flex",
+															alignItems: "center",
+															gap: 1,
+														}}
+													>
+														<PersonRoundedIcon
+															sx={{ fontSize: 18 }}
+														/>
+														Personal
+													</Box>
+												</MenuItem>
+												<MenuItem value="Business">
+													<Box
+														sx={{
+															display: "flex",
+															alignItems: "center",
+															gap: 1,
+														}}
+													>
+														<DirectionsCarRoundedIcon
+															sx={{ fontSize: 18 }}
+														/>
+														Organization
+													</Box>
+												</MenuItem>
+											</Select>
+											{fieldErrors.tripOwner && (
+												<Typography sx={{ mt: 0.7, fontSize: 12, color: "#D92D20" }}>
+													{fieldErrors.tripOwner}
+												</Typography>
+											)}
+										</FormControl>
+									</Stack>
+								</CardContent>
+							</Card>
+						)}
+
+					{isBookingForSomeone && (
 						<Card
 							elevation={0}
-						sx={{
-							borderRadius: 2,
-							bgcolor: contentBg,
-							border:
-								theme.palette.mode === "light"
-									? "1px solid rgba(0,0,0,0.1)"
-									: "1px solid rgba(255,255,255,0.1)",
-						}}
-					>
-						<CardContent sx={{ px: 2, py: 1.5 }}>
-							<Stack spacing={1.3}>
-								<FormControl fullWidth size="small">
-									<Typography sx={{ fontSize: 12, color: "#667085", mb: 0.6 }}>
-										Choose trip owner
-									</Typography>
-										<Select
-										value={tripOwnerChosen ? rideType : "__choose_owner__"}
-										displayEmpty
-										onChange={(e) => {
-											setShowError(false);
-											setErrorMessage("");
-											const newValue = e.target.value;
-											if (newValue === "__choose_owner__") {
-												setTripOwnerChosen(false);
-												return;
-											}
-											if (newValue === "Personal" || newValue === "Business") {
-												setRideType(newValue);
-												setSelectedContact(null);
-												setRiderType("personal");
-												setTripOwnerChosen(true);
-												clearFieldError("tripOwner");
-											}
+							sx={{
+								borderRadius: 2,
+								bgcolor: contentBg,
+								border:
+									theme.palette.mode === "light"
+										? "1px solid rgba(0,0,0,0.1)"
+										: "1px solid rgba(255,255,255,0.1)",
+							}}
+						>
+							<CardContent sx={{ px: 2, py: 1.5 }}>
+								<Typography sx={{ fontSize: 12, color: "#667085", mb: 0.8 }}>
+									Booked rider details
+								</Typography>
+								<Stack spacing={1}>
+									<TextField
+										size="small"
+										label="Booked rider name"
+										value={bookedPersonName}
+										onChange={(event) => {
+											setBookedPersonName(event.target.value);
+											clearFieldError("tripOwner");
 										}}
-										renderValue={(value) => (
-											<Box
-												sx={{
-													display: "flex",
-													alignItems: "center",
-													gap: 1,
-												}}
-											>
-												<PersonRoundedIcon
-													sx={{
-														fontSize: 18,
-														color: accentGreen,
-													}}
-												/>
-												<Typography sx={{ fontSize: 13.5 }}>
-													{tripOwnerChosen ? (value === "Business" ? "Organization" : value) : "Choose"}
-												</Typography>
-											</Box>
-										)}
-										sx={{
-											borderRadius: 5,
-											bgcolor:
-												theme.palette.mode === "light"
-													? "rgba(0,0,0,0.05)"
-													: "rgba(255,255,255,0.05)",
-											color: theme.palette.text.primary,
-											"& .MuiOutlinedInput-notchedOutline": {
-												borderColor:
-													theme.palette.mode === "light"
-														? fieldErrors.tripOwner
-															? "#D92D20"
-															: "rgba(0,0,0,0.15)"
-														: "rgba(255,255,255,0.2)",
-											},
-											"&:hover .MuiOutlinedInput-notchedOutline":
-												{
-													borderColor: accentGreen,
-												},
-											"&.Mui-focused .MuiOutlinedInput-notchedOutline":
-												{
-													borderColor: accentGreen,
-												},
+										error={Boolean(fieldErrors.tripOwner && !bookedPersonName.trim())}
+									/>
+									<TextField
+										size="small"
+										label="Booked rider phone"
+										value={bookedPersonPhone}
+										onChange={(event) => {
+											setBookedPersonPhone(event.target.value);
+											clearFieldError("tripOwner");
 										}}
-									>
-										<MenuItem value="__choose_owner__" disabled>
-											Choose
-										</MenuItem>
-										<MenuItem value="Personal">
-											<Box
-												sx={{
-													display: "flex",
-													alignItems: "center",
-													gap: 1,
-												}}
-											>
-												<PersonRoundedIcon
-													sx={{ fontSize: 18 }}
-												/>
-												Personal
-											</Box>
-										</MenuItem>
-										<MenuItem value="Business">
-											<Box
-												sx={{
-													display: "flex",
-													alignItems: "center",
-													gap: 1,
-												}}
-											>
-												<DirectionsCarRoundedIcon
-													sx={{ fontSize: 18 }}
-												/>
-												Organization
-											</Box>
-										</MenuItem>
-										</Select>
-										{fieldErrors.tripOwner && (
-											<Typography sx={{ mt: 0.7, fontSize: 12, color: "#D92D20" }}>
-												{fieldErrors.tripOwner}
-											</Typography>
-										)}
-									</FormControl>
+										error={Boolean(fieldErrors.tripOwner && bookedPersonPhone.trim().length < 7)}
+									/>
 								</Stack>
 							</CardContent>
 						</Card>
+					)}
 
 					{/* Route + Trip Mode */}
 					<Card

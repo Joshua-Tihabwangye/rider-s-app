@@ -208,6 +208,11 @@ interface UpcomingRide {
   carModel: string;
   plateColor: string;
   vehicleImage: string;
+  bookedFor?: {
+    source: "self" | "contact" | "manual";
+    name?: string;
+    phone?: string;
+  } | null;
 }
 
 function formatShortDateTime(value?: string): { date: string; time: string } {
@@ -361,6 +366,20 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
               </Box>
             </Box>
           </Box>
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: 11,
+              color: "#B45309",
+              fontWeight: 700,
+              display: "block",
+              mb: uiTokens.spacing.md
+            }}
+          >
+            {ride.bookedFor?.source && ride.bookedFor.source !== "self"
+              ? `For: ${ride.bookedFor.name || "Booked rider"}${ride.bookedFor.phone ? ` (${ride.bookedFor.phone})` : ""}`
+              : "For: You"}
+          </Typography>
 
           <Card
             elevation={0}
@@ -651,6 +670,11 @@ interface PastRide {
   distance: string;
   fare: string;
   bookedAt: string;
+  bookedFor?: {
+    source: "self" | "contact" | "manual";
+    name?: string;
+    phone?: string;
+  } | null;
   sharedPassengers: Array<{
     name: string;
     initials: string;
@@ -931,10 +955,24 @@ function RideHistoryCard({ ride, onClick, onSharedPassengersClick }: RideHistory
             fontSize: 11,
             color: (theme) => theme.palette.text.secondary,
             display: "block",
-            mb: ride.sharedPassengers && ride.sharedPassengers.length > 0 ? 1.5 : 0
+            mb: 0.5
           }}
         >
           Booked {ride.bookedAt}
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{
+            fontSize: 11,
+            color: "#B45309",
+            fontWeight: 700,
+            display: "block",
+            mb: ride.sharedPassengers && ride.sharedPassengers.length > 0 ? 1.5 : 0
+          }}
+        >
+          {ride.bookedFor?.source && ride.bookedFor.source !== "self"
+            ? `For: ${ride.bookedFor.name || "Booked rider"}${ride.bookedFor.phone ? ` (${ride.bookedFor.phone})` : ""}`
+            : "For: You"}
         </Typography>
 
         {/* Shared Passengers Section (if applicable) */}
@@ -1061,6 +1099,7 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
           distance: trip.distance || "0 km",
           fare: trip.fareEstimate || "UGX 0",
           bookedAt: when.time,
+          bookedFor: trip.bookedFor ?? null,
           sharedPassengers: []
         };
       });
@@ -1105,7 +1144,8 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
         rideType,
         carModel: ride.activeTrip?.vehicle?.model || "EV",
         plateColor: ride.activeTrip?.vehicle?.color || "White",
-        vehicleImage: mapVehicleImage(rideType, ride.activeTrip?.vehicle?.model)
+        vehicleImage: mapVehicleImage(rideType, ride.activeTrip?.vehicle?.model),
+        bookedFor: ride.request.bookedFor ?? null
       }
     ];
   }, [
@@ -1123,6 +1163,7 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
     ride.request.origin?.label,
     ride.request.schedule,
     ride.request.scheduleTime,
+    ride.request.bookedFor,
     sharedLocationState.routeDistanceKm
   ]);
 

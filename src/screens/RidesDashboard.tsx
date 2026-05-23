@@ -961,7 +961,8 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     } else if (type === "book-someone") {
       navigate("/rides/enter/details", {
         state: {
-          bookForSomeone: true
+          bookForSomeone: true,
+          riderType: "manual"
         }
       });
     } else if (type === "commutes-manage") {
@@ -1238,7 +1239,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
             {[
               { label: "Ride Now", icon: <TwoWheelerRoundedIcon sx={{ fontSize: 29, color: "#11B86A" }} />, onClick: () => navigate("/rides/enter/details") },
-              { label: "Book for someone", icon: <PersonRoundedIcon sx={{ fontSize: 29, color: "#F97316" }} />, onClick: () => navigate("/rides/enter/details", { state: { bookForSomeone: true } }) },
+              { label: "Book for someone", icon: <PersonRoundedIcon sx={{ fontSize: 29, color: "#F97316" }} />, onClick: () => navigate("/rides/enter/details", { state: { bookForSomeone: true, riderType: "manual" } }) },
               { label: "Promotions", icon: <LocalOfferRoundedIcon sx={{ fontSize: 29, color: "#11B86A" }} />, onClick: () => navigate("/rides/promotions") },
               { label: "History", icon: <HistoryRoundedIcon sx={{ fontSize: 29, color: "#F97316" }} />, onClick: () => navigate("/rides/history/past") }
             ].map((item, index) => (

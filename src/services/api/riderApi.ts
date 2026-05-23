@@ -38,6 +38,13 @@ export interface RiderTripApi {
   pickupLocation: { lat: number; lng: number };
   dropoffLocation: { lat: number; lng: number };
   otpCode: string;
+  bookedFor?: {
+    source: "self" | "contact" | "manual";
+    name?: string;
+    phone?: string;
+    relation?: string;
+    contactId?: number | string;
+  } | null;
   requestedAt: number;
   updatedAt: number;
   startedAt?: number;
@@ -69,6 +76,13 @@ export interface CreateRiderTripRequestPayload {
     lat?: number;
     lng?: number;
   }>;
+  bookedFor?: {
+    source: "self" | "contact" | "manual";
+    name?: string;
+    phone?: string;
+    relation?: string;
+    contactId?: number | string;
+  } | null;
 }
 
 export interface UpdateRiderTripTrackingPayload {
@@ -316,6 +330,7 @@ export function mapApiTripToRideTrip(apiTrip: RiderTripApi): RideTrip {
     isReturnLeg: false,
     driver: null, // Populate from separate driver endpoint if available
     vehicle: null, // Populate from separate vehicle endpoint if available
+    bookedFor: apiTrip.bookedFor ?? null,
     lastKnownLocation: undefined,
     startedAt: apiTrip.startedAt ? new Date(apiTrip.startedAt).toISOString() : undefined,
     completedAt: apiTrip.completedAt ? new Date(apiTrip.completedAt).toISOString() : undefined,

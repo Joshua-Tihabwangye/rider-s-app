@@ -30,6 +30,12 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
   const { ride, sharedLocationState, actions } = useAppData();
   const activeTrip = ride.activeTrip;
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
+  const bookedForLabel = React.useMemo(() => {
+    const bookedFor = activeTrip?.bookedFor ?? ride.request.bookedFor;
+    if (!bookedFor || bookedFor.source === "self") return "For: You";
+    const name = bookedFor.name?.trim() || "Booked rider";
+    return `For: ${name}${bookedFor.phone ? ` (${bookedFor.phone})` : ""}`;
+  }, [activeTrip?.bookedFor, ride.request.bookedFor]);
 
   const routeState = (location.state as Record<string, unknown> | null) ?? null;
 
@@ -185,6 +191,9 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
               </Typography>
               <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
                 Final summary
+              </Typography>
+              <Typography variant="caption" sx={{ color: "#B45309", fontWeight: 700, display: "block" }}>
+                {bookedForLabel}
               </Typography>
             </Box>
             <Button
