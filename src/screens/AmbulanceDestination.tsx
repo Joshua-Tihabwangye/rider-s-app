@@ -82,6 +82,7 @@ const ambulanceOptions: AmbulanceOption[] = [
 function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { ambulance, actions } = useAppData();
+  const companyOrange = uiTokens.colors.accent;
   const pickupAddress = ambulance.request.pickup?.address ?? "Nakasero Hill Road, Kampala, Uganda";
   const patientName = ambulance.request.patientName ?? "John Ssemanda";
   const age = ambulance.request.patientAge ?? 32;
@@ -194,7 +195,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
           endAdornment: (
             <InputAdornment position="end">
               <Stack direction="row" spacing={0.6} alignItems="center">
-                <KeyboardVoiceRoundedIcon sx={{ color: "#64748B" }} />
+                <KeyboardVoiceRoundedIcon sx={{ color: companyOrange }} />
                 <Box sx={{ width: 1, height: 18, bgcolor: "rgba(148,163,184,0.4)" }} />
                 <MyLocationRoundedIcon sx={{ color: "#059669" }} />
               </Stack>
@@ -212,7 +213,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
 
       <Box sx={{ mb: 1.2, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Typography sx={{ fontWeight: 700, fontSize: 20 }}>Suggested hospitals</Typography>
-        <Button size="small" onClick={() => setQuery("")} sx={{ color: "#059669", textTransform: "none", fontWeight: 700 }}>
+        <Button size="small" onClick={() => setQuery("")} sx={{ color: companyOrange, textTransform: "none", fontWeight: 700 }}>
           View all
         </Button>
       </Box>
@@ -227,10 +228,11 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
               onClick={() => setSelectedHospital(hospital)}
               sx={{
                 borderRadius: 2.5,
-                border: selected ? "1px solid rgba(5,150,105,0.45)" : "1px solid var(--evz-border-subtle)",
+                border: selected ? `1px solid ${companyOrange}` : "1px solid var(--evz-border-subtle)",
                 px: 1.4,
                 py: 1.2,
-                cursor: "pointer"
+                cursor: "pointer",
+                boxShadow: selected ? "0 8px 18px rgba(249,115,22,0.14)" : "none"
               }}
             >
               <Stack direction="row" spacing={1.4} alignItems="center">
@@ -239,12 +241,12 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
                     width: { xs: 58, sm: 54 },
                     height: { xs: 58, sm: 54 },
                     borderRadius: 2,
-                    bgcolor: selected ? "rgba(5,150,105,0.08)" : "rgba(148,163,184,0.12)",
+                    bgcolor: selected ? "rgba(249,115,22,0.1)" : "rgba(148,163,184,0.12)",
                     display: "grid",
                     placeItems: "center"
                   }}
                 >
-                  <LocalHospitalRoundedIcon sx={{ color: selected ? "#059669" : "#64748B", fontSize: 30 }} />
+                  <LocalHospitalRoundedIcon sx={{ color: selected ? companyOrange : "#64748B", fontSize: 30 }} />
                 </Box>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography sx={{ fontWeight: 700, fontSize: { xs: 16, sm: 17 }, wordBreak: "break-word" }}>{hospital.name}</Typography>
@@ -264,7 +266,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
                     event.stopPropagation();
                     setSelectedHospital(hospital);
                   }}
-                  sx={{ color: "#059669", textTransform: "none", fontWeight: 700, minWidth: 64, flexShrink: 0 }}
+                  sx={{ color: companyOrange, textTransform: "none", fontWeight: 700, minWidth: 64, flexShrink: 0 }}
                 >
                   Select
                 </Button>
@@ -303,9 +305,9 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
               height: 44,
               borderRadius: 2,
               justifyContent: "flex-start",
-              bgcolor: transferType === "patient" ? "rgba(5,150,105,0.1)" : "transparent",
-              border: transferType === "patient" ? "1px solid rgba(5,150,105,0.35)" : "1px solid transparent",
-              color: transferType === "patient" ? "#059669" : "#334155",
+              bgcolor: transferType === "patient" ? "rgba(249,115,22,0.1)" : "transparent",
+              border: transferType === "patient" ? "1px solid rgba(249,115,22,0.35)" : "1px solid transparent",
+              color: transferType === "patient" ? "#EA580C" : "#334155",
               fontWeight: 600,
               "& .MuiChip-label": { overflow: "visible" }
             }}
@@ -341,9 +343,10 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
               sx={{
                 minWidth: { xs: 246, sm: 232 },
                 borderRadius: 2.5,
-                border: selected ? "2px solid rgba(5,150,105,0.55)" : "1px solid var(--evz-border-subtle)",
+                border: selected ? "2px solid rgba(249,115,22,0.55)" : "1px solid var(--evz-border-subtle)",
                 p: 1.3,
-                cursor: "pointer"
+                cursor: "pointer",
+                boxShadow: selected ? "0 10px 20px rgba(249,115,22,0.16)" : "none"
               }}
             >
               <Box
@@ -382,7 +385,7 @@ function AmbulanceDestinationHospitalSelectionScreen(): React.JSX.Element {
         sx={{
           mt: 1.4,
           borderRadius: 3,
-          border: "1px solid var(--evz-border-subtle)",
+          border: "1px solid rgba(249,115,22,0.35)",
           px: 2,
           py: 1.2
         }}

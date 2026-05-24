@@ -1165,75 +1165,88 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     <ScreenScaffold>
       <Box sx={rentalLikeTypographySx}>
       <Stack spacing={1.4}>
-        <Stack direction="row" spacing={1.25} alignItems="stretch">
-          <Button
-            onClick={() => navigate("/home")}
-            variant="outlined"
-            sx={{
-              minWidth: 46,
-              width: 46,
-              height: 46,
-              borderRadius: 2.4,
-              borderColor: "#E4E7EC",
-              color: "#344054",
-              p: 0
-            }}
-          >
-            <ArrowBackRoundedIcon sx={{ fontSize: 24 }} />
-          </Button>
-
-          <Card
-            elevation={0}
-            sx={{
-              flex: 1,
-              borderRadius: 3,
-              border: "1px solid #E4E7EC",
-              p: 1.45,
-              bgcolor: "#F8FBF9",
-              backgroundImage: "url('/rides-ui/hero-scooter.svg')",
-              backgroundSize: "cover",
-              backgroundPosition: "center"
-            }}
-          >
-            <Stack direction="row" alignItems="flex-end" spacing={1.2}>
-              <Box sx={{ flex: 1, pt: 2.4, pb: 1.5, pr: { xs: 2.8, sm: 3.6 } }}>
-                <Typography sx={{ fontSize: 56 / 2, fontWeight: 700, lineHeight: 1.1, color: "#101828" }}>
-                  Book a ride
-                </Typography>
-                <Typography sx={{ fontSize: 56 / 2, fontWeight: 700, lineHeight: 1.1, color: "#F97316", mb: 0.8 }}>
-                  in seconds
-                </Typography>
-                <Typography sx={{ fontSize: 16, color: "#475467", mb: 1.5 }}>
-                  Safe, affordable, and eco-friendly rides across your city.
-                </Typography>
+        <Card
+          elevation={0}
+          sx={{
+            borderRadius: 3,
+            border: "1px solid #E4E7EC",
+            p: 1.45,
+            bgcolor: "#F8FBF9"
+          }}
+        >
+          <Stack direction="row" alignItems="center" spacing={1.2}>
+            <Box sx={{ flex: 1, pt: 1.2, pb: 1, pr: { xs: 0.8, sm: 2.2 } }}>
+              <Stack direction="row" spacing={1.1} alignItems="flex-start" sx={{ mb: 0.8 }}>
                 <Button
-                  variant="contained"
-                  onClick={() => navigate("/rides/enter/details")}
-                  endIcon={
-                    <Box sx={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px solid rgba(255,255,255,0.95)", display: "grid", placeItems: "center" }}>
-                      <ArrowForwardIosRoundedIcon sx={{ fontSize: 14 }} />
-                    </Box>
-                  }
+                  onClick={() => navigate("/home")}
+                  variant="outlined"
                   sx={{
-                    textTransform: "none",
-                    borderRadius: 99,
-                    px: 3.4,
-                    py: 1,
-                    fontSize: 16,
-                    fontWeight: 700,
-                    whiteSpace: "nowrap",
-                    color: "#FFFFFF",
-                    background: "linear-gradient(92deg, #11B86A 0%, #78B833 50%, #FF8A00 100%)",
-                    "&:hover": { background: "linear-gradient(92deg, #0F9B5D 0%, #6FA52C 50%, #E97800 100%)" }
+                    minWidth: 42,
+                    width: 42,
+                    height: 42,
+                    borderRadius: 2.2,
+                    borderColor: "#E4E7EC",
+                    color: "#344054",
+                    p: 0,
+                    flexShrink: 0
                   }}
                 >
-                  Book Now
+                  <ArrowBackRoundedIcon sx={{ fontSize: 22 }} />
                 </Button>
-              </Box>
-              <Box sx={{ width: { xs: 178, sm: 220 }, height: { xs: 178, sm: 220 }, flexShrink: 0 }} />
-            </Stack>
-          </Card>
-        </Stack>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: 56 / 2, fontWeight: 700, lineHeight: 1.1, color: "#101828" }}>
+                    Book a ride
+                  </Typography>
+                  <Typography sx={{ fontSize: 56 / 2, fontWeight: 700, lineHeight: 1.1, color: "#F97316", mb: 0.8 }}>
+                    in seconds
+                  </Typography>
+                </Box>
+              </Stack>
+              <Typography sx={{ fontSize: 16, color: "#475467", mb: 1.5 }}>
+                Safe, affordable, and eco-friendly rides across your city.
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={() => navigate("/rides/enter/details")}
+                endIcon={
+                  <Box sx={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px solid rgba(255,255,255,0.95)", display: "grid", placeItems: "center" }}>
+                    <ArrowForwardIosRoundedIcon sx={{ fontSize: 14 }} />
+                  </Box>
+                }
+                sx={{
+                  textTransform: "none",
+                  borderRadius: 99,
+                  px: 3.4,
+                  py: 1,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                  color: "#FFFFFF",
+                  background: "#11B86A",
+                  "&:hover": { background: "#0F9B5D" }
+                }}
+              >
+                Book Now
+              </Button>
+            </Box>
+            <Box
+              sx={{
+                width: { xs: 148, sm: 188 },
+                height: { xs: 136, sm: 170 },
+                flexShrink: 0,
+                display: "grid",
+                placeItems: "center"
+              }}
+            >
+              <Box
+                component="img"
+                src="/rides-ui/hero-scooter.svg"
+                alt="Ride vehicle"
+                sx={{ width: "100%", height: "100%", objectFit: "contain" }}
+              />
+            </Box>
+          </Stack>
+        </Card>
 
         <Card elevation={0} sx={{ borderRadius: 3, border: "1px solid #E4E7EC", p: 1 }}>
           <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>

@@ -2524,11 +2524,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 						fontSize: 16,
 						fontWeight: 700,
 						textTransform: "none",
-						background: "linear-gradient(92deg, #12B76A 0%, #6FBF3A 52%, #F79009 100%)",
+						background: "#12B76A",
 						color: "#FFFFFF",
 						boxShadow: "none",
 						"&:hover": {
-							background: "linear-gradient(92deg, #0EA75F 0%, #65AE34 52%, #E98607 100%)",
+							background: "#0EA75F",
 							boxShadow: "none",
 						},
 					}}
