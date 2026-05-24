@@ -115,6 +115,7 @@ import AmbulancePaymentWallet from "../screens/AmbulancePaymentWallet";
 import AmbulancePaymentCard from "../screens/AmbulancePaymentCard";
 import AmbulancePaymentMobileMoney from "../screens/AmbulancePaymentMobileMoney";
 import Wallet from "../screens/Wallet";
+import WalletTransactionDetail from "../screens/WalletTransactionDetail";
 import {
   WalletTransferMethodScreen,
   WalletTransferSelectionScreen,
@@ -321,6 +322,7 @@ export default function AppRouter(): React.JSX.Element {
 				</Route>
 				{/* Wallet, Profile, More, Settings */}
 				<Route path="wallet" element={<Wallet />} />
+				<Route path="wallet/transactions/:transactionId" element={<WalletTransactionDetail />} />
 				<Route path="wallet/:flowType" element={<WalletTransferSelectionScreen />} />
 				<Route path="wallet/:flowType/:method" element={<WalletTransferMethodScreen />} />
 				<Route path="wallet/:flowType/:method/success" element={<WalletTransferSuccessScreen />} />

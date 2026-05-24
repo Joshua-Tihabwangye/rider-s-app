@@ -895,12 +895,8 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           sx={{
             mb: uiTokens.spacing.lg,
             borderRadius: uiTokens.radius.sm,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-            border: (theme) =>
-              theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
+            bgcolor: uiTokens.surfaces.accentTintSoft,
+            border: `1px solid ${uiTokens.colors.accent}`
           }}
         >
           <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.md }}>
@@ -915,7 +911,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
               <Box sx={{ minWidth: { sm: 190 } }}>
                 <Typography
                   variant="caption"
-                  sx={{ color: (theme) => theme.palette.text.secondary, fontSize: 11, display: "block", mb: uiTokens.spacing.xxs }}
+                  sx={{ color: uiTokens.colors.accent, fontSize: 11, display: "block", mb: uiTokens.spacing.xxs }}
                 >
                   Estimated Total Fare
                 </Typography>
@@ -924,7 +920,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                   sx={{
                     fontWeight: 700,
                     letterSpacing: "-0.01em",
-                    color: (theme) => theme.palette.text.primary,
+                    color: uiTokens.colors.accent,
                     whiteSpace: "nowrap"
                   }}
                 >
