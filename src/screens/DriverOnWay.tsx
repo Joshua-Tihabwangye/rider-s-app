@@ -48,6 +48,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const [arrivalTime, setArrivalTime] = useState(activeTrip?.etaMinutes ?? 5);
   const [chatOpen, setChatOpen] = useState(false);
   const [driverProgress, setDriverProgress] = useState(arrivalWorkflow.initialProgress);
+  const hasInitializedOnWayStatusRef = React.useRef(false);
   const companyOrange = "#F79009";
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const driverLocation = getApproachPoint(routePolyline, driverProgress);
@@ -100,7 +101,14 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   }, [driver?.phone, fallbackDriverFromWorkflow?.phone]);
 
   useEffect(() => {
+    if (hasInitializedOnWayStatusRef.current) {
+      return;
+    }
+    hasInitializedOnWayStatusRef.current = true;
     setRideStatus("driver_on_way");
+  }, [setRideStatus]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       setArrivalTime((prev) => {
         if (prev > 0) {
@@ -112,7 +120,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
     }, arrivalWorkflow.progressTickMs);
 
     return () => clearInterval(interval);
-  }, [arrivalWorkflow.progressStepPerTick, arrivalWorkflow.progressTickMs, setRideStatus]);
+  }, [arrivalWorkflow.progressStepPerTick, arrivalWorkflow.progressTickMs]);
 
   useEffect(() => {
     const previous = sharedLocationState.driverLocation;

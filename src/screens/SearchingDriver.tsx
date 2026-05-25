@@ -32,6 +32,8 @@ function SearchingForDriverScreen(): React.JSX.Element {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [searchTime, setSearchTime] = useState(0);
   const [driverProgress, setDriverProgress] = useState(0);
+  const hasInitializedSearchStatusRef = React.useRef(false);
+  const hasTransitionedToOnWayRef = React.useRef(false);
   const companyOrange = "#F79009";
   const tripWorkflow = ride.workflow.tripSimulation;
   const routeSummary = React.useMemo(() => {
@@ -76,6 +78,10 @@ function SearchingForDriverScreen(): React.JSX.Element {
   }, [fallbackRoute, driverProgress]);
 
   useEffect(() => {
+    if (hasInitializedSearchStatusRef.current) {
+      return;
+    }
+    hasInitializedSearchStatusRef.current = true;
     setRideStatus("searching");
   }, [setRideStatus]);
 
@@ -117,8 +123,10 @@ function SearchingForDriverScreen(): React.JSX.Element {
   }, [routeReady, tripWorkflow.searchingDriverProgressCap, tripWorkflow.searchingDriverProgressPerTick]);
 
   useEffect(() => {
+    if (hasTransitionedToOnWayRef.current) return;
     if (!routeReady) return;
     if (searchTime < tripWorkflow.searchingToOnWayDelaySec) return;
+    hasTransitionedToOnWayRef.current = true;
     setRideStatus("driver_on_way");
     navigate("/rides/driver-on-way");
   }, [navigate, routeReady, searchTime, setRideStatus, tripWorkflow.searchingToOnWayDelaySec]);
