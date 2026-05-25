@@ -1476,6 +1476,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
       if (!state.ride.activeTrip) {
         return state;
       }
+      if (state.ride.activeTrip.status === action.payload) {
+        return state;
+      }
       const activeTrip = { ...state.ride.activeTrip, status: action.payload };
       const legState = applyRideStatusToLegs(activeTrip.legs, action.payload, activeTrip.currentLegIndex);
       const nextTrip: RideTrip = {
