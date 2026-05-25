@@ -332,7 +332,7 @@ const SEED_RIDE_OPTIONS: RideOption[] = [
     name: "EV Scooter",
     description: "Fast city trips",
     eta: "4 mins",
-    fare: "UGX 25,365",
+    fare: "",
     capacity: 1,
     pricingModel: {
       baseFareUGX: 13000,
@@ -347,7 +347,7 @@ const SEED_RIDE_OPTIONS: RideOption[] = [
     name: "EV Car Mini",
     description: "Compact and affordable",
     eta: "4 mins",
-    fare: "UGX 40,365",
+    fare: "",
     capacity: 3,
     pricingModel: {
       baseFareUGX: 25000,
@@ -362,7 +362,7 @@ const SEED_RIDE_OPTIONS: RideOption[] = [
     name: "EV Comfort",
     description: "Extra legroom",
     eta: "6 mins",
-    fare: "UGX 55,900",
+    fare: "",
     capacity: 4,
     pricingModel: {
       baseFareUGX: 37000,

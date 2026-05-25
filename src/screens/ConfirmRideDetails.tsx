@@ -58,7 +58,12 @@ function RideDetailsScreen(): React.JSX.Element {
     },
     duration: tripData.duration || `${activeTrip?.etaMinutes ?? 0} mins`,
     passengers: tripData.passengers || ride.request.passengers || 1,
-    fare: tripData.fare || activeTrip?.fareEstimate || "UGX 121,400",
+    fare:
+      tripData.fare ||
+      activeTrip?.fareEstimate ||
+      ride.options.find((option) => option.id === ride.request.serviceLevel)?.fare ||
+      ride.options[0]?.fare ||
+      "UGX 0",
     driver: {
       name: tripData.driver?.name || activeTrip?.driver?.name || "Driver",
       vehicle: tripData.driver?.vehicle || activeTrip?.vehicle?.model || "EV",

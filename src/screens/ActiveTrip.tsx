@@ -72,6 +72,20 @@ function formatCurrencyUGX(amount: number): string {
   return `UGX ${Math.max(0, Math.round(amount)).toLocaleString()}`;
 }
 
+function formatDistanceLabel(distanceKm?: number | null): string {
+  if (!distanceKm || !Number.isFinite(distanceKm) || distanceKm <= 0) return "—";
+  if (distanceKm >= 100) return `${Math.round(distanceKm)} km`;
+  if (distanceKm >= 10) return `${distanceKm.toFixed(1)} km`;
+  return `${distanceKm.toFixed(2)} km`;
+}
+
+function formatDurationLabel(durationMin?: number | null): string {
+  if (!durationMin || !Number.isFinite(durationMin) || durationMin <= 0) return "—";
+  const rounded = Math.max(1, Math.round(durationMin));
+  if (rounded < 60) return `${rounded} mins`;
+  return `${Math.floor(rounded / 60)} hr ${rounded % 60} mins`;
+}
+
 function formatElapsedDuration(ms: number): string {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
   const hours = Math.floor(totalSeconds / 3600);
@@ -151,6 +165,10 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     tripWorkflow.pricing.extraStopUGX
   ]);
   const totalFareDisplay = formatCurrencyUGX(estimatedFareAmount);
+  const routeDistanceLabel = formatDistanceLabel(sharedLocationState.routeDistanceKm ?? totalDistance);
+  const routeDurationLabel = formatDurationLabel(
+    sharedLocationState.routeDurationMin ?? activeTrip?.etaMinutes ?? null
+  );
 
   useEffect(() => {
     if (!import.meta.env.DEV || typeof window === "undefined") {
@@ -520,11 +538,11 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     navigate("/rides/trip/completed", {
       replace: true,
       state: {
-        duration: tripWorkflow.completionSummary.duration,
-        estimatedTime: tripWorkflow.completionSummary.estimatedTime,
+        duration: routeDurationLabel,
+        estimatedTime: routeDurationLabel,
         totalFare: totalFareDisplay,
         fare: totalFareDisplay,
-        distance: `${totalDistance.toFixed(1)} km`,
+        distance: routeDistanceLabel,
         stops: activeTrip?.routePoints ?? []
       }
     });
@@ -537,10 +555,10 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     setRideStatus,
     totalDistance,
     totalFareDisplay,
+    routeDistanceLabel,
+    routeDurationLabel,
     tripElapsedMs,
     tripSimulationDurationMs,
-    tripWorkflow.completionSummary.duration,
-    tripWorkflow.completionSummary.estimatedTime,
     updateRideTrip
   ]);
 
@@ -641,11 +659,11 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     navigate("/rides/trip/completed", {
       replace: true,
       state: {
-        duration: tripWorkflow.completionSummary.duration,
-        estimatedTime: tripWorkflow.completionSummary.estimatedTime,
+        duration: routeDurationLabel,
+        estimatedTime: routeDurationLabel,
         totalFare: totalFareDisplay,
         fare: totalFareDisplay,
-        distance: `${totalDistance.toFixed(1)} km`,
+        distance: routeDistanceLabel,
         stops: activeTrip?.routePoints ?? []
       }
     });

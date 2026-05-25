@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -26,29 +26,6 @@ interface RideOptionCardProps {
   onSelect: (id: string) => void;
 }
 
-interface RideOptionPricing {
-  id: string;
-  fareAmount: number;
-  fareLabel: string;
-}
-
-function parseUGXAmount(value: string): number {
-  const numeric = Number.parseInt(value.replace(/[^\d]/g, ""), 10);
-  return Number.isFinite(numeric) ? numeric : 0;
-}
-
-function formatUGX(amount: number): string {
-  return `UGX ${Math.max(0, Math.round(amount)).toLocaleString("en-US")}`;
-}
-
-function computePassengerAwareFare(baseFare: number, passengers: number, serviceClass: "standard" | "premium"): number {
-  const safePassengers = Math.max(1, Math.floor(passengers));
-  const passengerMultiplier = 1 + (safePassengers - 1) * 0.18;
-  const serviceMultiplier = serviceClass === "premium" ? 1.2 : 1;
-  const computed = baseFare * passengerMultiplier * serviceMultiplier;
-  return Math.round(computed / 100) * 100;
-}
-
 function getRideOptionIcon(id: string): React.ReactElement {
   if (id === "scooter") {
     return <TwoWheelerRoundedIcon sx={{ fontSize: 28 }} />;
@@ -56,9 +33,24 @@ function getRideOptionIcon(id: string): React.ReactElement {
   return <DirectionsCarRoundedIcon sx={{ fontSize: 28 }} />;
 }
 
+function formatDistanceLabel(distanceKm?: number | null): string {
+  if (!distanceKm || !Number.isFinite(distanceKm) || distanceKm <= 0) return "—";
+  if (distanceKm >= 100) return `${Math.round(distanceKm)} km`;
+  if (distanceKm >= 10) return `${distanceKm.toFixed(1)} km`;
+  return `${distanceKm.toFixed(2)} km`;
+}
+
+function formatDurationLabel(durationMin?: number | null): string {
+  if (!durationMin || !Number.isFinite(durationMin) || durationMin <= 0) return "—";
+  const rounded = Math.max(1, Math.round(durationMin));
+  if (rounded < 60) return `${rounded} mins`;
+  return `${Math.floor(rounded / 60)} hr ${rounded % 60} mins`;
+}
+
 function RideOptionCard({ option, selected, passengers, onSelect }: RideOptionCardProps): React.JSX.Element {
   const theme = useTheme();
   const isActive = selected === option.id;
+  const hasFare = option.fare.trim().length > 0;
   
   return (
     <Card
@@ -132,34 +124,45 @@ function RideOptionCard({ option, selected, passengers, onSelect }: RideOptionCa
             
             {/* Fare with info icon */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
-              <Typography
-                variant="body2"
-                sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: 14 }}
-              >
-                {option.fare}
-              </Typography>
-              <Box
-                sx={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: "50%",
-                  bgcolor: "#F77F00",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}
-              >
+              {hasFare ? (
+                <>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: 14 }}
+                  >
+                    {option.fare}
+                  </Typography>
+                  <Box
+                    sx={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: "50%",
+                      bgcolor: "#F77F00",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: 10,
+                        color: "#FFFFFF",
+                        fontWeight: 600,
+                        lineHeight: 1
+                      }}
+                    >
+                      i
+                    </Typography>
+                  </Box>
+                </>
+              ) : (
                 <Typography
-                  sx={{
-                    fontSize: 10,
-                    color: "#FFFFFF",
-                    fontWeight: 600,
-                    lineHeight: 1
-                  }}
+                  variant="caption"
+                  sx={{ color: theme.palette.text.secondary, fontSize: 12, fontWeight: 500 }}
                 >
-                  i
+                  Fare appears after route is set
                 </Typography>
-              </Box>
+              )}
             </Box>
             <Typography variant="caption" sx={{ display: "block", mt: 0.5, color: theme.palette.text.secondary }}>
               for {passengers} {passengers === 1 ? "passenger" : "passengers"}
@@ -188,26 +191,7 @@ function SelectYourRideScreen(): React.JSX.Element {
   const [selectedRide, setSelectedRide] = useState(ride.request.serviceLevel ?? ride.options[0]?.id ?? "");
   const [rideType, setRideType] = useState<ServiceClass>(ride.request.serviceClass ?? "standard");
   const [selectionError, setSelectionError] = useState("");
-  const ridePricing = useMemo<Record<string, RideOptionPricing>>(() => {
-    return ride.options.reduce<Record<string, RideOptionPricing>>((acc, option) => {
-      const baseFareAmount = parseUGXAmount(option.fare);
-      const adjustedFareAmount = computePassengerAwareFare(baseFareAmount, passengerCount, rideType);
-      acc[option.id] = {
-        id: option.id,
-        fareAmount: adjustedFareAmount,
-        fareLabel: formatUGX(adjustedFareAmount)
-      };
-      return acc;
-    }, {});
-  }, [passengerCount, ride.options, rideType]);
-  const rideOptionsWithPricing = useMemo<RideOption[]>(
-    () =>
-      ride.options.map((option) => ({
-        ...option,
-        fare: ridePricing[option.id]?.fareLabel ?? option.fare
-      })),
-    [ride.options, ridePricing]
-  );
+  const rideOptionsWithPricing = ride.options;
 
   useEffect(() => {
     if (ride.request.serviceLevel && ride.request.serviceLevel !== selectedRide) {
@@ -261,15 +245,18 @@ function SelectYourRideScreen(): React.JSX.Element {
     const effectiveSelectedRide = selectedRide || rideOptionsWithPricing[0]?.id || "";
     if (!effectiveSelectedRide) return;
     const selectedRideOption = rideOptionsWithPricing.find((opt) => opt.id === effectiveSelectedRide);
-    const fare = selectedRideOption?.fare || ride.activeTrip?.fareEstimate || "UGX 40,365";
+    const fare = selectedRideOption?.fare || ride.activeTrip?.fareEstimate || "";
+    if (!fare) {
+      setSelectionError("Unable to estimate fare. Update your route and try again.");
+      return;
+    }
     const estimatedEtaMinutes =
       Number.parseInt(selectedRideOption?.eta?.replace(/[^0-9]/g, "") ?? "", 10) || ride.activeTrip?.etaMinutes || 0;
     const distanceLabel =
-      typeof tripData.distance === "string" ? tripData.distance : ride.activeTrip?.distance || "—";
-    const estimatedTimeLabel =
-      typeof tripData.estimatedTime === "string"
-        ? tripData.estimatedTime
-        : `${ride.activeTrip?.etaMinutes ?? 0} mins`;
+      sharedLocationState.routeDistanceKm && sharedLocationState.routeDistanceKm > 0
+        ? formatDistanceLabel(sharedLocationState.routeDistanceKm)
+        : ride.activeTrip?.distance || "—";
+    const estimatedTimeLabel = formatDurationLabel(sharedLocationState.routeDurationMin);
     
     updateRideTrip({
       pickup: ride.request.origin,
@@ -391,8 +378,7 @@ function SelectYourRideScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 12, color: theme.palette.text.secondary, mb: 1.5, display: "block" }}
             >
-              Choose the type of ride service that fits your needs. Pricing adapts to {passengerCount}{" "}
-              {passengerCount === 1 ? "passenger" : "passengers"}.
+              Choose the type of ride service that fits your needs. Pricing updates by route distance.
             </Typography>
             
             <Box sx={{ display: "flex", gap: 1.25 }}>

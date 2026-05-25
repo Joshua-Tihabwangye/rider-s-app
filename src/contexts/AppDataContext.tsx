@@ -490,9 +490,52 @@ function estimateRideRouteDistanceFromRequest(request: RideRequest): number {
   return total;
 }
 
+function estimateRideRouteMetricsFromRequest(
+  request: RideRequest
+): { distanceKm: number; durationMin: number } | null {
+  const normalized = normalizeRideRequest(request);
+  const points = normalized.routePoints ?? [];
+  if (points.length < 2) return null;
+  let totalDistanceKm = 0;
+  let totalDurationMin = 0;
+  let validLegs = 0;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const from = points[index];
+    const to = points[index + 1];
+    if (!from?.coordinates || !to?.coordinates) continue;
+    const legDistanceKm = estimateRideLegDistanceKm(from, to);
+    totalDistanceKm += legDistanceKm;
+    totalDurationMin += estimateRideLegDurationMin(legDistanceKm);
+    validLegs += 1;
+  }
+  if (validLegs === 0) return null;
+  return {
+    distanceKm: Math.max(0.6, Number(totalDistanceKm.toFixed(2))),
+    durationMin: Math.max(3, Math.round(totalDurationMin))
+  };
+}
+
 function isRidePricingLocked(rideState: RideState): boolean {
   if (!rideState.activeTrip) return false;
+  if (rideState.activeTrip.id === "ride_temp") return false;
   return !["completed", "cancelled"].includes(rideState.activeTrip.status);
+}
+
+function areRideOptionPricesEquivalent(current: RideOption[], next: RideOption[]): boolean {
+  if (current.length !== next.length) return false;
+  return current.every((option, index) => {
+    const target = next[index];
+    return Boolean(target) && option.id === target.id && option.fare === target.fare && option.eta === target.eta;
+  });
+}
+
+function hasRideRouteCoordinates(request: RideRequest): boolean {
+  const points = request.routePoints ?? [];
+  if (points.length < 2) return false;
+  return points.every((point) => {
+    const coords = point.coordinates;
+    return Boolean(coords) && Number.isFinite(coords?.lat) && Number.isFinite(coords?.lng);
+  });
 }
 
 function computeRideOptionsForDistance(
@@ -507,18 +550,38 @@ function computeRideOptionsForDistance(
 
   const distanceFromOverride = distanceKmOverride ?? null;
   const distanceFromShared = sharedLocationState.routeDistanceKm ?? null;
+  const hasDistanceFromOverride = Number.isFinite(distanceFromOverride ?? Number.NaN) && (distanceFromOverride as number) > 0;
+  const hasDistanceFromShared = Number.isFinite(distanceFromShared ?? Number.NaN) && (distanceFromShared as number) > 0;
+  const hasRouteCoordinates = hasRideRouteCoordinates(request);
+
+  if (!hasDistanceFromOverride && !hasDistanceFromShared && !hasRouteCoordinates) {
+    return rideState.options.map((option) =>
+      option.pricingModel
+        ? {
+            ...option,
+            fare: ""
+          }
+        : option
+    );
+  }
+
   const fallbackDistance = estimateRideRouteDistanceFromRequest(request);
   const effectiveDistanceKm = Math.max(
     0.6,
-    Number.isFinite(distanceFromOverride ?? Number.NaN)
+    hasDistanceFromOverride
       ? (distanceFromOverride as number)
-      : Number.isFinite(distanceFromShared ?? Number.NaN)
+      : hasDistanceFromShared
         ? (distanceFromShared as number)
         : fallbackDistance
   );
   const extraStopCount = Math.max(0, (request.routePoints?.length ?? 0) - 2);
   const stopSurcharge = extraStopCount * 3500;
   const roundTripSurcharge = request.tripMode === "round_trip" ? 5000 : 0;
+  const routeDurationFromShared =
+    Number.isFinite(sharedLocationState.routeDurationMin ?? Number.NaN) && (sharedLocationState.routeDurationMin as number) > 0
+      ? (sharedLocationState.routeDurationMin as number)
+      : null;
+  const effectiveDurationMin = routeDurationFromShared ?? estimateRideLegDurationMin(effectiveDistanceKm);
 
   return rideState.options.map((option) => {
     if (!option.pricingModel) {
@@ -530,11 +593,10 @@ function computeRideOptionsForDistance(
       Math.round(model.baseFareUGX + effectiveDistanceKm * model.perKmUGX)
     );
     const totalAmount = baseAmount + stopSurcharge + roundTripSurcharge;
-    const etaMinutes = model.etaBaseMin + effectiveDistanceKm * model.etaPerKmMin;
     return {
       ...option,
       fare: formatCurrencyUGX(totalAmount),
-      eta: formatRideEtaLabel(etaMinutes)
+      eta: formatRideEtaLabel(effectiveDurationMin)
     };
   });
 }
@@ -648,8 +710,16 @@ function createRideTripFromRequest(state: AppState): RideTrip | null {
   }
   const routePoints = request.routePoints ?? [];
   const legs = buildRideLegsFromRoutePoints(routePoints, request.tripMode ?? "one_way");
-  const totalDistanceKm = legs.reduce((sum, leg) => sum + (leg.distanceKm ?? 0), 0);
-  const totalEtaMinutes = legs.reduce((sum, leg) => sum + (leg.etaMinutes ?? 0), 0);
+  const legsDistanceKm = legs.reduce((sum, leg) => sum + (leg.distanceKm ?? 0), 0);
+  const legsEtaMinutes = legs.reduce((sum, leg) => sum + (leg.etaMinutes ?? 0), 0);
+  const totalDistanceKm =
+    Number.isFinite(state.sharedLocationState.routeDistanceKm ?? Number.NaN) && (state.sharedLocationState.routeDistanceKm as number) > 0
+      ? (state.sharedLocationState.routeDistanceKm as number)
+      : legsDistanceKm;
+  const totalEtaMinutes =
+    Number.isFinite(state.sharedLocationState.routeDurationMin ?? Number.NaN) && (state.sharedLocationState.routeDurationMin as number) > 0
+      ? Math.round(state.sharedLocationState.routeDurationMin as number)
+      : legsEtaMinutes;
   const completedStopIds: string[] = [];
   const stopCountSurcharge = Math.max(0, (routePoints.length - 2) * 3500);
   const roundTripSurcharge = request.tripMode === "round_trip" ? 5000 : 0;
@@ -2847,8 +2917,45 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   }, []);
 
   const updateRideRequest = useCallback((patch: Partial<RideRequest>) => {
+    const nextRequest = normalizeRideRequest({ ...state.ride.request, ...patch });
     dispatch({ type: "ride/request", payload: patch });
-  }, []);
+    const mockRouteMetrics = estimateRideRouteMetricsFromRequest(nextRequest);
+    const hasRouteDistance =
+      Number.isFinite(state.sharedLocationState.routeDistanceKm ?? Number.NaN) &&
+      (state.sharedLocationState.routeDistanceKm as number) > 0;
+    const hasRouteDuration =
+      Number.isFinite(state.sharedLocationState.routeDurationMin ?? Number.NaN) &&
+      (state.sharedLocationState.routeDurationMin as number) > 0;
+    if (mockRouteMetrics && (!hasRouteDistance || !hasRouteDuration)) {
+      dispatch({
+        type: "location/update",
+        payload: {
+          pickupCoords: nextRequest.origin?.coordinates ?? state.sharedLocationState.pickupCoords,
+          destinationCoords: nextRequest.destination?.coordinates ?? state.sharedLocationState.destinationCoords,
+          routeDistanceKm: hasRouteDistance ? state.sharedLocationState.routeDistanceKm : mockRouteMetrics.distanceKm,
+          routeDurationMin: hasRouteDuration ? state.sharedLocationState.routeDurationMin : mockRouteMetrics.durationMin
+        }
+      });
+    }
+    const repricedOptions = computeRideOptionsForDistance(
+      state.ride,
+      nextRequest,
+      {
+        ...state.sharedLocationState,
+        routeDistanceKm:
+          !hasRouteDistance && mockRouteMetrics
+            ? mockRouteMetrics.distanceKm
+            : state.sharedLocationState.routeDistanceKm,
+        routeDurationMin:
+          !hasRouteDuration && mockRouteMetrics
+            ? mockRouteMetrics.durationMin
+            : state.sharedLocationState.routeDurationMin
+      }
+    );
+    if (!areRideOptionPricesEquivalent(state.ride.options, repricedOptions)) {
+      dispatch({ type: "ride/options", payload: repricedOptions });
+    }
+  }, [state.ride, state.sharedLocationState]);
 
   const updateRideTrip = useCallback((patch: Partial<RideTrip>) => {
     dispatch({ type: "ride/trip", payload: patch });
@@ -2861,17 +2968,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       state.sharedLocationState,
       distanceKm
     );
-    const unchanged =
-      repricedOptions.length === state.ride.options.length &&
-      repricedOptions.every((option, index) => {
-        const current = state.ride.options[index];
-        return (
-          current &&
-          current.id === option.id &&
-          current.fare === option.fare &&
-          current.eta === option.eta
-        );
-      });
+    const unchanged = areRideOptionPricesEquivalent(state.ride.options, repricedOptions);
     if (unchanged) return;
     dispatch({ type: "ride/options", payload: repricedOptions });
   }, [state.ride, state.sharedLocationState]);
@@ -2889,12 +2986,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         state.ride.request,
         state.sharedLocationState
       );
-      const optionsChanged =
-        repricedOptions.length !== state.ride.options.length ||
-        repricedOptions.some((option, index) => {
-          const current = state.ride.options[index];
-          return !current || current.id !== option.id || current.fare !== option.fare || current.eta !== option.eta;
-        });
+      const optionsChanged = !areRideOptionPricesEquivalent(state.ride.options, repricedOptions);
       if (optionsChanged) {
         dispatch({ type: "ride/options", payload: repricedOptions });
       }
@@ -2999,12 +3091,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         { ...state.sharedLocationState, ...patch },
         patch.routeDistanceKm
       );
-      const optionsChanged =
-        repricedOptions.length !== state.ride.options.length ||
-        repricedOptions.some((option, index) => {
-          const current = state.ride.options[index];
-          return !current || current.id !== option.id || current.fare !== option.fare || current.eta !== option.eta;
-        });
+      const optionsChanged = !areRideOptionPricesEquivalent(state.ride.options, repricedOptions);
       if (optionsChanged) {
         dispatch({ type: "ride/options", payload: repricedOptions });
       }
