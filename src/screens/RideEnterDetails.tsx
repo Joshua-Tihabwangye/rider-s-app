@@ -118,12 +118,6 @@ function uniqueStops(stops: Stop[]): Stop[] {
 	});
 }
 
-function parseUGXAmount(value?: string): number {
-	if (!value) return 0;
-	const numeric = Number.parseFloat(value.replace(/[^\d.]/g, ""));
-	return Number.isFinite(numeric) ? numeric : 0;
-}
-
 function areSameCoordinates(
 	a?: { lat: number; lng: number } | null,
 	b?: { lat: number; lng: number } | null
@@ -1242,8 +1236,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const lightGreen = "rgba(3,205,140,0.1)"; // Light green for active passenger selection
 	const mapNormalHeight = { xs: "38vh", md: "46vh" } as const;
 	const mapExpandedHeight = {
-		xs: "calc(64vh - env(safe-area-inset-bottom, 0px))",
-		md: "72vh",
+		xs: "calc(74vh - env(safe-area-inset-bottom, 0px))",
+		md: "80vh",
 	} as const;
 	const topMapBleedSx = {
 		position: "relative",
@@ -1268,7 +1262,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const routeSummary = useMemo(() => {
 		const distance = sharedLocationState.routeDistanceKm;
 		const duration = sharedLocationState.routeDurationMin;
-		if (!distance || !duration) return null;
+		if (!distance || !duration) {
+			return {
+				distanceLabel: "—",
+				durationLabel: "—"
+			};
+		}
 		const distanceLabel =
 			distance >= 100
 				? `${Math.round(distance)} km`
@@ -1279,20 +1278,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 			duration < 60
 				? `${Math.max(1, Math.round(duration))} min`
 				: `${Math.floor(duration / 60)} hr ${Math.round(duration % 60)} min`;
-		const selectedFare =
-			ride.options.find((option) => option.id === selectedRideLevel)?.fare?.trim() ||
-			ride.options
-				.filter((option) => parseUGXAmount(option.fare) > 0)
-				.sort((a, b) => parseUGXAmount(a.fare) - parseUGXAmount(b.fare))[0]
-				?.fare
-				?.trim() ||
-			"";
 		return {
 			distanceLabel,
-			durationLabel,
-			fareLabel: selectedFare
+			durationLabel
 		};
-	}, [ride.options, selectedRideLevel, sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
+	}, [sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
 
 	return (
 			<ScreenScaffold
@@ -1317,6 +1307,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 					}}
 				>
 						<MapShell
+							fullBleed={false}
 							showControls={false}
 							showRouteInfo={false}
 							resizeKey={isMapExpanded ? "expanded" : "default"}
@@ -1342,8 +1333,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 					<IconButton
 						sx={{
 							position: "absolute",
-							right: { xs: 16, md: 22 },
-							bottom: { xs: 20, md: 24 },
+							right: { xs: 6, md: 8 },
+							top: { xs: 76, md: 86 },
 							zIndex: 7,
 							width: 46,
 							height: 46,
@@ -1360,7 +1351,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 							sx={{
 								position: "absolute",
 								left: "50%",
-								bottom: isMapExpanded ? -16 : -20,
+								bottom: isMapExpanded ? -16 : -22,
 								transform: "translateX(-50%)",
 								zIndex: 14,
 								borderRadius: 999,
@@ -1403,24 +1394,32 @@ function EnterDestinationScreen(): React.JSX.Element {
 							Ride details
 						</Typography>
 						</Box>
-							<Box sx={{ mt: 0.2, mb: 0.45, minHeight: 34, display: "flex", justifyContent: "flex-start" }}>
-							{routeSummary ? (
+							<Box
+								sx={{
+									mt: 1.9,
+									mb: 0.45,
+									minHeight: 28,
+									display: "flex",
+									gap: 1,
+									alignItems: "center",
+									flexWrap: "wrap",
+								}}
+							>
 								<Box
 									sx={{
-										px: 1.8,
-										py: 0.85,
+										px: 1.2,
+										py: 0.5,
 										borderRadius: "999px",
 										bgcolor: "#0B1530",
 										border: "1px solid rgba(16,185,129,0.35)",
 										color: "#F8FAFC",
 										fontWeight: 700,
-										fontSize: 13.5,
+										fontSize: 12,
 										boxShadow: "0 6px 14px rgba(2,6,23,0.28)"
 									}}
 								>
-									{`${routeSummary.distanceLabel} • ${routeSummary.durationLabel}${routeSummary.fareLabel ? ` • ${routeSummary.fareLabel}` : ""}`}
+									{`${routeSummary.distanceLabel} • ${routeSummary.durationLabel}`}
 								</Box>
-							) : null}
 						</Box>
 
 						{/* Trip Setup Card - Neutral Background */}

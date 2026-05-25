@@ -234,6 +234,15 @@ export default function MapShell({
         xs: "calc(env(safe-area-inset-right, 0px) + 12px)",
         md: 14
       };
+  const sosRightInsetSx = fullBleed
+    ? {
+        xs: "calc(var(--rider-shell-content-px-xs, 20px) + env(safe-area-inset-right, 0px) + 2px)",
+        md: "calc(var(--rider-shell-content-px-md, 24px) + env(safe-area-inset-right, 0px) + 2px)"
+      }
+    : {
+        xs: "calc(env(safe-area-inset-right, 0px) + 6px)",
+        md: 8
+      };
   const bottomInsetSx = {
     xs: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
     md: 14
@@ -421,7 +430,7 @@ export default function MapShell({
           sx={{
             position: "absolute",
             top: topInsetSx,
-            right: rightInsetSx,
+            right: sosRightInsetSx,
             zIndex: 6,
             minWidth: 82,
             height: 40,
