@@ -33,6 +33,13 @@ function getRideOptionIcon(id: string): React.ReactElement {
   return <DirectionsCarRoundedIcon sx={{ fontSize: 28 }} />;
 }
 
+function getRideOptionImage(id: string): string {
+  if (id === "scooter") return "/rides-ui/EV--1.webp";
+  if (id === "car-mini") return "/rides-ui/EV--3.webp";
+  if (id === "car-comfort") return "/rides-ui/EV--4.webp";
+  return "/rides-ui/EV--5.jpg";
+}
+
 function formatDistanceLabel(distanceKm?: number | null): string {
   if (!distanceKm || !Number.isFinite(distanceKm) || distanceKm <= 0) return "—";
   if (distanceKm >= 100) return `${Math.round(distanceKm)} km`;
@@ -88,15 +95,31 @@ function RideOptionCard({ option, selected, passengers, onSelect }: RideOptionCa
           overflow: "hidden"
         }}
       >
-        {/* Placeholder for vehicle image - in production this would be an actual image */}
         <Box
+          component="img"
+          src={getRideOptionImage(option.id)}
+          alt={option.name}
+          loading="lazy"
           sx={{
             width: "100%",
             height: "100%",
+            objectFit: "cover",
+            display: "block"
+          }}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            right: 8,
+            top: 8,
+            width: 30,
+            height: 30,
+            borderRadius: "50%",
+            bgcolor: "rgba(15,23,42,0.72)",
+            color: "#F8FAFC",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            bgcolor: theme.palette.mode === "light" ? "#E5E5E5" : "rgba(30,30,30,1)"
+            justifyContent: "center"
           }}
         >
           {getRideOptionIcon(option.id)}
@@ -238,7 +261,10 @@ function SelectYourRideScreen(): React.JSX.Element {
   };
   
   const handleConfirm = () => {
-    if (!sharedLocationState.pickupCoords || !sharedLocationState.destinationCoords) {
+    const hasRouteEndpoints =
+      Boolean(sharedLocationState.pickupCoords && sharedLocationState.destinationCoords) ||
+      Boolean(ride.request.origin && ride.request.destination);
+    if (!hasRouteEndpoints) {
       setSelectionError("Select pickup and destination first.");
       return;
     }
@@ -321,8 +347,8 @@ function SelectYourRideScreen(): React.JSX.Element {
     <ScreenScaffold disableTopPadding>
       <ExpandableMapPanel
         containerSx={topMapBleedSx}
-        mapHeight={{ xs: "62dvh", md: "55vh" }}
-        expandedMapHeight={{ xs: "80dvh", md: "76vh" }}
+        mapHeight={{ xs: "62vh", md: "55vh" }}
+        expandedMapHeight={{ xs: "80vh", md: "76vh" }}
         map={
           <MapShell
             showControls={false}

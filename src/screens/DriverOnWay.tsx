@@ -37,6 +37,8 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   }, [activeTrip?.bookedFor, ride.request.bookedFor]);
   const driver = activeTrip?.driver;
   const vehicle = activeTrip?.vehicle;
+  const arrivalWorkflow = ride.workflow.driverArrival;
+  const fallbackDriverFromWorkflow = ride.workflow.tripSimulation.mockAssignments[0]?.driver;
   const legs = activeTrip?.legs ?? [];
   const currentLegIndex = Math.min(
     Math.max(activeTrip?.currentLegIndex ?? 0, 0),
@@ -45,7 +47,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const currentLeg = legs[currentLegIndex];
   const [arrivalTime, setArrivalTime] = useState(activeTrip?.etaMinutes ?? 5);
   const [chatOpen, setChatOpen] = useState(false);
-  const [driverProgress, setDriverProgress] = useState(0.82);
+  const [driverProgress, setDriverProgress] = useState(arrivalWorkflow.initialProgress);
   const companyOrange = "#F79009";
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const driverLocation = getApproachPoint(routePolyline, driverProgress);
@@ -86,16 +88,16 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   }, [ride.options, ride.request.serviceClass, ride.request.serviceLevel, vehicle?.category]);
   const vehicleImage = useMemo(() => {
     const model = (vehicle?.model ?? "").toLowerCase();
-    if (model.includes("suv")) return "/rental-ui/car-suv.svg";
-    if (model.includes("van")) return "/rental-ui/car-van.svg";
-    if (model.includes("scooter")) return "/rides-ui/hero-scooter.svg";
-    return "/rental-ui/car-city.svg";
+    if (model.includes("suv")) return "/rides-ui/EV--6.avif";
+    if (model.includes("van")) return "/rides-ui/EV--5.jpg";
+    if (model.includes("scooter")) return "/rides-ui/EV--1.webp";
+    return "/rides-ui/EV--4.webp";
   }, [vehicle?.model]);
   const callTarget = useMemo(() => {
-    const raw = driver?.phone || "+256700000000";
+    const raw = driver?.phone || fallbackDriverFromWorkflow?.phone || "+256700000000";
     const cleaned = raw.replace(/[^\d+]/g, "");
     return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
-  }, [driver?.phone]);
+  }, [driver?.phone, fallbackDriverFromWorkflow?.phone]);
 
   useEffect(() => {
     setRideStatus("driver_on_way");
@@ -106,11 +108,11 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
         }
         return 0;
       });
-      setDriverProgress((prev) => Math.min(prev + 0.035, 1));
-    }, 1000);
+      setDriverProgress((prev) => Math.min(prev + arrivalWorkflow.progressStepPerTick, 1));
+    }, arrivalWorkflow.progressTickMs);
 
     return () => clearInterval(interval);
-  }, [setRideStatus]);
+  }, [arrivalWorkflow.progressStepPerTick, arrivalWorkflow.progressTickMs, setRideStatus]);
 
   useEffect(() => {
     const previous = sharedLocationState.driverLocation;
@@ -170,8 +172,8 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
     <ScreenScaffold disableTopPadding>
       <ExpandableMapPanel
         containerSx={topMapBleedSx}
-        mapHeight={{ xs: "52dvh", md: "54vh" }}
-        expandedMapHeight={{ xs: "86dvh", md: "84vh" }}
+        mapHeight={{ xs: "52vh", md: "54vh" }}
+        expandedMapHeight={{ xs: "86vh", md: "84vh" }}
         buttonOffsetCollapsed={8}
         buttonOffsetExpanded={14}
         detailsWrapperSx={{

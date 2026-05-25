@@ -549,6 +549,32 @@ function hasRideRouteCoordinates(request: RideRequest): boolean {
   });
 }
 
+function buildRideRouteSignature(request: RideRequest): string {
+  const normalized = normalizeRideRequest(request);
+  const points =
+    normalized.routePoints?.length
+      ? normalized.routePoints
+      : [
+          ...(normalized.origin ? [normalized.origin] : []),
+          ...(normalized.stops ?? []),
+          ...(normalized.destination ? [normalized.destination] : [])
+        ];
+  return points
+    .map((point, index) => {
+      const label = (point.label || point.address || "").trim().toLowerCase();
+      const lat =
+        point.coordinates && Number.isFinite(point.coordinates.lat)
+          ? point.coordinates.lat.toFixed(5)
+          : "";
+      const lng =
+        point.coordinates && Number.isFinite(point.coordinates.lng)
+          ? point.coordinates.lng.toFixed(5)
+          : "";
+      return `${index}:${label}:${lat},${lng}`;
+    })
+    .join("|");
+}
+
 function computeRideOptionsForDistance(
   rideState: RideState,
   request: RideRequest,
@@ -583,11 +609,13 @@ function computeRideOptionsForDistance(
       ? (distanceFromOverride as number)
       : hasDistanceFromShared
         ? (distanceFromShared as number)
-        : fallbackDistance
+      : fallbackDistance
   );
+  const pricingWorkflow = rideState.workflow.tripSimulation.pricing;
   const extraStopCount = Math.max(0, (request.routePoints?.length ?? 0) - 2);
-  const stopSurcharge = extraStopCount * 3500;
-  const roundTripSurcharge = request.tripMode === "round_trip" ? 5000 : 0;
+  const stopSurcharge = extraStopCount * pricingWorkflow.extraStopUGX;
+  const roundTripSurcharge =
+    request.tripMode === "round_trip" ? pricingWorkflow.roundTripSurchargeUGX : 0;
   const routeDurationFromShared =
     Number.isFinite(sharedLocationState.routeDurationMin ?? Number.NaN) && (sharedLocationState.routeDurationMin as number) > 0
       ? (sharedLocationState.routeDurationMin as number)
@@ -714,6 +742,42 @@ function buildRideLegsFromRoutePoints(routePoints: RideLocation[], tripMode: "on
   return legs;
 }
 
+function selectTripSimulationAssignment(state: AppState, request: RideRequest) {
+  const assignments = state.ride.workflow.tripSimulation.mockAssignments ?? [];
+  if (assignments.length === 0) {
+    return null;
+  }
+  const byServiceLevel =
+    assignments.find((assignment) => assignment.serviceLevel === request.serviceLevel) ?? null;
+  if (byServiceLevel) {
+    return byServiceLevel;
+  }
+  const byServiceClass =
+    request.serviceClass
+      ? assignments.find((assignment) => assignment.serviceClass === request.serviceClass) ?? null
+      : null;
+  return byServiceClass ?? assignments[0] ?? null;
+}
+
+function hydrateRideTripWithSimulationDefaults(
+  state: AppState,
+  trip: RideTrip | null,
+  requestOverride?: RideRequest
+): RideTrip | null {
+  if (!trip) return null;
+  if (trip.driver && trip.vehicle) return trip;
+  const request = requestOverride ?? normalizeRideRequest(state.ride.request);
+  const assignment = selectTripSimulationAssignment(state, request);
+  if (!assignment) {
+    return trip;
+  }
+  return {
+    ...trip,
+    driver: trip.driver ?? assignment.driver,
+    vehicle: trip.vehicle ?? assignment.vehicle
+  };
+}
+
 function createRideTripFromRequest(state: AppState): RideTrip | null {
   const request = normalizeRideRequest(state.ride.request);
   if (!request.origin || !request.destination) {
@@ -723,6 +787,7 @@ function createRideTripFromRequest(state: AppState): RideTrip | null {
   const legs = buildRideLegsFromRoutePoints(routePoints, request.tripMode ?? "one_way");
   const legsDistanceKm = legs.reduce((sum, leg) => sum + (leg.distanceKm ?? 0), 0);
   const legsEtaMinutes = legs.reduce((sum, leg) => sum + (leg.etaMinutes ?? 0), 0);
+  const pricingWorkflow = state.ride.workflow.tripSimulation.pricing;
   const totalDistanceKm =
     Number.isFinite(state.sharedLocationState.routeDistanceKm ?? Number.NaN) && (state.sharedLocationState.routeDistanceKm as number) > 0
       ? (state.sharedLocationState.routeDistanceKm as number)
@@ -732,10 +797,11 @@ function createRideTripFromRequest(state: AppState): RideTrip | null {
       ? Math.round(state.sharedLocationState.routeDurationMin as number)
       : legsEtaMinutes;
   const completedStopIds: string[] = [];
-  const stopCountSurcharge = Math.max(0, (routePoints.length - 2) * 3500);
-  const roundTripSurcharge = request.tripMode === "round_trip" ? 5000 : 0;
-  const distanceComponent = totalDistanceKm * 2600;
-  const baseFare = 8000;
+  const stopCountSurcharge = Math.max(0, (routePoints.length - 2) * pricingWorkflow.extraStopUGX);
+  const roundTripSurcharge =
+    request.tripMode === "round_trip" ? pricingWorkflow.roundTripSurchargeUGX : 0;
+  const distanceComponent = totalDistanceKm * pricingWorkflow.distancePerKmUGX;
+  const baseFare = pricingWorkflow.baseFareUGX;
   const fareTotal = Math.round(baseFare + distanceComponent + stopCountSurcharge + roundTripSurcharge);
   const selectedOption =
     state.ride.options.find((option) => option.id === request.serviceLevel) ??
@@ -744,6 +810,7 @@ function createRideTripFromRequest(state: AppState): RideTrip | null {
   const selectedEtaMinutes =
     Number.parseInt((selectedOption?.eta ?? "").replace(/[^\d]/g, ""), 10) ||
     Math.max(4, totalEtaMinutes);
+  const assignment = selectTripSimulationAssignment(state, request);
   const originLabel = request.origin.label || request.origin.address || "Pickup";
   const destinationLabel = request.destination.label || request.destination.address || "Destination";
 
@@ -752,7 +819,7 @@ function createRideTripFromRequest(state: AppState): RideTrip | null {
     status: "searching",
     routeMode: request.routeMode ?? "single_stop",
     tripMode: request.tripMode ?? "one_way",
-    otp: "256836",
+    otp: state.ride.workflow.driverArrival.fallbackOtp,
     etaMinutes: selectedEtaMinutes,
     fareEstimate: selectedFareEstimate,
     distance: `${totalDistanceKm.toFixed(1)} km`,
@@ -766,8 +833,8 @@ function createRideTripFromRequest(state: AppState): RideTrip | null {
     remainingLegs: legs.length,
     completedStopIds,
     isReturnLeg: false,
-    driver: null,
-    vehicle: null,
+    driver: assignment?.driver ?? null,
+    vehicle: assignment?.vehicle ?? null,
     bookedFor: request.bookedFor ?? null
   };
 }
@@ -2931,20 +2998,33 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     const nextRequest = normalizeRideRequest({ ...state.ride.request, ...patch });
     dispatch({ type: "ride/request", payload: patch });
     const mockRouteMetrics = estimateRideRouteMetricsFromRequest(nextRequest);
+    const currentRouteSignature = buildRideRouteSignature(state.ride.request);
+    const nextRouteSignature = buildRideRouteSignature(nextRequest);
+    const routeChanged = currentRouteSignature !== nextRouteSignature;
     const hasRouteDistance =
       Number.isFinite(state.sharedLocationState.routeDistanceKm ?? Number.NaN) &&
       (state.sharedLocationState.routeDistanceKm as number) > 0;
     const hasRouteDuration =
       Number.isFinite(state.sharedLocationState.routeDurationMin ?? Number.NaN) &&
       (state.sharedLocationState.routeDurationMin as number) > 0;
-    if (mockRouteMetrics && (!hasRouteDistance || !hasRouteDuration)) {
+    const shouldApplyMockMetrics =
+      Boolean(mockRouteMetrics) && (routeChanged || !hasRouteDistance || !hasRouteDuration);
+    if (shouldApplyMockMetrics && mockRouteMetrics) {
       dispatch({
         type: "location/update",
         payload: {
           pickupCoords: nextRequest.origin?.coordinates ?? state.sharedLocationState.pickupCoords,
           destinationCoords: nextRequest.destination?.coordinates ?? state.sharedLocationState.destinationCoords,
-          routeDistanceKm: hasRouteDistance ? state.sharedLocationState.routeDistanceKm : mockRouteMetrics.distanceKm,
-          routeDurationMin: hasRouteDuration ? state.sharedLocationState.routeDurationMin : mockRouteMetrics.durationMin
+          routeDistanceKm: mockRouteMetrics.distanceKm,
+          routeDurationMin: mockRouteMetrics.durationMin
+        }
+      });
+    } else if (routeChanged && !mockRouteMetrics) {
+      dispatch({
+        type: "location/update",
+        payload: {
+          routeDistanceKm: null,
+          routeDurationMin: null
         }
       });
     }
@@ -2954,11 +3034,11 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       {
         ...state.sharedLocationState,
         routeDistanceKm:
-          !hasRouteDistance && mockRouteMetrics
+          shouldApplyMockMetrics && mockRouteMetrics
             ? mockRouteMetrics.distanceKm
             : state.sharedLocationState.routeDistanceKm,
         routeDurationMin:
-          !hasRouteDuration && mockRouteMetrics
+          shouldApplyMockMetrics && mockRouteMetrics
             ? mockRouteMetrics.durationMin
             : state.sharedLocationState.routeDurationMin
       }
@@ -3067,7 +3147,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           dispatch({
             type: "ride/set-active",
             payload: {
-              ...mappedTrip,
+              ...hydrateRideTripWithSimulationDefaults(state, mappedTrip, requestPayload),
               bookedFor: mappedTrip.bookedFor ?? requestPayload.bookedFor ?? null
             }
           });
@@ -3152,6 +3232,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       type: "ride/set-temporary-stop",
       payload: {
         status: "add_stop_requested",
+        hasAutoAddStopSimulationFired: true,
         requestNote:
           requestNote ?? state.ride.workflow.tripSimulation.messages.addStopRequest,
         requestId,
@@ -3238,6 +3319,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           requestNote ??
           state.ride.temporaryStop.requestNote ??
           state.ride.workflow.tripSimulation.messages.continueTripRequest,
+        hasAutoContinueSimulationFired: true,
         continuePromptDueAt: nowIso,
         continuePromptShownAt: null
       }
@@ -3269,6 +3351,8 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       type: "ride/set-temporary-stop",
       payload: {
         status: "idle",
+        hasAutoAddStopSimulationFired: false,
+        hasAutoContinueSimulationFired: false,
         requestNote: "",
         requestId: null,
         requestedAt: null,
@@ -3357,6 +3441,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           type: "ride/set-temporary-stop",
           payload: {
             status: "add_stop_requested",
+            hasAutoAddStopSimulationFired: true,
             requestNote:
               typeof parsed.requestNote === "string" && parsed.requestNote.trim()
                 ? parsed.requestNote
@@ -3381,6 +3466,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
                 typeof parsed.requestNote === "string" && parsed.requestNote.trim()
                   ? parsed.requestNote
                   : state.ride.temporaryStop.requestNote,
+              hasAutoContinueSimulationFired: true,
               continuePromptDueAt: new Date().toISOString(),
               continuePromptShownAt: null
             }
@@ -3406,6 +3492,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
             pauseStartedAt: null,
             continuePromptDueAt: null,
             continuePromptShownAt: null,
+            hasAutoContinueSimulationFired: true,
             totalPausedDurationMs: state.ride.temporaryStop.totalPausedDurationMs + pausedDeltaMs,
             timerPaused: false
           }
@@ -4055,7 +4142,9 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
         dispatch({
           type: "ride/history",
-          payload: history.map((trip) => mapApiTripToRideTrip(trip)),
+          payload: history.map((trip) =>
+            hydrateRideTripWithSimulationDefaults(state, mapApiTripToRideTrip(trip))
+          ).filter((trip): trip is RideTrip => Boolean(trip)),
         });
 
         dispatch({
@@ -4131,7 +4220,10 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         }
 
         if (activeTrip) {
-          dispatch({ type: "ride/set-active", payload: mapApiTripToRideTrip(activeTrip) });
+          dispatch({
+            type: "ride/set-active",
+            payload: hydrateRideTripWithSimulationDefaults(state, mapApiTripToRideTrip(activeTrip))
+          });
         }
       } catch (error) {
         console.warn("Rider backend read-only domain hydration failed. Using local state.", error);
@@ -4188,11 +4280,13 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         }
         dispatch({
           type: "ride/history",
-          payload: history.map((trip) => mapApiTripToRideTrip(trip)),
+          payload: history.map((trip) =>
+            hydrateRideTripWithSimulationDefaults(state, mapApiTripToRideTrip(trip))
+          ).filter((trip): trip is RideTrip => Boolean(trip)),
         });
         dispatch({
           type: "ride/set-active",
-          payload: activeTrip ? mapApiTripToRideTrip(activeTrip) : null,
+          payload: activeTrip ? hydrateRideTripWithSimulationDefaults(state, mapApiTripToRideTrip(activeTrip)) : null,
         });
       } catch (error) {
         console.warn("Failed to sync rider trips from realtime event.", error);

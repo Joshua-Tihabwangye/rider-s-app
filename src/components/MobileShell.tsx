@@ -196,7 +196,7 @@ export default function MobileShell({ children }: MobileShellProps): React.JSX.E
             position: "relative",
             width: "100%",
             maxWidth: "100%",
-            height: "100dvh",
+            height: "100%",
             display: "flex",
             flexDirection: "column",
             bgcolor: (t) => t.palette.background.default,

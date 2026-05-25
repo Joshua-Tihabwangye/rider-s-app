@@ -418,7 +418,7 @@ export const SEED_RIDE_WORKFLOW: RideWorkflowConfig = {
         capacity: 1,
         minutes: "5 min",
         price: "UGX 48k-62k",
-        image: "/rides-ui/hero-scooter.svg"
+        image: "/rides-ui/EV--1.webp"
       },
       {
         id: "comfort-standard",
@@ -426,7 +426,7 @@ export const SEED_RIDE_WORKFLOW: RideWorkflowConfig = {
         capacity: 3,
         minutes: "7 min",
         price: "UGX 78k-92k",
-        image: "/rental-ui/car-city.svg"
+        image: "/rides-ui/EV--3.webp"
       },
       {
         id: "xl-standard",
@@ -434,7 +434,7 @@ export const SEED_RIDE_WORKFLOW: RideWorkflowConfig = {
         capacity: 6,
         minutes: "10 min",
         price: "UGX 120k-150k",
-        image: "/rental-ui/car-suv.svg"
+        image: "/rides-ui/EV--4.webp"
       }
     ],
     popularDestinations: [
@@ -463,8 +463,13 @@ export const SEED_RIDE_WORKFLOW: RideWorkflowConfig = {
   },
   tripSimulation: {
     durationMs: 90_000,
+    searchingToOnWayDelaySec: 8,
+    searchingDriverProgressPerTick: 0.02,
+    searchingDriverProgressCap: 0.8,
     autoAddStopTriggerMs: 15_000,
+    autoAddStopEnabled: true,
     autoContinueRequestTriggerMs: 15_000,
+    autoContinueRequestEnabled: true,
     startProgressPercent: 40,
     fallbackStartDistanceKm: 22,
     msPerLegMinute: 4_500,
@@ -485,7 +490,72 @@ export const SEED_RIDE_WORKFLOW: RideWorkflowConfig = {
     messages: {
       addStopRequest: "Your driver has requested to add a temporary stop.",
       continueTripRequest: "Your driver has requested to continue the trip."
-    }
+    },
+    mockAssignments: [
+      {
+        id: "assignment_scooter_standard",
+        serviceLevel: "scooter",
+        serviceClass: "standard",
+        driver: {
+          id: "drv_004",
+          name: "Moses Kintu",
+          phone: "+256 700 442 189",
+          rating: 4.8,
+          avatar: "MK",
+          totalRatings: 286,
+          ridesLabel: "480+",
+          experienceLabel: "5+ years"
+        },
+        vehicle: {
+          model: "EV Scooter X1",
+          color: "Matte Green",
+          plate: "UAZ 193S",
+          category: "EV Scooter"
+        }
+      },
+      {
+        id: "assignment_car_mini_standard",
+        serviceLevel: "car-mini",
+        serviceClass: "standard",
+        driver: {
+          id: "drv_005",
+          name: "Ruth Akena",
+          phone: "+256 700 551 002",
+          rating: 4.7,
+          avatar: "RA",
+          totalRatings: 412,
+          ridesLabel: "620+",
+          experienceLabel: "6+ years"
+        },
+        vehicle: {
+          model: "Nissan Leaf",
+          color: "Pearl White",
+          plate: "UBA 221L",
+          category: "EV Mini"
+        }
+      },
+      {
+        id: "assignment_car_comfort_premium",
+        serviceLevel: "car-comfort",
+        serviceClass: "premium",
+        driver: {
+          id: "drv_006",
+          name: "Harriet Namayanja",
+          phone: "+256 709 420 533",
+          rating: 4.9,
+          avatar: "HN",
+          totalRatings: 539,
+          ridesLabel: "900+",
+          experienceLabel: "7+ years"
+        },
+        vehicle: {
+          model: "Tesla Model 3",
+          color: "Midnight Silver",
+          plate: "UAX 278C",
+          category: "EV Comfort"
+        }
+      }
+    ]
   },
   driverArrival: {
     fallbackOtp: "256836",
@@ -543,6 +613,8 @@ export const SEED_RIDE_STATE: RideState = {
   activeTrip: null,
   temporaryStop: {
     status: "idle",
+    hasAutoAddStopSimulationFired: false,
+    hasAutoContinueSimulationFired: false,
     requestNote: "",
     requestId: null,
     requestedAt: null,

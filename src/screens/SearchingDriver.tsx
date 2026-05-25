@@ -33,6 +33,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
   const [searchTime, setSearchTime] = useState(0);
   const [driverProgress, setDriverProgress] = useState(0);
   const companyOrange = "#F79009";
+  const tripWorkflow = ride.workflow.tripSimulation;
   const routeSummary = React.useMemo(() => {
     const distance = sharedLocationState.routeDistanceKm;
     const duration = sharedLocationState.routeDurationMin;
@@ -58,8 +59,10 @@ function SearchingForDriverScreen(): React.JSX.Element {
     return [];
   }, [routePolyline, sharedLocationState.destinationCoords, sharedLocationState.pickupCoords]);
   const routeReady =
-    Boolean(sharedLocationState.pickupCoords) &&
-    Boolean(sharedLocationState.destinationCoords);
+    (Boolean(sharedLocationState.pickupCoords) &&
+      Boolean(sharedLocationState.destinationCoords)) ||
+    Boolean(ride.activeTrip?.pickup && ride.activeTrip?.dropoff) ||
+    Boolean(ride.request.origin && ride.request.destination);
   const bookedForLabel = React.useMemo(() => {
     const bookedFor = ride.activeTrip?.bookedFor ?? ride.request.bookedFor;
     if (!bookedFor || bookedFor.source === "self") return "For: You";
@@ -106,17 +109,19 @@ function SearchingForDriverScreen(): React.JSX.Element {
       setDots((prev) => (prev.length >= 4 ? "." : `${prev}.`));
       setSearchTime((prev) => prev + 1);
       // Simulate driver approaching pickup location
-      setDriverProgress((prev) => Math.min(prev + 0.02, 0.8));
+      setDriverProgress((prev) =>
+        Math.min(prev + tripWorkflow.searchingDriverProgressPerTick, tripWorkflow.searchingDriverProgressCap)
+      );
     }, 1000);
     return () => clearInterval(interval);
-  }, [routeReady]);
+  }, [routeReady, tripWorkflow.searchingDriverProgressCap, tripWorkflow.searchingDriverProgressPerTick]);
 
   useEffect(() => {
     if (!routeReady) return;
-    if (searchTime < 8) return;
+    if (searchTime < tripWorkflow.searchingToOnWayDelaySec) return;
     setRideStatus("driver_on_way");
     navigate("/rides/driver-on-way");
-  }, [navigate, routeReady, searchTime, setRideStatus]);
+  }, [navigate, routeReady, searchTime, setRideStatus, tripWorkflow.searchingToOnWayDelaySec]);
 
   const topMapBleedSx = {
     position: "relative",
@@ -139,8 +144,8 @@ function SearchingForDriverScreen(): React.JSX.Element {
     <ScreenScaffold disableTopPadding>
       <ExpandableMapPanel
         containerSx={topMapBleedSx}
-        mapHeight={{ xs: "52dvh", md: "54vh" }}
-        expandedMapHeight={{ xs: "78dvh", md: "76vh" }}
+        mapHeight={{ xs: "52vh", md: "54vh" }}
+        expandedMapHeight={{ xs: "78vh", md: "76vh" }}
         buttonOffsetCollapsed={-18}
         buttonOffsetExpanded={14}
         detailsWrapperSx={{ mt: 1.2 }}

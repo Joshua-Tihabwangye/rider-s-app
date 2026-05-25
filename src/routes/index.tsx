@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 import { Box, CircularProgress } from "@mui/material";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { useAuth } from "../contexts/AuthContext";
@@ -133,8 +133,9 @@ import SchoolFees from "../screens/SchoolFees";
 import SchoolHandoff from "../screens/SchoolHandoff";
 
 export default function AppRouter(): React.JSX.Element {
-	return (
-		<Routes>
+  const location = useLocation();
+		return (
+			<Routes location={location} key={`${location.pathname}${location.search}`}>
 			{/* ── Landing ───────────────────────────────────────── */}
 			<Route path="/" element={<AuthAwareRedirect />} />
 
@@ -375,7 +376,7 @@ function AuthAwareRedirect(): React.JSX.Element {
  					display: "flex",
  					alignItems: "center",
  					justifyContent: "center",
- 					height: "100dvh",
+						height: "100vh",
  					bgcolor: (t) => t.palette.background.default
  				}}
  			>

@@ -216,6 +216,9 @@ export interface DriverProfile {
   phone: string;
   rating: number;
   avatar: string;
+  totalRatings?: number;
+  ridesLabel?: string;
+  experienceLabel?: string;
 }
 
 export interface VehicleProfile {
@@ -326,8 +329,13 @@ export interface RideWorkflowConfig {
   };
   tripSimulation: {
     durationMs: number;
+    searchingToOnWayDelaySec: number;
+    searchingDriverProgressPerTick: number;
+    searchingDriverProgressCap: number;
     autoAddStopTriggerMs: number;
+    autoAddStopEnabled: boolean;
     autoContinueRequestTriggerMs: number;
+    autoContinueRequestEnabled: boolean;
     startProgressPercent: number;
     fallbackStartDistanceKm: number;
     msPerLegMinute: number;
@@ -349,6 +357,13 @@ export interface RideWorkflowConfig {
       addStopRequest: string;
       continueTripRequest: string;
     };
+    mockAssignments: Array<{
+      id: string;
+      serviceLevel: string;
+      serviceClass?: "standard" | "premium";
+      driver: DriverProfile;
+      vehicle: VehicleProfile;
+    }>;
   };
   driverArrival: {
     fallbackOtp: string;
@@ -399,6 +414,8 @@ export type ActiveRideSafetyStatus = "idle" | "safety_check_pending" | "resolved
 
 export interface ActiveRideTemporaryStopState {
   status: ActiveRideStopStatus;
+  hasAutoAddStopSimulationFired: boolean;
+  hasAutoContinueSimulationFired: boolean;
   requestNote: string;
   requestId: string | null;
   requestedAt: string | null;

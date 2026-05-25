@@ -37,6 +37,8 @@ function RideDetailsScreen(): React.JSX.Element {
   const tripData = location.state || {};
   
   const activeTrip = ride.activeTrip;
+  const fallbackDriver = ride.workflow.tripSimulation.mockAssignments[0]?.driver;
+  const fallbackVehicle = ride.workflow.tripSimulation.mockAssignments[0]?.vehicle;
   const resolvePublicImagePath = (value: unknown): string | null => {
     if (typeof value !== "string") return null;
     const trimmed = value.trim();
@@ -65,14 +67,14 @@ function RideDetailsScreen(): React.JSX.Element {
       ride.options[0]?.fare ||
       "UGX 0",
     driver: {
-      name: tripData.driver?.name || activeTrip?.driver?.name || "Driver",
-      vehicle: tripData.driver?.vehicle || activeTrip?.vehicle?.model || "EV",
-      licensePlate: tripData.driver?.licensePlate || activeTrip?.vehicle?.plate || "—",
-      rating: tripData.driver?.rating || activeTrip?.driver?.rating || 4.6,
-      totalRatings: tripData.driver?.totalRatings || 157,
-      rides: tripData.driver?.rides || "200+",
-      experience: tripData.driver?.experience || "4+ years",
-      photo: tripData.driver?.photo || activeTrip?.driver?.avatar || "DR"
+      name: tripData.driver?.name || activeTrip?.driver?.name || fallbackDriver?.name || "Driver",
+      vehicle: tripData.driver?.vehicle || activeTrip?.vehicle?.model || fallbackVehicle?.model || "EV",
+      licensePlate: tripData.driver?.licensePlate || activeTrip?.vehicle?.plate || fallbackVehicle?.plate || "—",
+      rating: tripData.driver?.rating || activeTrip?.driver?.rating || fallbackDriver?.rating || 0,
+      totalRatings: tripData.driver?.totalRatings || activeTrip?.driver?.totalRatings || fallbackDriver?.totalRatings || 0,
+      rides: tripData.driver?.rides || activeTrip?.driver?.ridesLabel || fallbackDriver?.ridesLabel || "—",
+      experience: tripData.driver?.experience || activeTrip?.driver?.experienceLabel || fallbackDriver?.experienceLabel || "—",
+      photo: tripData.driver?.photo || activeTrip?.driver?.avatar || fallbackDriver?.avatar || "DR"
     },
     vehicleImage: resolvePublicImagePath(tripData.vehicleImage) // Serve only from public assets.
   };

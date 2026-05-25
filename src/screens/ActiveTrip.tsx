@@ -123,7 +123,6 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   const isSafetyCheckPending = safetyCheck?.status === "safety_check_pending";
   const [clockNowMs, setClockNowMs] = useState(() => Date.now());
   const [showContinueTripDialog, setShowContinueTripDialog] = useState(false);
-  const [hasAutoSimulatedStopRequest, setHasAutoSimulatedStopRequest] = useState(false);
   const [driverProgress, setDriverProgress] = useState(0);
   const hasHandledReloadResetRef = useRef(false);
   const isTripCompletedRef = useRef(false);
@@ -311,10 +310,6 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   ]);
 
   useEffect(() => {
-    setHasAutoSimulatedStopRequest(false);
-  }, [activeTrip?.id]);
-
-  useEffect(() => {
     isTripCompletedRef.current = isTripCompleted;
     if (!isTripCompleted) return;
 
@@ -426,18 +421,19 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   useEffect(() => {
     if (!activeTrip?.id) return;
     if (isTripCompleted) return;
-    if (hasAutoSimulatedStopRequest) return;
+    if (!tripWorkflow.autoAddStopEnabled) return;
+    if (temporaryStop?.hasAutoAddStopSimulationFired) return;
     if (temporaryStop?.status !== "idle") return;
     if (tripElapsedMs < tripWorkflow.autoAddStopTriggerMs) return;
     simulateDriverAddStopRequest(tripWorkflow.messages.addStopRequest);
-    setHasAutoSimulatedStopRequest(true);
   }, [
     activeTrip?.id,
     isTripCompleted,
-    hasAutoSimulatedStopRequest,
     simulateDriverAddStopRequest,
+    temporaryStop?.hasAutoAddStopSimulationFired,
     temporaryStop?.status,
     tripElapsedMs,
+    tripWorkflow.autoAddStopEnabled,
     tripWorkflow.autoAddStopTriggerMs,
     tripWorkflow.messages.addStopRequest
   ]);
@@ -593,10 +589,12 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
   useEffect(() => {
     if (isTripCompleted) return undefined;
+    if (!tripWorkflow.autoContinueRequestEnabled) return undefined;
     if (!isTripPaused) return undefined;
     if (temporaryStop?.continuePromptDueAt || temporaryStop?.continuePromptShownAt) {
       return undefined;
     }
+    if (temporaryStop?.hasAutoContinueSimulationFired) return undefined;
     const pauseStartMs = temporaryStop?.pauseStartedAt
       ? new Date(temporaryStop.pauseStartedAt).getTime()
       : Number.NaN;
@@ -613,9 +611,11 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     actions,
     isTripCompleted,
     isTripPaused,
+    temporaryStop?.hasAutoContinueSimulationFired,
     temporaryStop?.continuePromptDueAt,
     temporaryStop?.continuePromptShownAt,
     temporaryStop?.pauseStartedAt,
+    tripWorkflow.autoContinueRequestEnabled,
     tripWorkflow.autoContinueRequestTriggerMs,
     tripWorkflow.messages.continueTripRequest
   ]);
@@ -690,8 +690,8 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     <ScreenScaffold disableTopPadding>
       <ExpandableMapPanel
         containerSx={topMapBleedSx}
-        mapHeight={{ xs: "56dvh", md: "60vh" }}
-        expandedMapHeight={{ xs: "82dvh", md: "78vh" }}
+        mapHeight={{ xs: "56vh", md: "60vh" }}
+        expandedMapHeight={{ xs: "82vh", md: "78vh" }}
         buttonOffsetCollapsed={8}
         buttonOffsetExpanded={14}
         detailsWrapperSx={{ mt: 0.75 }}

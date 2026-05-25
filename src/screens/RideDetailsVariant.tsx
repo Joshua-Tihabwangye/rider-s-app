@@ -19,10 +19,16 @@ import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFil
 import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import GoogleMapView from "../components/maps/GoogleMapView";
+import { useAppData } from "../contexts/AppDataContext";
 
 function RideDetailsVariant2Screen(): React.JSX.Element {
   const navigate = useNavigate();
-  const fareEstimate = "UGX 14,500";
+  const { ride } = useAppData();
+  const fareEstimate =
+    ride.activeTrip?.fareEstimate ||
+    ride.options.find((option) => option.id === ride.request.serviceLevel)?.fare ||
+    ride.options.find((option) => Boolean(option.fare?.trim()))?.fare ||
+    "UGX 0";
   const eta = "16 min";
   const distance = "6.2 km";
 

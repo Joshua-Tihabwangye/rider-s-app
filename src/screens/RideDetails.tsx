@@ -27,7 +27,11 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
   const { ride } = useAppData();
   const origin = ride.request.origin ?? ride.activeTrip?.pickup;
   const destination = ride.request.destination ?? ride.activeTrip?.dropoff;
-  const fareEstimate = ride.activeTrip?.fareEstimate ?? "UGX 14,500";
+  const fareEstimate =
+    ride.activeTrip?.fareEstimate ||
+    ride.options.find((option) => option.id === ride.request.serviceLevel)?.fare ||
+    ride.options.find((option) => Boolean(option.fare?.trim()))?.fare ||
+    "UGX 0";
   return (
     <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.xl, pb: uiTokens.spacing.xxl }}>
       {/* Header */}

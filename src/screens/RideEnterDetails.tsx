@@ -123,6 +123,14 @@ function parseUGXAmount(value?: string): number {
 	return Number.isFinite(numeric) ? numeric : 0;
 }
 
+function areSameCoordinates(
+	a?: { lat: number; lng: number } | null,
+	b?: { lat: number; lng: number } | null
+): boolean {
+	if (!a || !b) return false;
+	return Math.abs(a.lat - b.lat) < 0.000001 && Math.abs(a.lng - b.lng) < 0.000001;
+}
+
 function toInputDate(date: Date): string {
 	const year = date.getFullYear();
 	const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -208,22 +216,26 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const initialState = location.state || {};
 	const isBookingForSomeone = Boolean(initialState.bookForSomeone);
 
-	const [pickup, setPickup] = useState(
-		initialState.pickup || ride.request.origin?.label || "Current location",
-	);
+	const hasInitialPickupLabel =
+		typeof initialState.pickup === "string" && initialState.pickup.trim().length > 0;
+	const defaultPickupLabel = hasInitialPickupLabel ? initialState.pickup : "Current location";
+	const [pickup, setPickup] = useState(defaultPickupLabel);
 	const [pickupCoords, setPickupCoords] = useState(
 		initialState.pickupCoords ||
-			sharedLocationState.pickupCoords ||
-			ride.request.origin?.coordinates ||
+			(defaultPickupLabel === "Current location"
+				? sharedLocationState.riderLocation || sharedLocationState.pickupCoords
+				: sharedLocationState.pickupCoords || ride.request.origin?.coordinates) ||
 			null,
 	);
 
 	// Geocode pickup location if it's not "Current location"
 	useEffect(() => {
 		const geocodePickup = async () => {
-			if (pickup === "Current location" && sharedLocationState.riderLocation && !pickupCoords) {
-				setPickupCoords(sharedLocationState.riderLocation);
-				updateSharedLocationState({ pickupCoords: sharedLocationState.riderLocation });
+			if (pickup === "Current location" && sharedLocationState.riderLocation) {
+				if (!pickupCoords || !areSameCoordinates(pickupCoords, sharedLocationState.riderLocation)) {
+					setPickupCoords(sharedLocationState.riderLocation);
+					updateSharedLocationState({ pickupCoords: sharedLocationState.riderLocation });
+				}
 				return;
 			}
 			if (pickup && pickup !== "Current location" && !pickupCoords) {
@@ -325,7 +337,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [isMapExpanded, setIsMapExpanded] = useState(false);
 	const [showTripTypeModal, setShowTripTypeModal] = useState(false);
 	const [showAddStopModal, setShowAddStopModal] = useState(false);
-	const lastRouteQueryRef = useRef<{ key: string; at: number } | null>(null);
+	const lastRouteQueryRef = useRef<{ key: string; inFlight: boolean } | null>(null);
 	const [selectedContact, setSelectedContact] = useState(
 		initialState.selectedContact || ride.request.riderContact || null,
 	);
@@ -380,10 +392,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 		capacity: index === 0 ? 1 : index === 1 ? 4 : 7,
 		image:
 			index === 0
-				? "/rides-ui/hero-scooter.svg"
+				? "/rides-ui/EV--1.webp"
 				: index === 1
-					? "/rental-ui/car-city.svg"
-					: "/rental-ui/car-suv.svg",
+					? "/rides-ui/EV--3.webp"
+					: "/rides-ui/EV--4.webp",
 		price: option.fare.trim()
 	}));
 
@@ -450,6 +462,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 			});
 
 			if (routePoints.length < 2) {
+				lastRouteQueryRef.current = null;
 				setRoutePolyline([]);
 				setRouteAlternatives([]);
 				updateSharedLocationState({
@@ -470,14 +483,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 			const routeKey = routePoints
 				.map((point) => `${point.lat.toFixed(5)},${point.lng.toFixed(5)}`)
 				.join("->");
-			const now = Date.now();
-			if (
-				lastRouteQueryRef.current?.key === routeKey &&
-				now - lastRouteQueryRef.current.at < 10000
-			) {
+			if (lastRouteQueryRef.current?.key === routeKey && lastRouteQueryRef.current.inFlight) {
 				return;
 			}
-			lastRouteQueryRef.current = { key: routeKey, at: now };
+			lastRouteQueryRef.current = { key: routeKey, inFlight: true };
 			setIsCalculatingRoute(true);
 			try {
 				const route = await calculateRouteThroughPoints(routePoints);
@@ -525,8 +534,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 							routeDurationMin: null
 						})
 				});
+			} finally {
+				setIsCalculatingRoute(false);
+				if (lastRouteQueryRef.current?.key === routeKey) {
+					lastRouteQueryRef.current = { key: routeKey, inFlight: false };
+				}
 			}
-			setIsCalculatingRoute(false);
 		};
 
 		void calculateAndSetRoute();
@@ -1223,10 +1236,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 			: theme.palette.background.paper;
 	const accentGreen = "#03CD8C";
 	const lightGreen = "rgba(3,205,140,0.1)"; // Light green for active passenger selection
-	const mapNormalHeight = { xs: "42dvh", md: "48vh" } as const;
+	const mapNormalHeight = { xs: "38vh", md: "46vh" } as const;
 	const mapExpandedHeight = {
-		xs: "calc(70dvh - env(safe-area-inset-bottom, 0px))",
-		md: "74vh",
+		xs: "calc(64vh - env(safe-area-inset-bottom, 0px))",
+		md: "72vh",
 	} as const;
 	const topMapBleedSx = {
 		position: "relative",
@@ -1242,12 +1255,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 			xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
 			md: "calc(var(--rider-shell-content-px-md, 24px) * -1)",
 		},
-		mb: {
-			xs: 5,
-			md: 5.5,
-		},
-		overflow: "visible",
-	} as const;
+			mb: {
+				xs: 1.25,
+				md: 1.5,
+			},
+			overflow: "visible",
+		} as const;
 	const routeSummary = useMemo(() => {
 		const distance = sharedLocationState.routeDistanceKm;
 		const duration = sharedLocationState.routeDurationMin;
@@ -1303,7 +1316,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 							resizeKey={isMapExpanded ? "expanded" : "default"}
 							sx={{
 								height: isMapExpanded ? mapExpandedHeight : mapNormalHeight,
-								minHeight: { xs: 320, md: 360 },
+									minHeight: { xs: 280, md: 330 },
 								flex: "0 0 auto",
 								transition: "height 320ms ease-in-out"
 							}}
@@ -1384,26 +1397,24 @@ function EnterDestinationScreen(): React.JSX.Element {
 							Ride details
 						</Typography>
 						</Box>
-						<Box sx={{ mt: 0.2, mb: 1.1, minHeight: 38, display: "flex", justifyContent: "flex-start" }}>
-							<Box
-								sx={{
-									px: 1.8,
-									py: 0.85,
-									borderRadius: "999px",
-									bgcolor: routeSummary ? "#0B1530" : "rgba(15,23,42,0.35)",
-									border: routeSummary
-										? "1px solid rgba(16,185,129,0.35)"
-										: "1px solid rgba(148,163,184,0.35)",
-									color: "#F8FAFC",
-									fontWeight: 700,
-									fontSize: 13.5,
-									boxShadow: routeSummary ? "0 6px 14px rgba(2,6,23,0.28)" : "none"
-								}}
-							>
-								{routeSummary
-									? `${routeSummary.distanceLabel} • ${routeSummary.durationLabel}${routeSummary.fareLabel ? ` • ${routeSummary.fareLabel}` : ""}`
-									: "Set pickup and destination to see distance, time, and fare"}
-							</Box>
+							<Box sx={{ mt: 0.2, mb: 0.45, minHeight: 34, display: "flex", justifyContent: "flex-start" }}>
+							{routeSummary ? (
+								<Box
+									sx={{
+										px: 1.8,
+										py: 0.85,
+										borderRadius: "999px",
+										bgcolor: "#0B1530",
+										border: "1px solid rgba(16,185,129,0.35)",
+										color: "#F8FAFC",
+										fontWeight: 700,
+										fontSize: 13.5,
+										boxShadow: "0 6px 14px rgba(2,6,23,0.28)"
+									}}
+								>
+									{`${routeSummary.distanceLabel} • ${routeSummary.durationLabel}${routeSummary.fareLabel ? ` • ${routeSummary.fareLabel}` : ""}`}
+								</Box>
+							) : null}
 						</Box>
 
 						{/* Trip Setup Card - Neutral Background */}
@@ -1473,7 +1484,18 @@ function EnterDestinationScreen(): React.JSX.Element {
 										variant="outlined"
 										value={pickup}
 										onChange={(e) => {
-											setPickup(e.target.value);
+											const nextValue = e.target.value;
+											setPickup(nextValue);
+											if (pickupCoords && nextValue.trim() !== pickup.trim()) {
+												setPickupCoords(null);
+												updateSharedLocationState({
+													pickupCoords: null,
+													routePolyline: [],
+													routeAlternativePolylines: [],
+													routeDistanceKm: null,
+													routeDurationMin: null
+												});
+											}
 											clearFieldError("pickup");
 										}}
 										onFocus={() => {
@@ -2722,7 +2744,7 @@ export default function RiderScreen5TripSetupCanvas_v2() {
 		<Box
 			sx={{
 				position: "relative",
-				minHeight: "100vh",
+					minHeight: "100vh",
 				bgcolor: (theme) => theme.palette.background.default,
 			}}
 		>

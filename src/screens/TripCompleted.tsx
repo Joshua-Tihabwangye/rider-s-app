@@ -99,8 +99,9 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
     new Set([...activeTripStops, ...requestStops, ...stateStops].map((value) => value.trim()).filter(Boolean))
   ).filter((stop) => stop !== departurePoint && stop !== destination);
 
-  const driverName = activeTrip?.driver?.name ?? "Driver";
-  const driverRating = activeTrip?.driver?.rating ?? 4.6;
+  const fallbackDriver = ride.workflow.tripSimulation.mockAssignments[0]?.driver;
+  const driverName = activeTrip?.driver?.name ?? fallbackDriver?.name ?? "Driver";
+  const driverRating = activeTrip?.driver?.rating ?? fallbackDriver?.rating ?? 0;
 
   React.useEffect(() => {
     actions.setRideStatus("completed");

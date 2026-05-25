@@ -33,12 +33,18 @@ function RideBookingConfirmationScreen(): React.JSX.Element {
   const tripData = location.state || {};
   
   const activeTrip = ride.activeTrip;
-  const driverData = activeTrip?.driver ?? {
+  const fallbackDriver = ride.workflow.tripSimulation.mockAssignments[0]?.driver;
+  const driverData = activeTrip?.driver ?? fallbackDriver ?? {
     id: "driver_unknown",
-    name: "Driver",
+    name: ride.workflow.rating.defaultDriverName,
     phone: "",
     rating: 0,
-    avatar: "DR"
+    avatar: ride.workflow.rating.defaultDriverName
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase()
   };
 
   React.useEffect(() => {

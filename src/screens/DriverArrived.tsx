@@ -186,8 +186,8 @@ function DriverHasArrivedScreen(): React.JSX.Element {
     <ScreenScaffold disableTopPadding>
       <ExpandableMapPanel
         containerSx={topMapBleedSx}
-        mapHeight={{ xs: "52dvh", md: "54vh" }}
-        expandedMapHeight={{ xs: "78dvh", md: "76vh" }}
+        mapHeight={{ xs: "52vh", md: "54vh" }}
+        expandedMapHeight={{ xs: "78vh", md: "76vh" }}
         buttonOffsetCollapsed={8}
         buttonOffsetExpanded={14}
         detailsWrapperSx={{ mt: 0.75 }}

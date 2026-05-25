@@ -727,6 +727,14 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const location = useLocation();
   const { ride, sharedLocationState, actions } = useAppData();
   const { updateRideRequest, updateSharedLocationState } = actions;
+  const updateRideRequestRef = useRef(updateRideRequest);
+  const updateSharedLocationStateRef = useRef(updateSharedLocationState);
+  useEffect(() => {
+    updateRideRequestRef.current = updateRideRequest;
+  }, [updateRideRequest]);
+  useEffect(() => {
+    updateSharedLocationStateRef.current = updateSharedLocationState;
+  }, [updateSharedLocationState]);
   
   // Check if this is a shared ride mode from query parameter
   const searchParams = new URLSearchParams(location.search);
@@ -780,9 +788,13 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   );
 
   useEffect(() => {
-    setDismissedUpcomingRideIds((previous) =>
-      previous.filter((id) => rideInsights.upcoming.some((rideItem) => rideItem.id === id))
-    );
+    setDismissedUpcomingRideIds((previous) => {
+      const next = previous.filter((id) => rideInsights.upcoming.some((rideItem) => rideItem.id === id));
+      if (next.length === previous.length && next.every((id, index) => id === previous[index])) {
+        return previous;
+      }
+      return next;
+    });
   }, [rideInsights.upcoming]);
 
   // Live rider location with permission awareness and battery-safe watch options.
@@ -844,7 +856,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       sharedLocationState.riderLocation?.lng === currentLocation.lng;
 
     if (!sameOriginCoords) {
-      updateRideRequest({
+      updateRideRequestRef.current({
         origin: {
           label: ride.request.origin?.label || "Current location",
           address: ride.request.origin?.address || "Your current location",
@@ -856,19 +868,18 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     if (samePickupCoords && sameRiderCoords) {
       return;
     }
-    updateSharedLocationState({
+    updateSharedLocationStateRef.current({
       riderLocation: currentLocation,
       pickupCoords: currentLocation
     });
   }, [
     currentLocation,
     ride.request.origin?.address,
-    ride.request.origin?.coordinates,
+    ride.request.origin?.coordinates?.lat,
+    ride.request.origin?.coordinates?.lng,
     ride.request.origin?.label,
     sharedLocationState.pickupCoords,
-    sharedLocationState.riderLocation,
-    updateRideRequest,
-    updateSharedLocationState
+    sharedLocationState.riderLocation
   ]);
 
   // Calculate route when destination is selected
@@ -885,7 +896,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           const route = await calculateRoute(currentLocation, destinationCoords);
           if (!route) {
             setRouteData(null);
-            updateSharedLocationState({
+            updateSharedLocationStateRef.current({
               pickupCoords: currentLocation,
               destinationCoords,
               routePolyline: [],
@@ -901,7 +912,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             path: route.path,
             alternatives: route.alternativePaths
           });
-          updateSharedLocationState({
+          updateSharedLocationStateRef.current({
             pickupCoords: currentLocation,
             destinationCoords,
             routePolyline: route.path,
@@ -912,7 +923,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         } catch (error) {
           console.error("Error calculating route:", error);
           setRouteData(null);
-          updateSharedLocationState({
+          updateSharedLocationStateRef.current({
             pickupCoords: currentLocation,
             destinationCoords,
             routePolyline: [],
@@ -925,15 +936,32 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       calculateRoutePreview();
     } else {
       lastRouteQueryRef.current = null;
-      setRouteData(null);
-      updateSharedLocationState({
-        routePolyline: [],
-        routeAlternativePolylines: [],
-        routeDistanceKm: null,
-        routeDurationMin: null
-      });
+      if (routeData !== null) {
+        setRouteData(null);
+      }
+      const hasRouteStateToClear =
+        sharedLocationState.routePolyline.length > 0 ||
+        sharedLocationState.routeAlternativePolylines.length > 0 ||
+        sharedLocationState.routeDistanceKm !== null ||
+        sharedLocationState.routeDurationMin !== null;
+      if (hasRouteStateToClear) {
+        updateSharedLocationStateRef.current({
+          routePolyline: [],
+          routeAlternativePolylines: [],
+          routeDistanceKm: null,
+          routeDurationMin: null
+        });
+      }
     }
-  }, [currentLocation, destinationCoords, updateSharedLocationState]);
+  }, [
+    currentLocation,
+    destinationCoords,
+    routeData,
+    sharedLocationState.routeAlternativePolylines.length,
+    sharedLocationState.routeDistanceKm,
+    sharedLocationState.routeDurationMin,
+    sharedLocationState.routePolyline.length
+  ]);
 
 
   const handleCommuteRequest = (commute: Commute): void => {
