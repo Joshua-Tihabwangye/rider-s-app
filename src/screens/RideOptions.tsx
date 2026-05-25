@@ -12,6 +12,7 @@ import {
 
 import TwoWheelerRoundedIcon from "@mui/icons-material/TwoWheelerRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import MapShell from "../components/maps/MapShell";
 import ExpandableMapPanel from "../components/maps/ExpandableMapPanel";
 import ScreenScaffold from "../components/ScreenScaffold";
@@ -34,10 +35,10 @@ function getRideOptionIcon(id: string): React.ReactElement {
 }
 
 function getRideOptionImage(id: string): string {
-  if (id === "scooter") return "/rides-ui/EV--1.webp";
-  if (id === "car-mini") return "/rides-ui/EV--3.webp";
-  if (id === "car-comfort") return "/rides-ui/EV--4.webp";
-  return "/rides-ui/EV--5.jpg";
+  if (id === "scooter") return "/rides-ui/EV--1.png";
+  if (id === "car-mini") return "/rides-ui/EV--3.png";
+  if (id === "car-comfort") return "/rides-ui/EV--4.png";
+  return "/rides-ui/EV--4.png";
 }
 
 function formatDistanceLabel(distanceKm?: number | null): string {
@@ -86,7 +87,7 @@ function RideOptionCard({ option, selected, passengers, onSelect }: RideOptionCa
       <Box
         sx={{
           width: "100%",
-          height: 120,
+          height: 136,
           bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)",
           display: "flex",
           alignItems: "center",
@@ -342,6 +343,33 @@ function SelectYourRideScreen(): React.JSX.Element {
     },
     overflow: "hidden"
   } as const;
+
+  const rideTypeToggleSx = {
+    flex: 1,
+    py: 1.2,
+    px: 2,
+    border: "1px solid rgba(209,213,219,0.95)",
+    borderRadius: 2,
+    textTransform: "none",
+    fontSize: 14,
+    fontWeight: 600,
+    color: theme.palette.text.primary,
+    bgcolor: "transparent",
+    boxShadow: "none",
+    position: "relative",
+    "&:hover": {
+      bgcolor: "transparent"
+    },
+    "&.Mui-selected": {
+      border: "3px solid #F77F00",
+      boxShadow: "0 0 0 1px rgba(247,127,0,0.45)",
+      bgcolor: "transparent",
+      color: theme.palette.text.primary
+    },
+    "&.Mui-selected:hover": {
+      bgcolor: "transparent"
+    }
+  } as const;
   
   return (
     <ScreenScaffold disableTopPadding>
@@ -413,32 +441,29 @@ function SelectYourRideScreen(): React.JSX.Element {
                 selected={rideType === "standard"}
                 onClick={() => handleRideTypeSelect("standard")}
                 aria-label="Standard Ride"
-                sx={{
-                  flex: 1,
-                  py: 1.2,
-                  px: 2,
-                  border: "1px solid rgba(209,213,219,0.95)",
-                  borderRadius: 2,
-                  textTransform: "none",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: theme.palette.text.primary,
-                  bgcolor: "transparent",
-                  boxShadow: "none",
-                  "&:hover": {
-                    bgcolor: "transparent"
-                  },
-                  "&.Mui-selected": {
-                    border: "3px solid #F77F00",
-                    boxShadow: "0 0 0 1px rgba(247,127,0,0.45)",
-                    bgcolor: "transparent",
-                    color: theme.palette.text.primary
-                  },
-                  "&.Mui-selected:hover": {
-                    bgcolor: "transparent"
-                  }
-                }}
+                sx={rideTypeToggleSx}
               >
+                {rideType === "standard" ? (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 8,
+                      left: 8,
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      border: "2px solid #F77F00",
+                      bgcolor: "#FFFFFF",
+                      color: "#F77F00",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: 0
+                    }}
+                  >
+                    <CheckRoundedIcon sx={{ fontSize: 14 }} />
+                  </Box>
+                ) : null}
                 Standard Ride
               </ToggleButton>
               <ToggleButton
@@ -446,32 +471,29 @@ function SelectYourRideScreen(): React.JSX.Element {
                 selected={rideType === "premium"}
                 onClick={() => handleRideTypeSelect("premium")}
                 aria-label="Premium Ride"
-                sx={{
-                  flex: 1,
-                  py: 1.2,
-                  px: 2,
-                  border: "1px solid rgba(209,213,219,0.95)",
-                  borderRadius: 2,
-                  textTransform: "none",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: theme.palette.text.primary,
-                  bgcolor: "transparent",
-                  boxShadow: "none",
-                  "&:hover": {
-                    bgcolor: "transparent"
-                  },
-                  "&.Mui-selected": {
-                    border: "3px solid #F77F00",
-                    boxShadow: "0 0 0 1px rgba(247,127,0,0.45)",
-                    bgcolor: "transparent",
-                    color: theme.palette.text.primary
-                  },
-                  "&.Mui-selected:hover": {
-                    bgcolor: "transparent"
-                  }
-                }}
+                sx={rideTypeToggleSx}
               >
+                {rideType === "premium" ? (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 8,
+                      left: 8,
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      border: "2px solid #F77F00",
+                      bgcolor: "#FFFFFF",
+                      color: "#F77F00",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: 0
+                    }}
+                  >
+                    <CheckRoundedIcon sx={{ fontSize: 14 }} />
+                  </Box>
+                ) : null}
                 Premium Ride
               </ToggleButton>
             </Box>

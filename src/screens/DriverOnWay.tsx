@@ -88,10 +88,10 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   }, [ride.options, ride.request.serviceClass, ride.request.serviceLevel, vehicle?.category]);
   const vehicleImage = useMemo(() => {
     const model = (vehicle?.model ?? "").toLowerCase();
-    if (model.includes("suv")) return "/rides-ui/EV--6.avif";
-    if (model.includes("van")) return "/rides-ui/EV--5.jpg";
-    if (model.includes("scooter")) return "/rides-ui/EV--1.webp";
-    return "/rides-ui/EV--4.webp";
+    if (model.includes("suv")) return "/rides-ui/EV--4.png";
+    if (model.includes("van")) return "/rides-ui/EV--4.png";
+    if (model.includes("scooter")) return "/rides-ui/EV--1.png";
+    return "/rides-ui/EV--3.png";
   }, [vehicle?.model]);
   const callTarget = useMemo(() => {
     const raw = driver?.phone || fallbackDriverFromWorkflow?.phone || "+256700000000";

@@ -1,0 +1,148 @@
+.ride-enter-details-page,
+.ride-enter-details-page * {
+  box-sizing: border-box;
+}
+
+.ride-enter-details-page {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.ride-enter-details-content,
+.ride-enter-details-form {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.ride-type-section {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.ride-type-grid {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  gap: 8px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.ride-card {
+  flex: 1;
+  min-width: 0;
+  height: 188px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.ride-card.selected {
+  border-color: #16c784;
+  box-shadow: 0 6px 14px rgba(22, 199, 132, 0.28);
+}
+
+.ride-card-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 34%;
+  transform: scale(1.05);
+  padding: 0;
+  z-index: 1;
+}
+
+.ride-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.86) 0%,
+    rgba(0, 0, 0, 0.56) 30%,
+    rgba(0, 0, 0, 0.2) 54%,
+    rgba(0, 0, 0, 0) 78%
+  );
+  z-index: 2;
+  pointer-events: none;
+}
+
+.ride-card-content {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 10px;
+  z-index: 3;
+  color: white;
+  text-align: center;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.75);
+}
+
+.ride-card-content h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.05;
+  color: #ffffff;
+}
+
+.ride-card-content p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.ride-card-content span {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #22c55e;
+}
+
+@media (max-width: 390px) {
+  .ride-type-grid {
+    gap: 6px;
+  }
+
+  .ride-card {
+    height: 174px;
+    border-radius: 10px;
+  }
+
+  .ride-card-content h3 {
+    font-size: 15px;
+  }
+
+  .ride-card-content p,
+  .ride-card-content span {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 340px) {
+  .ride-card {
+    height: 162px;
+  }
+
+  .ride-card-content h3 {
+    font-size: 14px;
+  }
+
+  .ride-card-content p,
+  .ride-card-content span {
+    font-size: 11px;
+  }
+}

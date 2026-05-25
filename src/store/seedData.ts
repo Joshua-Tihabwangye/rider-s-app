@@ -418,7 +418,7 @@ export const SEED_RIDE_WORKFLOW: RideWorkflowConfig = {
         capacity: 1,
         minutes: "5 min",
         price: "UGX 48k-62k",
-        image: "/rides-ui/EV--1.webp"
+        image: "/rides-ui/EV--1.png"
       },
       {
         id: "comfort-standard",
@@ -426,7 +426,7 @@ export const SEED_RIDE_WORKFLOW: RideWorkflowConfig = {
         capacity: 3,
         minutes: "7 min",
         price: "UGX 78k-92k",
-        image: "/rides-ui/EV--3.webp"
+        image: "/rides-ui/EV--3.png"
       },
       {
         id: "xl-standard",
@@ -434,7 +434,7 @@ export const SEED_RIDE_WORKFLOW: RideWorkflowConfig = {
         capacity: 6,
         minutes: "10 min",
         price: "UGX 120k-150k",
-        image: "/rides-ui/EV--4.webp"
+        image: "/rides-ui/EV--4.png"
       }
     ],
     popularDestinations: [

@@ -37,6 +37,7 @@ import TripTypeModal from "../components/TripTypeModal";
 import AddStopModal from "../components/AddStopModal";
 import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
 import LocationAutocompleteField from "../components/location/LocationAutocompleteField";
+import RideTypeCard, { type RideTypeCardData } from "../components/rides/RideTypeCard";
 import { useAppData } from "../contexts/AppDataContext";
 import { calculateRouteThroughPoints, geocodeAddress } from "../services/maps";
 import { getLocationPermissionState, watchLiveLocation } from "../services/location";
@@ -385,17 +386,20 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const isRoundTripMode = tripMode === "round_trip";
 	const tripType = deriveTripTypeLabel(routeMode, tripMode);
 
-	const rideTypeCards = ride.options.slice(0, 3).map((option, index) => ({
+	const rideTypeCards = ride.options.slice(0, 3).map((option, index): RideTypeCardData => ({
 		id: option.id,
 		name:
 			index === 0 ? "EV Lite" : index === 1 ? "EV Comfort" : "EV XL",
 		capacity: index === 0 ? 1 : index === 1 ? 4 : 7,
 		image:
 			index === 0
-				? "/rides-ui/EV--1.webp"
+				? "/rides-ui/EV--1.png"
 				: index === 1
-					? "/rides-ui/EV--3.webp"
-					: "/rides-ui/EV--4.webp",
+					? "/rides-ui/EV--3.png"
+					: "/rides-ui/EV--4.png",
+		objectPosition: "center 36%",
+		foregroundPosition: index === 0 ? "center 33%" : index === 1 ? "center 31%" : "center 34%",
+		objectFit: "cover",
 		price: option.fare.trim()
 	}));
 
@@ -1292,6 +1296,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 
 	return (
 			<ScreenScaffold
+				className="ride-enter-details-page"
 				disableTopPadding
 				disableBottomPadding
 				contentSx={{
@@ -1303,6 +1308,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 				}}
 			>
 				<Box
+					className="ride-enter-details-content"
 					sx={{
 						...topMapBleedSx,
 						display: "flex",
@@ -1420,6 +1426,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 						{/* Trip Setup Card - Neutral Background */}
 					<SmoothHeightPanel open>
 					<Box
+						className="ride-enter-details-form"
 						sx={{
 							pt: 1.25,
 							mt: 0,
@@ -2569,37 +2576,21 @@ function EnterDestinationScreen(): React.JSX.Element {
 						</CardContent>
 					</Card>
 
-						<Typography sx={{ fontSize: 14, fontWeight: 700, color: "#101828", mb: 0.2 }}>
-							Choose ride type
-						</Typography>
-						<Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 1, width: "100%" }}>
-							{rideTypeCards.map((item) => (
-								<Card
-								key={item.id}
-								elevation={0}
-								onClick={() => setSelectedRideLevel(item.id)}
-								sx={{
-									borderRadius: 2.5,
-									border: selectedRideLevel === item.id ? "1.5px solid #12B76A" : "1px solid #E4E7EC",
-									bgcolor: selectedRideLevel === item.id ? "#F6FEF9" : "#FFFFFF",
-									cursor: "pointer"
-								}}
-								>
-									<CardContent sx={{ p: 1.1, textAlign: "center", "&:last-child": { pb: 1.1 } }}>
-										<Box component="img" src={item.image} alt={item.name} sx={{ width: "88%", mx: "auto", height: 74, objectFit: "contain", mb: 0.6, display: "block" }} />
-										<Typography sx={{ fontSize: 15, fontWeight: 700, color: "#101828", lineHeight: 1.2, textAlign: "center" }}>
-											{item.name}
-										</Typography>
-										<Typography sx={{ fontSize: 12, color: "#667085", mb: 0.3, textAlign: "center" }}>
-											{item.capacity} seats
-										</Typography>
-											<Typography sx={{ fontSize: 15, fontWeight: 700, color: "#12B76A", textAlign: "center" }}>
-												{item.price || "Set destination"}
-											</Typography>
-									</CardContent>
-							</Card>
-						))}
-					</Box>
+						<Box className="ride-type-section">
+							<Typography sx={{ fontSize: 14, fontWeight: 700, color: "#101828", mb: 0.2 }}>
+								Choose ride type
+							</Typography>
+							<Box className="ride-type-grid">
+								{rideTypeCards.map((item) => (
+									<RideTypeCard
+										key={item.id}
+										ride={item}
+										selected={selectedRideLevel === item.id}
+										onClick={setSelectedRideLevel}
+									/>
+								))}
+							</Box>
+						</Box>
 				</Stack>
 
 				{/* Inline Action Section */}
