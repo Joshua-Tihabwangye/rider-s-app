@@ -40,6 +40,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import ScreenScaffold from "../components/ScreenScaffold";
+import RideTypeCard, { type RideTypeCardData } from "../components/rides/RideTypeCard";
 import ActionGrid from "../components/primitives/ActionGrid";
 import InfoCard from "../components/primitives/InfoCard";
 import SectionHeader from "../components/primitives/SectionHeader";
@@ -762,6 +763,21 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const dashboardWorkflow = ride.workflow.dashboard;
 
   const recommendedRideTypes = dashboardWorkflow.recommendedRideTypes;
+  const dashboardRideTypeCards = useMemo<RideTypeCardData[]>(
+    () =>
+      recommendedRideTypes.slice(0, 3).map((item, index) => ({
+        id: item.id,
+        name: item.name,
+        capacity: item.capacity,
+        image: item.image,
+        objectPosition: "center 36%",
+        foregroundPosition:
+          index === 0 ? "center 33%" : index === 1 ? "center 31%" : "center 34%",
+        objectFit: "cover",
+        price: item.price
+      })),
+    [recommendedRideTypes]
+  );
   const popularDestinations = useMemo(
     () =>
       dashboardWorkflow.popularDestinations.map((destination) => ({
@@ -1310,23 +1326,15 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
             <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#101828" }}>Recommended ride types</Typography>
           </Stack>
-          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 1 }}>
-            {recommendedRideTypes.map((item, idx) => (
-              <Card
+          <Box className="ride-type-grid">
+            {dashboardRideTypeCards.map((item) => (
+              <RideTypeCard
                 key={item.id}
-                elevation={0}
-                onClick={() => navigate("/rides/enter/details", { state: { selectedRide: item.id } })}
-                sx={{
-                  borderRadius: 2.5,
-                  border: idx === 0 ? "2px solid #11B86A" : "1px solid #E4E7EC",
-                  p: 0.8,
-                  cursor: "pointer",
-                  textAlign: "center"
-                }}
-              >
-                <Box component="img" src={item.image} alt={item.name} sx={{ width: "100%", height: 90, objectFit: "contain", borderRadius: 1.5, bgcolor: "#F8FAFC", mb: 0.6 }} />
-                <Typography sx={{ fontSize: 17, fontWeight: 700, color: "#101828", textAlign: "center" }}>{item.name}</Typography>
-              </Card>
+                ride={item}
+                selected={false}
+                interactive={false}
+                showMeta={false}
+              />
             ))}
           </Box>
         </Box>
