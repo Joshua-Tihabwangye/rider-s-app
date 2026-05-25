@@ -265,6 +265,132 @@ export interface RideOption {
   eta: string;
   fare: string;
   capacity?: number;
+  pricingModel?: {
+    baseFareUGX: number;
+    perKmUGX: number;
+    minFareUGX?: number;
+    etaBaseMin: number;
+    etaPerKmMin: number;
+  };
+}
+
+export type RideFeedbackTagId =
+  | "driving"
+  | "punctuality"
+  | "vehicle"
+  | "safety"
+  | "courtesy"
+  | "overall";
+
+export interface RideFeedbackTag {
+  id: RideFeedbackTagId;
+  label: string;
+}
+
+export interface RideTipOption {
+  id: string;
+  label: string;
+  value: number;
+  badge?: string;
+}
+
+export interface RideSharingPassenger {
+  id: string;
+  name: string;
+  initials: string;
+  joined: boolean;
+  isOwner?: boolean;
+  isMain?: boolean;
+  dropOff?: string;
+  fare?: string;
+}
+
+export interface RideWorkflowConfig {
+  dashboard: {
+    navigateToDetailsDelayMs: number;
+    recommendedRideTypes: Array<{
+      id: string;
+      name: string;
+      capacity: number;
+      minutes: string;
+      price: string;
+      image: string;
+    }>;
+    popularDestinations: Array<{
+      id: string;
+      title: string;
+      subtitle: string;
+      destination: string;
+      icon: "airport" | "work" | "home";
+    }>;
+  };
+  tripSimulation: {
+    durationMs: number;
+    autoAddStopTriggerMs: number;
+    autoContinueRequestTriggerMs: number;
+    startProgressPercent: number;
+    fallbackStartDistanceKm: number;
+    msPerLegMinute: number;
+    driverProgressPerTick: number;
+    driverProgressTickMs: number;
+    addStopRetryDelayMs: number;
+    continueRetryDelayMs: number;
+    completionSummary: {
+      duration: string;
+      estimatedTime: string;
+    };
+    pricing: {
+      baseFareUGX: number;
+      distancePerKmUGX: number;
+      roundTripSurchargeUGX: number;
+      extraStopUGX: number;
+    };
+    messages: {
+      addStopRequest: string;
+      continueTripRequest: string;
+    };
+  };
+  driverArrival: {
+    fallbackOtp: string;
+    autoStartDelayMs: number;
+    initialProgress: number;
+    progressStepPerTick: number;
+    progressTickMs: number;
+  };
+  tripCompletion: {
+    fallbackFare: string;
+    fallbackDistance: string;
+    fallbackDuration: string;
+  };
+  rating: {
+    submitRedirectDelayMs: number;
+    feedbackTags: RideFeedbackTag[];
+    defaultDriverName: string;
+    defaultVehiclePlate: string;
+    defaultRideId: string;
+  };
+  tip: {
+    submitRedirectDelayMs: number;
+    options: RideTipOption[];
+    defaultRideId: string;
+  };
+  sharing: {
+    defaultShareUrl: string;
+    mapPreviewCenter: { lat: number; lng: number };
+    mapPreviewPolyline: Array<{ lat: number; lng: number }>;
+    passengers: RideSharingPassenger[];
+  };
+  sos: {
+    contactsNotifiedDelayMs: number;
+    supportNotifiedDelayMs: number;
+  };
+}
+
+export interface RideSharingState {
+  shareUrl: string;
+  splitFareEnabled: boolean;
+  invitePhone: string;
+  passengers: RideSharingPassenger[];
 }
 
 
@@ -297,6 +423,8 @@ export interface RideState {
   history: RideTrip[];
   savedPlaces: SavedPlace[];
   options: RideOption[];
+  sharing: RideSharingState;
+  workflow: RideWorkflowConfig;
 }
 
 /** Delivery workflow */

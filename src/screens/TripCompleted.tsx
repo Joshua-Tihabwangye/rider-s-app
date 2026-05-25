@@ -29,6 +29,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
   const location = useLocation();
   const { ride, sharedLocationState, actions } = useAppData();
   const activeTrip = ride.activeTrip;
+  const completionWorkflow = ride.workflow.tripCompletion;
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const bookedForLabel = React.useMemo(() => {
     const bookedFor = activeTrip?.bookedFor ?? ride.request.bookedFor;
@@ -43,13 +44,13 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
     (typeof routeState?.totalFare === "string" && routeState.totalFare) ||
     (typeof routeState?.fare === "string" && routeState.fare) ||
     activeTrip?.fareEstimate ||
-    "UGX 20,565";
+    completionWorkflow.fallbackFare;
   const fareDisplay = rawFare.toUpperCase().includes("UGX") ? rawFare : `UGX ${rawFare}`;
 
   const rawDistance =
     (typeof routeState?.distance === "string" && routeState.distance) ||
     activeTrip?.distance ||
-    "54 km";
+    completionWorkflow.fallbackDistance;
   const distanceDisplay = /km/i.test(rawDistance) ? rawDistance : `${rawDistance} km`;
 
   const estimatedMinutesFromLegs = activeTrip?.legs?.reduce((sum, leg) => sum + Math.max(0, leg.etaMinutes ?? 0), 0) ?? 0;
@@ -60,7 +61,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
       ? estimatedMinutesFromLegs < 60
         ? `${estimatedMinutesFromLegs} mins`
         : `${Math.floor(estimatedMinutesFromLegs / 60)} hr ${estimatedMinutesFromLegs % 60} mins`
-      : "2 hr 20 mins");
+      : completionWorkflow.fallbackDuration);
 
   const departurePoint =
     activeTrip?.pickup?.address ||

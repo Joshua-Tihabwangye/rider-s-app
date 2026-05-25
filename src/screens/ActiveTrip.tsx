@@ -32,13 +32,6 @@ import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import { getPointAtProgress, normalizeRoute } from "../utils/mapRoutes";
 
-const TRIP_SIMULATION_DURATION_MS = 90_000;
-const AUTO_ADD_STOP_TRIGGER_MS = 15_000;
-const AUTO_CONTINUE_REQUEST_TRIGGER_MS = 10_000;
-const START_PROGRESS_PERCENT = 40;
-const START_DISTANCE_KM = 22;
-const SIMULATION_MS_PER_LEG_MIN = 4_500;
-
 function normalizeLegDuration(etaMinutes?: number): number {
   return Math.max(3, Math.round(etaMinutes ?? 6));
 }
@@ -119,6 +112,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   const [hasAutoSimulatedStopRequest, setHasAutoSimulatedStopRequest] = useState(false);
   const [driverProgress, setDriverProgress] = useState(0);
   const hasHandledReloadResetRef = useRef(false);
+  const isTripCompletedRef = useRef(false);
   const continueRequestRetryTimerRef = useRef<number | null>(null);
   const addStopRequestRetryTimerRef = useRef<number | null>(null);
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
@@ -126,23 +120,36 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     temporaryStop?.status === "paused_at_stop";
   const isAddStopRequested =
     temporaryStop?.status === "add_stop_requested";
+  const isTripCompleted =
+    activeTrip?.status === "completed" || ride.status === "completed";
+  const tripWorkflow = ride.workflow.tripSimulation;
   const totalDistance =
     sharedLocationState.routeDistanceKm ??
     parseDistanceKm(activeTrip?.distance) ??
-    START_DISTANCE_KM;
+    tripWorkflow.fallbackStartDistanceKm;
   const estimatedFareAmount = useMemo(() => {
     const currentFareAmount = parseCurrencyAmount(activeTrip?.fareEstimate);
     if (currentFareAmount > 0) {
       return currentFareAmount;
     }
 
-    const baseFare = 8000;
-    const distanceComponent = Math.max(0, totalDistance) * 2600;
-    const roundTripSurcharge = activeTrip?.tripMode === "round_trip" ? 5000 : 0;
+    const baseFare = tripWorkflow.pricing.baseFareUGX;
+    const distanceComponent = Math.max(0, totalDistance) * tripWorkflow.pricing.distancePerKmUGX;
+    const roundTripSurcharge =
+      activeTrip?.tripMode === "round_trip" ? tripWorkflow.pricing.roundTripSurchargeUGX : 0;
     const extraStopCount = Math.max(0, (activeTrip?.routePoints?.length ?? 0) - 2);
-    const stopSurcharge = extraStopCount * 3500;
+    const stopSurcharge = extraStopCount * tripWorkflow.pricing.extraStopUGX;
     return baseFare + distanceComponent + roundTripSurcharge + stopSurcharge;
-  }, [activeTrip?.fareEstimate, activeTrip?.routePoints?.length, activeTrip?.tripMode, totalDistance]);
+  }, [
+    activeTrip?.fareEstimate,
+    activeTrip?.routePoints?.length,
+    activeTrip?.tripMode,
+    totalDistance,
+    tripWorkflow.pricing.baseFareUGX,
+    tripWorkflow.pricing.distancePerKmUGX,
+    tripWorkflow.pricing.roundTripSurchargeUGX,
+    tripWorkflow.pricing.extraStopUGX
+  ]);
   const totalFareDisplay = formatCurrencyUGX(estimatedFareAmount);
 
   useEffect(() => {
@@ -196,10 +203,10 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     [tripLegs]
   );
   const tripSimulationDurationMs = useMemo(() => {
-    if (tripLegs.length === 0) return TRIP_SIMULATION_DURATION_MS;
-    const dynamicDuration = legDurationWeight * SIMULATION_MS_PER_LEG_MIN;
-    return Math.max(TRIP_SIMULATION_DURATION_MS, dynamicDuration);
-  }, [legDurationWeight, tripLegs.length]);
+    if (tripLegs.length === 0) return tripWorkflow.durationMs;
+    const dynamicDuration = legDurationWeight * tripWorkflow.msPerLegMinute;
+    return Math.max(tripWorkflow.durationMs, dynamicDuration);
+  }, [legDurationWeight, tripLegs.length, tripWorkflow.durationMs, tripWorkflow.msPerLegMinute]);
   const compactRouteLabel = useMemo(() => {
     const distance = sharedLocationState.routeDistanceKm;
     const duration = sharedLocationState.routeDurationMin;
@@ -248,11 +255,10 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     if (isTripPaused) return undefined;
     const interval = window.setInterval(() => {
       setClockNowMs(Date.now());
-      // Simulate driver movement along route (1% progress per second)
-      setDriverProgress((prev) => Math.min(prev + 0.01, 1.0));
-    }, 1000);
+      setDriverProgress((prev) => Math.min(prev + tripWorkflow.driverProgressPerTick, 1.0));
+    }, tripWorkflow.driverProgressTickMs);
     return () => window.clearInterval(interval);
-  }, [isTripPaused]);
+  }, [isTripPaused, tripWorkflow.driverProgressPerTick, tripWorkflow.driverProgressTickMs]);
 
   useEffect(() => {
     const nextDriver = driverLocation;
@@ -289,6 +295,21 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   useEffect(() => {
     setHasAutoSimulatedStopRequest(false);
   }, [activeTrip?.id]);
+
+  useEffect(() => {
+    isTripCompletedRef.current = isTripCompleted;
+    if (!isTripCompleted) return;
+
+    setShowContinueTripDialog(false);
+    if (continueRequestRetryTimerRef.current !== null) {
+      window.clearTimeout(continueRequestRetryTimerRef.current);
+      continueRequestRetryTimerRef.current = null;
+    }
+    if (addStopRequestRetryTimerRef.current !== null) {
+      window.clearTimeout(addStopRequestRetryTimerRef.current);
+      addStopRequestRetryTimerRef.current = null;
+    }
+  }, [isTripCompleted]);
 
   useEffect(() => {
     setClockNowMs(Date.now());
@@ -355,10 +376,13 @@ function TripInProgressBasicScreen(): React.JSX.Element {
       completedLegCount
     };
   }, [legDurationWeight, simProgressRatio, tripLegs]);
-  const progress = START_PROGRESS_PERCENT + simProgressRatio * (100 - START_PROGRESS_PERCENT);
+  const progress = tripWorkflow.startProgressPercent + simProgressRatio * (100 - tripWorkflow.startProgressPercent);
   const distanceCovered = useMemo(() => {
     if (tripLegs.length === 0) {
-      return START_DISTANCE_KM + simProgressRatio * (totalDistance - START_DISTANCE_KM);
+      return (
+        tripWorkflow.fallbackStartDistanceKm +
+        simProgressRatio * (totalDistance - tripWorkflow.fallbackStartDistanceKm)
+      );
     }
     const completedDistance = tripLegs.reduce((sum, leg, index) => {
       if (index < legProgress.completedLegCount) {
@@ -368,24 +392,36 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     }, 0);
     const activeDistance = tripLegs[legProgress.activeLegIndex]?.distanceKm ?? 0;
     return completedDistance + activeDistance * legProgress.activeLegRatio;
-  }, [legProgress.activeLegIndex, legProgress.activeLegRatio, legProgress.completedLegCount, simProgressRatio, totalDistance, tripLegs]);
+  }, [
+    legProgress.activeLegIndex,
+    legProgress.activeLegRatio,
+    legProgress.completedLegCount,
+    simProgressRatio,
+    totalDistance,
+    tripLegs,
+    tripWorkflow.fallbackStartDistanceKm
+  ]);
   const remainingSimulationMs = Math.max(0, tripSimulationDurationMs - tripElapsedMs);
   const remainingSimulationLabel = formatRemainingDuration(remainingSimulationMs);
   const activeLeg = tripLegs[legProgress.activeLegIndex];
 
   useEffect(() => {
     if (!activeTrip?.id) return;
+    if (isTripCompleted) return;
     if (hasAutoSimulatedStopRequest) return;
     if (temporaryStop?.status !== "idle") return;
-    if (tripElapsedMs < AUTO_ADD_STOP_TRIGGER_MS) return;
-    simulateDriverAddStopRequest("Your driver has requested to add a temporary stop.");
+    if (tripElapsedMs < tripWorkflow.autoAddStopTriggerMs) return;
+    simulateDriverAddStopRequest(tripWorkflow.messages.addStopRequest);
     setHasAutoSimulatedStopRequest(true);
   }, [
     activeTrip?.id,
+    isTripCompleted,
     hasAutoSimulatedStopRequest,
     simulateDriverAddStopRequest,
     temporaryStop?.status,
-    tripElapsedMs
+    tripElapsedMs,
+    tripWorkflow.autoAddStopTriggerMs,
+    tripWorkflow.messages.addStopRequest
   ]);
 
   useEffect(() => {
@@ -484,8 +520,8 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     navigate("/rides/trip/completed", {
       replace: true,
       state: {
-        duration: "1 min 30 sec",
-        estimatedTime: "1 min 30 sec",
+        duration: tripWorkflow.completionSummary.duration,
+        estimatedTime: tripWorkflow.completionSummary.estimatedTime,
         totalFare: totalFareDisplay,
         fare: totalFareDisplay,
         distance: `${totalDistance.toFixed(1)} km`,
@@ -503,10 +539,16 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     totalFareDisplay,
     tripElapsedMs,
     tripSimulationDurationMs,
+    tripWorkflow.completionSummary.duration,
+    tripWorkflow.completionSummary.estimatedTime,
     updateRideTrip
   ]);
 
   useEffect(() => {
+    if (isTripCompleted) {
+      setShowContinueTripDialog(false);
+      return undefined;
+    }
     if (!isTripPaused) {
       setShowContinueTripDialog(false);
       return undefined;
@@ -524,6 +566,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
     return () => window.clearTimeout(timeoutId);
   }, [
+    isTripCompleted,
     isTripPaused,
     markTemporaryStopContinuePromptShown,
     temporaryStop?.continuePromptDueAt,
@@ -531,6 +574,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   ]);
 
   useEffect(() => {
+    if (isTripCompleted) return undefined;
     if (!isTripPaused) return undefined;
     if (temporaryStop?.continuePromptDueAt || temporaryStop?.continuePromptShownAt) {
       return undefined;
@@ -542,17 +586,20 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
     const timeoutId = window.setTimeout(() => {
       actions.simulateDriverContinueTripRequest(
-        "Your driver has requested to continue the trip."
+        tripWorkflow.messages.continueTripRequest
       );
-    }, Math.max(0, pauseStartMs + AUTO_CONTINUE_REQUEST_TRIGGER_MS - Date.now()));
+    }, Math.max(0, pauseStartMs + tripWorkflow.autoContinueRequestTriggerMs - Date.now()));
 
     return () => window.clearTimeout(timeoutId);
   }, [
     actions,
+    isTripCompleted,
     isTripPaused,
     temporaryStop?.continuePromptDueAt,
     temporaryStop?.continuePromptShownAt,
-    temporaryStop?.pauseStartedAt
+    temporaryStop?.pauseStartedAt,
+    tripWorkflow.autoContinueRequestTriggerMs,
+    tripWorkflow.messages.continueTripRequest
   ]);
 
   useEffect(() => {
@@ -594,8 +641,8 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     navigate("/rides/trip/completed", {
       replace: true,
       state: {
-        duration: "1 min 30 sec",
-        estimatedTime: "1 min 30 sec",
+        duration: tripWorkflow.completionSummary.duration,
+        estimatedTime: tripWorkflow.completionSummary.estimatedTime,
         totalFare: totalFareDisplay,
         fare: totalFareDisplay,
         distance: `${totalDistance.toFixed(1)} km`,
@@ -674,7 +721,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           Active Trip
         </Typography>
         <Typography variant="caption" sx={{ color: "#B45309", fontWeight: 600, display: "block", mt: 0.2 }}>
-          Green route tracking with orange safety checks.
+          Your trip is tracked in real time, with safety checks along the way.
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -686,13 +733,14 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                   : "Select pickup and destination first.")}
           </Typography>
           <Stack direction="row" spacing={1}>
-            {temporaryStop?.status === "idle" && (
+            {temporaryStop?.status === "idle" && !isTripCompleted && (
               <Button
                 size="small"
                 variant="outlined"
                 onClick={() =>
+                  !isTripCompleted &&
                   simulateDriverAddStopRequest(
-                    "Your driver has requested to add a temporary stop."
+                    tripWorkflow.messages.addStopRequest
                   )
                 }
                 sx={{ borderRadius: 2, textTransform: "none" }}
@@ -729,7 +777,8 @@ function TripInProgressBasicScreen(): React.JSX.Element {
               Trip paused at stop. Waiting for the driver to continue the ride.
             </Typography>
             <Typography variant="caption" sx={{ color: "#92400E", fontWeight: 600 }}>
-              Continue request popup will appear in about 15 seconds.
+              Continue request popup will appear in about{" "}
+              {Math.max(1, Math.round(tripWorkflow.autoContinueRequestTriggerMs / 1000))} seconds.
             </Typography>
           </Box>
         )}
@@ -968,7 +1017,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
       {/* Add Stop Request Dialog */}
       <Dialog
-        open={isAddStopRequested && !isSafetyCheckPending}
+        open={isAddStopRequested && !isSafetyCheckPending && !isTripCompleted}
         onClose={() => undefined}
         disableEscapeKeyDown
         PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}
@@ -995,10 +1044,11 @@ function TripInProgressBasicScreen(): React.JSX.Element {
               }
               addStopRequestRetryTimerRef.current = window.setTimeout(() => {
                 addStopRequestRetryTimerRef.current = null;
+                if (isTripCompletedRef.current) return;
                 simulateDriverAddStopRequest(
-                  "Your driver has requested to add a temporary stop."
+                  tripWorkflow.messages.addStopRequest
                 );
-              }, 5000);
+              }, tripWorkflow.addStopRetryDelayMs);
             }}
             sx={{ color: "#B45309", textTransform: "none" }}
           >
@@ -1022,7 +1072,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
       {/* Continue Trip Request Dialog */}
       <Dialog
-        open={showContinueTripDialog && isTripPaused && !isSafetyCheckPending}
+        open={showContinueTripDialog && isTripPaused && !isSafetyCheckPending && !isTripCompleted}
         onClose={() => undefined}
         disableEscapeKeyDown
         PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}
@@ -1042,10 +1092,11 @@ function TripInProgressBasicScreen(): React.JSX.Element {
               }
               continueRequestRetryTimerRef.current = window.setTimeout(() => {
                 continueRequestRetryTimerRef.current = null;
+                if (isTripCompletedRef.current) return;
                 actions.simulateDriverContinueTripRequest(
-                  "Your driver has requested to continue the trip."
+                  tripWorkflow.messages.continueTripRequest
                 );
-              }, 10000);
+              }, tripWorkflow.continueRetryDelayMs);
             }}
             sx={{ color: "#B45309", textTransform: "none" }}
           >

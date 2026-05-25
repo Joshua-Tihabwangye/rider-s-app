@@ -751,6 +751,28 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const savedLocations = rideInsights.commonPlaces;
   const dailyCommutes = rideInsights.commutes;
   const hasRideActivity = insightRoutes.length > 0;
+  const dashboardWorkflow = ride.workflow.dashboard;
+
+  const recommendedRideTypes = dashboardWorkflow.recommendedRideTypes;
+  const popularDestinations = useMemo(
+    () =>
+      dashboardWorkflow.popularDestinations.map((destination) => ({
+        ...destination,
+        icon:
+          destination.icon === "airport" ? (
+            <FlightTakeoffRoundedIcon sx={{ fontSize: 24, color: "#11B86A" }} />
+          ) : destination.icon === "work" ? (
+            <WorkRoundedIcon sx={{ fontSize: 24, color: "#11B86A" }} />
+          ) : (
+            <HomeRoundedIcon sx={{ fontSize: 24, color: "#11B86A" }} />
+          ),
+        destination:
+          destination.id === "home"
+            ? ride.savedPlaces[0]?.address ?? destination.destination
+            : destination.destination
+      })),
+    [dashboardWorkflow.popularDestinations, ride.savedPlaces]
+  );
 
   const upcomingRides = useMemo(
     () => rideInsights.upcoming.filter((rideItem) => !dismissedUpcomingRideIds.includes(rideItem.id)),
@@ -1039,7 +1061,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             placeType: place
           }
         });
-      }, 1000);
+      }, dashboardWorkflow.navigateToDetailsDelayMs);
     }
   };
 
@@ -1082,34 +1104,8 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           isSharedRide: isSharedRideMode // Pass shared ride mode to details screen
         }
       });
-    }, 1000);
+    }, dashboardWorkflow.navigateToDetailsDelayMs);
   };
-  const recommendedRideTypes = [
-    {
-      id: "scooter-standard",
-      name: "EV Lite",
-      capacity: 1,
-      minutes: "5 min",
-      price: "UGX 48k-62k",
-      image: "/rides-ui/hero-scooter.svg"
-    },
-    {
-      id: "comfort-standard",
-      name: "EV Comfort",
-      capacity: 3,
-      minutes: "7 min",
-      price: "UGX 78k-92k",
-      image: "/rental-ui/car-city.svg"
-    },
-    {
-      id: "xl-standard",
-      name: "EV XL",
-      capacity: 6,
-      minutes: "10 min",
-      price: "UGX 120k-150k",
-      image: "/rental-ui/car-suv.svg"
-    }
-  ];
 
   const rentalLikeTypographySx = {
     "& .MuiTypography-root": {
@@ -1136,30 +1132,6 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       fontSize: "12.4px !important"
     }
   } as const;
-
-  const popularDestinations = [
-    {
-      id: "airport",
-      title: "Airport",
-      subtitle: "~ 32 min",
-      icon: <FlightTakeoffRoundedIcon sx={{ fontSize: 24, color: "#11B86A" }} />,
-      destination: "Entebbe International Airport, Uganda"
-    },
-    {
-      id: "work",
-      title: "Work",
-      subtitle: "~ 18 min",
-      icon: <WorkRoundedIcon sx={{ fontSize: 24, color: "#11B86A" }} />,
-      destination: "Nakasero Business District, Kampala"
-    },
-    {
-      id: "home",
-      title: "Home",
-      subtitle: "Saved place",
-      icon: <HomeRoundedIcon sx={{ fontSize: 24, color: "#11B86A" }} />,
-      destination: ride.savedPlaces[0]?.address ?? "Kampala, Uganda"
-    }
-  ];
 
   return (
     <ScreenScaffold>

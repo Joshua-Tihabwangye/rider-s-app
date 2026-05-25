@@ -22,29 +22,22 @@ import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import StarsRoundedIcon from "@mui/icons-material/StarsRounded";
 import SportsMotorsportsRoundedIcon from "@mui/icons-material/SportsMotorsportsRounded";
 import { useAppData } from "../contexts/AppDataContext";
-
-type FeedbackTagId =
-  | "driving"
-  | "punctuality"
-  | "vehicle"
-  | "safety"
-  | "courtesy"
-  | "overall";
+import type { RideFeedbackTagId } from "../store/types";
 
 interface FeedbackTag {
-  id: FeedbackTagId;
+  id: RideFeedbackTagId;
   label: string;
   icon: React.ReactNode;
 }
 
-const FEEDBACK_TAGS: FeedbackTag[] = [
-  { id: "driving", label: "Driving", icon: <SportsMotorsportsRoundedIcon sx={{ fontSize: 22 }} /> },
-  { id: "punctuality", label: "Punctuality", icon: <AccessTimeRoundedIcon sx={{ fontSize: 22 }} /> },
-  { id: "vehicle", label: "Vehicle", icon: <DirectionsCarFilledRoundedIcon sx={{ fontSize: 22 }} /> },
-  { id: "safety", label: "Safety", icon: <ShieldRoundedIcon sx={{ fontSize: 22 }} /> },
-  { id: "courtesy", label: "Courtesy", icon: <PersonRoundedIcon sx={{ fontSize: 22 }} /> },
-  { id: "overall", label: "Overall", icon: <StarsRoundedIcon sx={{ fontSize: 22 }} /> }
-];
+const FEEDBACK_TAG_ICONS: Record<RideFeedbackTagId, React.ReactNode> = {
+  driving: <SportsMotorsportsRoundedIcon sx={{ fontSize: 22 }} />,
+  punctuality: <AccessTimeRoundedIcon sx={{ fontSize: 22 }} />,
+  vehicle: <DirectionsCarFilledRoundedIcon sx={{ fontSize: 22 }} />,
+  safety: <ShieldRoundedIcon sx={{ fontSize: 22 }} />,
+  courtesy: <PersonRoundedIcon sx={{ fontSize: 22 }} />,
+  overall: <StarsRoundedIcon sx={{ fontSize: 22 }} />
+};
 
 function ratingLabel(value: number): string {
   if (value >= 5) return "Excellent!";
@@ -59,6 +52,15 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const { ride } = useAppData();
+  const ratingWorkflow = ride.workflow.rating;
+  const feedbackTags = useMemo<FeedbackTag[]>(
+    () =>
+      ratingWorkflow.feedbackTags.map((tag) => ({
+        ...tag,
+        icon: FEEDBACK_TAG_ICONS[tag.id]
+      })),
+    [ratingWorkflow.feedbackTags]
+  );
 
   const driver = ride.activeTrip?.driver;
   const vehicle = ride.activeTrip?.vehicle;
@@ -66,8 +68,8 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
   const driverName =
     (typeof location.state?.driverName === "string" && location.state.driverName) ||
     driver?.name ||
-    "Rahul Verma";
-  const plate = vehicle?.plate || "KA01 AB 1234";
+    ratingWorkflow.defaultDriverName;
+  const plate = vehicle?.plate || ratingWorkflow.defaultVehiclePlate;
   const initials = useMemo(() => {
     const parts = driverName
       .split(" ")
@@ -80,7 +82,9 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
 
   const [rating, setRating] = useState<number>(5);
   const [feedback, setFeedback] = useState("");
-  const [selectedTags, setSelectedTags] = useState<FeedbackTagId[]>(["driving"]);
+  const [selectedTags, setSelectedTags] = useState<RideFeedbackTagId[]>([
+    feedbackTags[0]?.id ?? "driving"
+  ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const companyOrange = "#F79009";
@@ -88,7 +92,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
 
   const canSubmit = rating > 0 && !isSubmitting;
 
-  const toggleTag = (id: FeedbackTagId): void => {
+  const toggleTag = (id: RideFeedbackTagId): void => {
     setSelectedTags((prev) =>
       prev.includes(id) ? prev.filter((entry) => entry !== id) : [...prev, id]
     );
@@ -99,7 +103,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
     setIsSubmitting(true);
 
     const payload = {
-      ride_id: location.state?.rideId || ride.activeTrip?.id || "trip_123",
+      ride_id: location.state?.rideId || ride.activeTrip?.id || ratingWorkflow.defaultRideId,
       rating,
       tags: selectedTags,
       message: feedback || null
@@ -116,7 +120,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
             : "/home";
       setTimeout(() => {
         navigate(returnTo, { replace: true });
-      }, 1400);
+      }, ratingWorkflow.submitRedirectDelayMs);
     } catch {
       setIsSubmitting(false);
     }
@@ -233,7 +237,7 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
               gap: 1
             }}
           >
-            {FEEDBACK_TAGS.map((tag) => {
+            {feedbackTags.map((tag) => {
               const active = selectedTags.includes(tag.id);
               return (
                 <Card

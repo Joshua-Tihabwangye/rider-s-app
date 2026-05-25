@@ -567,11 +567,11 @@ export default function GoogleMapView({
           let icon: google.maps.Symbol | google.maps.Icon | undefined;
           if (!isCurrent) {
             if (marker.id === "pickup") {
-              icon = createPinUrlIcon("https://maps.google.com/mapfiles/ms/icons/green-dot.png");
+              icon = createPinUrlIcon("/map-icons/pin-green.svg");
             } else if (marker.id === "dropoff") {
-              icon = createPinUrlIcon("https://maps.google.com/mapfiles/ms/icons/orange-dot.png");
+              icon = createPinUrlIcon("/map-icons/pin-orange.svg");
             } else if (marker.id === "driver") {
-              icon = createPinUrlIcon("https://maps.google.com/mapfiles/ms/icons/blue-dot.png");
+              icon = createPinUrlIcon("/map-icons/pin-blue.svg");
             } else if (marker.color) {
               icon = createDotIcon(marker.color);
             }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
   
@@ -24,15 +24,11 @@ import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import PercentRoundedIcon from "@mui/icons-material/PercentRounded";
 import PhoneIphoneRoundedIcon from "@mui/icons-material/PhoneIphoneRounded";
 import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
-
-const PASSENGERS = [
-  { id: 1, name: "You", initials: "YOU", isOwner: true, joined: true },
-  { id: 2, name: "Mary", initials: "M", joined: true },
-  { id: 3, name: "John", initials: "J", joined: false }
-];
+import { useAppData } from "../contexts/AppDataContext";
+import type { RideSharingPassenger } from "../store/types";
 
 interface Passenger {
-  id: number;
+  id: string;
   name: string;
   initials: string;
   isOwner?: boolean;
@@ -81,9 +77,12 @@ function PassengerChip({ passenger }: PassengerChipProps): React.JSX.Element {
 
 function ShareRidePassengersScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [shareUrl] = useState("https://ev.zone/r/ABC123");
-  const [splitFare, setSplitFare] = useState(true);
-  const [invitePhone, setInvitePhone] = useState("");
+  const { ride, actions } = useAppData();
+  const sharing = ride.sharing;
+  const passengers: RideSharingPassenger[] = sharing.passengers;
+  const splitFare = sharing.splitFareEnabled;
+  const invitePhone = sharing.invitePhone;
+  const shareUrl = sharing.shareUrl || ride.workflow.sharing.defaultShareUrl;
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -235,7 +234,7 @@ function ShareRidePassengersScreen(): React.JSX.Element {
           </Box>
 
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", mb: 1.5 }}>
-            {PASSENGERS.map((p) => (
+            {passengers.map((p) => (
               <PassengerChip key={p.id} passenger={p} />
             ))}
           </Stack>
@@ -244,7 +243,7 @@ function ShareRidePassengersScreen(): React.JSX.Element {
             <Chip
               icon={<PercentRoundedIcon sx={{ fontSize: 16 }} />}
               label="Split fare with joined passengers"
-              onClick={() => setSplitFare((prev) => !prev)}
+              onClick={() => actions.updateRideSharing({ splitFareEnabled: !splitFare })}
               sx={{
                 borderRadius: 5,
                 fontSize: 11,
@@ -297,7 +296,7 @@ function ShareRidePassengersScreen(): React.JSX.Element {
             <PhoneBookPickerButton
               size="small"
               variant="outlined"
-              onContactPicked={(contact) => setInvitePhone(contact.phone)}
+              onContactPicked={(contact) => actions.updateRideSharing({ invitePhone: contact.phone })}
               sx={{ textTransform: "none", borderRadius: 5 }}
             >
               Pick from phone book
@@ -308,7 +307,7 @@ function ShareRidePassengersScreen(): React.JSX.Element {
             size="small"
             placeholder="Enter phone number"
             value={invitePhone}
-            onChange={(event) => setInvitePhone(event.target.value)}
+            onChange={(event) => actions.updateRideSharing({ invitePhone: event.target.value })}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

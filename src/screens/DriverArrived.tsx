@@ -66,9 +66,10 @@ function DriverHasArrivedScreen(): React.JSX.Element {
     Math.max(0, legs.length - 1)
   );
   const currentLeg = legs[currentLegIndex];
-  const otp = (activeTrip?.otp?.trim() || "256836").replace(/\s+/g, "").slice(0, 6);
+  const arrivalWorkflow = ride.workflow.driverArrival;
+  const otp = (activeTrip?.otp?.trim() || arrivalWorkflow.fallbackOtp).replace(/\s+/g, "").slice(0, 6);
   const [chatOpen, setChatOpen] = useState(false);
-  const [arrivalProgress, setArrivalProgress] = useState(0.84);
+  const [arrivalProgress, setArrivalProgress] = useState(arrivalWorkflow.initialProgress);
   const companyOrange = "#F79009";
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const fallbackRoute = React.useMemo(() => {
@@ -113,7 +114,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
         setRideStatus("in_progress");
         navigate("/rides/trip", { replace: true, state: { fromDriverVerification: true } });
       }
-    }, 15000);
+    }, arrivalWorkflow.autoStartDelayMs);
 
     return () => window.clearTimeout(verificationTimer);
   }, [
@@ -122,15 +123,16 @@ function DriverHasArrivedScreen(): React.JSX.Element {
     ride.activeTrip?.status,
     resetTemporaryStopState,
     setRideStatus,
-    updateRideTrip
+    updateRideTrip,
+    arrivalWorkflow.autoStartDelayMs
   ]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
-      setArrivalProgress((prev) => Math.min(prev + 0.035, 1));
-    }, 1000);
+      setArrivalProgress((prev) => Math.min(prev + arrivalWorkflow.progressStepPerTick, 1));
+    }, arrivalWorkflow.progressTickMs);
     return () => window.clearInterval(interval);
-  }, []);
+  }, [arrivalWorkflow.progressStepPerTick, arrivalWorkflow.progressTickMs]);
 
   useEffect(() => {
     const previous = sharedLocationState.driverLocation;

@@ -37,6 +37,13 @@ function RideDetailsScreen(): React.JSX.Element {
   const tripData = location.state || {};
   
   const activeTrip = ride.activeTrip;
+  const resolvePublicImagePath = (value: unknown): string | null => {
+    if (typeof value !== "string") return null;
+    const trimmed = value.trim();
+    if (!trimmed.startsWith("/")) return null;
+    return trimmed;
+  };
+
   const rideDetails = {
     dateLabel: tripData.dateLabel || (ride.request.schedule === "later" ? "Scheduled" : "Today"),
     origin: {
@@ -62,7 +69,7 @@ function RideDetailsScreen(): React.JSX.Element {
       experience: tripData.driver?.experience || "4+ years",
       photo: tripData.driver?.photo || activeTrip?.driver?.avatar || "DR"
     },
-    vehicleImage: tripData.vehicleImage || null // Would be a URL in production
+    vehicleImage: resolvePublicImagePath(tripData.vehicleImage) // Serve only from public assets.
   };
 
   const handleBack = () => {
