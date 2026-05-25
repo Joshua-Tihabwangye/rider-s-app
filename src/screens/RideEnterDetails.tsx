@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -45,6 +45,8 @@ import {
 	type RoundTripReturnPattern,
 	RIDE_MAX_STOPS
 } from "../features/rides/constants";
+
+const DESTINATION_INPUT_DEBOUNCE_MS = 550;
 
 interface Stop {
 	id: string;
@@ -115,6 +117,12 @@ function uniqueStops(stops: Stop[]): Stop[] {
 	});
 }
 
+function parseUGXAmount(value?: string): number {
+	if (!value) return 0;
+	const numeric = Number.parseFloat(value.replace(/[^\d.]/g, ""));
+	return Number.isFinite(numeric) ? numeric : 0;
+}
+
 function toInputDate(date: Date): string {
 	const year = date.getFullYear();
 	const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -181,7 +189,20 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const location = useLocation();
 	const theme = useTheme();
 	const { ride, sharedLocationState, actions } = useAppData();
-	const { updateSharedLocationState } = actions;
+	const updateSharedLocationStateRef = useRef(actions.updateSharedLocationState);
+	const updateRideRequestRef = useRef(actions.updateRideRequest);
+	useEffect(() => {
+		updateSharedLocationStateRef.current = actions.updateSharedLocationState;
+	}, [actions.updateSharedLocationState]);
+	useEffect(() => {
+		updateRideRequestRef.current = actions.updateRideRequest;
+	}, [actions.updateRideRequest]);
+	const updateSharedLocationState = useCallback((patch: Parameters<typeof actions.updateSharedLocationState>[0]) => {
+		updateSharedLocationStateRef.current(patch);
+	}, []);
+	const updateRideRequest = useCallback((patch: Parameters<typeof actions.updateRideRequest>[0]) => {
+		updateRideRequestRef.current(patch);
+	}, []);
 
 	// Get initial values from navigation state
 	const initialState = location.state || {};
@@ -222,6 +243,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 		geocodePickup();
 	}, [pickup, pickupCoords, sharedLocationState.riderLocation, updateSharedLocationState]);
 	const [destination, setDestination] = useState(
+		initialState.destination || ride.request.destination?.label || "",
+	);
+	const [debouncedDestination, setDebouncedDestination] = useState(
 		initialState.destination || ride.request.destination?.label || "",
 	);
 	const [destinationCoords, setDestinationCoords] = useState(
@@ -315,6 +339,21 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [bookedPersonPhone, setBookedPersonPhone] = useState(
 		initialState.bookedPersonPhone || ride.request.riderContact?.phone || "",
 	);
+	const destinationLabelForRequest = useMemo(
+		() => (destinationCoords ? destination : debouncedDestination),
+		[destinationCoords, destination, debouncedDestination]
+	);
+
+	useEffect(() => {
+		if (!destination.trim()) {
+			setDebouncedDestination("");
+			return;
+		}
+		const timeoutId = window.setTimeout(() => {
+			setDebouncedDestination(destination);
+		}, DESTINATION_INPUT_DEBOUNCE_MS);
+		return () => window.clearTimeout(timeoutId);
+	}, [destination]);
 	const [stops, setStops] = useState<Stop[]>(
 		initialState.stops ||
 			(ride.request.stops?.length
@@ -345,7 +384,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 				: index === 1
 					? "/rental-ui/car-city.svg"
 					: "/rental-ui/car-suv.svg",
-		price: option.fare.replace("UGX", "UGX ").replace(",", "")
+		price: option.fare.trim()
 	}));
 
 	// Calculate route with waypoints for multi-stop and round-trip.
@@ -376,6 +415,14 @@ function EnterDestinationScreen(): React.JSX.Element {
 						.slice(0, Math.max(0, coordinateStops.length - 1))
 						.map((stop) => stop.coordinates!)
 				: [];
+			const hasTypedDestinationWithoutCoords =
+				!isMultiStop && debouncedDestination.trim().length > 0 && !routeDestinationCoords;
+			const hasTypedStopsWithoutCoords =
+				isMultiStop &&
+				normalizedStops.some((stop) => (stop.value || "").trim().length > 0) &&
+				coordinateStops.length === 0;
+			const shouldPreserveMockMetrics =
+				hasTypedDestinationWithoutCoords || hasTypedStopsWithoutCoords;
 
 			const baseRoutePoints = [
 				pickupCoords,
@@ -410,8 +457,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 					destinationCoords: routeDestinationCoords,
 					routePolyline: [],
 					routeAlternativePolylines: [],
-					routeDistanceKm: null,
-					routeDurationMin: null
+					...(shouldPreserveMockMetrics
+						? {}
+						: {
+							routeDistanceKm: null,
+							routeDurationMin: null
+						})
 				});
 				return;
 			}
@@ -450,8 +501,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 						destinationCoords: routeDestinationCoords,
 						routePolyline: [],
 						routeAlternativePolylines: [],
-						routeDistanceKm: null,
-						routeDurationMin: null
+						...(shouldPreserveMockMetrics
+							? {}
+							: {
+								routeDistanceKm: null,
+								routeDurationMin: null
+							})
 					});
 				}
 			} catch (error) {
@@ -463,15 +518,19 @@ function EnterDestinationScreen(): React.JSX.Element {
 					destinationCoords: routeDestinationCoords,
 					routePolyline: [],
 					routeAlternativePolylines: [],
-					routeDistanceKm: null,
-					routeDurationMin: null
+					...(shouldPreserveMockMetrics
+						? {}
+						: {
+							routeDistanceKm: null,
+							routeDurationMin: null
+						})
 				});
 			}
 			setIsCalculatingRoute(false);
 		};
 
 		void calculateAndSetRoute();
-	}, [destinationCoords, pickupCoords, returnPattern, routeMode, stops, tripMode, updateSharedLocationState]);
+	}, [debouncedDestination, destinationCoords, pickupCoords, returnPattern, routeMode, stops, tripMode, updateSharedLocationState]);
 
 	useEffect(() => {
 		let mounted = true;
@@ -600,10 +659,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 				? { label: pickup, address: pickup, coordinates: pickupCoords ?? undefined }
 				: null;
 		const explicitDestinationLocation =
-			destination.trim().length > 0
+			destinationLabelForRequest.trim().length > 0
 				? {
-						label: destination,
-						address: destination,
+						label: destinationLabelForRequest,
+						address: destinationLabelForRequest,
 						coordinates: destinationCoords ?? undefined,
 				  }
 				: null;
@@ -662,7 +721,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 				? contactPhone
 				: "";
 
-		actions.updateRideRequest({
+		updateRideRequest({
 			origin: originLocation,
 			destination: destinationLocation,
 			stops: intermediateStops,
@@ -703,7 +762,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 		});
 	}, [
 		pickup,
-		destination,
+		pickupCoords,
+		destinationCoords,
+		destinationLabelForRequest,
 		stops,
 		passengers,
 		tripType,
@@ -721,7 +782,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 		bookedPersonName,
 		bookedPersonPhone,
 		isBookingForSomeone,
-		actions.updateRideRequest,
+			updateRideRequest,
 		routeMode,
 		tripMode,
 		tripType,
@@ -1201,8 +1262,20 @@ function EnterDestinationScreen(): React.JSX.Element {
 			duration < 60
 				? `${Math.max(1, Math.round(duration))} min`
 				: `${Math.floor(duration / 60)} hr ${Math.round(duration % 60)} min`;
-		return `${distanceLabel} • ${durationLabel}`;
-	}, [sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
+		const selectedFare =
+			ride.options.find((option) => option.id === selectedRideLevel)?.fare?.trim() ||
+			ride.options
+				.filter((option) => parseUGXAmount(option.fare) > 0)
+				.sort((a, b) => parseUGXAmount(a.fare) - parseUGXAmount(b.fare))[0]
+				?.fare
+				?.trim() ||
+			"";
+		return {
+			distanceLabel,
+			durationLabel,
+			fareLabel: selectedFare
+		};
+	}, [ride.options, selectedRideLevel, sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
 
 	return (
 			<ScreenScaffold
@@ -1311,25 +1384,27 @@ function EnterDestinationScreen(): React.JSX.Element {
 							Ride details
 						</Typography>
 						</Box>
-					{routeSummary && (
-						<Box sx={{ mt: 0.2, mb: 1.1, display: "flex", justifyContent: "flex-start" }}>
+						<Box sx={{ mt: 0.2, mb: 1.1, minHeight: 38, display: "flex", justifyContent: "flex-start" }}>
 							<Box
 								sx={{
 									px: 1.8,
 									py: 0.85,
 									borderRadius: "999px",
-									bgcolor: "#0B1530",
-									border: "1px solid rgba(16,185,129,0.35)",
+									bgcolor: routeSummary ? "#0B1530" : "rgba(15,23,42,0.35)",
+									border: routeSummary
+										? "1px solid rgba(16,185,129,0.35)"
+										: "1px solid rgba(148,163,184,0.35)",
 									color: "#F8FAFC",
 									fontWeight: 700,
 									fontSize: 13.5,
-									boxShadow: "0 6px 14px rgba(2,6,23,0.28)"
+									boxShadow: routeSummary ? "0 6px 14px rgba(2,6,23,0.28)" : "none"
 								}}
 							>
-								{routeSummary}
+								{routeSummary
+									? `${routeSummary.distanceLabel} • ${routeSummary.durationLabel}${routeSummary.fareLabel ? ` • ${routeSummary.fareLabel}` : ""}`
+									: "Set pickup and destination to see distance, time, and fare"}
 							</Box>
 						</Box>
-					)}
 
 						{/* Trip Setup Card - Neutral Background */}
 					<SmoothHeightPanel open>
@@ -1476,15 +1551,24 @@ function EnterDestinationScreen(): React.JSX.Element {
 											</Typography>
 											<LocationAutocompleteField
 											value={destination}
-										onValueChange={(nextValue) => {
-											setDestination(nextValue);
-											setShowError(false);
-											setErrorMessage("");
-											clearFieldError("destination");
-											if (!nextValue.trim()) {
-												setDestinationCoords(null);
-												updateSharedLocationState({
-													destinationCoords: null,
+											onValueChange={(nextValue) => {
+												setDestination(nextValue);
+												setShowError(false);
+												setErrorMessage("");
+												clearFieldError("destination");
+												if (destinationCoords && nextValue.trim() !== destination.trim()) {
+													setDestinationCoords(null);
+													setRoutePolyline([]);
+													setRouteAlternatives([]);
+													updateSharedLocationState({
+														destinationCoords: null,
+														routePolyline: [],
+														routeAlternativePolylines: []
+													});
+												} else if (!nextValue.trim()) {
+													setDestinationCoords(null);
+													updateSharedLocationState({
+														destinationCoords: null,
 													routePolyline: [],
 													routeAlternativePolylines: [],
 													routeDistanceKm: null,
@@ -2487,9 +2571,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 										<Typography sx={{ fontSize: 12, color: "#667085", mb: 0.3, textAlign: "center" }}>
 											{item.capacity} seats
 										</Typography>
-										<Typography sx={{ fontSize: 15, fontWeight: 700, color: "#12B76A", textAlign: "center" }}>
-											{item.price}
-										</Typography>
+											<Typography sx={{ fontSize: 15, fontWeight: 700, color: "#12B76A", textAlign: "center" }}>
+												{item.price || "Set destination"}
+											</Typography>
 									</CardContent>
 							</Card>
 						))}
