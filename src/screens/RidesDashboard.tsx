@@ -8,7 +8,8 @@ import {
   Tabs,
   Tab,
   Stack,
-  Chip
+  Chip,
+  IconButton
 } from "@mui/material";
 
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
@@ -1190,25 +1191,35 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             bgcolor: "#F8FBF9"
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={1.2}>
-            <Box sx={{ flex: 1, pt: 1.2, pb: 1, pr: { xs: 0.8, sm: 2.2 } }}>
+          <Stack
+            direction="row"
+            spacing={1.3}
+            alignItems="stretch"
+            sx={{
+              minHeight: { xs: 176, sm: 198 },
+              borderRadius: 2.4,
+              backgroundColor: "#F8FBF9"
+            }}
+          >
+            <Box sx={{ flex: "0 0 58%", pt: 1.2, pb: 1, pr: { xs: 0.8, sm: 1.4 }, minWidth: 0 }}>
               <Stack direction="row" spacing={1.1} alignItems="flex-start" sx={{ mb: 0.8 }}>
-                <Button
+                <IconButton
                   onClick={() => navigate("/home")}
-                  variant="outlined"
                   sx={{
-                    minWidth: 42,
-                    width: 42,
-                    height: 42,
-                    borderRadius: 2.2,
-                    borderColor: "#E4E7EC",
+                    width: 30,
+                    height: 30,
                     color: "#344054",
                     p: 0,
-                    flexShrink: 0
+                    flexShrink: 0,
+                    bgcolor: "transparent",
+                    border: "none",
+                    "&:hover": {
+                      bgcolor: "transparent"
+                    }
                   }}
                 >
                   <ArrowBackRoundedIcon sx={{ fontSize: 22 }} />
-                </Button>
+                </IconButton>
                 <Box sx={{ minWidth: 0 }}>
                   <Typography sx={{ fontSize: 56 / 2, fontWeight: 700, lineHeight: 1.1, color: "#101828" }}>
                     Book a ride
@@ -1247,18 +1258,34 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             </Box>
             <Box
               sx={{
-                width: { xs: 148, sm: 188 },
-                height: { xs: 136, sm: 170 },
-                flexShrink: 0,
-                display: "grid",
-                placeItems: "center"
+                flex: "0 0 42%",
+                borderRadius: 2,
+                overflow: "hidden",
+                bgcolor: "#F8FBF9",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end"
               }}
             >
               <Box
                 component="img"
-                src="/rides-ui/hero-scooter.svg"
+                src="/rides-ui/EV--6.jpg"
                 alt="Ride vehicle"
-                sx={{ width: "100%", height: "100%", objectFit: "contain" }}
+                onError={(event) => {
+                  const target = event.currentTarget;
+                  if (target.src.includes("/rides-ui/EV--1.png")) return;
+                  target.src = "/rides-ui/EV--1.png";
+                }}
+                sx={{
+                  width: "100%",
+                  maxWidth: { xs: 210, sm: 280 },
+                  height: "100%",
+                  objectFit: "contain",
+                  objectPosition: "right center",
+                  filter: "drop-shadow(0 12px 20px rgba(15,23,42,0.22))",
+                  display: "block",
+                  pointerEvents: "none"
+                }}
               />
             </Box>
           </Stack>
