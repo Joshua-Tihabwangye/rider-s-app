@@ -2,32 +2,38 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Box,
-  IconButton,
-  Typography,
   Card,
   CardContent,
-  Stack,
   Chip,
-  Button,
-  Divider
+  Divider,
+  IconButton,
+  Stack,
+  Typography
 } from "@mui/material";
-
-import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
-import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
+import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
+import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
 
 import { useAppData } from "../contexts/AppDataContext";
 import {
+  CroppedReferenceImage,
+  GradientActionButton,
+  cardSx,
+  formatInr,
+  rentalUi,
+  screenShellSx
+} from "../components/rental/RentalRedesignUI";
+import {
   buildRentalPricing,
-  formatRentalDateRange,
-  formatUgx,
+  getRentalModeLabel,
   getRentalBookingVehicle,
   getRentalStatusLabel
 } from "../features/rental/booking";
+import { getVehicleImageFromName } from "../features/rental/uiAssets";
 
-function RentalBookingDetailViewScreen(): React.JSX.Element {
+export default function RiderScreen90RentalBookingDetailViewCanvas_v2(): React.JSX.Element {
   const navigate = useNavigate();
   const { rentalId } = useParams();
   const { rental, actions } = useAppData();
@@ -38,360 +44,106 @@ function RentalBookingDetailViewScreen(): React.JSX.Element {
   const vehicle = getRentalBookingVehicle(rental.vehicles, booking, rental.selectedVehicleId);
   const pricing = buildRentalPricing(vehicle, booking);
   const status = getRentalStatusLabel(booking.status);
+  const modeLabel = getRentalModeLabel(booking);
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
-      <Box
-        sx={{
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <IconButton
-            size="small"
-            aria-label="Back"
-            onClick={() => navigate(-1)}
-            sx={{
-              borderRadius: 5,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
-            }}
-          >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-          <Box>
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
-              Rental booking details
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-            >
-              {vehicle ? `${vehicle.name} • ${vehicle.mode}` : "EV rental"}
-            </Typography>
-          </Box>
-        </Box>
-        <Chip
-          size="small"
-          label={status}
-          sx={{
-            borderRadius: 5,
-            fontSize: 10,
-            height: 22,
-            bgcolor:
-              status === "Upcoming"
-                ? "rgba(34,197,94,0.12)"
-                : status === "Pending payment"
-                  ? "rgba(249,115,22,0.16)"
-                  : status === "Payment failed"
-                    ? "rgba(239,68,68,0.18)"
-                : status === "Cancelled"
-                  ? "rgba(248,113,113,0.18)"
-                  : "rgba(148,163,184,0.18)",
-            color:
-              status === "Upcoming"
-                ? "#16A34A"
-                : status === "Pending payment"
-                  ? "#C2410C"
-                  : status === "Payment failed"
-                    ? "#B91C1C"
-                : status === "Cancelled"
-                  ? "#DC2626"
-                  : "rgba(148,163,184,1)"
-          }}
-        />
-      </Box>
-
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.2 }}>
-            <Box
-              sx={{
-                width: 44,
-                height: 44,
-                borderRadius: 5,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#E0F2FE" : "rgba(15,23,42,0.9)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-            >
-              <ElectricCarRoundedIcon sx={{ fontSize: 26, color: "primary.main" }} />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Typography
-                variant="body2"
-                sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-              >
-                {vehicle ? `${vehicle.name} • ${vehicle.type}` : "EV rental"}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                {vehicle ? `${vehicle.mode} • ${vehicle.seats} seats • ${vehicle.range}` : "Vehicle details pending"}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  mt: 0.4,
-                  fontSize: 11,
-                  color: (t) => t.palette.text.secondary
-                }}
-              >
-                ID: {booking.id}
-              </Typography>
-            </Box>
-          </Stack>
-
-          <Divider sx={{ my: 1.2, borderColor: (t) => t.palette.divider }} />
-
-          <Stack spacing={0.6}>
-            <Stack direction="row" spacing={0.75} alignItems="center">
-              <CalendarMonthRoundedIcon
-                sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                {formatRentalDateRange(booking.startDate, booking.endDate)}
-              </Typography>
-            </Stack>
-            <Stack direction="row" spacing={0.75} alignItems="center">
-              <PlaceRoundedIcon
-                sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Pickup: {booking.pickupBranch ?? "Pickup pending"} • Return: {booking.dropoffBranch ?? "Return pending"}
-              </Typography>
-            </Stack>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, pl: 3 }}
-            >
-              Rental type: {pricing.isOneWayRental ? "One-way" : "Same-location return"}
-              {pricing.isCrossBorderRental ? " • Cross-border" : ""}
-            </Typography>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Card
-        elevation={0}
-        sx={{
-          mb: 2,
-          borderRadius: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (t) =>
-            t.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-              : "1px solid rgba(51,65,85,0.9)"
-        }}
-      >
-        <CardContent sx={{ px: 1.75, py: 1.75 }}>
-          <Typography
-            variant="caption"
-            sx={{ fontSize: 11, color: (t) => t.palette.text.secondary, mb: 1, display: "block" }}
-          >
-            Price breakdown
-          </Typography>
-          <Stack spacing={0.4}>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Rental ({pricing.durationDays} day{pricing.durationDays === 1 ? "" : "s"} × {formatUgx(pricing.dailyRate)})
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                {formatUgx(pricing.rentalSubtotal)}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                One-way drop-off fee
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                {pricing.oneWayFee > 0 ? formatUgx(pricing.oneWayFee) : "UGX 0"}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Cross-border fee
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                {pricing.crossBorderFee > 0 ? formatUgx(pricing.crossBorderFee) : "UGX 0"}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Insurance & roadside support
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Included
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                Refundable deposit
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11 }}>
-                {formatUgx(pricing.refundableDeposit)}
-              </Typography>
-            </Stack>
-          </Stack>
-
-          <Divider sx={{ my: 1.2, borderColor: (t) => t.palette.divider }} />
-
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Box>
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase" }}
-              >
-                Total paid
-              </Typography>
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 700, letterSpacing: "-0.02em" }}
-              >
-                {booking.priceEstimate ?? formatUgx(pricing.dueNow)}
-              </Typography>
-            </Box>
-            <Chip
-              size="small"
-              icon={<ShieldRoundedIcon sx={{ fontSize: 14 }} />}
-              label="Covered by EVzone Pay"
-              sx={{
-                borderRadius: 5,
-                fontSize: 10,
-                height: 24,
-                bgcolor: (t) =>
-                  t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,0.96)",
-                color: (t) => t.palette.text.primary
-              }}
-            />
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} sx={{ mb: 1.5 }}>
-        {booking.status === "confirmed" ? (
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={() => {
-              actions.updateRentalBooking({
-                ...booking,
-                status: "completed"
-              });
-              navigate("/rental/history");
-            }}
-            sx={{
-              borderRadius: 5,
-              py: 1,
-              fontSize: 14,
-              fontWeight: 700,
-              textTransform: "none",
-              bgcolor: "#16A34A",
-              "&:hover": {
-                bgcolor: "#15803D"
-              }
-            }}
-          >
-            Return vehicle
-          </Button>
-        ) : null}
-        <Button
-          fullWidth
-          variant="outlined"
-          onClick={() => {
-            actions.beginRentalBooking(booking.vehicleId);
-            actions.updateRentalBooking({ ...booking, status: "draft" });
-            navigate("/rental/dates");
-          }}
-          sx={{
-            borderRadius: 5,
-            py: 1,
-            fontSize: 14,
-            textTransform: "none"
-          }}
-        >
-          Modify booking
-        </Button>
-        <Button
-          fullWidth
-          variant="outlined"
-          onClick={() => {
-            actions.updateRentalBooking({
-              ...booking,
-              status: "cancelled"
-            });
-            navigate("/rental/history");
-          }}
-          sx={{
-            borderRadius: 5,
-            py: 1,
-            fontSize: 14,
-            textTransform: "none",
-            borderColor: "#EF4444",
-            color: "#EF4444",
-            "&:hover": {
-              borderColor: "#DC2626",
-              bgcolor: "rgba(248,113,113,0.06)"
-            }
-          }}
-        >
-          Cancel rental
-        </Button>
+    <Box sx={{ ...screenShellSx, pb: { xs: 13, sm: 6 } }}>
+      <Stack direction="row" alignItems="center" spacing={1.1} sx={{ mb: 1.4 }}>
+        <IconButton onClick={() => navigate(-1)} sx={{ border: `1px solid ${rentalUi.border}`, bgcolor: "#fff" }}>
+          <ArrowBackRoundedIcon />
+        </IconButton>
+        <Typography sx={{ fontSize: "20px !important", fontWeight: 800 }}>Rental history details</Typography>
       </Stack>
 
-      <Typography
-        variant="caption"
-        sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-      >
-        Cancellation fees may apply depending on how close you are to the start
-        time. Check your rental terms for more details.
-      </Typography>
-    </Box>
-  );
-}
+      <Card sx={{ ...cardSx, mb: 1.3, overflow: "hidden" }}>
+        <CardContent sx={{ p: 1.2, "&:last-child": { pb: 1.2 } }}>
+          <Stack direction="row" spacing={1.05} alignItems="center" sx={{ mb: 0.8 }}>
+            <CroppedReferenceImage
+              src={getVehicleImageFromName(vehicle?.name ?? "")}
+              alt={vehicle?.name ?? "Vehicle"}
+              height={92}
+              fit="contain"
+              scale={1}
+              sx={{ width: 128, borderRadius: 2.2, bgcolor: "#F4FBF7" }}
+            />
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography sx={{ fontWeight: 800, fontSize: "15px !important", lineHeight: 1.2 }}>
+                {vehicle ? `${vehicle.name} • ${vehicle.type}` : "EV rental"}
+              </Typography>
+              <Stack direction="row" spacing={0.6} alignItems="center" sx={{ mt: 0.45 }}>
+                <Chip
+                  label={status}
+                  sx={{
+                    height: 26,
+                    bgcolor: status === "Upcoming" ? rentalUi.greenSoft : "#F3F4F6",
+                    color: status === "Upcoming" ? rentalUi.greenDeep : rentalUi.muted,
+                    fontWeight: 700
+                  }}
+                />
+                <Typography sx={{ color: rentalUi.muted }}>Booking {booking.bookingReference ?? booking.id}</Typography>
+              </Stack>
+            </Box>
+          </Stack>
 
-export default function RiderScreen90RentalBookingDetailViewCanvas_v2() {
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        bgcolor: (t) => t.palette.background.default
-      }}
-    >
-      <RentalBookingDetailViewScreen />
+          <Stack spacing={0.7}>
+            <Stack direction="row" spacing={0.75} alignItems="center">
+              <CalendarMonthRoundedIcon sx={{ color: rentalUi.green, fontSize: 17 }} />
+              <Typography sx={{ color: rentalUi.muted, minWidth: 72 }}>Dates</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{booking.startDate ?? "-"}  •  {booking.endDate ?? "-"}</Typography>
+            </Stack>
+            <Stack direction="row" spacing={0.75} alignItems="center">
+              <LocationOnRoundedIcon sx={{ color: rentalUi.green, fontSize: 17 }} />
+              <Typography sx={{ color: rentalUi.muted, minWidth: 72 }}>Branches</Typography>
+              <Typography sx={{ fontWeight: 700 }}>
+                {booking.pickupBranch ?? "Pickup pending"}  →  {booking.dropoffBranch ?? "Return pending"}
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={0.75} alignItems="center">
+              <DirectionsCarRoundedIcon sx={{ color: rentalUi.green, fontSize: 17 }} />
+              <Typography sx={{ color: rentalUi.muted, minWidth: 72 }}>Mode</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{modeLabel}</Typography>
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card sx={{ ...cardSx, mb: 1.35 }}>
+        <CardContent sx={{ p: 1.25, "&:last-child": { pb: 1.25 } }}>
+          <Typography sx={{ fontWeight: 800, fontSize: "15px !important", mb: 0.7 }}>Payment summary</Typography>
+          <Stack spacing={0.5}>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography sx={{ color: rentalUi.muted }}>Rental ({pricing.durationDays} day{pricing.durationDays === 1 ? "" : "s"})</Typography>
+              <Typography>{formatInr(pricing.rentalSubtotal)}</Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography sx={{ color: rentalUi.muted }}>Refundable deposit</Typography>
+              <Typography>{formatInr(pricing.refundableDeposit)}</Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography sx={{ color: rentalUi.muted }}>Taxes & fees</Typography>
+              <Typography>{formatInr(Math.max(0, pricing.totalEstimated - pricing.rentalSubtotal - pricing.refundableDeposit))}</Typography>
+            </Stack>
+            <Divider sx={{ my: 0.45 }} />
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" spacing={0.55} alignItems="center">
+                <PaymentsRoundedIcon sx={{ color: rentalUi.green, fontSize: 17 }} />
+                <Typography sx={{ fontWeight: 800 }}>Total paid</Typography>
+              </Stack>
+              <Typography sx={{ fontWeight: 800, color: rentalUi.greenDeep, fontSize: "20px !important" }}>
+                {booking.priceEstimate ?? formatInr(pricing.dueNow)}
+              </Typography>
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <GradientActionButton
+        label="Back to home"
+        onClick={() => {
+          actions.resetRentalPayment();
+          navigate("/home");
+        }}
+      />
     </Box>
   );
 }

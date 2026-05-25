@@ -19,7 +19,9 @@ import type {
   AmbulanceRequest,
   SosState,
   RideOption,
-  SharedLocationState
+  SharedLocationState,
+  RideWorkflowConfig,
+  RideSharingState
 } from "./types";
 import {
   applySettlementForDeliveryStatus,
@@ -218,7 +220,8 @@ export const SEED_SETTINGS: SettingsState = {
     quietRide: false,
     temperature: "Normal",
     luggageAssistance: true,
-    accessibilityNeeds: false
+    accessibilityNeeds: false,
+    womenDriverPreferred: false
   },
   delivery: {
     callBeforeDropoff: true,
@@ -235,10 +238,20 @@ const SEED_RIDE_REQUEST: RideRequest = {
   },
   destination: null,
   stops: [],
+  routeMode: "single_stop",
+  routePoints: [],
   passengers: 1,
   schedule: "now",
   scheduleTime: "",
   tripType: "One Way",
+  tripMode: "one_way",
+  returnToOrigin: false,
+  maxStops: 6,
+  roundTripConfig: {
+    returnDateTime: null,
+    sameDay: true,
+    returnPattern: "direct"
+  },
   rideType: "Personal",
   serviceLevel: "car-mini",
   serviceClass: "standard",
@@ -249,6 +262,7 @@ const SEED_RIDE_REQUEST: RideRequest = {
 const SEED_ACTIVE_TRIP: RideTrip = {
   id: "ride_1024",
   status: "driver_on_way",
+  routeMode: "single_stop",
   otp: "256836",
   etaMinutes: 6,
   fareEstimate: "UGX 12,500",
@@ -262,6 +276,37 @@ const SEED_ACTIVE_TRIP: RideTrip = {
     label: "Nakasero",
     address: "Nakasero Rd, Kampala"
   },
+  routePoints: [
+    {
+      label: "Bugolobi",
+      address: "Bugolobi, Kampala"
+    },
+    {
+      label: "Nakasero",
+      address: "Nakasero Rd, Kampala"
+    }
+  ],
+  tripMode: "one_way",
+  legs: [
+    {
+      id: "leg_1",
+      from: {
+        label: "Bugolobi",
+        address: "Bugolobi, Kampala"
+      },
+      to: {
+        label: "Nakasero",
+        address: "Nakasero Rd, Kampala"
+      },
+      order: 0,
+      status: "in_progress"
+    }
+  ],
+  currentLegIndex: 0,
+  totalLegs: 1,
+  remainingLegs: 1,
+  completedStopIds: [],
+  isReturnLeg: false,
   driver: {
     id: "drv_001",
     name: "Tim Smith",
@@ -287,32 +332,289 @@ const SEED_RIDE_OPTIONS: RideOption[] = [
     name: "EV Scooter",
     description: "Fast city trips",
     eta: "4 mins",
-    fare: "UGX 25,365",
-    capacity: 1
+    fare: "",
+    capacity: 1,
+    pricingModel: {
+      baseFareUGX: 13000,
+      perKmUGX: 2000,
+      minFareUGX: 14000,
+      etaBaseMin: 3,
+      etaPerKmMin: 0.2
+    }
   },
   {
     id: "car-mini",
     name: "EV Car Mini",
     description: "Compact and affordable",
     eta: "4 mins",
-    fare: "UGX 40,365",
-    capacity: 3
+    fare: "",
+    capacity: 3,
+    pricingModel: {
+      baseFareUGX: 25000,
+      perKmUGX: 2500,
+      minFareUGX: 26000,
+      etaBaseMin: 4,
+      etaPerKmMin: 0.2
+    }
   },
   {
     id: "car-comfort",
     name: "EV Comfort",
     description: "Extra legroom",
     eta: "6 mins",
-    fare: "UGX 55,900",
-    capacity: 4
+    fare: "",
+    capacity: 4,
+    pricingModel: {
+      baseFareUGX: 37000,
+      perKmUGX: 3050,
+      minFareUGX: 39000,
+      etaBaseMin: 5,
+      etaPerKmMin: 0.24
+    }
   }
 ];
+
+const SEED_RIDE_SHARING: RideSharingState = {
+  shareUrl: "https://ev.zone/r/ABC123",
+  splitFareEnabled: true,
+  invitePhone: "",
+  passengers: [
+    {
+      id: "rider_self",
+      name: "You",
+      initials: "YOU",
+      isOwner: true,
+      isMain: true,
+      joined: true,
+      dropOff: "Stanbic Bank ATM | Kajjansi",
+      fare: "15,256"
+    },
+    {
+      id: "rider_2",
+      name: "Mary",
+      initials: "M",
+      joined: true,
+      dropOff: "Stanbic Bank ATM | Kajjansi",
+      fare: "15,256"
+    },
+    {
+      id: "rider_3",
+      name: "John",
+      initials: "J",
+      joined: false,
+      dropOff: "CoRSU Rehabilitation Hospital, Kusubi",
+      fare: "5,700"
+    }
+  ]
+};
+
+export const SEED_RIDE_WORKFLOW: RideWorkflowConfig = {
+  dashboard: {
+    navigateToDetailsDelayMs: 1000,
+    recommendedRideTypes: [
+      {
+        id: "scooter-standard",
+        name: "EV Lite",
+        capacity: 1,
+        minutes: "5 min",
+        price: "UGX 48k-62k",
+        image: "/rides-ui/EV--1.png"
+      },
+      {
+        id: "comfort-standard",
+        name: "EV Comfort",
+        capacity: 3,
+        minutes: "7 min",
+        price: "UGX 78k-92k",
+        image: "/rides-ui/EV--3.png"
+      },
+      {
+        id: "xl-standard",
+        name: "EV XL",
+        capacity: 6,
+        minutes: "10 min",
+        price: "UGX 120k-150k",
+        image: "/rides-ui/EV--4.png"
+      }
+    ],
+    popularDestinations: [
+      {
+        id: "airport",
+        title: "Airport",
+        subtitle: "~ 32 min",
+        destination: "Entebbe International Airport, Uganda",
+        icon: "airport"
+      },
+      {
+        id: "work",
+        title: "Work",
+        subtitle: "~ 18 min",
+        destination: "Nakasero Business District, Kampala",
+        icon: "work"
+      },
+      {
+        id: "home",
+        title: "Home",
+        subtitle: "Saved place",
+        destination: "Kampala, Uganda",
+        icon: "home"
+      }
+    ]
+  },
+  tripSimulation: {
+    durationMs: 90_000,
+    searchingToOnWayDelaySec: 8,
+    searchingDriverProgressPerTick: 0.02,
+    searchingDriverProgressCap: 0.8,
+    autoAddStopTriggerMs: 15_000,
+    autoAddStopEnabled: true,
+    autoContinueRequestTriggerMs: 15_000,
+    autoContinueRequestEnabled: true,
+    startProgressPercent: 40,
+    fallbackStartDistanceKm: 22,
+    msPerLegMinute: 4_500,
+    driverProgressPerTick: 0.01,
+    driverProgressTickMs: 1_000,
+    addStopRetryDelayMs: 5_000,
+    continueRetryDelayMs: 10_000,
+    completionSummary: {
+      duration: "1 min 30 sec",
+      estimatedTime: "1 min 30 sec"
+    },
+    pricing: {
+      baseFareUGX: 8000,
+      distancePerKmUGX: 2600,
+      roundTripSurchargeUGX: 5000,
+      extraStopUGX: 3500
+    },
+    messages: {
+      addStopRequest: "Your driver has requested to add a temporary stop.",
+      continueTripRequest: "Your driver has requested to continue the trip."
+    },
+    mockAssignments: [
+      {
+        id: "assignment_scooter_standard",
+        serviceLevel: "scooter",
+        serviceClass: "standard",
+        driver: {
+          id: "drv_004",
+          name: "Moses Kintu",
+          phone: "+256 700 442 189",
+          rating: 4.8,
+          avatar: "MK",
+          totalRatings: 286,
+          ridesLabel: "480+",
+          experienceLabel: "5+ years"
+        },
+        vehicle: {
+          model: "EV Scooter X1",
+          color: "Matte Green",
+          plate: "UAZ 193S",
+          category: "EV Scooter"
+        }
+      },
+      {
+        id: "assignment_car_mini_standard",
+        serviceLevel: "car-mini",
+        serviceClass: "standard",
+        driver: {
+          id: "drv_005",
+          name: "Ruth Akena",
+          phone: "+256 700 551 002",
+          rating: 4.7,
+          avatar: "RA",
+          totalRatings: 412,
+          ridesLabel: "620+",
+          experienceLabel: "6+ years"
+        },
+        vehicle: {
+          model: "Nissan Leaf",
+          color: "Pearl White",
+          plate: "UBA 221L",
+          category: "EV Mini"
+        }
+      },
+      {
+        id: "assignment_car_comfort_premium",
+        serviceLevel: "car-comfort",
+        serviceClass: "premium",
+        driver: {
+          id: "drv_006",
+          name: "Harriet Namayanja",
+          phone: "+256 709 420 533",
+          rating: 4.9,
+          avatar: "HN",
+          totalRatings: 539,
+          ridesLabel: "900+",
+          experienceLabel: "7+ years"
+        },
+        vehicle: {
+          model: "Tesla Model 3",
+          color: "Midnight Silver",
+          plate: "UAX 278C",
+          category: "EV Comfort"
+        }
+      }
+    ]
+  },
+  driverArrival: {
+    fallbackOtp: "256836",
+    autoStartDelayMs: 15_000,
+    initialProgress: 0.84,
+    progressStepPerTick: 0.035,
+    progressTickMs: 1_000
+  },
+  tripCompletion: {
+    fallbackFare: "UGX 20,565",
+    fallbackDistance: "54 km",
+    fallbackDuration: "2 hr 20 mins"
+  },
+  rating: {
+    submitRedirectDelayMs: 1_400,
+    feedbackTags: [
+      { id: "driving", label: "Driving" },
+      { id: "punctuality", label: "Punctuality" },
+      { id: "vehicle", label: "Vehicle" },
+      { id: "safety", label: "Safety" },
+      { id: "courtesy", label: "Courtesy" },
+      { id: "overall", label: "Overall" }
+    ],
+    defaultDriverName: "Rahul Verma",
+    defaultVehiclePlate: "KA01 AB 1234",
+    defaultRideId: "trip_123"
+  },
+  tip: {
+    submitRedirectDelayMs: 2_000,
+    options: [
+      { id: "tip_1000", label: "UGX 1,000", value: 1000 },
+      { id: "tip_top", label: "Top Tipped", value: 1500, badge: "top_tipped" },
+      { id: "tip_2000", label: "UGX 2,000", value: 2000 }
+    ],
+    defaultRideId: "trip_123"
+  },
+  sharing: {
+    defaultShareUrl: "https://ev.zone/r/ABC123",
+    mapPreviewCenter: { lat: 0.3476, lng: 32.5825 },
+    mapPreviewPolyline: [
+      { lat: 0.338, lng: 32.56 },
+      { lat: 0.347, lng: 32.575 },
+      { lat: 0.361, lng: 32.59 }
+    ],
+    passengers: SEED_RIDE_SHARING.passengers
+  },
+  sos: {
+    contactsNotifiedDelayMs: 800,
+    supportNotifiedDelayMs: 1400
+  }
+};
 
 export const SEED_RIDE_STATE: RideState = {
   request: SEED_RIDE_REQUEST,
   activeTrip: null,
   temporaryStop: {
     status: "idle",
+    hasAutoAddStopSimulationFired: false,
+    hasAutoContinueSimulationFired: false,
     requestNote: "",
     requestId: null,
     requestedAt: null,
@@ -340,7 +642,9 @@ export const SEED_RIDE_STATE: RideState = {
       coordinates: { lat: 0.3136, lng: 32.5811 }
     }
   ],
-  options: SEED_RIDE_OPTIONS
+  options: SEED_RIDE_OPTIONS,
+  sharing: SEED_RIDE_SHARING,
+  workflow: SEED_RIDE_WORKFLOW
 };
 
 /** Delivery state */

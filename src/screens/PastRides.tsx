@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -27,10 +27,12 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import StraightenRoundedIcon from "@mui/icons-material/StraightenRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
+import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 
 import ScreenScaffold from "../components/ScreenScaffold";
 import SectionHeader from "../components/primitives/SectionHeader";
 import { uiTokens } from "../design/tokens";
+import { useAppData } from "../contexts/AppDataContext";
 
 // Mock data - would come from API: GET /user/rides?status=past
 const PAST_RIDES = [
@@ -149,11 +151,17 @@ const UPCOMING_RIDES = [
       licensePlate: "UPL 630"
     },
     date: "Tomorrow",
+    bookedAt: "Today, 05:15 PM",
+    pickupTime: "08:30 AM",
     distance: "12 km",
     fare: "UGX 20,000",
     origin: "New School, JJ Street, Kampala",
     destination: "New School, JJ Street, Kampala",
-    status: "Confirmed"
+    status: "Confirmed",
+    rideType: "XL",
+    carModel: "Tesla Model X",
+    plateColor: "White",
+    vehicleImage: "/rides-ui/hero-scooter.svg"
   },
   {
     id: "UP-2025-10-09-1",
@@ -165,11 +173,17 @@ const UPCOMING_RIDES = [
       licensePlate: "UPS 256"
     },
     date: "Thu, 09 Oct 2025",
+    bookedAt: "Wed, 08 Oct 2025 · 09:30 AM",
+    pickupTime: "10:00 AM",
     distance: "15 km",
     fare: "UGX 25,000",
     origin: "Acacia Mall, Kololo",
     destination: "Naalya Estates, Kampala",
-    status: "Awaiting driver"
+    status: "Awaiting driver",
+    rideType: "Mini",
+    carModel: "Tesla Model Y",
+    plateColor: "Silver",
+    vehicleImage: "/rides-ui/hero-car-mid.svg"
   }
 ];
 
@@ -183,11 +197,62 @@ interface UpcomingRide {
     licensePlate: string;
   };
   date: string;
+  bookedAt: string;
+  pickupTime: string;
   distance: string;
   fare: string;
   origin: string;
   destination: string;
   status: string;
+  rideType: string;
+  carModel: string;
+  plateColor: string;
+  vehicleImage: string;
+  bookedFor?: {
+    source: "self" | "contact" | "manual";
+    name?: string;
+    phone?: string;
+  } | null;
+}
+
+function formatShortDateTime(value?: string): { date: string; time: string } {
+  if (!value) {
+    return { date: "Upcoming", time: "--" };
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return { date: value, time: "--" };
+  }
+  return {
+    date: parsed.toLocaleDateString([], { weekday: "short", day: "2-digit", month: "short", year: "numeric" }),
+    time: parsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  };
+}
+
+function initials(name: string): string {
+  const parts = name
+    .split(" ")
+    .map((part) => part.trim()[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  return parts || "DR";
+}
+
+function mapRideTypeLabel(serviceLevel?: string, category?: string): string {
+  const value = `${serviceLevel || ""} ${category || ""}`.toLowerCase();
+  if (value.includes("xl")) return "XL";
+  if (value.includes("scooter") || value.includes("lite")) return "Scooter";
+  if (value.includes("mini") || value.includes("comfort") || value.includes("mid") || value.includes("sedan")) return "Mini";
+  return "Mini";
+}
+
+function mapVehicleImage(rideType: string, model?: string): string {
+  const normalized = `${rideType} ${model || ""}`.toLowerCase();
+  if (normalized.includes("xl")) return "/rides-ui/hero-car-large.svg";
+  if (normalized.includes("scooter")) return "/rides-ui/hero-scooter.svg";
+  return "/rides-ui/hero-car-mid.svg";
 }
 
 interface UpcomingRideCardProps {
@@ -301,6 +366,62 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
               </Box>
             </Box>
           </Box>
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: 11,
+              color: "#B45309",
+              fontWeight: 700,
+              display: "block",
+              mb: uiTokens.spacing.md
+            }}
+          >
+            {ride.bookedFor?.source && ride.bookedFor.source !== "self"
+              ? `For: ${ride.bookedFor.name || "Booked rider"}${ride.bookedFor.phone ? ` (${ride.bookedFor.phone})` : ""}`
+              : "For: You"}
+          </Typography>
+
+          <Card
+            elevation={0}
+            sx={{
+              borderRadius: uiTokens.radius.lg,
+              border: "1px solid",
+              borderColor: (theme) => (theme.palette.mode === "light" ? "#E5E7EB" : "#334155"),
+              bgcolor: (theme) => (theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.75)"),
+              mb: uiTokens.spacing.lg
+            }}
+          >
+            <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.md, "&:last-child": { pb: uiTokens.spacing.md } }}>
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: uiTokens.spacing.sm }}>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: "#F97316",
+                      display: "block",
+                      mb: 0.4
+                    }}
+                  >
+                    Vehicle details
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600, color: (theme) => theme.palette.text.primary }}>
+                    {ride.rideType} • {ride.carModel}
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontSize: 11, color: (theme) => theme.palette.text.secondary }}>
+                    Plate {ride.driver.licensePlate} • {ride.plateColor}
+                  </Typography>
+                </Box>
+                <Box
+                  component="img"
+                  src={ride.vehicleImage}
+                  alt={ride.rideType}
+                  sx={{ width: 82, height: 54, objectFit: "contain", borderRadius: 1.5, bgcolor: "#EEF2F7", p: 0.4 }}
+                />
+              </Box>
+            </CardContent>
+          </Card>
 
           {/* Trip Details - Origin and Destination with dotted line */}
           <Box sx={{ mb: uiTokens.spacing.lg, position: "relative", pl: uiTokens.spacing.lg }}>
@@ -374,7 +495,7 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
           <Divider sx={{ my: uiTokens.spacing.mdPlus }} />
 
           {/* Ride Summary Row */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.lg, mb: uiTokens.spacing.lg }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.lg, mb: uiTokens.spacing.md }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
               <CalendarTodayRoundedIcon
                 sx={{ fontSize: 16, color: (theme) => theme.palette.text.secondary }}
@@ -384,6 +505,17 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
                 sx={{ fontSize: 12, color: (theme) => theme.palette.text.primary }}
               >
                 {ride.date}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+              <AccessTimeRoundedIcon
+                sx={{ fontSize: 16, color: (theme) => theme.palette.text.secondary }}
+              />
+              <Typography
+                variant="caption"
+                sx={{ fontSize: 12, color: (theme) => theme.palette.text.primary }}
+              >
+                {ride.pickupTime}
               </Typography>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
@@ -409,6 +541,19 @@ function UpcomingRideCard({ ride, onCancel, onChangeDate, onClick }: UpcomingRid
               </Typography>
             </Box>
           </Box>
+
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: (theme) => theme.palette.text.secondary,
+              display: "block",
+              mb: uiTokens.spacing.lg
+            }}
+          >
+            Booked: {ride.bookedAt}
+          </Typography>
 
           {/* Action Buttons */}
           <Stack direction="row" spacing={uiTokens.spacing.sm}>
@@ -525,6 +670,11 @@ interface PastRide {
   distance: string;
   fare: string;
   bookedAt: string;
+  bookedFor?: {
+    source: "self" | "contact" | "manual";
+    name?: string;
+    phone?: string;
+  } | null;
   sharedPassengers: Array<{
     name: string;
     initials: string;
@@ -805,10 +955,24 @@ function RideHistoryCard({ ride, onClick, onSharedPassengersClick }: RideHistory
             fontSize: 11,
             color: (theme) => theme.palette.text.secondary,
             display: "block",
-            mb: ride.sharedPassengers && ride.sharedPassengers.length > 0 ? 1.5 : 0
+            mb: 0.5
           }}
         >
           Booked {ride.bookedAt}
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{
+            fontSize: 11,
+            color: "#B45309",
+            fontWeight: 700,
+            display: "block",
+            mb: ride.sharedPassengers && ride.sharedPassengers.length > 0 ? 1.5 : 0
+          }}
+        >
+          {ride.bookedFor?.source && ride.bookedFor.source !== "self"
+            ? `For: ${ride.bookedFor.name || "Booked rider"}${ride.bookedFor.phone ? ` (${ride.bookedFor.phone})` : ""}`
+            : "For: You"}
         </Typography>
 
         {/* Shared Passengers Section (if applicable) */}
@@ -885,6 +1049,7 @@ function RideHistoryCard({ ride, onClick, onSharedPassengersClick }: RideHistory
 
 function RideHistoryPastTripsScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { ride, sharedLocationState } = useAppData();
   const [tab, setTab] = useState("upcoming"); // Default to Upcoming tab
   const [pastRides, setPastRides] = useState<PastRide[]>([]);
   const [upcomingRides, setUpcomingRides] = useState<UpcomingRide[]>([]);
@@ -906,6 +1071,102 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
     }>;
   } | null>(null);
 
+  const dynamicPastRides = useMemo<PastRide[]>(() => {
+    return ride.history
+      .filter((trip) => trip.status === "completed" || trip.status === "cancelled")
+      .map((trip) => {
+        const when = formatShortDateTime(trip.completedAt || trip.startedAt);
+        const status = trip.status === "completed" ? "Completed" : "Cancelled";
+        return {
+          id: trip.id,
+          driver: {
+            name: trip.driver?.name || "Driver",
+            photo: initials(trip.driver?.name || "Driver"),
+            rating: trip.driver?.rating || 4.5,
+            carModel: trip.vehicle?.model || "EV",
+            licensePlate: trip.vehicle?.plate || "--"
+          },
+          status,
+          pickup: {
+            location: trip.pickup?.address || trip.pickup?.label || "Pickup",
+            timestamp: formatShortDateTime(trip.startedAt).time
+          },
+          dropoff: {
+            location: trip.dropoff?.address || trip.dropoff?.label || "Destination",
+            timestamp: formatShortDateTime(trip.completedAt || trip.startedAt).time
+          },
+          date: when.date,
+          distance: trip.distance || "0 km",
+          fare: trip.fareEstimate || "UGX 0",
+          bookedAt: when.time,
+          bookedFor: trip.bookedFor ?? null,
+          sharedPassengers: []
+        };
+      });
+  }, [ride.history]);
+
+  const dynamicUpcomingRides = useMemo<UpcomingRide[]>(() => {
+    const origin = ride.request.origin?.address || ride.request.origin?.label;
+    const destination = ride.request.destination?.address || ride.request.destination?.label;
+    if (!origin || !destination) {
+      return [];
+    }
+    const routeDistance =
+      typeof sharedLocationState.routeDistanceKm === "number"
+        ? `${Math.max(1, Math.round(sharedLocationState.routeDistanceKm))} km`
+        : "--";
+    const scheduleInfo =
+      ride.request.schedule === "later"
+        ? formatShortDateTime(ride.request.scheduleTime)
+        : { date: "Today", time: "Now" };
+    const rideType = mapRideTypeLabel(ride.request.serviceLevel, ride.activeTrip?.vehicle?.category);
+    return [
+      {
+        id: `request-${ride.request.scheduleTime || "now"}`,
+        driver: {
+          name: ride.activeTrip?.driver?.name || "Pending driver",
+          photo: initials(ride.activeTrip?.driver?.name || "Pending driver"),
+          rating: ride.activeTrip?.driver?.rating || 4.0,
+          carModel: ride.activeTrip?.vehicle?.model || "EV",
+          licensePlate: ride.activeTrip?.vehicle?.plate || "--"
+        },
+        date: scheduleInfo.date,
+        bookedAt:
+          ride.request.schedule === "later"
+            ? `Scheduled ${scheduleInfo.date} · ${scheduleInfo.time}`
+            : `Booked ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
+        pickupTime: scheduleInfo.time,
+        distance: routeDistance,
+        fare: ride.activeTrip?.fareEstimate || ride.options[0]?.fare || "UGX --",
+        origin,
+        destination,
+        status: ride.request.schedule === "later" ? "Confirmed" : "Awaiting driver",
+        rideType,
+        carModel: ride.activeTrip?.vehicle?.model || "EV",
+        plateColor: ride.activeTrip?.vehicle?.color || "White",
+        vehicleImage: mapVehicleImage(rideType, ride.activeTrip?.vehicle?.model),
+        bookedFor: ride.request.bookedFor ?? null
+      }
+    ];
+  }, [
+    ride.activeTrip?.driver?.name,
+    ride.activeTrip?.driver?.rating,
+    ride.activeTrip?.fareEstimate,
+    ride.activeTrip?.vehicle?.model,
+    ride.activeTrip?.vehicle?.color,
+    ride.activeTrip?.vehicle?.category,
+    ride.activeTrip?.vehicle?.plate,
+    ride.options,
+    ride.request.destination?.address,
+    ride.request.destination?.label,
+    ride.request.origin?.address,
+    ride.request.origin?.label,
+    ride.request.schedule,
+    ride.request.scheduleTime,
+    ride.request.bookedFor,
+    sharedLocationState.routeDistanceKm
+  ]);
+
   // Fetch rides from API based on selected tab
   useEffect(() => {
     const fetchRides = async () => {
@@ -917,14 +1178,14 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
           // const response = await fetch('/api/user/rides?status=past');
           // const data = await response.json();
           // setPastRides(data);
-          setPastRides(PAST_RIDES);
+          setPastRides(dynamicPastRides.length > 0 ? dynamicPastRides : PAST_RIDES);
         } else if (tab === "upcoming") {
           // API endpoint: GET /user/rides?status=upcoming
           // In production:
           // const response = await fetch('/api/user/rides?status=upcoming');
           // const data = await response.json();
           // setUpcomingRides(data);
-          setUpcomingRides(UPCOMING_RIDES);
+          setUpcomingRides(dynamicUpcomingRides.length > 0 ? dynamicUpcomingRides : UPCOMING_RIDES);
         }
       } catch (error) {
         console.error("Error fetching rides:", error);
@@ -934,16 +1195,21 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
     };
 
     fetchRides();
-  }, [tab]);
+  }, [tab, dynamicPastRides, dynamicUpcomingRides]);
 
   const handleTabChange = (_e: React.SyntheticEvent, newValue: string): void => {
     setTab(newValue);
     // No navigation - just switch tabs on the same screen
   };
 
-  const handleRideClick = (rideId: string): void => {
+  const handleRideClick = (rideId: string, source: "upcoming" | "past", rideData: UpcomingRide | PastRide): void => {
     // Navigate to Ride Details Screen
-    navigate(`/rides/history/${rideId}`);
+    navigate(`/rides/history/${rideId}`, {
+      state: {
+        historyType: source,
+        rideData
+      }
+    });
   };
 
   const handleCancelRide = async (rideId: string): Promise<void> => {
@@ -1056,7 +1322,7 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
                 <RideHistoryCard
                   key={ride.id}
                   ride={ride}
-                  onClick={() => handleRideClick(ride.id)}
+                  onClick={() => handleRideClick(ride.id, "past", ride)}
                   onSharedPassengersClick={(passengerData) => {
                     setSelectedRideForPassengers(passengerData);
                     setSharedPassengersModalOpen(true);
@@ -1085,7 +1351,7 @@ function RideHistoryPastTripsScreen(): React.JSX.Element {
                   ride={ride}
                   onCancel={handleCancelRide}
                   onChangeDate={handleChangeDate}
-                  onClick={() => handleRideClick(ride.id)}
+                  onClick={() => handleRideClick(ride.id, "upcoming", ride)}
                 />
               ))
             )}

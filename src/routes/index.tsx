@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 import { Box, CircularProgress } from "@mui/material";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { useAuth } from "../contexts/AuthContext";
@@ -24,7 +24,6 @@ import RoundTripDetails from "../screens/RoundTripDetails";
 import QuickPreferences from "../screens/QuickPreferences";
 import SetupPreferences from "../screens/SetupPreferences";
 import DriverPreferences from "../screens/DriverPreferences";
-import RideOptions from "../screens/RideOptions";
 import Payment from "../screens/Payment";
 import PaymentGatewayFlow, { PaymentSuccessScreen } from "../screens/PaymentGatewayFlow";
 import SearchingDriver from "../screens/SearchingDriver";
@@ -110,10 +109,13 @@ import AmbulanceConfirmation from "../screens/AmbulanceConfirmation";
 import AmbulanceTracking from "../screens/AmbulanceTracking";
 import AmbulanceHistory from "../screens/AmbulanceHistory";
 import AmbulanceHistoryDetail from "../screens/AmbulanceHistoryDetail";
+import AmbulanceGeneralDetails from "../screens/AmbulanceGeneralDetails";
+import AmbulanceReceipt from "../screens/AmbulanceReceipt";
 import AmbulancePaymentWallet from "../screens/AmbulancePaymentWallet";
 import AmbulancePaymentCard from "../screens/AmbulancePaymentCard";
 import AmbulancePaymentMobileMoney from "../screens/AmbulancePaymentMobileMoney";
 import Wallet from "../screens/Wallet";
+import WalletTransactionDetail from "../screens/WalletTransactionDetail";
 import {
   WalletTransferMethodScreen,
   WalletTransferSelectionScreen,
@@ -131,8 +133,9 @@ import SchoolFees from "../screens/SchoolFees";
 import SchoolHandoff from "../screens/SchoolHandoff";
 
 export default function AppRouter(): React.JSX.Element {
-	return (
-		<Routes>
+  const location = useLocation();
+		return (
+			<Routes location={location} key={`${location.pathname}${location.search}`}>
 			{/* ── Landing ───────────────────────────────────────── */}
 			<Route path="/" element={<AuthAwareRedirect />} />
 
@@ -204,7 +207,7 @@ export default function AppRouter(): React.JSX.Element {
 						path="preferences/driver"
 						element={<DriverPreferences />}
 					/>
-					<Route path="options" element={<RideOptions />} />
+					<Route path="options" element={<Navigate to="/rides/enter/details" replace />} />
 					<Route path="payment" element={<Payment />} />
 					<Route path="payment/gateway/:gatewayId" element={<PaymentGatewayFlow />} />
 					<Route path="payment/success" element={<PaymentSuccessScreen />} />
@@ -315,9 +318,12 @@ export default function AppRouter(): React.JSX.Element {
 					<Route path="tracking" element={<AmbulanceTracking />} />
 					<Route path="history" element={<AmbulanceHistory />} />
 					<Route path="history/:requestId" element={<AmbulanceHistoryDetail />} />
+					<Route path="history/:requestId/general" element={<AmbulanceGeneralDetails />} />
+					<Route path="history/:requestId/receipt" element={<AmbulanceReceipt />} />
 				</Route>
 				{/* Wallet, Profile, More, Settings */}
 				<Route path="wallet" element={<Wallet />} />
+				<Route path="wallet/transactions/:transactionId" element={<WalletTransactionDetail />} />
 				<Route path="wallet/:flowType" element={<WalletTransferSelectionScreen />} />
 				<Route path="wallet/:flowType/:method" element={<WalletTransferMethodScreen />} />
 				<Route path="wallet/:flowType/:method/success" element={<WalletTransferSuccessScreen />} />
@@ -370,7 +376,7 @@ function AuthAwareRedirect(): React.JSX.Element {
  					display: "flex",
  					alignItems: "center",
  					justifyContent: "center",
- 					height: "100dvh",
+						height: "100vh",
  					bgcolor: (t) => t.palette.background.default
  				}}
  			>

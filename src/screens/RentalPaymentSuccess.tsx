@@ -28,6 +28,7 @@ import {
   screenShellSx
 } from "../components/rental/RentalRedesignUI";
 import { RENTAL_UI_ASSETS } from "../features/rental/uiAssets";
+import { formatRentalDateTime } from "../features/rental/booking";
 
 export default function RentalPaymentSuccess(): React.JSX.Element {
   const navigate = useNavigate();
@@ -47,6 +48,8 @@ export default function RentalPaymentSuccess(): React.JSX.Element {
   }
 
   const vehicleName = transaction.vehicleName.includes("Kona") ? "Family SUV" : transaction.vehicleName;
+  const pickupDateDisplay = formatRentalDateTime(transaction.startDate ?? booking.startDate);
+  const pickupBranchDisplay = transaction.pickupBranch ?? booking.pickupBranch ?? "Nsambya EV Hub, Uganda";
 
   return (
     <Box sx={screenShellSx}>
@@ -71,15 +74,16 @@ export default function RentalPaymentSuccess(): React.JSX.Element {
       <CroppedReferenceImage
         src={RENTAL_UI_ASSETS.banners.successHero}
         alt="Rental success"
-        height={300}
+        height={{ xs: 214, sm: 300 }}
+        fit="contain"
         scale={1}
-        sx={{ mb: 1.3 }}
+        sx={{ mb: 1.6, bgcolor: "transparent" }}
       />
 
-      <Typography sx={{ textAlign: "center", fontSize: 72/2, fontWeight: 900, lineHeight: 1.05, mb: 0.5 }}>
+      <Typography sx={{ textAlign: "center", fontSize: "64px !important", fontWeight: 900, lineHeight: 1.02, mb: 0.65 }}>
         <Box component="span" sx={{ color: rentalUi.greenDeep }}>Payment</Box> successful
       </Typography>
-      <Typography sx={{ textAlign: "center", color: rentalUi.muted, fontSize: 22/1.2, mb: 1.55 }}>
+      <Typography sx={{ textAlign: "center", color: rentalUi.muted, fontSize: "16px !important", mb: 1.95, lineHeight: 1.45 }}>
         Your rental is confirmed and all set to go.
         <br />
         We’ve sent the details to your email.
@@ -109,7 +113,7 @@ export default function RentalPaymentSuccess(): React.JSX.Element {
                 <CalendarMonthRoundedIcon sx={{ color: rentalUi.green }} />
                 <Typography sx={{ color: rentalUi.muted }}>Pickup date & time</Typography>
               </Stack>
-              <Typography sx={{ fontWeight: 700 }}>{transaction.startDate ?? "24 May 2025, 09:00 AM"}</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{pickupDateDisplay}</Typography>
             </Stack>
             <Divider />
             <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -117,7 +121,7 @@ export default function RentalPaymentSuccess(): React.JSX.Element {
                 <LocationOnRoundedIcon sx={{ color: rentalUi.green }} />
                 <Typography sx={{ color: rentalUi.muted }}>Pickup branch</Typography>
               </Stack>
-              <Typography sx={{ fontWeight: 700 }}>{transaction.pickupBranch ?? "EVzone Koramangala"}</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{pickupBranchDisplay}</Typography>
             </Stack>
             <Divider />
             <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -183,10 +187,25 @@ export default function RentalPaymentSuccess(): React.JSX.Element {
         component="button"
         type="button"
         onClick={() => {
-          actions.resetRentalPayment();
-          navigate("/rental/history");
+          navigate("/history/all?type=rental");
         }}
-        sx={{ border: 0, bgcolor: "transparent", color: rentalUi.greenDeep, fontWeight: 700, fontSize: 20, mx: "auto", display: "block", cursor: "pointer" }}
+        sx={{
+          border: 0,
+          bgcolor: "transparent",
+          color: rentalUi.greenDeep,
+          fontWeight: 700,
+          fontSize: 20,
+          mx: "auto",
+          display: "block",
+          cursor: "pointer",
+          transition: "color 160ms ease, text-decoration-color 160ms ease",
+          textDecoration: "underline",
+          textDecorationColor: "transparent",
+          "&:hover": {
+            color: rentalUi.green,
+            textDecorationColor: rentalUi.green
+          }
+        }}
       >
         Rental history
       </Typography>

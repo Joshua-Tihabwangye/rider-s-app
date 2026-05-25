@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Chip,
@@ -32,15 +32,58 @@ import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import { getPointAtProgress, normalizeRoute } from "../utils/mapRoutes";
 
-const TRIP_SIMULATION_DURATION_MS = 90_000;
-const AUTO_ADD_STOP_TRIGGER_MS = 15_000;
-const AUTO_CONTINUE_REQUEST_TRIGGER_MS = 15_000;
-const START_PROGRESS_PERCENT = 40;
-const START_DISTANCE_KM = 22;
+function normalizeLegDuration(etaMinutes?: number): number {
+  return Math.max(3, Math.round(etaMinutes ?? 6));
+}
+
+function areLegsEquivalent(
+  current:
+    | Array<{ id: string; status: string; startedAt?: string; completedAt?: string }>
+    | undefined,
+  next:
+    | Array<{ id: string; status: string; startedAt?: string; completedAt?: string }>
+    | undefined
+): boolean {
+  if (!current && !next) return true;
+  if (!current || !next) return false;
+  if (current.length !== next.length) return false;
+  return current.every((leg, index) => {
+    const target = next[index];
+    return (
+      leg.id === target.id &&
+      leg.status === target.status &&
+      leg.startedAt === target.startedAt &&
+      leg.completedAt === target.completedAt
+    );
+  });
+}
 
 function parseDistanceKm(value?: string): number {
   const parsed = Number.parseFloat((value ?? "").replace(/[^\d.]/g, ""));
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function parseCurrencyAmount(value?: string): number {
+  const parsed = Number.parseFloat((value ?? "").replace(/[^\d.]/g, ""));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatCurrencyUGX(amount: number): string {
+  return `UGX ${Math.max(0, Math.round(amount)).toLocaleString()}`;
+}
+
+function formatDistanceLabel(distanceKm?: number | null): string {
+  if (!distanceKm || !Number.isFinite(distanceKm) || distanceKm <= 0) return "—";
+  if (distanceKm >= 100) return `${Math.round(distanceKm)} km`;
+  if (distanceKm >= 10) return `${distanceKm.toFixed(1)} km`;
+  return `${distanceKm.toFixed(2)} km`;
+}
+
+function formatDurationLabel(durationMin?: number | null): string {
+  if (!durationMin || !Number.isFinite(durationMin) || durationMin <= 0) return "—";
+  const rounded = Math.max(1, Math.round(durationMin));
+  if (rounded < 60) return `${rounded} mins`;
+  return `${Math.floor(rounded / 60)} hr ${rounded % 60} mins`;
 }
 
 function formatElapsedDuration(ms: number): string {
@@ -60,33 +103,144 @@ function formatRemainingDuration(ms: number): string {
 
 function TripInProgressBasicScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
   const { ride, sharedLocationState, actions } = useAppData();
   const {
     markTemporaryStopContinuePromptShown,
     resumeTripAfterTemporaryStop,
+    setActiveTrip,
     setRideStatus,
     simulateDriverAddStopRequest,
     updateRideTrip,
     updateSharedLocationState
   } = actions;
   const activeTrip = ride.activeTrip;
+  const isFromDriverVerification = Boolean(
+    (location.state as { fromDriverVerification?: boolean } | null)?.fromDriverVerification
+  );
   const temporaryStop = ride.temporaryStop;
   const safetyCheck = ride.safetyCheck;
   const isSafetyCheckPending = safetyCheck?.status === "safety_check_pending";
   const [clockNowMs, setClockNowMs] = useState(() => Date.now());
   const [showContinueTripDialog, setShowContinueTripDialog] = useState(false);
-  const [hasAutoSimulatedStopRequest, setHasAutoSimulatedStopRequest] = useState(false);
   const [driverProgress, setDriverProgress] = useState(0);
+  const hasHandledReloadResetRef = useRef(false);
+  const isTripCompletedRef = useRef(false);
+  const continueRequestRetryTimerRef = useRef<number | null>(null);
+  const addStopRequestRetryTimerRef = useRef<number | null>(null);
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const isTripPaused =
     temporaryStop?.status === "paused_at_stop";
   const isAddStopRequested =
     temporaryStop?.status === "add_stop_requested";
+  const isTripCompleted =
+    activeTrip?.status === "completed" || ride.status === "completed";
+  const tripWorkflow = ride.workflow.tripSimulation;
   const totalDistance =
     sharedLocationState.routeDistanceKm ??
     parseDistanceKm(activeTrip?.distance) ??
-    START_DISTANCE_KM;
-  const totalFareDisplay = activeTrip?.fareEstimate || "UGX 0";
+    tripWorkflow.fallbackStartDistanceKm;
+  const estimatedFareAmount = useMemo(() => {
+    const currentFareAmount = parseCurrencyAmount(activeTrip?.fareEstimate);
+    if (currentFareAmount > 0) {
+      return currentFareAmount;
+    }
+
+    const baseFare = tripWorkflow.pricing.baseFareUGX;
+    const distanceComponent = Math.max(0, totalDistance) * tripWorkflow.pricing.distancePerKmUGX;
+    const roundTripSurcharge =
+      activeTrip?.tripMode === "round_trip" ? tripWorkflow.pricing.roundTripSurchargeUGX : 0;
+    const extraStopCount = Math.max(0, (activeTrip?.routePoints?.length ?? 0) - 2);
+    const stopSurcharge = extraStopCount * tripWorkflow.pricing.extraStopUGX;
+    return baseFare + distanceComponent + roundTripSurcharge + stopSurcharge;
+  }, [
+    activeTrip?.fareEstimate,
+    activeTrip?.routePoints?.length,
+    activeTrip?.tripMode,
+    totalDistance,
+    tripWorkflow.pricing.baseFareUGX,
+    tripWorkflow.pricing.distancePerKmUGX,
+    tripWorkflow.pricing.roundTripSurchargeUGX,
+    tripWorkflow.pricing.extraStopUGX
+  ]);
+  const totalFareDisplay = formatCurrencyUGX(estimatedFareAmount);
+  const routeDistanceLabel = formatDistanceLabel(sharedLocationState.routeDistanceKm ?? totalDistance);
+  const routeDurationLabel = formatDurationLabel(
+    sharedLocationState.routeDurationMin ?? activeTrip?.etaMinutes ?? null
+  );
+
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === "undefined") {
+      return;
+    }
+    if (hasHandledReloadResetRef.current) {
+      return;
+    }
+    // Preserve active trip state when we have an actual trip context,
+    // especially when entering from Driver Arrived -> Start trip.
+    if (
+      isFromDriverVerification ||
+      Boolean(activeTrip?.startedAt) ||
+      activeTrip?.status === "in_progress" ||
+      activeTrip?.status === "ongoing"
+    ) {
+      return;
+    }
+    const navigationEntries = window.performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
+    const isReloadNavigation =
+      navigationEntries[0]?.type === "reload" ||
+      ((window.performance as Performance & { navigation?: { type?: number } }).navigation?.type === 1);
+    if (!isReloadNavigation) {
+      return;
+    }
+    hasHandledReloadResetRef.current = true;
+
+    setActiveTrip(null);
+    updateSharedLocationState({
+      driverLocation: null,
+      routePolyline: [],
+      routeAlternativePolylines: [],
+      routeDistanceKm: null,
+      routeDurationMin: null
+    });
+    setRideStatus("idle");
+    navigate("/rides/enter/details", { replace: true, state: { resetFromRefresh: true } });
+  }, [
+    activeTrip?.startedAt,
+    activeTrip?.status,
+    isFromDriverVerification,
+    navigate,
+    setActiveTrip,
+    setRideStatus,
+    updateSharedLocationState
+  ]);
+  const tripLegs = activeTrip?.legs ?? [];
+  const legDurationWeight = useMemo(
+    () => tripLegs.reduce((sum, leg) => sum + normalizeLegDuration(leg.etaMinutes), 0),
+    [tripLegs]
+  );
+  const tripSimulationDurationMs = useMemo(() => {
+    if (tripLegs.length === 0) return tripWorkflow.durationMs;
+    const dynamicDuration = legDurationWeight * tripWorkflow.msPerLegMinute;
+    return Math.max(tripWorkflow.durationMs, dynamicDuration);
+  }, [legDurationWeight, tripLegs.length, tripWorkflow.durationMs, tripWorkflow.msPerLegMinute]);
+  const compactRouteLabel = useMemo(() => {
+    const distance = sharedLocationState.routeDistanceKm;
+    const duration = sharedLocationState.routeDurationMin;
+    if (!distance || !duration) return null;
+    const distanceLabel =
+      distance >= 100
+        ? `${Math.round(distance)} km`
+        : distance >= 10
+          ? `${distance.toFixed(1)} km`
+          : `${distance.toFixed(2)} km`;
+    const durationLabel =
+      duration < 60
+        ? `${Math.max(1, Math.round(duration))} min`
+        : `${Math.floor(duration / 60)} hr ${Math.round(duration % 60)} min`;
+    return `${distanceLabel} • ${durationLabel}`;
+  }, [sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
+  const companyOrange = "#F79009";
 
   // Calculate driver location along the route
   const driverLocation = React.useMemo(() => {
@@ -99,7 +253,10 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   }, [driverProgress, routePolyline, sharedLocationState.destinationCoords, sharedLocationState.pickupCoords]);
 
   useEffect(() => {
-    if (!activeTrip?.startedAt) {
+    if (!activeTrip) {
+      return;
+    }
+    if (!activeTrip.startedAt) {
       updateRideTrip({ startedAt: new Date().toISOString() });
       return;
     }
@@ -115,11 +272,10 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     if (isTripPaused) return undefined;
     const interval = window.setInterval(() => {
       setClockNowMs(Date.now());
-      // Simulate driver movement along route (1% progress per second)
-      setDriverProgress((prev) => Math.min(prev + 0.01, 1.0));
-    }, 1000);
+      setDriverProgress((prev) => Math.min(prev + tripWorkflow.driverProgressPerTick, 1.0));
+    }, tripWorkflow.driverProgressTickMs);
     return () => window.clearInterval(interval);
-  }, [isTripPaused]);
+  }, [isTripPaused, tripWorkflow.driverProgressPerTick, tripWorkflow.driverProgressTickMs]);
 
   useEffect(() => {
     const nextDriver = driverLocation;
@@ -154,8 +310,19 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   ]);
 
   useEffect(() => {
-    setHasAutoSimulatedStopRequest(false);
-  }, [activeTrip?.id]);
+    isTripCompletedRef.current = isTripCompleted;
+    if (!isTripCompleted) return;
+
+    setShowContinueTripDialog(false);
+    if (continueRequestRetryTimerRef.current !== null) {
+      window.clearTimeout(continueRequestRetryTimerRef.current);
+      continueRequestRetryTimerRef.current = null;
+    }
+    if (addStopRequestRetryTimerRef.current !== null) {
+      window.clearTimeout(addStopRequestRetryTimerRef.current);
+      addStopRequestRetryTimerRef.current = null;
+    }
+  }, [isTripCompleted]);
 
   useEffect(() => {
     setClockNowMs(Date.now());
@@ -179,31 +346,186 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   }, [clockNowMs, isTripPaused, temporaryStop?.pauseStartedAt, temporaryStop?.totalPausedDurationMs, tripStartMs]);
 
   const tripElapsedLabel = formatElapsedDuration(tripElapsedMs);
-  const simProgressRatio = Math.min(1, tripElapsedMs / TRIP_SIMULATION_DURATION_MS);
-  const progress = START_PROGRESS_PERCENT + simProgressRatio * (100 - START_PROGRESS_PERCENT);
-  const distanceCovered = START_DISTANCE_KM + simProgressRatio * (totalDistance - START_DISTANCE_KM);
-  const remainingSimulationMs = Math.max(0, TRIP_SIMULATION_DURATION_MS - tripElapsedMs);
+  const simProgressRatio = Math.min(1, tripElapsedMs / tripSimulationDurationMs);
+  const legProgress = useMemo(() => {
+    if (tripLegs.length === 0) {
+      return {
+        activeLegIndex: 0,
+        activeLegRatio: simProgressRatio,
+        completedLegCount: simProgressRatio >= 1 ? 1 : 0
+      };
+    }
+    const targetWeight = legDurationWeight * simProgressRatio;
+    let cumulativeWeight = 0;
+    let completedLegCount = 0;
+    let activeLegIndex = tripLegs.length - 1;
+    let activeLegRatio = simProgressRatio >= 1 ? 1 : 0;
+
+    for (let index = 0; index < tripLegs.length; index += 1) {
+      const legWeight = normalizeLegDuration(tripLegs[index]?.etaMinutes);
+      const legStartWeight = cumulativeWeight;
+      const legEndWeight = cumulativeWeight + legWeight;
+      if (targetWeight >= legEndWeight) {
+        completedLegCount += 1;
+        cumulativeWeight = legEndWeight;
+        activeLegIndex = Math.min(index + 1, tripLegs.length - 1);
+        activeLegRatio = 0;
+        continue;
+      }
+      activeLegIndex = index;
+      activeLegRatio = Math.max(0, Math.min(1, (targetWeight - legStartWeight) / legWeight));
+      break;
+    }
+
+    if (simProgressRatio >= 1) {
+      completedLegCount = tripLegs.length;
+      activeLegIndex = Math.max(0, tripLegs.length - 1);
+      activeLegRatio = 1;
+    }
+
+    return {
+      activeLegIndex,
+      activeLegRatio,
+      completedLegCount
+    };
+  }, [legDurationWeight, simProgressRatio, tripLegs]);
+  const progress = tripWorkflow.startProgressPercent + simProgressRatio * (100 - tripWorkflow.startProgressPercent);
+  const distanceCovered = useMemo(() => {
+    if (tripLegs.length === 0) {
+      return (
+        tripWorkflow.fallbackStartDistanceKm +
+        simProgressRatio * (totalDistance - tripWorkflow.fallbackStartDistanceKm)
+      );
+    }
+    const completedDistance = tripLegs.reduce((sum, leg, index) => {
+      if (index < legProgress.completedLegCount) {
+        return sum + (leg.distanceKm ?? 0);
+      }
+      return sum;
+    }, 0);
+    const activeDistance = tripLegs[legProgress.activeLegIndex]?.distanceKm ?? 0;
+    return completedDistance + activeDistance * legProgress.activeLegRatio;
+  }, [
+    legProgress.activeLegIndex,
+    legProgress.activeLegRatio,
+    legProgress.completedLegCount,
+    simProgressRatio,
+    totalDistance,
+    tripLegs,
+    tripWorkflow.fallbackStartDistanceKm
+  ]);
+  const remainingSimulationMs = Math.max(0, tripSimulationDurationMs - tripElapsedMs);
   const remainingSimulationLabel = formatRemainingDuration(remainingSimulationMs);
+  const activeLeg = tripLegs[legProgress.activeLegIndex];
 
   useEffect(() => {
     if (!activeTrip?.id) return;
-    if (hasAutoSimulatedStopRequest) return;
+    if (isTripCompleted) return;
+    if (!tripWorkflow.autoAddStopEnabled) return;
+    if (temporaryStop?.hasAutoAddStopSimulationFired) return;
     if (temporaryStop?.status !== "idle") return;
-    if (tripElapsedMs < AUTO_ADD_STOP_TRIGGER_MS) return;
-    simulateDriverAddStopRequest("Your driver has requested to add a temporary stop.");
-    setHasAutoSimulatedStopRequest(true);
+    if (tripElapsedMs < tripWorkflow.autoAddStopTriggerMs) return;
+    simulateDriverAddStopRequest(tripWorkflow.messages.addStopRequest);
   }, [
     activeTrip?.id,
-    hasAutoSimulatedStopRequest,
+    isTripCompleted,
     simulateDriverAddStopRequest,
+    temporaryStop?.hasAutoAddStopSimulationFired,
     temporaryStop?.status,
-    tripElapsedMs
+    tripElapsedMs,
+    tripWorkflow.autoAddStopEnabled,
+    tripWorkflow.autoAddStopTriggerMs,
+    tripWorkflow.messages.addStopRequest
+  ]);
+
+  useEffect(() => {
+    if (!activeTrip?.id || tripLegs.length === 0) return;
+    const nowIso = new Date().toISOString();
+    const allCompleted = simProgressRatio >= 1;
+    const nextLegs = tripLegs.map((leg, index) => {
+      if (allCompleted || index < legProgress.completedLegCount) {
+        return {
+          ...leg,
+          status: "completed" as const,
+          startedAt: leg.startedAt ?? nowIso,
+          completedAt: leg.completedAt ?? nowIso
+        };
+      }
+      if (index === legProgress.activeLegIndex) {
+        return {
+          ...leg,
+          status: "in_progress" as const,
+          startedAt: leg.startedAt ?? nowIso,
+          completedAt: undefined
+        };
+      }
+      return {
+        ...leg,
+        status: "pending" as const,
+        completedAt: undefined
+      };
+    });
+    const nextCurrentLegIndex = allCompleted
+      ? Math.max(0, tripLegs.length - 1)
+      : legProgress.activeLegIndex;
+    const nextRemainingLegs = allCompleted
+      ? 0
+      : Math.max(1, tripLegs.length - legProgress.completedLegCount);
+    const currentLeg = nextLegs[nextCurrentLegIndex];
+    const currentRouteSummary =
+      currentLeg && !allCompleted
+        ? `${currentLeg.from.label || currentLeg.from.address} → ${currentLeg.to.label || currentLeg.to.address} (${nextCurrentLegIndex + 1}/${tripLegs.length})`
+        : activeTrip.routeSummary;
+
+    const didLegsChange = !areLegsEquivalent(
+      activeTrip.legs?.map((leg) => ({
+        id: leg.id,
+        status: leg.status,
+        startedAt: leg.startedAt,
+        completedAt: leg.completedAt
+      })),
+      nextLegs.map((leg) => ({
+        id: leg.id,
+        status: leg.status,
+        startedAt: leg.startedAt,
+        completedAt: leg.completedAt
+      }))
+    );
+
+    if (
+      !didLegsChange &&
+      activeTrip.currentLegIndex === nextCurrentLegIndex &&
+      activeTrip.remainingLegs === nextRemainingLegs &&
+      activeTrip.isReturnLeg === Boolean(currentLeg?.isReturnLeg)
+    ) {
+      return;
+    }
+
+    updateRideTrip({
+      legs: nextLegs,
+      currentLegIndex: nextCurrentLegIndex,
+      remainingLegs: nextRemainingLegs,
+      isReturnLeg: Boolean(currentLeg?.isReturnLeg),
+      routeSummary: currentRouteSummary
+    });
+  }, [
+    activeTrip?.currentLegIndex,
+    activeTrip?.id,
+    activeTrip?.isReturnLeg,
+    activeTrip?.legs,
+    activeTrip?.remainingLegs,
+    activeTrip?.routeSummary,
+    legProgress.activeLegIndex,
+    legProgress.completedLegCount,
+    simProgressRatio,
+    tripLegs,
+    updateRideTrip
   ]);
 
   useEffect(() => {
     if (!activeTrip?.id) return;
     if (isTripPaused || isAddStopRequested) return;
-    if (tripElapsedMs < TRIP_SIMULATION_DURATION_MS) return;
+    if (tripElapsedMs < tripSimulationDurationMs) return;
     updateRideTrip({
       status: "completed",
       completedAt: new Date().toISOString()
@@ -212,26 +534,35 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     navigate("/rides/trip/completed", {
       replace: true,
       state: {
-        duration: "1 min 30 sec",
-        estimatedTime: "1 min 30 sec",
+        duration: routeDurationLabel,
+        estimatedTime: routeDurationLabel,
         totalFare: totalFareDisplay,
         fare: totalFareDisplay,
-        distance: `${totalDistance} km`
+        distance: routeDistanceLabel,
+        stops: activeTrip?.routePoints ?? []
       }
     });
   }, [
     activeTrip?.id,
+    activeTrip?.routePoints,
     isAddStopRequested,
     isTripPaused,
     navigate,
     setRideStatus,
     totalDistance,
     totalFareDisplay,
+    routeDistanceLabel,
+    routeDurationLabel,
     tripElapsedMs,
+    tripSimulationDurationMs,
     updateRideTrip
   ]);
 
   useEffect(() => {
+    if (isTripCompleted) {
+      setShowContinueTripDialog(false);
+      return undefined;
+    }
     if (!isTripPaused) {
       setShowContinueTripDialog(false);
       return undefined;
@@ -249,6 +580,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
     return () => window.clearTimeout(timeoutId);
   }, [
+    isTripCompleted,
     isTripPaused,
     markTemporaryStopContinuePromptShown,
     temporaryStop?.continuePromptDueAt,
@@ -256,10 +588,13 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   ]);
 
   useEffect(() => {
+    if (isTripCompleted) return undefined;
+    if (!tripWorkflow.autoContinueRequestEnabled) return undefined;
     if (!isTripPaused) return undefined;
     if (temporaryStop?.continuePromptDueAt || temporaryStop?.continuePromptShownAt) {
       return undefined;
     }
+    if (temporaryStop?.hasAutoContinueSimulationFired) return undefined;
     const pauseStartMs = temporaryStop?.pauseStartedAt
       ? new Date(temporaryStop.pauseStartedAt).getTime()
       : Number.NaN;
@@ -267,18 +602,34 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
     const timeoutId = window.setTimeout(() => {
       actions.simulateDriverContinueTripRequest(
-        "Your driver has requested to continue the trip."
+        tripWorkflow.messages.continueTripRequest
       );
-    }, Math.max(0, pauseStartMs + AUTO_CONTINUE_REQUEST_TRIGGER_MS - Date.now()));
+    }, Math.max(0, pauseStartMs + tripWorkflow.autoContinueRequestTriggerMs - Date.now()));
 
     return () => window.clearTimeout(timeoutId);
   }, [
     actions,
+    isTripCompleted,
     isTripPaused,
+    temporaryStop?.hasAutoContinueSimulationFired,
     temporaryStop?.continuePromptDueAt,
     temporaryStop?.continuePromptShownAt,
-    temporaryStop?.pauseStartedAt
+    temporaryStop?.pauseStartedAt,
+    tripWorkflow.autoContinueRequestEnabled,
+    tripWorkflow.autoContinueRequestTriggerMs,
+    tripWorkflow.messages.continueTripRequest
   ]);
+
+  useEffect(() => {
+    return () => {
+      if (continueRequestRetryTimerRef.current !== null) {
+        window.clearTimeout(continueRequestRetryTimerRef.current);
+      }
+      if (addStopRequestRetryTimerRef.current !== null) {
+        window.clearTimeout(addStopRequestRetryTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleRating = () => {
     navigate("/rides/rating");
@@ -291,6 +642,10 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   const handleMapRecenter = () => undefined;
 
   const handleContinueTrip = () => {
+    if (continueRequestRetryTimerRef.current !== null) {
+      window.clearTimeout(continueRequestRetryTimerRef.current);
+      continueRequestRetryTimerRef.current = null;
+    }
     resumeTripAfterTemporaryStop();
     setShowContinueTripDialog(false);
   };
@@ -304,11 +659,12 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     navigate("/rides/trip/completed", {
       replace: true,
       state: {
-        duration: "1 min 30 sec",
-        estimatedTime: "1 min 30 sec",
+        duration: routeDurationLabel,
+        estimatedTime: routeDurationLabel,
         totalFare: totalFareDisplay,
         fare: totalFareDisplay,
-        distance: `${totalDistance} km`
+        distance: routeDistanceLabel,
+        stops: activeTrip?.routePoints ?? []
       }
     });
   };
@@ -334,13 +690,17 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     <ScreenScaffold disableTopPadding>
       <ExpandableMapPanel
         containerSx={topMapBleedSx}
-        mapHeight={{ xs: "56dvh", md: "60vh" }}
-        expandedMapHeight={{ xs: "82dvh", md: "78vh" }}
+        mapHeight={{ xs: "56vh", md: "60vh" }}
+        expandedMapHeight={{ xs: "82vh", md: "78vh" }}
+        buttonOffsetCollapsed={8}
+        buttonOffsetExpanded={14}
+        detailsWrapperSx={{ mt: 0.75 }}
         map={
           <MapShell
             preset="full"
             sx={{ height: "100%" }}
             showControls={false}
+            showRouteInfo={false}
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
             driverLocation={driverLocation}
@@ -354,23 +714,51 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           />
         }
         details={
-          <>
-      <Box sx={{ pt: 2, pb: 1, px: 2 }}>
+          <Stack spacing={0.85}>
+      {compactRouteLabel && (
+        <Box sx={{ pt: 0.1, pb: 0.35, display: "flex", justifyContent: "flex-start" }}>
+          <Box
+            sx={{
+              px: 1.2,
+              py: 0.5,
+              borderRadius: "999px",
+              bgcolor: "#0B1530",
+              border: `1px solid ${companyOrange}`,
+              color: "#F8FAFC",
+              fontWeight: 700,
+              fontSize: 11
+            }}
+          >
+            {compactRouteLabel}
+          </Box>
+        </Box>
+      )}
+
+      <Box sx={{ pt: 0.55, pb: 0.2 }}>
         <Typography variant="h5" sx={{ fontWeight: 800, color: 'var(--evz-text-main, #0f172a)' }}>
           Active Trip
         </Typography>
+        <Typography variant="caption" sx={{ color: "#B45309", fontWeight: 600, display: "block", mt: 0.2 }}>
+          Your trip is tracked in real time, with safety checks along the way.
+        </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {routePolyline.length > 1 ? activeTrip?.routeSummary ?? "Trip in progress" : "Select pickup and destination first."}
+            {activeTrip?.routeSummary ??
+              (activeLeg
+                ? `${activeLeg.from.label || activeLeg.from.address} → ${activeLeg.to.label || activeLeg.to.address}`
+                : routePolyline.length > 1
+                  ? "Trip in progress"
+                  : "Select pickup and destination first.")}
           </Typography>
           <Stack direction="row" spacing={1}>
-            {temporaryStop?.status === "idle" && (
+            {temporaryStop?.status === "idle" && !isTripCompleted && (
               <Button
                 size="small"
                 variant="outlined"
                 onClick={() =>
+                  !isTripCompleted &&
                   simulateDriverAddStopRequest(
-                    "Your driver has requested to add a temporary stop."
+                    tripWorkflow.messages.addStopRequest
                   )
                 }
                 sx={{ borderRadius: 2, textTransform: "none" }}
@@ -378,16 +766,14 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                 Simulate add stop
               </Button>
             )}
-            <Button
-              size="small"
-              variant="contained"
-              onClick={() => navigate("/rides/sos")}
-              sx={{ bgcolor: 'var(--evz-danger)', color: '#fff', px: 2, borderRadius: 2 }}
-            >
-              SOS
-            </Button>
           </Stack>
         </Box>
+        {tripLegs.length > 1 && (
+          <Typography variant="caption" sx={{ color: "text.secondary", mt: 0.45, display: "block" }}>
+            Leg {Math.min(tripLegs.length, legProgress.activeLegIndex + 1)} of {tripLegs.length}
+            {activeLeg?.isReturnLeg ? " • Return leg" : ""}
+          </Typography>
+        )}
         {isTripPaused && (
           <Box
             sx={{
@@ -409,7 +795,8 @@ function TripInProgressBasicScreen(): React.JSX.Element {
               Trip paused at stop. Waiting for the driver to continue the ride.
             </Typography>
             <Typography variant="caption" sx={{ color: "#92400E", fontWeight: 600 }}>
-              Continue request popup will appear in about 15 seconds.
+              Continue request popup will appear in about{" "}
+              {Math.max(1, Math.round(tripWorkflow.autoContinueRequestTriggerMs / 1000))} seconds.
             </Typography>
           </Box>
         )}
@@ -417,7 +804,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
 
       {/* Trip Info Section (Bottom Card) */}
-      <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.lg, pb: uiTokens.spacing.lg }}>
+      <Box sx={{ pt: uiTokens.spacing.lg, pb: uiTokens.spacing.lg }}>
         <Card
           elevation={0}
           sx={{
@@ -499,6 +886,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                 }}
               >
                   Estimated remaining trip simulation time: {remainingSimulationLabel}
+                  {tripLegs.length > 1 ? ` • ${Math.max(0, tripLegs.length - legProgress.completedLegCount)} legs left` : ""}
                 </Typography>
 
               {/* Progress bar with car icon */}
@@ -545,7 +933,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                   Distance
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 13 }}>
-                  {totalDistance} Km total
+                  {totalDistance.toFixed(1)} Km total
                 </Typography>
               </Box>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -553,7 +941,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                   Distance Covered
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 13 }}>
-                  {Math.round(distanceCovered)} Km completed
+                  {distanceCovered.toFixed(1)} Km completed
                 </Typography>
               </Box>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -574,36 +962,48 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           sx={{
             mb: uiTokens.spacing.lg,
             borderRadius: uiTokens.radius.sm,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-            border: (theme) =>
-              theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
+            bgcolor: uiTokens.surfaces.accentTintSoft,
+            border: `1px solid ${uiTokens.colors.accent}`
           }}
         >
           <CardContent sx={{ px: uiTokens.spacing.lg, py: uiTokens.spacing.md }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <Box>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "auto 1fr" },
+                gap: 1.25,
+                alignItems: "end"
+              }}
+            >
+              <Box sx={{ minWidth: { sm: 190 } }}>
                 <Typography
                   variant="caption"
-                  sx={{ color: (theme) => theme.palette.text.secondary, fontSize: 11, display: "block", mb: uiTokens.spacing.xxs }}
+                  sx={{ color: uiTokens.colors.accent, fontSize: 11, display: "block", mb: uiTokens.spacing.xxs }}
                 >
-                  Total Fare
+                  Estimated Total Fare
                 </Typography>
                 <Typography
                   variant="h6"
                   sx={{
                     fontWeight: 700,
                     letterSpacing: "-0.01em",
-                    color: (theme) => theme.palette.text.primary
+                    color: uiTokens.colors.accent,
+                    whiteSpace: "nowrap"
                   }}
                 >
                   {totalFareDisplay}
                 </Typography>
               </Box>
-              <Typography variant="caption" sx={{ color: (theme) => theme.palette.text.secondary }}>
-                Payment will be available after trip completion.
+              <Typography
+                variant="caption"
+                sx={{
+                  color: (theme) => theme.palette.text.secondary,
+                  justifySelf: { sm: "end" },
+                  textAlign: { xs: "left", sm: "right" },
+                  maxWidth: { sm: 250 }
+                }}
+              >
+                Fare estimate is available during the trip and updates as the ride progresses.
               </Typography>
             </Box>
           </CardContent>
@@ -629,12 +1029,17 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         </Button>
       </Box>
 
-          </>
+          </Stack>
         }
       />
 
       {/* Add Stop Request Dialog */}
-      <Dialog open={isAddStopRequested && !isSafetyCheckPending} PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}>
+      <Dialog
+        open={isAddStopRequested && !isSafetyCheckPending && !isTripCompleted}
+        onClose={() => undefined}
+        disableEscapeKeyDown
+        PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}
+      >
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <PauseCircleIcon sx={{ color: "#F59E0B" }} />
           <Typography fontWeight="bold">Driver requested a stop</Typography>
@@ -650,13 +1055,31 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={() => actions.respondToTemporaryStopRequest("decline")}
+            onClick={() => {
+              actions.respondToTemporaryStopRequest("decline");
+              if (addStopRequestRetryTimerRef.current !== null) {
+                window.clearTimeout(addStopRequestRetryTimerRef.current);
+              }
+              addStopRequestRetryTimerRef.current = window.setTimeout(() => {
+                addStopRequestRetryTimerRef.current = null;
+                if (isTripCompletedRef.current) return;
+                simulateDriverAddStopRequest(
+                  tripWorkflow.messages.addStopRequest
+                );
+              }, tripWorkflow.addStopRetryDelayMs);
+            }}
             sx={{ color: "#B45309", textTransform: "none" }}
           >
             Cancel
           </Button>
           <Button
-            onClick={() => actions.respondToTemporaryStopRequest("confirm")}
+            onClick={() => {
+              if (addStopRequestRetryTimerRef.current !== null) {
+                window.clearTimeout(addStopRequestRetryTimerRef.current);
+                addStopRequestRetryTimerRef.current = null;
+              }
+              actions.respondToTemporaryStopRequest("confirm");
+            }}
             variant="contained"
             sx={{ borderRadius: uiTokens.radius.xl, textTransform: "none", bgcolor: "#22c55e", "&:hover": { bgcolor: "#16A34A" } }}
           >
@@ -667,8 +1090,9 @@ function TripInProgressBasicScreen(): React.JSX.Element {
 
       {/* Continue Trip Request Dialog */}
       <Dialog
-        open={showContinueTripDialog && isTripPaused && !isSafetyCheckPending}
-        onClose={() => setShowContinueTripDialog(false)}
+        open={showContinueTripDialog && isTripPaused && !isSafetyCheckPending && !isTripCompleted}
+        onClose={() => undefined}
+        disableEscapeKeyDown
         PaperProps={{ sx: { borderRadius: uiTokens.radius.lg, p: 1 } }}
       >
         <DialogTitle>
@@ -678,7 +1102,22 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           <Typography>Your driver is ready to continue the trip. Do you want to continue now?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowContinueTripDialog(false)} sx={{ color: "#B45309", textTransform: "none" }}>
+          <Button
+            onClick={() => {
+              setShowContinueTripDialog(false);
+              if (continueRequestRetryTimerRef.current !== null) {
+                window.clearTimeout(continueRequestRetryTimerRef.current);
+              }
+              continueRequestRetryTimerRef.current = window.setTimeout(() => {
+                continueRequestRetryTimerRef.current = null;
+                if (isTripCompletedRef.current) return;
+                actions.simulateDriverContinueTripRequest(
+                  tripWorkflow.messages.continueTripRequest
+                );
+              }, tripWorkflow.continueRetryDelayMs);
+            }}
+            sx={{ color: "#B45309", textTransform: "none" }}
+          >
             Not continuing
           </Button>
           <Button

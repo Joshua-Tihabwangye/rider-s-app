@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -22,11 +22,12 @@ import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import TourRoundedIcon from "@mui/icons-material/TourRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import { getDeliveryStatusLabel } from "../features/delivery/stateMachine";
 
-type OrderType = "Ride" | "Delivery" | "Rental" | "Tour" | "Ambulance";
+type OrderType = "Ride" | "Delivery" | "Rental" | "Tour" | "Ambulance" | "Transaction";
 
 type PeriodFilter = "Today" | "Week" | "Month" | "Quarter" | "Year";
 
@@ -59,6 +60,8 @@ function getTypeIcon(type: OrderType): React.ReactElement {
       return <TourRoundedIcon sx={{ fontSize: 20 }} />;
     case "Ambulance":
       return <LocalHospitalRoundedIcon sx={{ fontSize: 20 }} />;
+    case "Transaction":
+      return <AccountBalanceWalletRoundedIcon sx={{ fontSize: 20 }} />;
     default:
       return <MoreHorizRoundedIcon sx={{ fontSize: 20 }} />;
   }
@@ -115,7 +118,44 @@ function getHistoryLabelTone(order: Order): { bg: string; fg: string; border: st
     return { bg: "rgba(251,191,36,0.18)", fg: "#92400E", border: "rgba(245,158,11,0.35)" };
   }
 
+  if (order.type === "Transaction") {
+    return order.status === "Credit"
+      ? { bg: "rgba(34,197,94,0.14)", fg: "#166534", border: "rgba(22,163,74,0.36)" }
+      : { bg: "rgba(249,115,22,0.14)", fg: "#C2410C", border: "rgba(249,115,22,0.36)" };
+  }
+
   return { bg: "rgba(16,185,129,0.14)", fg: "#047857", border: "rgba(16,185,129,0.34)" };
+}
+
+function parseTransactionTime(rawLabel: string, now: Date): string {
+  const trimmed = rawLabel.trim();
+  if (!trimmed) return now.toISOString();
+
+  if (/^today\s+/i.test(trimmed)) {
+    const timePart = trimmed.replace(/^today\s+/i, "");
+    const parsed = new Date(`${now.toDateString()} ${timePart}`);
+    return Number.isNaN(parsed.getTime()) ? now.toISOString() : parsed.toISOString();
+  }
+
+  if (/^yesterday\s+/i.test(trimmed)) {
+    const timePart = trimmed.replace(/^yesterday\s+/i, "");
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const parsed = new Date(`${yesterday.toDateString()} ${timePart}`);
+    return Number.isNaN(parsed.getTime()) ? yesterday.toISOString() : parsed.toISOString();
+  }
+
+  const direct = new Date(trimmed);
+  if (!Number.isNaN(direct.getTime())) {
+    return direct.toISOString();
+  }
+
+  const withYear = new Date(`${trimmed} ${now.getFullYear()}`);
+  if (!Number.isNaN(withYear.getTime())) {
+    return withYear.toISOString();
+  }
+
+  return now.toISOString();
 }
 
 function getQuarter(value: Date): QuarterFilter {
@@ -169,6 +209,7 @@ interface AllOrdersCardProps {
 function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
   const navigate = useNavigate();
   const labelTone = getHistoryLabelTone(order);
+  const isTransaction = order.type === "Transaction";
 
   return (
     <Card
@@ -235,7 +276,7 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
             <Stack direction="row" spacing={uiTokens.spacing.xs} alignItems="center" sx={{ mt: uiTokens.spacing.xxs }}>
               <PlaceRoundedIcon sx={{ fontSize: 16, color: (t) => t.palette.text.secondary }} />
               <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-                {order.from} → {order.to}
+                {isTransaction ? `${order.from} • ${order.to}` : `${order.from} → ${order.to}`}
               </Typography>
             </Stack>
           </Box>
@@ -249,9 +290,19 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
               bgcolor:
                 order.status === "Upcoming"
                   ? "rgba(34,197,94,0.12)"
+                  : order.status === "Credit"
+                  ? "rgba(34,197,94,0.14)"
+                  : order.status === "Debit"
+                  ? "rgba(249,115,22,0.14)"
                   : "rgba(148,163,184,0.18)",
               color:
-                order.status === "Upcoming" ? "#16A34A" : "rgba(148,163,184,1)"
+                order.status === "Upcoming"
+                  ? "#16A34A"
+                  : order.status === "Credit"
+                  ? "#166534"
+                  : order.status === "Debit"
+                  ? "#C2410C"
+                  : "rgba(148,163,184,1)"
             }}
           />
         </Stack>
@@ -288,12 +339,32 @@ function AllOrdersCard({ order }: AllOrdersCardProps): React.JSX.Element {
 
 function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const { ride, delivery, rental, tours, ambulance } = useAppData();
+  const location = useLocation();
+  const { ride, delivery, rental, tours, ambulance, transactions } = useAppData();
 
   const [filter, setFilter] = useState<TypeFilter>("all");
   const [period, setPeriod] = useState<PeriodFilter>("Month");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedQuarter, setSelectedQuarter] = useState<QuarterFilter>(getQuarter(new Date()));
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const typeParam = params.get("type")?.toLowerCase();
+    if (!typeParam) return;
+    if (typeParam === "rental") {
+      setFilter("Rental");
+    } else if (typeParam === "ride") {
+      setFilter("Ride");
+    } else if (typeParam === "delivery") {
+      setFilter("Delivery");
+    } else if (typeParam === "tour") {
+      setFilter("Tour");
+    } else if (typeParam === "ambulance") {
+      setFilter("Ambulance");
+    } else if (typeParam === "transaction" || typeParam === "transactions") {
+      setFilter("Transaction");
+    }
+  }, [location.search]);
 
   const periods: PeriodFilter[] = ["Today", "Week", "Month", "Quarter", "Year"];
   const quarters: QuarterFilter[] = ["Q1", "Q2", "Q3", "Q4"];
@@ -417,10 +488,27 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
         detailsPath: `/ambulance/history/${request.id}`
       }));
 
-    return [...rideOrders, ...deliveryOrders, ...rentalOrders, ...tourOrders, ...ambulanceOrders].sort(
+    const transactionOrders: Order[] = transactions.map((tx) => {
+      const rawDate = parseTransactionTime(tx.time, new Date());
+      const isCredit = tx.amount.trim().startsWith("+");
+      return {
+        id: tx.id,
+        type: "Transaction",
+        historyLabel: isCredit ? "Wallet credit" : "Wallet debit",
+        title: tx.title,
+        date: tx.time,
+        from: tx.source,
+        to: tx.amount,
+        status: isCredit ? "Credit" : "Debit",
+        rawDate,
+        detailsPath: `/wallet/transactions/${tx.id}`
+      };
+    });
+
+    return [...rideOrders, ...deliveryOrders, ...rentalOrders, ...tourOrders, ...ambulanceOrders, ...transactionOrders].sort(
       (left, right) => new Date(right.rawDate).getTime() - new Date(left.rawDate).getTime()
     );
-  }, [ambulance.history, ambulance.request, delivery.orders, rental.booking, rental.vehicles, ride.activeTrip, ride.history, tours.booking, tours.tours]);
+  }, [ambulance.history, ambulance.request, delivery.orders, rental.booking, rental.vehicles, ride.activeTrip, ride.history, tours.booking, tours.tours, transactions]);
 
   const years = useMemo(() => {
     const allYears = allOrders
@@ -479,127 +567,150 @@ function AllOrdersCombinedHistoryScreen(): React.JSX.Element {
               All orders
             </Typography>
             <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-              Rides, deliveries, rentals, tours & ambulance
+              Rides, deliveries, rentals, tours, ambulance & wallet transactions
             </Typography>
           </Box>
         </Box>
       </Box>
 
-      <Box sx={{ mb: uiTokens.spacing.lg, overflowX: "auto", pb: uiTokens.spacing.sm, display: "flex" }}>
-        <Stack direction="row" spacing={1}>
-          {periods.map((value) => (
-            <Chip
-              key={value}
-              label={value}
-              onClick={() => setPeriod(value)}
-              size="small"
-              sx={{
-                borderRadius: uiTokens.radius.xl,
-                fontSize: 10,
-                height: 24,
-                bgcolor: period === value ? "primary.main" : "transparent",
-                color: period === value ? "#020617" : "text.secondary",
-                border: "1px solid",
-                borderColor: period === value ? "primary.main" : "divider",
-                fontWeight: period === value ? 600 : 400,
-                transition: "all 0.2s ease"
-              }}
-            />
-          ))}
-        </Stack>
-      </Box>
+      <Card
+        elevation={0}
+        sx={{
+          mb: uiTokens.spacing.lg,
+          borderRadius: uiTokens.radius.sm,
+          bgcolor: (t) =>
+            t.palette.mode === "light"
+              ? "linear-gradient(145deg, rgba(236,253,245,0.95) 0%, rgba(255,247,237,0.92) 100%)"
+              : "linear-gradient(145deg, rgba(6,78,59,0.3) 0%, rgba(124,45,18,0.28) 100%)",
+          border: (t) =>
+            t.palette.mode === "light"
+              ? "1px solid rgba(209,213,219,0.9)"
+              : "1px solid rgba(51,65,85,0.9)",
+          boxShadow: "0 12px 24px rgba(15,23,42,0.08)"
+        }}
+      >
+        <CardContent sx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus }}>
+          <Stack spacing={uiTokens.spacing.mdPlus}>
+            <Box>
+              <Typography variant="caption" sx={{ fontSize: 10.5, fontWeight: 700, color: "#047857" }}>
+                Date range
+              </Typography>
+              <Stack
+                direction="row"
+                spacing={uiTokens.spacing.xs}
+                sx={{ mt: uiTokens.spacing.xs, flexWrap: "wrap", rowGap: uiTokens.spacing.xs }}
+              >
+                {periods.map((value) => (
+                  <Chip
+                    key={value}
+                    label={value}
+                    onClick={() => setPeriod(value)}
+                    size="small"
+                    sx={{
+                      borderRadius: uiTokens.radius.xl,
+                      fontSize: 10,
+                      height: 24,
+                      bgcolor: period === value ? "primary.main" : (t) => (t.palette.mode === "light" ? "rgba(255,255,255,0.85)" : "rgba(15,23,42,0.45)"),
+                      color: period === value ? "#020617" : "text.secondary",
+                      border: "1px solid",
+                      borderColor: period === value ? "primary.main" : "rgba(16,185,129,0.28)",
+                      fontWeight: period === value ? 700 : 500,
+                      transition: "all 0.2s ease"
+                    }}
+                  />
+                ))}
+              </Stack>
+            </Box>
 
-      {period === "Quarter" && (
-        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-          <FormControl size="small" sx={{ minWidth: 100 }}>
-            <InputLabel id="quarter-select-label" sx={{ fontSize: 12 }}>Quarter</InputLabel>
-            <Select
-              labelId="quarter-select-label"
-              value={selectedQuarter}
-              label="Quarter"
-              onChange={(event) => setSelectedQuarter(event.target.value as QuarterFilter)}
-              sx={{ borderRadius: uiTokens.radius.sm, fontSize: 13 }}
-            >
-              {quarters.map((value) => (
-                <MenuItem key={value} value={value} sx={{ fontSize: 13 }}>
-                  {value}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 100 }}>
-            <InputLabel id="year-select-label" sx={{ fontSize: 12 }}>Year</InputLabel>
-            <Select
-              labelId="year-select-label"
-              value={selectedYear}
-              label="Year"
-              onChange={(event) => setSelectedYear(Number(event.target.value))}
-              sx={{ borderRadius: uiTokens.radius.sm, fontSize: 13 }}
-            >
-              {years.map((value) => (
-                <MenuItem key={value} value={value} sx={{ fontSize: 13 }}>
-                  {value}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Stack>
-      )}
+            {(period === "Quarter" || period === "Year") && (
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={uiTokens.spacing.sm}>
+                {period === "Quarter" && (
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel id="quarter-select-label" sx={{ fontSize: 12 }}>Quarter</InputLabel>
+                    <Select
+                      labelId="quarter-select-label"
+                      value={selectedQuarter}
+                      label="Quarter"
+                      onChange={(event) => setSelectedQuarter(event.target.value as QuarterFilter)}
+                      sx={{ borderRadius: uiTokens.radius.sm, fontSize: 13 }}
+                    >
+                      {quarters.map((value) => (
+                        <MenuItem key={value} value={value} sx={{ fontSize: 13 }}>
+                          {value}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel id="year-select-label" sx={{ fontSize: 12 }}>Year</InputLabel>
+                  <Select
+                    labelId="year-select-label"
+                    value={selectedYear}
+                    label="Year"
+                    onChange={(event) => setSelectedYear(Number(event.target.value))}
+                    sx={{ borderRadius: uiTokens.radius.sm, fontSize: 13 }}
+                  >
+                    {years.map((value) => (
+                      <MenuItem key={value} value={value} sx={{ fontSize: 13 }}>
+                        {value}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Stack>
+            )}
 
-      {period === "Year" && (
-        <Box sx={{ mb: 2 }}>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel id="year-only-select-label" sx={{ fontSize: 12 }}>Select Year</InputLabel>
-            <Select
-              labelId="year-only-select-label"
-              value={selectedYear}
-              label="Select Year"
-              onChange={(event) => setSelectedYear(Number(event.target.value))}
-              sx={{ borderRadius: uiTokens.radius.sm, fontSize: 13 }}
-            >
-              {years.map((value) => (
-                <MenuItem key={value} value={value} sx={{ fontSize: 13 }}>
-                  {value}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-      )}
-
-      <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: "wrap", rowGap: 1 }}>
-        {(["all", "Ride", "Delivery", "Rental", "Tour", "Ambulance"] as const).map((value) => {
-          const labelMap: Record<TypeFilter, string> = {
-            all: "All",
-            Ride: "Rides",
-            Delivery: "Deliveries",
-            Rental: "Rentals",
-            Tour: "Tours",
-            Ambulance: "Ambulance"
-          };
-          const selected = filter === value;
-          return (
-            <Chip
-              key={value}
-              label={labelMap[value]}
-              onClick={() => setFilter(value)}
-              size="small"
-              sx={{
-                borderRadius: uiTokens.radius.xl,
-                fontSize: 11,
-                height: 26,
-                bgcolor: selected ? "primary.main" : (t) =>
-                  t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.95)",
-                border: (t) =>
-                  t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)",
-                color: selected ? "#020617" : (t) => t.palette.text.primary
-              }}
-            />
-          );
-        })}
-      </Stack>
+            <Box>
+              <Typography variant="caption" sx={{ fontSize: 10.5, fontWeight: 700, color: "#C2410C" }}>
+                Service type
+              </Typography>
+              <Stack
+                direction="row"
+                spacing={uiTokens.spacing.xs}
+                sx={{ mt: uiTokens.spacing.xs, flexWrap: "wrap", rowGap: uiTokens.spacing.xs }}
+              >
+                {(["all", "Ride", "Delivery", "Rental", "Tour", "Ambulance", "Transaction"] as const).map((value) => {
+                  const labelMap: Record<TypeFilter, string> = {
+                    all: "All",
+                    Ride: "Rides",
+                    Delivery: "Deliveries",
+                    Rental: "Rentals",
+                    Tour: "Tours",
+                    Ambulance: "Ambulance",
+                    Transaction: "Transactions"
+                  };
+                  const selected = filter === value;
+                  return (
+                    <Chip
+                      key={value}
+                      label={labelMap[value]}
+                      onClick={() => setFilter(value)}
+                      size="small"
+                      sx={{
+                        borderRadius: uiTokens.radius.xl,
+                        fontSize: 11,
+                        height: 26,
+                        bgcolor: selected
+                          ? "rgba(249,115,22,0.18)"
+                          : (t) => (t.palette.mode === "light" ? "rgba(255,255,255,0.9)" : "rgba(15,23,42,0.5)"),
+                        border: (t) =>
+                          selected
+                            ? "1px solid rgba(249,115,22,0.7)"
+                            : t.palette.mode === "light"
+                            ? "1px solid rgba(249,115,22,0.25)"
+                            : "1px solid rgba(194,65,12,0.4)",
+                        color: selected ? "#C2410C" : (t) => t.palette.text.primary,
+                        fontWeight: selected ? 700 : 500
+                      }}
+                    />
+                  );
+                })}
+              </Stack>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
 
       {filtered.length === 0 ? (
         <Typography

@@ -112,6 +112,7 @@ export interface RidePreferences {
   temperature: "Cool" | "Normal" | "Warm";
   luggageAssistance: boolean;
   accessibilityNeeds: boolean;
+  womenDriverPreferred: boolean;
 }
 
 export interface DeliveryPreferences {
@@ -165,16 +166,48 @@ export interface RideRequest {
   origin: RideLocation | null;
   destination: RideLocation | null;
   stops: RideLocation[];
+  routeMode?: "single_stop" | "multi_stop";
+  routePoints?: RideLocation[];
   passengers: number;
   schedule: "now" | "later";
   scheduleTime?: string;
   tripType: "One Way" | "Round Trip" | "Multi-stop";
+  tripMode?: "one_way" | "round_trip";
+  returnToOrigin?: boolean;
+  maxStops?: number;
+  roundTripConfig?: {
+    returnDateTime?: string | null;
+    sameDay?: boolean;
+    returnPattern?: "direct" | "reverse_stops";
+  };
   rideType: "Personal" | "Business";
   serviceLevel?: string;
   serviceClass?: "standard" | "premium";
   riderType?: "personal" | "contact";
   riderContact?: { name: string; phone: string } | null;
+  bookedFor?: {
+    source: "self" | "contact" | "manual";
+    name?: string;
+    phone?: string;
+    relation?: string;
+    contactId?: number | string;
+  } | null;
   notes?: string;
+}
+
+export type RideLegStatus = "pending" | "in_progress" | "completed" | "skipped";
+
+export interface RideTripLeg {
+  id: string;
+  from: RideLocation;
+  to: RideLocation;
+  order: number;
+  isReturnLeg?: boolean;
+  status: RideLegStatus;
+  etaMinutes?: number;
+  distanceKm?: number;
+  startedAt?: string;
+  completedAt?: string;
 }
 
 export interface DriverProfile {
@@ -183,6 +216,9 @@ export interface DriverProfile {
   phone: string;
   rating: number;
   avatar: string;
+  totalRatings?: number;
+  ridesLabel?: string;
+  experienceLabel?: string;
 }
 
 export interface VehicleProfile {
@@ -195,6 +231,8 @@ export interface VehicleProfile {
 export interface RideTrip {
   id: string;
   status: RideStatus;
+  routeMode?: "single_stop" | "multi_stop";
+  tripMode?: "one_way" | "round_trip";
   otp: string;
   etaMinutes: number;
   fareEstimate: string;
@@ -202,8 +240,22 @@ export interface RideTrip {
   routeSummary: string;
   pickup: RideLocation | null;
   dropoff: RideLocation | null;
+  routePoints?: RideLocation[];
+  legs?: RideTripLeg[];
+  currentLegIndex?: number;
+  totalLegs?: number;
+  remainingLegs?: number;
+  completedStopIds?: string[];
+  isReturnLeg?: boolean;
   driver: DriverProfile | null;
   vehicle: VehicleProfile | null;
+  bookedFor?: {
+    source: "self" | "contact" | "manual";
+    name?: string;
+    phone?: string;
+    relation?: string;
+    contactId?: number | string;
+  } | null;
   lastKnownLocation?: RideLocation | null;
   startedAt?: string;
   completedAt?: string;
@@ -216,6 +268,144 @@ export interface RideOption {
   eta: string;
   fare: string;
   capacity?: number;
+  pricingModel?: {
+    baseFareUGX: number;
+    perKmUGX: number;
+    minFareUGX?: number;
+    etaBaseMin: number;
+    etaPerKmMin: number;
+  };
+}
+
+export type RideFeedbackTagId =
+  | "driving"
+  | "punctuality"
+  | "vehicle"
+  | "safety"
+  | "courtesy"
+  | "overall";
+
+export interface RideFeedbackTag {
+  id: RideFeedbackTagId;
+  label: string;
+}
+
+export interface RideTipOption {
+  id: string;
+  label: string;
+  value: number;
+  badge?: string;
+}
+
+export interface RideSharingPassenger {
+  id: string;
+  name: string;
+  initials: string;
+  joined: boolean;
+  isOwner?: boolean;
+  isMain?: boolean;
+  dropOff?: string;
+  fare?: string;
+}
+
+export interface RideWorkflowConfig {
+  dashboard: {
+    navigateToDetailsDelayMs: number;
+    recommendedRideTypes: Array<{
+      id: string;
+      name: string;
+      capacity: number;
+      minutes: string;
+      price: string;
+      image: string;
+    }>;
+    popularDestinations: Array<{
+      id: string;
+      title: string;
+      subtitle: string;
+      destination: string;
+      icon: "airport" | "work" | "home";
+    }>;
+  };
+  tripSimulation: {
+    durationMs: number;
+    searchingToOnWayDelaySec: number;
+    searchingDriverProgressPerTick: number;
+    searchingDriverProgressCap: number;
+    autoAddStopTriggerMs: number;
+    autoAddStopEnabled: boolean;
+    autoContinueRequestTriggerMs: number;
+    autoContinueRequestEnabled: boolean;
+    startProgressPercent: number;
+    fallbackStartDistanceKm: number;
+    msPerLegMinute: number;
+    driverProgressPerTick: number;
+    driverProgressTickMs: number;
+    addStopRetryDelayMs: number;
+    continueRetryDelayMs: number;
+    completionSummary: {
+      duration: string;
+      estimatedTime: string;
+    };
+    pricing: {
+      baseFareUGX: number;
+      distancePerKmUGX: number;
+      roundTripSurchargeUGX: number;
+      extraStopUGX: number;
+    };
+    messages: {
+      addStopRequest: string;
+      continueTripRequest: string;
+    };
+    mockAssignments: Array<{
+      id: string;
+      serviceLevel: string;
+      serviceClass?: "standard" | "premium";
+      driver: DriverProfile;
+      vehicle: VehicleProfile;
+    }>;
+  };
+  driverArrival: {
+    fallbackOtp: string;
+    autoStartDelayMs: number;
+    initialProgress: number;
+    progressStepPerTick: number;
+    progressTickMs: number;
+  };
+  tripCompletion: {
+    fallbackFare: string;
+    fallbackDistance: string;
+    fallbackDuration: string;
+  };
+  rating: {
+    submitRedirectDelayMs: number;
+    feedbackTags: RideFeedbackTag[];
+    defaultDriverName: string;
+    defaultVehiclePlate: string;
+    defaultRideId: string;
+  };
+  tip: {
+    submitRedirectDelayMs: number;
+    options: RideTipOption[];
+    defaultRideId: string;
+  };
+  sharing: {
+    defaultShareUrl: string;
+    mapPreviewCenter: { lat: number; lng: number };
+    mapPreviewPolyline: Array<{ lat: number; lng: number }>;
+    passengers: RideSharingPassenger[];
+  };
+  sos: {
+    contactsNotifiedDelayMs: number;
+    supportNotifiedDelayMs: number;
+  };
+}
+
+export interface RideSharingState {
+  shareUrl: string;
+  splitFareEnabled: boolean;
+  invitePhone: string;
+  passengers: RideSharingPassenger[];
 }
 
 
@@ -224,6 +414,8 @@ export type ActiveRideSafetyStatus = "idle" | "safety_check_pending" | "resolved
 
 export interface ActiveRideTemporaryStopState {
   status: ActiveRideStopStatus;
+  hasAutoAddStopSimulationFired: boolean;
+  hasAutoContinueSimulationFired: boolean;
   requestNote: string;
   requestId: string | null;
   requestedAt: string | null;
@@ -248,6 +440,8 @@ export interface RideState {
   history: RideTrip[];
   savedPlaces: SavedPlace[];
   options: RideOption[];
+  sharing: RideSharingState;
+  workflow: RideWorkflowConfig;
 }
 
 /** Delivery workflow */

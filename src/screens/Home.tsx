@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
+  Button,
+  Card,
+  CardContent,
   Chip,
   Stack,
   Typography
@@ -16,11 +19,10 @@ import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import RouteRoundedIcon from "@mui/icons-material/RouteRounded";
 import WorkRoundedIcon from "@mui/icons-material/WorkRounded";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
-import Button from "@mui/material/Button";
+import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import ActionGrid from "../components/primitives/ActionGrid";
 import AppCard from "../components/primitives/AppCard";
-import PrimarySection from "../components/primitives/PrimarySection";
 import SectionHeader from "../components/primitives/SectionHeader";
 import ServiceActionCard from "../components/primitives/ServiceActionCard";
 import InlineStat from "../components/primitives/InlineStat";
@@ -33,6 +35,14 @@ interface ServiceAction {
   route: string;
   icon: React.ReactNode;
   danger?: boolean;
+}
+
+interface QuickAction {
+  label: string;
+  icon: React.ReactNode;
+  route: string;
+  state?: Record<string, unknown>;
+  tone: "green" | "orange";
 }
 
 const SERVICE_ACTIONS: ServiceAction[] = [
@@ -75,11 +85,11 @@ const SERVICE_ACTIONS: ServiceAction[] = [
   }
 ];
 
-const QUICK_ACTIONS = [
-  { label: "Book usual route", icon: <RouteRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter" },
-  { label: "Go to work", icon: <WorkRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter" },
-  { label: "Rebook last ride", icon: <ElectricCarRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter", state: { rebook: true } },
-  { label: "Track a parcel", icon: <LocalShippingRoundedIcon sx={{ fontSize: 16 }} />, route: "/deliveries" }
+const QUICK_ACTIONS: QuickAction[] = [
+  { label: "Book usual route", icon: <RouteRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter", tone: "green" },
+  { label: "Go to work", icon: <WorkRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter", tone: "orange" },
+  { label: "Rebook last ride", icon: <ElectricCarRoundedIcon sx={{ fontSize: 16 }} />, route: "/rides/enter", state: { rebook: true }, tone: "green" },
+  { label: "Track a parcel", icon: <LocalShippingRoundedIcon sx={{ fontSize: 16 }} />, route: "/deliveries", tone: "orange" }
 ];
 
 function HomeMultiServiceScreen(): React.JSX.Element {
@@ -132,48 +142,125 @@ function HomeMultiServiceScreen(): React.JSX.Element {
 
   return (
     <ScreenScaffold>
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: uiTokens.radius.md,
+          overflow: "hidden",
+          border: (t) =>
+            t.palette.mode === "light"
+              ? "1px solid rgba(209,213,219,0.9)"
+              : "1px solid rgba(51,65,85,0.9)"
+        }}
+      >
+        <CardContent
+          sx={{
+            px: uiTokens.spacing.lg,
+            py: uiTokens.spacing.lg,
+            background: (t) =>
+              t.palette.mode === "light"
+                ? "linear-gradient(145deg, rgba(236,253,245,0.95) 0%, rgba(255,247,237,0.94) 100%)"
+                : "linear-gradient(145deg, rgba(6,78,59,0.24) 0%, rgba(124,45,18,0.22) 100%)"
+          }}
+        >
+          <Stack spacing={uiTokens.spacing.smPlus}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Chip
+                icon={<NotificationsRoundedIcon sx={{ fontSize: 14 }} />}
+                label="Live notice"
+                size="small"
+                sx={{
+                  height: 22,
+                  borderRadius: uiTokens.radius.xl,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  bgcolor: "rgba(17,184,106,0.14)",
+                  color: "#047857"
+                }}
+              />
+              <Chip
+                label="Featured"
+                size="small"
+                sx={{
+                  height: 22,
+                  borderRadius: uiTokens.radius.xl,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  bgcolor: "rgba(249,115,22,0.16)",
+                  color: "#C2410C"
+                }}
+              />
+            </Stack>
 
-      <PrimarySection>
-        <SectionHeader
-          centered
-          eyebrow="Reminder"
-          title={activeReminder.title}
-          subtitle={activeReminder.description}
-        />
-
-        <Stack direction="column" alignItems="center" spacing={1.5}>
-          <Stack direction="row" spacing={0.75} alignItems="center">
-            <NotificationsRoundedIcon sx={{ fontSize: 17, color: uiTokens.colors.brand }} />
-            <Typography variant="caption" sx={{ ...uiTokens.text.eyebrow, color: uiTokens.colors.brand }}>
-              Live notice
+            <Typography sx={{ fontSize: 22, fontWeight: 800, lineHeight: 1.1, color: "#0F172A" }}>
+              {activeReminder.title}
             </Typography>
+            <Typography sx={{ fontSize: 13.5, color: "#475467" }}>
+              {activeReminder.description}
+            </Typography>
+
+            <Stack direction="row" spacing={uiTokens.spacing.sm}>
+              <Button
+                variant="contained"
+                onClick={() => navigate(activeReminder.actionRoute)}
+                endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  bgcolor: uiTokens.colors.brand,
+                  color: uiTokens.colors.white,
+                  px: uiTokens.spacing.lg,
+                  py: uiTokens.spacing.xs,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  textTransform: "none",
+                  borderRadius: uiTokens.radius.xl,
+                  "&:hover": { bgcolor: uiTokens.colors.brandHover }
+                }}
+              >
+                Check now
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => navigate("/rides/promotions")}
+                sx={{
+                  borderColor: "rgba(249,115,22,0.5)",
+                  color: "#C2410C",
+                  px: uiTokens.spacing.lg,
+                  py: uiTokens.spacing.xs,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  textTransform: "none",
+                  borderRadius: uiTokens.radius.xl,
+                  "&:hover": {
+                    borderColor: "rgba(249,115,22,0.8)",
+                    bgcolor: "rgba(249,115,22,0.08)"
+                  }
+                }}
+              >
+                Explore offers
+              </Button>
+            </Stack>
           </Stack>
-          <Button
-            variant="contained"
-            size="small"
-            onClick={() => navigate(activeReminder.actionRoute)}
-            sx={{
-              bgcolor: uiTokens.colors.brand,
-              color: uiTokens.colors.white,
-              px: uiTokens.spacing.lgPlus,
-              py: uiTokens.spacing.xs,
-              fontSize: 11,
-              fontWeight: 700,
-              textTransform: "none",
-              "&:hover": { bgcolor: uiTokens.colors.brandHover }
-            }}
-          >
-            Check now
-          </Button>
-        </Stack>
-      </PrimarySection>
+        </CardContent>
+      </Card>
 
       {lastRide && (
-        <AppCard onClick={() => navigate("/rides/enter", { state: { rebook: true } })}>
-          <SectionHeader
-            eyebrow="Your last ride"
-            title={lastRideRoute}
-            action={
+        <AppCard onClick={() => navigate("/rides/enter", { state: { rebook: true } })} variant="muted">
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={uiTokens.spacing.sm}>
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{
+                  ...uiTokens.text.eyebrow,
+                  color: "#64748B"
+                }}
+              >
+                Your last ride
+              </Typography>
+              <Typography sx={{ fontSize: 17, fontWeight: 800, color: "#0F172A", mt: uiTokens.spacing.xxs }}>
+                {lastRideRoute}
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={uiTokens.spacing.xs}>
               <Button
                 size="small"
                 variant="contained"
@@ -190,8 +277,28 @@ function HomeMultiServiceScreen(): React.JSX.Element {
               >
                 Rebook
               </Button>
-            }
-          />
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => navigate("/rides/history/past")}
+                sx={{
+                  borderColor: "rgba(249,115,22,0.5)",
+                  color: "#C2410C",
+                  px: uiTokens.spacing.mdPlus,
+                  py: uiTokens.spacing.xxs,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  textTransform: "none",
+                  "&:hover": {
+                    borderColor: "rgba(249,115,22,0.8)",
+                    bgcolor: "rgba(249,115,22,0.08)"
+                  }
+                }}
+              >
+                History
+              </Button>
+            </Stack>
+          </Stack>
           <Stack direction="row" spacing={uiTokens.spacing.lg} sx={{ mt: uiTokens.spacing.smPlus }}>
             <InlineStat label="Travel time" value={`${Math.max(lastRide.etaMinutes, 1)} min`} />
             <InlineStat label="Fare" value={lastRide.fareEstimate || "UGX 0"} />
@@ -220,7 +327,7 @@ function HomeMultiServiceScreen(): React.JSX.Element {
       </Box>
 
       <AppCard variant="muted">
-        <SectionHeader eyebrow="Shortcuts" title="Quick actions" compact />
+        <SectionHeader eyebrow="Shortcuts" title="Quick actions" subtitle="One-tap actions for daily use" compact />
         <ActionGrid minWidth={160} sx={{ mt: uiTokens.spacing.smPlus }}>
           {QUICK_ACTIONS.map((action) => (
             <Chip
@@ -228,21 +335,21 @@ function HomeMultiServiceScreen(): React.JSX.Element {
               icon={action.icon}
               label={action.label}
               size="small"
-              onClick={() => navigate(action.route, { state: (action as any).state })}
+              onClick={() => navigate(action.route, { state: action.state })}
               sx={{
                 height: 40,
                 fontSize: 11.5,
                 fontWeight: 600,
-                bgcolor: uiTokens.surfaces.card,
-                border: uiTokens.borders.brand,
-                color: uiTokens.colors.brand,
+                bgcolor: action.tone === "green" ? "rgba(17,184,106,0.1)" : "rgba(249,115,22,0.1)",
+                border: action.tone === "green" ? "1px solid rgba(17,184,106,0.42)" : "1px solid rgba(249,115,22,0.45)",
+                color: action.tone === "green" ? uiTokens.colors.brand : "#C2410C",
                 width: "100%",
                 "& .MuiChip-label": {
                   width: "100%",
                   textAlign: "center"
                 },
                 "&:hover": {
-                  bgcolor: uiTokens.surfaces.brandTintSoft
+                  bgcolor: action.tone === "green" ? "rgba(17,184,106,0.16)" : "rgba(249,115,22,0.16)"
                 }
               }}
             />

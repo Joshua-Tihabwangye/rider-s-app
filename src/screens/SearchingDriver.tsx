@@ -5,7 +5,6 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -16,7 +15,6 @@ import {
   Typography
 } from "@mui/material";
 
-import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import LocalTaxiRoundedIcon from "@mui/icons-material/LocalTaxiRounded";
 import MapShell from "../components/maps/MapShell";
 import ExpandableMapPanel from "../components/maps/ExpandableMapPanel";
@@ -28,12 +26,30 @@ import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 function SearchingForDriverScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
-  const { sharedLocationState, actions } = useAppData();
+  const { ride, sharedLocationState, actions } = useAppData();
   const { setRideStatus, updateSharedLocationState } = actions;
   const [dots, setDots] = useState(".");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [searchTime, setSearchTime] = useState(0);
   const [driverProgress, setDriverProgress] = useState(0);
+  const companyOrange = "#F79009";
+  const tripWorkflow = ride.workflow.tripSimulation;
+  const routeSummary = React.useMemo(() => {
+    const distance = sharedLocationState.routeDistanceKm;
+    const duration = sharedLocationState.routeDurationMin;
+    if (!distance || !duration) return null;
+    const distanceLabel =
+      distance >= 100
+        ? `${Math.round(distance)} km`
+        : distance >= 10
+          ? `${distance.toFixed(1)} km`
+          : `${distance.toFixed(2)} km`;
+    const durationLabel =
+      duration < 60
+        ? `${Math.max(1, Math.round(duration))} min`
+        : `${Math.floor(duration / 60)} hr ${Math.round(duration % 60)} min`;
+    return `${distanceLabel} • ${durationLabel}`;
+  }, [sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const fallbackRoute = React.useMemo(() => {
     if (routePolyline.length > 1) return routePolyline;
@@ -43,8 +59,16 @@ function SearchingForDriverScreen(): React.JSX.Element {
     return [];
   }, [routePolyline, sharedLocationState.destinationCoords, sharedLocationState.pickupCoords]);
   const routeReady =
-    Boolean(sharedLocationState.pickupCoords) &&
-    Boolean(sharedLocationState.destinationCoords);
+    (Boolean(sharedLocationState.pickupCoords) &&
+      Boolean(sharedLocationState.destinationCoords)) ||
+    Boolean(ride.activeTrip?.pickup && ride.activeTrip?.dropoff) ||
+    Boolean(ride.request.origin && ride.request.destination);
+  const bookedForLabel = React.useMemo(() => {
+    const bookedFor = ride.activeTrip?.bookedFor ?? ride.request.bookedFor;
+    if (!bookedFor || bookedFor.source === "self") return "For: You";
+    const name = bookedFor.name?.trim() || "Booked rider";
+    return `For: ${name}${bookedFor.phone ? ` (${bookedFor.phone})` : ""}`;
+  }, [ride.activeTrip?.bookedFor, ride.request.bookedFor]);
 
   // Calculate driver location along the route
   const driverLocation = React.useMemo(() => {
@@ -85,17 +109,19 @@ function SearchingForDriverScreen(): React.JSX.Element {
       setDots((prev) => (prev.length >= 4 ? "." : `${prev}.`));
       setSearchTime((prev) => prev + 1);
       // Simulate driver approaching pickup location
-      setDriverProgress((prev) => Math.min(prev + 0.02, 0.8));
+      setDriverProgress((prev) =>
+        Math.min(prev + tripWorkflow.searchingDriverProgressPerTick, tripWorkflow.searchingDriverProgressCap)
+      );
     }, 1000);
     return () => clearInterval(interval);
-  }, [routeReady]);
+  }, [routeReady, tripWorkflow.searchingDriverProgressCap, tripWorkflow.searchingDriverProgressPerTick]);
 
   useEffect(() => {
     if (!routeReady) return;
-    if (searchTime < 8) return;
+    if (searchTime < tripWorkflow.searchingToOnWayDelaySec) return;
     setRideStatus("driver_on_way");
     navigate("/rides/driver-on-way");
-  }, [navigate, routeReady, searchTime, setRideStatus]);
+  }, [navigate, routeReady, searchTime, setRideStatus, tripWorkflow.searchingToOnWayDelaySec]);
 
   const topMapBleedSx = {
     position: "relative",
@@ -111,20 +137,24 @@ function SearchingForDriverScreen(): React.JSX.Element {
       xs: "calc(var(--rider-shell-content-px-xs, 20px) * -1)",
       md: "calc(var(--rider-shell-content-px-md, 24px) * -1)"
     },
-    overflow: "hidden"
+    overflow: "visible"
   } as const;
 
   return (
     <ScreenScaffold disableTopPadding>
       <ExpandableMapPanel
         containerSx={topMapBleedSx}
-        mapHeight={{ xs: "52dvh", md: "54vh" }}
-        expandedMapHeight={{ xs: "78dvh", md: "76vh" }}
+        mapHeight={{ xs: "52vh", md: "54vh" }}
+        expandedMapHeight={{ xs: "78vh", md: "76vh" }}
+        buttonOffsetCollapsed={-18}
+        buttonOffsetExpanded={14}
+        detailsWrapperSx={{ mt: 1.2 }}
         map={
           <MapShell
             preset="compact"
             sx={{ height: "100%" }}
             showControls={false}
+            showRouteInfo={false}
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
             driverLocation={driverLocation}
@@ -133,35 +163,39 @@ function SearchingForDriverScreen(): React.JSX.Element {
             routeDistanceKm={sharedLocationState.routeDistanceKm}
             routeDurationMin={sharedLocationState.routeDurationMin}
             canvasSx={{ background: uiTokens.map.canvasEmphasis }}
-          >
-            <Chip
-              size="small"
-              icon={<RefreshRoundedIcon sx={{ fontSize: 14 }} />}
-              label="Searching Nearby"
-              sx={{
-                position: "absolute",
-                bottom: 20,
-                left: "50%",
-                transform: "translateX(-50%)",
-                borderRadius: 5,
-                fontSize: 11,
-                height: 28,
-                px: 1,
-                bgcolor: "rgba(15,23,42,0.92)",
-                color: "#F9FAFB",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                border: "1px solid rgba(255,255,255,0.1)"
-              }}
-            />
-          </MapShell>
+          />
         }
         details={
-          <>
+          <Stack spacing={1.25}>
+            {routeSummary && (
+              <Box sx={{ pt: 0.25, pb: 0.2, display: "flex", justifyContent: "flex-start" }}>
+                <Box
+                  sx={{
+                    px: 1.25,
+                    py: 0.45,
+                    borderRadius: "999px",
+                    bgcolor: "#0B1530",
+                    border: "1px solid rgba(247,144,9,0.45)",
+                    color: "#F8FAFC",
+                    fontWeight: 700,
+                    fontSize: 11
+                  }}
+                >
+                  {routeSummary}
+                </Box>
+              </Box>
+            )}
             <Box sx={{ pt: 0.5 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.01em" }}>
                 Searching for driver{dots}
               </Typography>
-              <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+              <Typography variant="caption" sx={{ fontSize: 11, color: "#F79009", fontWeight: 700, display: "block" }}>
+                {bookedForLabel}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ fontSize: 11, color: routeReady ? "#047857" : (t) => t.palette.text.secondary, fontWeight: routeReady ? 600 : 500 }}
+              >
                 {routeReady
                   ? "Matching you with the nearest available EV driver."
                   : "Select pickup and destination first."}
@@ -175,18 +209,18 @@ function SearchingForDriverScreen(): React.JSX.Element {
                 bgcolor: (t) => (t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)"),
                 border: (t) =>
                   t.palette.mode === "light"
-                    ? "1px solid rgba(209,213,219,0.9)"
-                    : "1px solid rgba(51,65,85,0.9)"
+                    ? "1px solid rgba(247,144,9,0.38)"
+                    : "1px solid rgba(249,115,22,0.48)"
               }}
             >
               <CardContent sx={{ px: 1.75, py: 2 }}>
                 <Stack direction="row" spacing={1.3} alignItems="center">
-                  <CircularProgress size={20} thickness={5} />
+                  <CircularProgress size={20} thickness={5} sx={{ color: companyOrange }} />
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {routeReady ? "Searching nearby drivers" : "Route unavailable"}
                     </Typography>
-                    <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
+                    <Typography variant="caption" sx={{ fontSize: 11, color: routeReady ? "#B45309" : (t) => t.palette.text.secondary, fontWeight: routeReady ? 600 : 500 }}>
                       {routeReady
                         ? "Hold on while we find the closest available driver."
                         : "Go back and confirm both pickup and destination coordinates."}
@@ -205,12 +239,20 @@ function SearchingForDriverScreen(): React.JSX.Element {
                 borderRadius: uiTokens.radius.xl,
                 py: 0.9,
                 fontSize: 12,
-                textTransform: "none"
+                textTransform: "none",
+                borderColor: routeReady ? "rgba(247,144,9,0.55)" : undefined,
+                color: routeReady ? companyOrange : undefined,
+                "&:hover": routeReady
+                  ? {
+                      borderColor: companyOrange,
+                      bgcolor: "rgba(247,144,9,0.08)"
+                    }
+                  : undefined
               }}
             >
               {routeReady ? "Cancel request" : "Back to trip setup"}
             </Button>
-          </>
+          </Stack>
         }
       />
 
@@ -236,7 +278,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
             Keep searching
           </Button>
           <Button
-            onClick={() => navigate("/rides/options")}
+            onClick={() => navigate("/rides/enter/details")}
             variant="contained"
             sx={{ textTransform: "none", bgcolor: "#EF4444", "&:hover": { bgcolor: "#DC2626" } }}
           >

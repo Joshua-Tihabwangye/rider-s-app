@@ -15,13 +15,17 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import LocalHospitalRoundedIcon from "@mui/icons-material/LocalHospitalRounded";
 import PhoneEnabledRoundedIcon from "@mui/icons-material/PhoneEnabledRounded";
+import {
+  ambulanceCompactTypographySx,
+  ambulanceContainedButtonSx
+} from "../components/ambulance/ambulanceTypography";
 
 
 function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
   const navigate = useNavigate();
   
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
+    <Box sx={[{ px: 2.5, pt: 2.5, pb: 3 }, ambulanceCompactTypographySx]}>
       {/* Header */}
       <Box
         sx={{
@@ -111,9 +115,7 @@ function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
               fontSize: 14,
               fontWeight: 600,
               textTransform: "none",
-              bgcolor: "#DC2626",
-              color: "#FEF2F2",
-              "&:hover": { bgcolor: "#B91C1C" }
+              ...ambulanceContainedButtonSx
             }}
           >
             Call emergency services
@@ -161,6 +163,7 @@ function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
               <Button
                 fullWidth
                 variant="contained"
+                onClick={() => navigate("/ambulance/location")}
                 sx={{
                   mt: 1,
                   borderRadius: 5,
@@ -168,9 +171,7 @@ function AmbulanceHomeRequestTypeScreen(): React.JSX.Element {
                   fontSize: 14,
                   fontWeight: 600,
                   textTransform: "none",
-                  bgcolor: "primary.main",
-                  color: "#020617",
-                  "&:hover": { bgcolor: "#06e29a" }
+                  ...ambulanceContainedButtonSx
                 }}
               >
                 Request ambulance now

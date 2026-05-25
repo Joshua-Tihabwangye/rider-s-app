@@ -11,7 +11,6 @@ import {
   Typography
 } from "@mui/material";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
-import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
@@ -34,7 +33,7 @@ import {
   rentalUi,
   screenShellSx
 } from "../components/rental/RentalRedesignUI";
-import { parseUgx } from "../features/rental/booking";
+import { getRentalVehicleLabel, parseUgx } from "../features/rental/booking";
 import { RENTAL_UI_ASSETS, getVehicleImageFromName } from "../features/rental/uiAssets";
 
 const depositAmount = 10000;
@@ -96,6 +95,8 @@ export default function RentalVehicleDetail(): React.JSX.Element {
   }
 
   const price = parseUgx(vehicle.dailyPrice);
+  const vehicleLabel = getRentalVehicleLabel(vehicle.name);
+  const pickupBranchLabel = rental.booking.pickupBranch ?? "Nsambya EV Hub, Uganda";
 
   return (
     <Box sx={{ ...screenShellSx, pb: { xs: 13, sm: 6 } }}>
@@ -104,9 +105,7 @@ export default function RentalVehicleDetail(): React.JSX.Element {
           <ArrowBackRoundedIcon />
         </IconButton>
         <Typography sx={{ fontSize: "22px !important", fontWeight: 800 }}>Rental vehicle</Typography>
-        <IconButton sx={{ border: `1px solid ${rentalUi.border}`, bgcolor: "#fff", color: rentalUi.orange }}>
-          <FavoriteBorderRoundedIcon />
-        </IconButton>
+        <Box sx={{ width: 40, height: 40 }} />
       </Stack>
 
       <CroppedReferenceImage
@@ -126,7 +125,7 @@ export default function RentalVehicleDetail(): React.JSX.Element {
       <Stack direction="row" justifyContent="space-between" spacing={0.9} alignItems="flex-start" sx={{ mb: 0.45 }}>
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography sx={{ fontSize: "26px !important", fontWeight: 800, lineHeight: 1.03 }}>
-            {vehicle.name.includes("Kona") ? "Family SUV" : vehicle.name}
+            {vehicleLabel}
           </Typography>
           <Stack direction="row" spacing={0.8} alignItems="center" sx={{ mt: 0.3 }}>
             <StarRoundedIcon sx={{ color: rentalUi.green, fontSize: 18 }} />
@@ -171,7 +170,7 @@ export default function RentalVehicleDetail(): React.JSX.Element {
         Spacious, comfortable, and perfect for family trips. Enjoy long drives with zero emissions.
       </Typography>
 
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 0.75, mb: 1.55 }}>
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 0.75, mb: 1.55 }}>
         <FeatureStat icon={<AirlineSeatReclineNormalRoundedIcon />} label={`${vehicle.seats} Seats`} helper="Spacious cabin" />
         <FeatureStat icon={<BatteryChargingFullRoundedIcon />} label={`${parseUgx(vehicle.range)} km`} helper="ARAI range" />
         <FeatureStat icon={<SettingsSuggestRoundedIcon />} label="Automatic" helper="Transmission" />
@@ -216,7 +215,7 @@ export default function RentalVehicleDetail(): React.JSX.Element {
                 <LocationOnRoundedIcon />
               </Box>
               <Box>
-                <Typography sx={{ fontSize: "16px !important", fontWeight: 700 }}>EVzone Koramangala</Typography>
+                <Typography sx={{ fontSize: "16px !important", fontWeight: 700 }}>{pickupBranchLabel}</Typography>
                 <Typography sx={{ color: rentalUi.muted, fontSize: "11px !important", mt: 0.1 }}>1.8 km away</Typography>
                 <Typography sx={{ color: rentalUi.greenDeep, fontSize: "11px !important", mt: 0.05 }}>Open until 9:00 PM</Typography>
               </Box>
@@ -276,7 +275,7 @@ export default function RentalVehicleDetail(): React.JSX.Element {
             vehicleId: vehicle.id,
             rentalMode: mode
           });
-          navigate("/rental/dates");
+          navigate("/rental/dates", { state: { vehicleId: vehicle.id } });
         }}
       />
     </Box>

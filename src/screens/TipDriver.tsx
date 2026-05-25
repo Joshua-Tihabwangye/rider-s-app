@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -18,24 +18,42 @@ import {
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import GoogleMapView from "../components/maps/GoogleMapView";
-
-// Tip options as per specification
-const TIP_OPTIONS = [
-  { label: "UGX 1,000", value: 1000 },
-  { label: "Top Tipped", value: 1500, isTopTipped: true },
-  { label: "UGX 2,000", value: 2000 }
-];
+import { useAppData } from "../contexts/AppDataContext";
 
 function RideRatingTipScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
+  const { ride, sharedLocationState } = useAppData();
+  const tipWorkflow = ride.workflow.tip;
+  const sharingWorkflow = ride.workflow.sharing;
+  const fallbackDriver = ride.workflow.tripSimulation.mockAssignments[0]?.driver;
   
-  // Get driver data from navigation state or use defaults
   const driverData = location.state?.driverData || {
-    name: "Tim Smith",
-    initials: "TS"
+    name: ride.activeTrip?.driver?.name || fallbackDriver?.name || "Driver",
+    initials: ride.activeTrip?.driver?.avatar || fallbackDriver?.avatar || "DR"
   };
+  const mapRoute = useMemo(() => {
+    if (sharedLocationState.routePolyline.length > 1) {
+      return sharedLocationState.routePolyline;
+    }
+    if (sharedLocationState.pickupCoords && sharedLocationState.destinationCoords) {
+      return [sharedLocationState.pickupCoords, sharedLocationState.destinationCoords];
+    }
+    return sharingWorkflow.mapPreviewPolyline;
+  }, [
+    sharedLocationState.destinationCoords,
+    sharedLocationState.pickupCoords,
+    sharedLocationState.routePolyline,
+    sharingWorkflow.mapPreviewPolyline
+  ]);
+  const mapCenter = useMemo(
+    () =>
+      sharedLocationState.pickupCoords ??
+      mapRoute[0] ??
+      sharingWorkflow.mapPreviewCenter,
+    [mapRoute, sharedLocationState.pickupCoords, sharingWorkflow.mapPreviewCenter]
+  );
   
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
@@ -82,7 +100,7 @@ function RideRatingTipScreen(): React.JSX.Element {
     // Required: ride_id, rating
     // Optional: feedback_message, tip_amount
     const feedbackData = {
-      ride_id: location.state?.rideId || "trip_123",
+      ride_id: location.state?.rideId || ride.activeTrip?.id || tipWorkflow.defaultRideId,
       rating: rating,
       feedback_message: feedback || null,
       tip_amount: effectiveTip > 0 ? effectiveTip : null
@@ -110,7 +128,7 @@ function RideRatingTipScreen(): React.JSX.Element {
             : "/home";
       setTimeout(() => {
         navigate(returnTo, { replace: true });
-      }, 2000);
+      }, tipWorkflow.submitRedirectDelayMs);
     } catch (error) {
       console.error("Error submitting feedback:", error);
       setIsSubmitting(false);
@@ -134,13 +152,9 @@ function RideRatingTipScreen(): React.JSX.Element {
         }}
       >
         <GoogleMapView
-          center={{ lat: 0.3476, lng: 32.5825 }}
+          center={mapCenter}
           zoom={12}
-          routePolyline={[
-            { lat: 0.336, lng: 32.56 },
-            { lat: 0.345, lng: 32.575 },
-            { lat: 0.356, lng: 32.59 }
-          ]}
+          routePolyline={mapRoute}
         />
         {/* Grid overlay */}
         <Box
@@ -327,7 +341,7 @@ function RideRatingTipScreen(): React.JSX.Element {
                   mb: customTip ? 1.5 : 0
                 }}
               >
-                {TIP_OPTIONS.map((option) => {
+                {tipWorkflow.options.map((option) => {
                   const isSelected = selectedTip === option.value && !customTip;
                   return (
                     <Button

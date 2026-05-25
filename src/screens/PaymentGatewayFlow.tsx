@@ -376,9 +376,11 @@ export function PaymentSuccessScreen(): React.JSX.Element {
     const completedAt = new Date().toISOString();
     if (ride.activeTrip) {
       actions.updateRideTrip({
+        fareEstimate: fare,
         status: "completed",
         completedAt
       });
+      actions.setRideStatus("completed");
     }
     actions.setActiveTrip(null);
     navigate("/home", {

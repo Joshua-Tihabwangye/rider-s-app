@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -19,46 +19,10 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
 import GoogleMapView from "../components/maps/GoogleMapView";
-
-// Passenger data - would come from backend/API
-// Retrieve all passengers from the ongoing trip session API
-const PASSENGERS = [
-  {
-    id: 1,
-    name: "Stewart Robinson",
-    initials: "SR",
-    dropOff: "Stanbic Bank ATM | Kajjansi",
-    fare: "15,256",
-    isMain: true
-  },
-  {
-    id: 2,
-    name: "Georges Charette",
-    initials: "GC",
-    dropOff: "Stanbic Bank ATM | Kajjansi",
-    fare: "15,256",
-    isMain: false
-  },
-  {
-    id: 3,
-    name: "Frédéric Guimond",
-    initials: "FG",
-    dropOff: "CoRSU Rehabilitation Hospital, Kusubi",
-    fare: "5,700",
-    isMain: false
-  },
-  {
-    id: 4,
-    name: "Emmanuel Barrière",
-    initials: "EB",
-    dropOff: "Bwebajja, Entebbe Road",
-    fare: "11,896",
-    isMain: false
-  }
-];
+import { useAppData } from "../contexts/AppDataContext";
 
 interface Passenger {
-  id: number;
+  id: string;
   name: string;
   initials: string;
   isOwner?: boolean;
@@ -152,11 +116,36 @@ function PassengerCard({ passenger }: PassengerCardProps): React.JSX.Element {
 function SharingPassengersScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const theme = useTheme();
-  const [isActivated, setIsActivated] = useState(true);
+  const { ride, sharedLocationState, actions } = useAppData();
+  const sharing = ride.sharing;
+  const sharingWorkflow = ride.workflow.sharing;
+  const [isActivated, setIsActivated] = useState(sharing.splitFareEnabled);
+  const mapRoute = useMemo(() => {
+    if (sharedLocationState.routePolyline.length > 1) {
+      return sharedLocationState.routePolyline;
+    }
+    if (sharedLocationState.pickupCoords && sharedLocationState.destinationCoords) {
+      return [sharedLocationState.pickupCoords, sharedLocationState.destinationCoords];
+    }
+    return sharingWorkflow.mapPreviewPolyline;
+  }, [
+    sharedLocationState.destinationCoords,
+    sharedLocationState.pickupCoords,
+    sharedLocationState.routePolyline,
+    sharingWorkflow.mapPreviewPolyline
+  ]);
+  const mapCenter = useMemo(
+    () =>
+      sharedLocationState.pickupCoords ??
+      mapRoute[0] ??
+      sharingWorkflow.mapPreviewCenter,
+    [mapRoute, sharedLocationState.pickupCoords, sharingWorkflow.mapPreviewCenter]
+  );
 
   const handleToggleActivation = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const newValue = event.target.checked;
     setIsActivated(newValue);
+    actions.updateRideSharing({ splitFareEnabled: newValue });
     // Toggle state (ON/OFF) updates the trip_sharing_status field in the backend
     // The list of sharing passengers refreshes dynamically based on activation state
     console.log("Trip sharing status:", newValue ? "ON" : "OFF");
@@ -166,9 +155,12 @@ function SharingPassengersScreen(): React.JSX.Element {
 
   // Filter passengers based on activation state
   // When switched off, only the main passenger remains on the trip
-  const mainPassenger = PASSENGERS.find((p) => p.isMain) || PASSENGERS[0];
+  const mainPassenger =
+    sharing.passengers.find((p) => p.isMain) ||
+    sharing.passengers.find((p) => p.isOwner) ||
+    sharing.passengers[0];
   const sharingPassengers = isActivated
-    ? PASSENGERS.filter((p) => !p.isMain)
+    ? sharing.passengers.filter((p) => !p.isMain && !p.isOwner)
     : [];
 
   return (
@@ -183,13 +175,9 @@ function SharingPassengersScreen(): React.JSX.Element {
         }}
       >
         <GoogleMapView
-          center={{ lat: 0.3476, lng: 32.5825 }}
+          center={mapCenter}
           zoom={12}
-          routePolyline={[
-            { lat: 0.338, lng: 32.56 },
-            { lat: 0.347, lng: 32.575 },
-            { lat: 0.361, lng: 32.59 }
-          ]}
+          routePolyline={mapRoute}
         />
         {/* Grid overlay */}
         <Box

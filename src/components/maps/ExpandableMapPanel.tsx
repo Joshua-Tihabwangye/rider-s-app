@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
-import { Box, IconButton, type SxProps, type Theme } from "@mui/material";
+import { Box, Button, type SxProps, type Theme } from "@mui/material";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded";
 
@@ -126,7 +126,7 @@ export default function ExpandableMapPanel({
           {map}
         </Box>
 
-        <IconButton
+        <Button
           onClick={() => setIsExpanded((prev) => !prev)}
           aria-label={isExpanded ? "Show details panel" : "Expand map"}
           sx={{
@@ -134,20 +134,27 @@ export default function ExpandableMapPanel({
             left: "50%",
             bottom: isExpanded ? buttonOffsetExpanded : buttonOffsetCollapsed,
             transform: "translateX(-50%)",
-            zIndex: 9,
-            width: 42,
-            height: 42,
-            borderRadius: "50%",
+            zIndex: 14,
+            borderRadius: 999,
+            px: 1.4,
+            py: 0.4,
+            minWidth: 0,
             bgcolor: "var(--evz-map-overlay-bg)",
             border: "1px solid var(--evz-map-control-border)",
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
             boxShadow: "0 2px 10px rgba(2,6,23,0.2)",
-            transition: "all 0.3s ease"
+            transition: "all 0.3s ease",
+            textTransform: "none",
+            color: "#334155",
+            fontSize: 12,
+            fontWeight: 700,
+            "&:hover": { bgcolor: "var(--evz-map-control-bg)" }
           }}
         >
-          {isExpanded ? <KeyboardArrowUpRoundedIcon /> : <KeyboardArrowDownRoundedIcon />}
-        </IconButton>
+          {isExpanded ? <KeyboardArrowUpRoundedIcon sx={{ mr: 0.3 }} /> : <KeyboardArrowDownRoundedIcon sx={{ mr: 0.3 }} />}
+          {isExpanded ? "Show details" : "Extend map"}
+        </Button>
       </Box>
 
       <SmoothHeightCollapse open={!isExpanded} sx={detailsWrapperSx}>

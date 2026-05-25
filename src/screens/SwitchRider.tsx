@@ -31,27 +31,34 @@ function SwitchRiderChooserScreen(): React.JSX.Element {
       navigate("/rides/switch-rider/contact", {
         state: {
           ...initialState,
-          riderType
+          riderType,
+          bookForSomeone: true
         }
       });
       return;
     }
 
     if (riderType === "manual") {
-      navigate("/rides/enter/details", {
+      navigate("/rides/switch-rider/summary", {
         state: {
           ...initialState,
+          riderType: "manual",
           bookForSomeone: true,
-          fromSwitchRider: true
+          fromSwitchRider: true,
+          selectedContact: null
         }
       });
       return;
     }
 
-    navigate("/rides/options", {
+    navigate("/rides/enter/details", {
       state: {
         ...initialState,
-        riderType: "personal"
+        riderType: "personal",
+        bookForSomeone: false,
+        selectedContact: null,
+        bookedPersonName: "",
+        bookedPersonPhone: ""
       }
     });
   };

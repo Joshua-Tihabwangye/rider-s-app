@@ -28,6 +28,7 @@ import {
   screenShellSx
 } from "../components/rental/RentalRedesignUI";
 import { RENTAL_UI_ASSETS, getVehicleImageFromName } from "../features/rental/uiAssets";
+import { estimateRentalDays, formatRentalDateTime, getRentalVehicleLabel } from "../features/rental/booking";
 
 export default function RentalWalletPayment(): React.JSX.Element {
   const navigate = useNavigate();
@@ -51,10 +52,13 @@ export default function RentalWalletPayment(): React.JSX.Element {
 
   const amountDue = activePayment.amount;
   const walletInsufficient = walletBalance < amountDue;
-  const vehicleLabel = vehicle?.name.includes("Kona") ? "Family SUV" : vehicle?.name ?? "EV rental";
+  const vehicleLabel = vehicle?.name ? getRentalVehicleLabel(vehicle.name) : "EV rental";
+  const startDateDisplay = formatRentalDateTime(rental.booking.startDate);
+  const endDateDisplay = formatRentalDateTime(rental.booking.endDate);
+  const durationDays = estimateRentalDays(rental.booking.startDate, rental.booking.endDate);
 
   return (
-    <Box sx={screenShellSx}>
+    <Box sx={{ ...screenShellSx, pb: { xs: 13, sm: 6 } }}>
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
         <IconButton onClick={() => navigate(-1)} sx={{ border: `1px solid ${rentalUi.border}`, bgcolor: "#fff", color: rentalUi.green }}>
           <ArrowBackRoundedIcon />
@@ -64,8 +68,8 @@ export default function RentalWalletPayment(): React.JSX.Element {
 
       <Card sx={{ ...cardSx, borderColor: "#BFECD4", bgcolor: "#F4FCF8", mb: 1.4 }}>
         <CardContent sx={{ p: 1.55, "&:last-child": { pb: 1.55 } }}>
-          <Stack direction="row" justifyContent="space-between" spacing={1.1}>
-            <Box>
+          <Stack direction="row" justifyContent="space-between" spacing={1.1} alignItems="center">
+            <Box sx={{ minWidth: 0, flex: 1 }}>
               <Stack direction="row" spacing={0.65} alignItems="center" sx={{ mb: 0.7 }}>
                 <Typography sx={{ fontSize: 22/1.25, fontWeight: 600 }}>EVzone wallet balance</Typography>
                 <VisibilityOutlinedIcon sx={{ fontSize: 20, color: rentalUi.muted }} />
@@ -76,9 +80,10 @@ export default function RentalWalletPayment(): React.JSX.Element {
             <CroppedReferenceImage
               src={RENTAL_UI_ASSETS.banners.walletHero}
               alt="Wallet"
-              height={140}
+              height={92}
               scale={1}
-              sx={{ width: 214, borderRadius: 2.6 }}
+              fit="contain"
+              sx={{ width: { xs: 110, sm: 150 }, borderRadius: 2.2, bgcolor: "transparent", flexShrink: 0 }}
             />
           </Stack>
         </CardContent>
@@ -86,8 +91,8 @@ export default function RentalWalletPayment(): React.JSX.Element {
 
       <Card sx={{ ...cardSx, mb: 1.35 }}>
         <CardContent sx={{ p: 1.55, "&:last-child": { pb: 1.55 } }}>
-          <Stack direction="row" justifyContent="space-between" spacing={1.1}>
-            <Box>
+          <Stack direction="row" justifyContent="space-between" spacing={1.1} alignItems="center">
+            <Box sx={{ minWidth: 0, flex: 1 }}>
               <Typography sx={{ fontSize: 38/2, fontWeight: 700 }}>Amount due</Typography>
               <Typography sx={{ fontSize: 74/2, fontWeight: 800, mt: 0.25 }}>{formatInr(amountDue)}</Typography>
               <Stack spacing={0.3} sx={{ mt: 0.8 }}>
@@ -104,9 +109,10 @@ export default function RentalWalletPayment(): React.JSX.Element {
             <CroppedReferenceImage
               src={RENTAL_UI_ASSETS.banners.walletHero}
               alt="Amount breakdown"
-              height={148}
+              height={90}
               scale={1}
-              sx={{ width: 212, borderRadius: 2.6 }}
+              fit="contain"
+              sx={{ width: { xs: 110, sm: 150 }, borderRadius: 2.2, bgcolor: "transparent", flexShrink: 0 }}
             />
           </Stack>
         </CardContent>
@@ -117,12 +123,14 @@ export default function RentalWalletPayment(): React.JSX.Element {
           onClick={() => setSplitPayment(false)}
           sx={{ ...cardSx, flex: 1, cursor: "pointer", borderColor: !splitPayment ? rentalUi.green : rentalUi.border, bgcolor: !splitPayment ? rentalUi.greenSoft : "#fff" }}
         >
-          <CardContent sx={{ p: 1.15, "&:last-child": { pb: 1.15 } }}>
+          <CardContent sx={{ p: 1.1, "&:last-child": { pb: 1.1 } }}>
             <Stack direction="row" spacing={0.7} alignItems="center">
               {!splitPayment ? <RadioButtonCheckedRoundedIcon sx={{ color: rentalUi.green }} /> : <RadioButtonUncheckedRoundedIcon sx={{ color: "#C4CEDA" }} />}
-              <Box>
-                <Typography sx={{ fontWeight: 700, fontSize: 32/2 }}>Full payment</Typography>
-                <Typography sx={{ color: rentalUi.muted, fontSize: 16 }}>Pay entire amount now</Typography>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontWeight: 700, fontSize: 15, lineHeight: 1.1 }}>Full payment</Typography>
+                <Typography sx={{ color: rentalUi.muted, fontSize: 11.2, lineHeight: 1.2 }}>
+                  Pay entire amount now
+                </Typography>
               </Box>
             </Stack>
           </CardContent>
@@ -132,16 +140,18 @@ export default function RentalWalletPayment(): React.JSX.Element {
           onClick={() => setSplitPayment(true)}
           sx={{ ...cardSx, flex: 1, cursor: "pointer", borderColor: splitPayment ? rentalUi.green : rentalUi.border, bgcolor: splitPayment ? rentalUi.greenSoft : "#fff" }}
         >
-          <CardContent sx={{ p: 1.15, "&:last-child": { pb: 1.15 } }}>
+          <CardContent sx={{ p: 1.1, "&:last-child": { pb: 1.1 } }}>
             <Stack direction="row" spacing={0.7} alignItems="center" justifyContent="space-between">
-              <Stack direction="row" spacing={0.7} alignItems="center">
+              <Stack direction="row" spacing={0.7} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
                 {splitPayment ? <RadioButtonCheckedRoundedIcon sx={{ color: rentalUi.green }} /> : <RadioButtonUncheckedRoundedIcon sx={{ color: "#C4CEDA" }} />}
-                <Box>
-                  <Typography sx={{ fontWeight: 700, fontSize: 32/2 }}>Split payment</Typography>
-                  <Typography sx={{ color: rentalUi.muted, fontSize: 16 }}>Pay partial now, rest later</Typography>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: 15, lineHeight: 1.1 }}>Split payment</Typography>
+                  <Typography sx={{ color: rentalUi.muted, fontSize: 11.2, lineHeight: 1.2 }}>
+                    Pay partial now, rest later
+                  </Typography>
                 </Box>
               </Stack>
-              <Chip label="New" sx={{ bgcolor: "#FFF1E3", color: rentalUi.orange }} />
+              <Chip label="New" sx={{ bgcolor: "#FFF1E3", color: rentalUi.orange, flexShrink: 0 }} />
             </Stack>
           </CardContent>
         </Card>
@@ -155,16 +165,18 @@ export default function RentalWalletPayment(): React.JSX.Element {
               alt={vehicleLabel}
               height={74}
               scale={1}
-              sx={{ width: 128, borderRadius: 2.2 }}
+              fit="contain"
+              sx={{ width: 112, borderRadius: 2.2 }}
             />
             <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Stack direction="row" justifyContent="space-between">
-                <Typography sx={{ color: rentalUi.muted, fontSize: 16 }}>Booking ID</Typography>
-                <Typography sx={{ color: rentalUi.muted, fontSize: 16 }}>Vehicle</Typography>
-              </Stack>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Typography sx={{ fontWeight: 800, fontSize: 35/2 }}>{activePayment.bookingReference}</Typography>
-                <Typography sx={{ fontWeight: 800, fontSize: 35/2 }}>{vehicleLabel}</Typography>
+              <Typography sx={{ color: rentalUi.muted, fontSize: 12 }}>Booking ID</Typography>
+              <Typography sx={{ fontWeight: 800, fontSize: 16, lineHeight: 1.2, mb: 0.55, whiteSpace: "nowrap" }}>
+                {activePayment.bookingReference}
+              </Typography>
+              <Typography sx={{ color: rentalUi.muted, fontSize: 12 }}>Vehicle</Typography>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <Typography sx={{ fontWeight: 800, fontSize: 16, lineHeight: 1.2, whiteSpace: "nowrap" }}>{vehicleLabel}</Typography>
+                <Chip label="EV" size="small" sx={{ height: 22, bgcolor: rentalUi.greenSoft, color: rentalUi.greenDeep }} />
               </Stack>
             </Box>
           </Stack>
@@ -172,7 +184,7 @@ export default function RentalWalletPayment(): React.JSX.Element {
           <Stack direction="row" spacing={0.65} alignItems="center">
             <CalendarMonthRoundedIcon sx={{ color: rentalUi.muted, fontSize: 19 }} />
             <Typography sx={{ color: rentalUi.muted, fontSize: 16.5 }}>
-              24 May, 10:00 AM – 26 May, 10:00 AM  •  2 days
+              {startDateDisplay} – {endDateDisplay}  •  {durationDays} day{durationDays === 1 ? "" : "s"}
             </Typography>
           </Stack>
         </CardContent>

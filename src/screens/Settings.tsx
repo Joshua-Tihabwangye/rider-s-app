@@ -55,9 +55,10 @@ interface ToggleRowProps {
   description: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
+  iconColor?: string;
 }
 
-function ToggleRow({ icon, title, description, checked, onChange }: ToggleRowProps): React.JSX.Element {
+function ToggleRow({ icon, title, description, checked, onChange, iconColor }: ToggleRowProps): React.JSX.Element {
   return (
     <AppCard contentSx={{ px: uiTokens.spacing.mdPlus, py: uiTokens.spacing.mdPlus, gap: 0 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: uiTokens.spacing.md }}>
@@ -69,7 +70,7 @@ function ToggleRow({ icon, title, description, checked, onChange }: ToggleRowPro
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
-            color: uiTokens.colors.brand,
+            color: iconColor ?? uiTokens.colors.brand,
             bgcolor: uiTokens.surfaces.brandTintSoft
           }}
         >
@@ -126,6 +127,7 @@ export default function Settings(): React.JSX.Element {
   const { mode, toggleMode } = useThemeMode();
   const { user, signOut } = useAuth();
   const { settings, emergencyContacts, ride, actions } = useAppData();
+  const companyOrange = "#F79009";
 
   const [contactDialogOpen, setContactDialogOpen] = React.useState(false);
   const [editingContact, setEditingContact] = React.useState<EmergencyContact | null>(null);
@@ -194,7 +196,14 @@ export default function Settings(): React.JSX.Element {
       header={<PageHeader title="Settings" subtitle="Account & preferences" onBack={() => navigate(-1)} />}
       contentSx={{ pt: { xs: uiTokens.spacing.xl, md: uiTokens.spacing.xl } }}
     >
-      <AppCard variant="brand" onClick={() => navigate("/profile")}>
+      <AppCard
+        variant="brand"
+        onClick={() => navigate("/profile")}
+        sx={{
+          border: "1px solid rgba(247, 144, 9, 0.28)",
+          background: "linear-gradient(135deg, rgba(3,205,140,0.14) 0%, rgba(247,144,9,0.12) 100%)"
+        }}
+      >
         <Stack direction="row" spacing={uiTokens.spacing.mdPlus} alignItems="center">
           <Box
             sx={{
@@ -345,6 +354,14 @@ export default function Settings(): React.JSX.Element {
             onChange={(checked) => actions.updateRidePreferences({ luggageAssistance: checked })}
           />
           <ToggleRow
+            icon={<DirectionsCarRoundedIcon />}
+            title="Women driver preferred"
+            description="Prioritize matching with women drivers when available"
+            checked={settings.ride.womenDriverPreferred}
+            onChange={(checked) => actions.updateRidePreferences({ womenDriverPreferred: checked })}
+            iconColor={companyOrange}
+          />
+          <ToggleRow
             icon={<LocalShippingRoundedIcon />}
             title="Call before drop-off"
             description="Courier calls before delivery"
@@ -402,9 +419,12 @@ export default function Settings(): React.JSX.Element {
                   borderRadius: "var(--evz-radius-pill)",
                   textTransform: "none",
                   fontSize: 12,
-                  bgcolor: uiTokens.colors.brand,
+                  bgcolor: companyOrange,
                   color: uiTokens.colors.white,
-                  px: 2
+                  px: 2,
+                  "&:hover": {
+                    bgcolor: "#DC6803"
+                  }
                 }}
               >
                 Add

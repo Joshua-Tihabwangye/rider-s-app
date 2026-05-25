@@ -22,6 +22,10 @@ export interface RouteResult {
   alternativePaths: Coordinates[][];
 }
 
+function samePoint(a: Coordinates, b: Coordinates): boolean {
+  return Math.abs(a.lat - b.lat) < 0.000001 && Math.abs(a.lng - b.lng) < 0.000001;
+}
+
 interface MockPlaceEntry {
   id: string;
   name: string;
@@ -528,4 +532,74 @@ export async function calculateRoute(origin: Coordinates, destination: Coordinat
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+export async function calculateRouteThroughPoints(points: Coordinates[]): Promise<RouteResult | null> {
+  const normalizedPoints = points.filter(
+    (point): point is Coordinates =>
+      isFiniteCoordinate(point?.lat) &&
+      isFiniteCoordinate(point?.lng)
+  );
+  if (normalizedPoints.length < 2) {
+    return null;
+  }
+
+  const deduped: Coordinates[] = normalizedPoints.reduce<Coordinates[]>((acc, point) => {
+    if (acc.length === 0) {
+      acc.push(point);
+      return acc;
+    }
+    const previous = acc[acc.length - 1];
+    if (!previous || samePoint(previous, point)) {
+      return acc;
+    }
+    acc.push(point);
+    return acc;
+  }, []);
+
+  if (deduped.length < 2) {
+    return null;
+  }
+
+  let totalDistanceKm = 0;
+  let totalDurationMin = 0;
+  const mergedPath: Coordinates[] = [];
+  const mergedAlternatives: Coordinates[][] = [];
+
+  for (let index = 0; index < deduped.length - 1; index += 1) {
+    const from = deduped[index];
+    const to = deduped[index + 1];
+    if (!from || !to) {
+      continue;
+    }
+    const segment = await calculateRoute(from, to);
+    if (!segment) {
+      return null;
+    }
+    totalDistanceKm += segment.distanceKm;
+    totalDurationMin += segment.durationMin;
+
+    const nextPath = segment.path ?? [];
+    if (nextPath.length > 0) {
+      if (mergedPath.length === 0) {
+        mergedPath.push(...nextPath);
+      } else {
+        mergedPath.push(...nextPath.slice(1));
+      }
+    }
+    if (segment.alternativePaths.length > 0) {
+      mergedAlternatives.push(...segment.alternativePaths);
+    }
+  }
+
+  if (mergedPath.length < 2) {
+    return null;
+  }
+
+  return {
+    distanceKm: Number(totalDistanceKm.toFixed(1)),
+    durationMin: Math.max(1, Math.round(totalDurationMin)),
+    path: mergedPath,
+    alternativePaths: mergedAlternatives
+  };
 }

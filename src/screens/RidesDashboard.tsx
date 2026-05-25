@@ -9,7 +9,7 @@ import {
   Tab,
   Stack,
   Chip,
-  Avatar
+  IconButton
 } from "@mui/material";
 
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
@@ -28,12 +28,20 @@ import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
 import StarHalfRoundedIcon from "@mui/icons-material/StarHalfRounded";
 import AttachMoneyRoundedIcon from "@mui/icons-material/AttachMoneyRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import MicRoundedIcon from "@mui/icons-material/MicRounded";
+import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
+import TwoWheelerRoundedIcon from "@mui/icons-material/TwoWheelerRounded";
+import FlightTakeoffRoundedIcon from "@mui/icons-material/FlightTakeoffRounded";
+import WorkRoundedIcon from "@mui/icons-material/WorkRounded";
+import LocalOfferRoundedIcon from "@mui/icons-material/LocalOfferRounded";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import ScreenScaffold from "../components/ScreenScaffold";
+import RideTypeCard, { type RideTypeCardData } from "../components/rides/RideTypeCard";
 import ActionGrid from "../components/primitives/ActionGrid";
 import InfoCard from "../components/primitives/InfoCard";
 import SectionHeader from "../components/primitives/SectionHeader";
@@ -721,6 +729,14 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const location = useLocation();
   const { ride, sharedLocationState, actions } = useAppData();
   const { updateRideRequest, updateSharedLocationState } = actions;
+  const updateRideRequestRef = useRef(updateRideRequest);
+  const updateSharedLocationStateRef = useRef(updateSharedLocationState);
+  useEffect(() => {
+    updateRideRequestRef.current = updateRideRequest;
+  }, [updateRideRequest]);
+  useEffect(() => {
+    updateSharedLocationStateRef.current = updateSharedLocationState;
+  }, [updateSharedLocationState]);
   
   // Check if this is a shared ride mode from query parameter
   const searchParams = new URLSearchParams(location.search);
@@ -745,6 +761,43 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const savedLocations = rideInsights.commonPlaces;
   const dailyCommutes = rideInsights.commutes;
   const hasRideActivity = insightRoutes.length > 0;
+  const dashboardWorkflow = ride.workflow.dashboard;
+
+  const recommendedRideTypes = dashboardWorkflow.recommendedRideTypes;
+  const dashboardRideTypeCards = useMemo<RideTypeCardData[]>(
+    () =>
+      recommendedRideTypes.slice(0, 3).map((item, index) => ({
+        id: item.id,
+        name: item.name,
+        capacity: item.capacity,
+        image: item.image,
+        objectPosition: "center 36%",
+        foregroundPosition:
+          index === 0 ? "center 33%" : index === 1 ? "center 31%" : "center 34%",
+        objectFit: "cover",
+        price: item.price
+      })),
+    [recommendedRideTypes]
+  );
+  const popularDestinations = useMemo(
+    () =>
+      dashboardWorkflow.popularDestinations.map((destination) => ({
+        ...destination,
+        icon:
+          destination.icon === "airport" ? (
+            <FlightTakeoffRoundedIcon sx={{ fontSize: 24, color: "#11B86A" }} />
+          ) : destination.icon === "work" ? (
+            <WorkRoundedIcon sx={{ fontSize: 24, color: "#11B86A" }} />
+          ) : (
+            <HomeRoundedIcon sx={{ fontSize: 24, color: "#11B86A" }} />
+          ),
+        destination:
+          destination.id === "home"
+            ? ride.savedPlaces[0]?.address ?? destination.destination
+            : destination.destination
+      })),
+    [dashboardWorkflow.popularDestinations, ride.savedPlaces]
+  );
 
   const upcomingRides = useMemo(
     () => rideInsights.upcoming.filter((rideItem) => !dismissedUpcomingRideIds.includes(rideItem.id)),
@@ -752,9 +805,13 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   );
 
   useEffect(() => {
-    setDismissedUpcomingRideIds((previous) =>
-      previous.filter((id) => rideInsights.upcoming.some((rideItem) => rideItem.id === id))
-    );
+    setDismissedUpcomingRideIds((previous) => {
+      const next = previous.filter((id) => rideInsights.upcoming.some((rideItem) => rideItem.id === id));
+      if (next.length === previous.length && next.every((id, index) => id === previous[index])) {
+        return previous;
+      }
+      return next;
+    });
   }, [rideInsights.upcoming]);
 
   // Live rider location with permission awareness and battery-safe watch options.
@@ -816,7 +873,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       sharedLocationState.riderLocation?.lng === currentLocation.lng;
 
     if (!sameOriginCoords) {
-      updateRideRequest({
+      updateRideRequestRef.current({
         origin: {
           label: ride.request.origin?.label || "Current location",
           address: ride.request.origin?.address || "Your current location",
@@ -828,19 +885,18 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     if (samePickupCoords && sameRiderCoords) {
       return;
     }
-    updateSharedLocationState({
+    updateSharedLocationStateRef.current({
       riderLocation: currentLocation,
       pickupCoords: currentLocation
     });
   }, [
     currentLocation,
     ride.request.origin?.address,
-    ride.request.origin?.coordinates,
+    ride.request.origin?.coordinates?.lat,
+    ride.request.origin?.coordinates?.lng,
     ride.request.origin?.label,
     sharedLocationState.pickupCoords,
-    sharedLocationState.riderLocation,
-    updateRideRequest,
-    updateSharedLocationState
+    sharedLocationState.riderLocation
   ]);
 
   // Calculate route when destination is selected
@@ -857,7 +913,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           const route = await calculateRoute(currentLocation, destinationCoords);
           if (!route) {
             setRouteData(null);
-            updateSharedLocationState({
+            updateSharedLocationStateRef.current({
               pickupCoords: currentLocation,
               destinationCoords,
               routePolyline: [],
@@ -873,7 +929,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             path: route.path,
             alternatives: route.alternativePaths
           });
-          updateSharedLocationState({
+          updateSharedLocationStateRef.current({
             pickupCoords: currentLocation,
             destinationCoords,
             routePolyline: route.path,
@@ -884,7 +940,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         } catch (error) {
           console.error("Error calculating route:", error);
           setRouteData(null);
-          updateSharedLocationState({
+          updateSharedLocationStateRef.current({
             pickupCoords: currentLocation,
             destinationCoords,
             routePolyline: [],
@@ -897,15 +953,32 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       calculateRoutePreview();
     } else {
       lastRouteQueryRef.current = null;
-      setRouteData(null);
-      updateSharedLocationState({
-        routePolyline: [],
-        routeAlternativePolylines: [],
-        routeDistanceKm: null,
-        routeDurationMin: null
-      });
+      if (routeData !== null) {
+        setRouteData(null);
+      }
+      const hasRouteStateToClear =
+        sharedLocationState.routePolyline.length > 0 ||
+        sharedLocationState.routeAlternativePolylines.length > 0 ||
+        sharedLocationState.routeDistanceKm !== null ||
+        sharedLocationState.routeDurationMin !== null;
+      if (hasRouteStateToClear) {
+        updateSharedLocationStateRef.current({
+          routePolyline: [],
+          routeAlternativePolylines: [],
+          routeDistanceKm: null,
+          routeDurationMin: null
+        });
+      }
     }
-  }, [currentLocation, destinationCoords, updateSharedLocationState]);
+  }, [
+    currentLocation,
+    destinationCoords,
+    routeData,
+    sharedLocationState.routeAlternativePolylines.length,
+    sharedLocationState.routeDistanceKm,
+    sharedLocationState.routeDurationMin,
+    sharedLocationState.routePolyline.length
+  ]);
 
 
   const handleCommuteRequest = (commute: Commute): void => {
@@ -955,7 +1028,8 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     } else if (type === "book-someone") {
       navigate("/rides/enter/details", {
         state: {
-          bookForSomeone: true
+          bookForSomeone: true,
+          riderType: "manual"
         }
       });
     } else if (type === "commutes-manage") {
@@ -1032,7 +1106,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             placeType: place
           }
         });
-      }, 1000);
+      }, dashboardWorkflow.navigateToDetailsDelayMs);
     }
   };
 
@@ -1075,547 +1149,251 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           isSharedRide: isSharedRideMode // Pass shared ride mode to details screen
         }
       });
-    }, 1000);
+    }, dashboardWorkflow.navigateToDetailsDelayMs);
   };
 
-
+  const rentalLikeTypographySx = {
+    "& .MuiTypography-root": {
+      fontSize: "12.2px !important",
+      lineHeight: 1.35
+    },
+    "& .MuiInputBase-input": {
+      fontSize: "12.6px !important"
+    },
+    "& .MuiInputBase-input::placeholder": {
+      fontSize: "12.6px !important",
+      opacity: 1
+    },
+    "& .MuiFormHelperText-root": {
+      fontSize: "11px !important"
+    },
+    "& .MuiChip-label": {
+      fontSize: "12.2px !important"
+    },
+    "& .MuiButton-root": {
+      fontSize: "14px !important"
+    },
+    "& .MuiMenuItem-root": {
+      fontSize: "12.4px !important"
+    }
+  } as const;
 
   return (
-    <ScreenScaffold disableTopPadding>
-      {/* Map section */}
-      <Box sx={topMapBleedSx}>
-        <MapShell
-          preset="home"
-          rounded={false}
-          sx={{ mb: 0, height: { xs: "62dvh", md: "55vh" } }}
-          showControls
-          canvasSx={{ background: uiTokens.map.canvasEmphasis }}
-          mapCenter={destinationCoords ?? currentLocation ?? { lat: 0.3476, lng: 32.5825 }}
-          routePolyline={routeData?.path ?? []}
-          routeAlternativePolylines={routeData?.alternatives ?? []}
-          routeDistanceKm={sharedLocationState.routeDistanceKm}
-          routeDurationMin={sharedLocationState.routeDurationMin}
-          mapMarkers={[
-            ...(currentLocation
-              ? [{ id: "current-location", position: currentLocation, label: "Current location" }]
-              : []),
-            ...(destinationCoords
-              ? [{ id: "destination", position: destinationCoords, label: "Destination", color: "#F77F00" }]
-              : [])
-          ]}
-        />
-      </Box>
-
-      <SectionHeader
-        title="Where to today?"
-        subtitle={isSharedRideMode ? "Shared ride active" : "Book an electric ride today"}
-      />
-
-      <Box
-        sx={{
-          bgcolor: "transparent",
-          px: 0,
-          pt: 0,
-          pb: 2,
-          mb: 0
-        }}
-      >
-
-        <LocationAutocompleteField
-          value={whereTo}
-          onValueChange={(nextValue) => {
-            setWhereTo(nextValue);
-            setHelperState("search");
-            setSelectedPlace(null);
-            setSelectedAutocompleteOption(null);
-            if (!nextValue.trim()) {
-              setDestinationCoords(null);
-            }
-          }}
-          onSelectLocation={(selection) => {
-            void handlePlaceSelect({
-              description: selection.address,
-              placeId: selection.placeId || `local-${selection.address}`,
-              coordinates: selection.coordinates
-            });
-          }}
-          placeholder="Where to?"
-          nearbyCoordinates={currentLocation}
-          sx={{
-            mb: 2,
-            "& .MuiOutlinedInput-root": {
-              borderRadius: uiTokens.radius.xl,
-              bgcolor: (theme) =>
-                theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
-              "& fieldset": {
-                borderColor: (theme) =>
-                  theme.palette.mode === "light"
-                    ? "rgba(209,213,219,0.9)"
-                    : "rgba(51,65,85,0.9)"
-              },
-              "&:hover fieldset": {
-                borderColor: "primary.main"
-              }
-            }
-          }}
-        />
-        {(locationPermission === "denied" || locationPermission === "unsupported") && (
-          <Typography
-            variant="caption"
-            sx={{ display: "block", mt: -1, mb: 1.25, color: (t) => t.palette.text.secondary }}
-          >
-            {locationPermission === "denied"
-              ? "Location permission is off. Enable it for live pickup and route accuracy."
-              : "Live location is not supported on this device/browser."}
-          </Typography>
-        )}
-      </Box>
-
-      <InfoCard title="Quick actions">
-        <Box
-          sx={{
-            display: "flex",
-            overflowX: "auto",
-            overflowY: "hidden",
-            gap: 1,
-            pb: 0.5,
-            "&::-webkit-scrollbar": { height: 4 },
-            "&::-webkit-scrollbar-thumb": {
-              bgcolor: (t) => (t.palette.mode === "light" ? "#D1D5DB" : "#4B5563")
-            },
-            WebkitOverflowScrolling: "touch"
-          }}
-        >
-          {quickActions.map((action) => (
-            <Chip
-              key={action.key}
-              label={action.label}
-              size="small"
-              onClick={() => handleQuickAction(action.key)}
-              icon={action.icon}
-              sx={{
-                fontSize: 11,
-                height: 28,
-                flexShrink: 0,
-                bgcolor: uiTokens.surfaces.cardMuted,
-                border: uiTokens.borders.subtle,
-                cursor: "pointer",
-                "&:hover": {
-                  bgcolor: (t) => (t.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)")
-                }
-              }}
-            />
-          ))}
-        </Box>
-      </InfoCard>
-
-      {hasRideActivity && (
-        <>
-      {/* Tabs */}
-      <Tabs
-        value={tab}
-        onChange={handleTabChange}
-        variant="scrollable"
-        scrollButtons={false}
-        sx={{
-          minHeight: 36,
-          mb: 1.5,
-          "& .MuiTab-root": {
-            minHeight: 36,
-            fontSize: 12,
-            textTransform: "none",
-            color: (t) => t.palette.text.secondary,
-            fontWeight: 500
-          },
-          "& .Mui-selected": {
-            color: (t) => t.palette.text.primary,
-            fontWeight: 600
-          },
-          "& .MuiTabs-indicator": {
-            height: 2,
-            borderRadius: uiTokens.radius.xl,
-            bgcolor: "#03CD8C"
-          }
-        }}
-      >
-        <Tab value="common" label="Common Places" />
-        <Tab value="commutes" label="Daily Commutes" />
-        <Tab value="upcoming" label="Upcoming Rides" />
-      </Tabs>
-
-      <Box sx={{ mt: 1 }}>
-        {tab === "common" && (
-          <>
-            {savedLocations.length > 0 ? (
-	              <ActionGrid minWidth={220}>
-	                {savedLocations.map((location) => (
-	                  <Box key={location.id}>
-	                    <CommonPlaceCard
-	                      icon={location.icon}
-	                      label={location.label}
-                      address={location.address}
-                      selected={selectedPlace === location.id}
-                      onSelect={() => handleSelectPlace(location.id)}
-                    />
-	                  </Box>
-	                ))}
-	              </ActionGrid>
-            ) : (
-              <Card
-                elevation={0}
-                sx={{
-                  borderRadius: uiTokens.radius.xl,
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                  border: (t) =>
-                    t.palette.mode === "light"
-                      ? "1px solid rgba(209,213,219,0.9)"
-                      : "1px solid rgba(51,65,85,0.9)"
-                }}
-              >
-                <CardContent sx={{ py: 3, textAlign: "center" }}>
-                  <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                    No saved locations. Add locations in settings.
-                  </Typography>
-                </CardContent>
-              </Card>
-            )}
-          </>
-        )}
-
-        {tab === "commutes" && (
-          <Box sx={{ mt: 1 }}>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-              sx={{ mb: 1.5 }}
-            >
-              <Typography
-                variant="caption"
-                sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}
-              >
-                Daily commutes
-              </Typography>
-              <Typography
-                variant="caption"
-                onClick={() => navigate("/rides/commutes")}
-                sx={{
-                  fontSize: 10.5,
-                  color: (t) => t.palette.text.secondary,
-                  cursor: "pointer",
-                  "&:hover": {
-                    color: (t) => t.palette.primary.main
-                  }
-                }}
-              >
-                Manage
-              </Typography>
-            </Stack>
-
-            {dailyCommutes.length > 0 ? (
-              <Box>
-                {dailyCommutes.map((commute) => (
-                  <CommuteCard
-                    key={commute.id}
-                    commute={commute}
-                    onSelect={() => {
-                      // Update map to show commute route
-                      setCurrentLocation(commute.origin.coordinates);
-                      setDestinationCoords(commute.destination.coordinates);
-                      setWhereTo(commute.destination.address);
-                    }}
-                    onRequest={() => {
-                      handleCommuteRequest(commute);
-                    }}
-                  />
-                ))}
-              </Box>
-            ) : (
-              <Card
-                elevation={0}
-                sx={{
-                  borderRadius: uiTokens.radius.xl,
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                  border: (t) =>
-                    t.palette.mode === "light"
-                      ? "1px solid rgba(209,213,219,0.9)"
-                      : "1px solid rgba(51,65,85,0.9)"
-                }}
-              >
-                <CardContent sx={{ py: 4, textAlign: "center" }}>
-                  <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
-                    No commutes saved
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontSize: 11, color: "text.secondary" }}>
-                    Create a new scheduled route to get started
-                  </Typography>
-                </CardContent>
-              </Card>
-            )}
-          </Box>
-        )}
-
-        {tab === "upcoming" && (
-          <Box sx={{ mt: 1 }}>
-            {upcomingRides.length > 0 ? (
-              <Box>
-                {upcomingRides.map((ride) => (
-                  <UpcomingRideCard
-                    key={ride.id}
-                    ride={ride}
-                    onSelect={() => {
-                      // Update map to show ride route
-                      // Update map to show ride route - coordinates only
-                      setDestinationCoords(ride.destination.coordinates);
-                      setWhereTo(ride.destination.address);
-                    }}
-                    onCancel={handleCancelRide}
-                    onChangeDate={handleChangeDate}
-                  />
-                ))}
-              </Box>
-            ) : (
-              <Card
-                elevation={0}
-                sx={{
-                  borderRadius: uiTokens.radius.xl,
-                  bgcolor: (t) =>
-                    t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                  border: (t) =>
-                    t.palette.mode === "light"
-                      ? "1px solid rgba(209,213,219,0.9)"
-                      : "1px solid rgba(51,65,85,0.9)"
-                }}
-              >
-                <CardContent sx={{ py: 4, textAlign: "center" }}>
-                  <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
-                    No upcoming rides scheduled
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => navigate("/rides/enter")}
-                    sx={{
-                      mt: 1.5,
-                      borderRadius: uiTokens.radius.xl,
-                      textTransform: "none",
-                      borderColor: "#F77F00",
-                      color: "#F77F00"
-                    }}
-                  >
-                    Book a New Ride
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </Box>
-        )}
-      </Box>
-        </>
-      )}
-
-      {/* Helper panel */}
-      {helperState !== "idle" && (
+    <ScreenScaffold>
+      <Box sx={rentalLikeTypographySx}>
+      <Stack spacing={1.4}>
         <Card
           elevation={0}
           sx={{
-            mb: 1.2,
-            borderRadius: uiTokens.radius.xl,
-            bgcolor: (t) =>
-              t.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-            border: (t) =>
-              t.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
+            borderRadius: 3,
+            border: "1px solid #E4E7EC",
+            p: 1.45,
+            bgcolor: "#F8FBF9"
           }}
         >
-          <CardContent sx={{ px: 1.75, py: 1.1 }}>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 10.5, color: (t) => t.palette.text.secondary }}
-            >
-              {helperState === "menu" &&
-                "Next step: open the main EVzone menu with access to profile, payment methods and other modules."}
-              {helperState === "search" &&
-                "Next step: show suggestions and recent destinations as you type, then move to EV type selection (RA14/RA20)."}
-              {helperState === "book-now" &&
-                "Next step: open the immediate ride flow – pickup now, confirm EV type and payment (RA14 → RA20 → RA21)."}
-              {helperState === "schedule" &&
-                "Next step: open schedule flow – pick date & time, then EV type and payment (RA08/RA09 + RA20/RA21)."}
-              {helperState === "multi-stop" &&
-                "Next step: switch to the multi-stop entry screen so you can add A/B/C stops (RA39–RA43)."}
-              {helperState === "history" &&
-                "Next step: open ride history with past and upcoming EV rides (RA33/RA34/RA49/RA37)."}
-              {helperState === "book-someone" &&
-                "Next step: open ride details with one-off rider fields so you can enter the person’s name and phone number."}
-              {helperState === "commutes-manage" &&
-                "Next step: open the full Daily Commutes management view where you can add, edit or remove commute presets (RA03)."}
-              {helperState === "book-commute" &&
-                "Next step: prefill the route (e.g., Home ↔ Office) and take the rider straight into EV type selection for a quick commute booking."}
-              {helperState === "upcoming-all" &&
-                "Next step: open the dedicated Upcoming Rides screen to see all scheduled EV rides (RA49/RA34)."}
-              {helperState.startsWith("tab-") &&
-                "You can use tabs to jump between common places, daily commutes and your upcoming EV rides."}
-            </Typography>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Route summary card - inline with shell scroll flow */}
-      {(selectedPlace || destinationCoords) && routeData && (
-        <Box
-          sx={{
-            pt: 1.5
-          }}
-        >
-          <Card
-            elevation={0}
+          <Stack
+            direction="row"
+            spacing={1.3}
+            alignItems="stretch"
             sx={{
-              borderRadius: uiTokens.radius.xl,
-              bgcolor: (t) =>
-                t.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-              border: (t) =>
-                t.palette.mode === "light"
-                  ? "1px solid rgba(209,213,219,0.9)"
-                  : "1px solid rgba(51,65,85,0.9)"
+              minHeight: { xs: 176, sm: 198 },
+              borderRadius: 2.4,
+              backgroundColor: "#F8FBF9"
             }}
           >
-            <CardContent sx={{ px: 2, py: 1.5 }}>
-              <Stack spacing={1.5}>
-                {/* From/To */}
-                <Stack spacing={1}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: uiTokens.radius.xl,
-                        bgcolor: "#03CD8C",
-                        border: "2px solid white",
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
-                      }}
-                    />
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontSize: 12,
-                        fontWeight: 500,
-                        color: (t) => t.palette.text.secondary
-                      }}
-                    >
-                      From: Current location
-                    </Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <PlaceRoundedIcon
-                      sx={{ fontSize: 18, color: "#10B981" }}
-                    />
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontSize: 13,
-                        fontWeight: 600,
-                        letterSpacing: "-0.01em",
-                        flex: 1
-                      }}
-                    >
-                      To: {typeof selectedPlace === "string"
-                        ? savedLocations.find(loc => loc.id === selectedPlace)?.label || whereTo || "Selected destination"
-                        : selectedPlace?.description || selectedAutocompleteOption?.description || whereTo || "Selected destination"}
-                    </Typography>
-                  </Stack>
-                </Stack>
-
-                {/* ETA • Fare • Continue */}
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  sx={{ pt: 0.5 }}
+            <Box sx={{ flex: "0 0 58%", pt: 1.2, pb: 1, pr: { xs: 0.8, sm: 1.4 }, minWidth: 0 }}>
+              <Stack direction="row" spacing={1.1} alignItems="flex-start" sx={{ mb: 0.8 }}>
+                <IconButton
+                  onClick={() => navigate("/home")}
+                  sx={{
+                    width: 30,
+                    height: 30,
+                    color: "#344054",
+                    p: 0,
+                    flexShrink: 0,
+                    bgcolor: "transparent",
+                    border: "none",
+                    "&:hover": {
+                      bgcolor: "transparent"
+                    }
+                  }}
                 >
-                  <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Stack direction="row" spacing={0.5} alignItems="center">
-                      <AccessTimeRoundedIcon
-                        sx={{ fontSize: 14, color: (t) => t.palette.text.secondary }}
-                      />
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: (t) => t.palette.text.secondary
-                        }}
-                      >
-                        {routeData.duration}
-                      </Typography>
-                    </Stack>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        fontSize: 11,
-                        color: (t) => t.palette.text.secondary
-                      }}
-                    >
-                      •
-                    </Typography>
-                    <Stack direction="row" spacing={0.5} alignItems="center">
-                      <AttachMoneyRoundedIcon
-                        sx={{ fontSize: 14, color: (t) => t.palette.text.secondary }}
-                      />
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: (t) => t.palette.text.secondary
-                        }}
-                      >
-                        {routeData.fare || "UGX 20,000"}
-                      </Typography>
-                    </Stack>
-                  </Stack>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => {
-                      navigate("/rides/enter/details", {
-                        state: {
-                          pickup: "Current location",
-                          destination: typeof selectedPlace === "string"
-                            ? savedLocations.find(loc => loc.id === selectedPlace)?.address || whereTo || "Selected destination"
-                            : selectedPlace?.description || selectedAutocompleteOption?.description || whereTo || "Selected destination",
-                          pickupCoords: currentLocation,
-                          destinationCoords: destinationCoords,
-                          routeData: routeData,
-                          isSharedRide: isSharedRideMode
-                        }
-                      });
-                    }}
-                    sx={{
-                      bgcolor: "#03CD8C",
-                      color: "#FFFFFF",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      px: 2.5,
-                      py: 0.75,
-                      borderRadius: uiTokens.radius.xl,
-                      textTransform: "none",
-                      "&:hover": {
-                        bgcolor: "#22C55E"
-                      }
-                    }}
-                  >
-                    Continue
-                  </Button>
-                </Stack>
+                  <ArrowBackRoundedIcon sx={{ fontSize: 22 }} />
+                </IconButton>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: 56 / 2, fontWeight: 700, lineHeight: 1.1, color: "#101828" }}>
+                    Book a ride
+                  </Typography>
+                  <Typography sx={{ fontSize: 56 / 2, fontWeight: 700, lineHeight: 1.1, color: "#F97316", mb: 0.8 }}>
+                    in seconds
+                  </Typography>
+                </Box>
               </Stack>
-            </CardContent>
-          </Card>
+              <Typography sx={{ fontSize: 16, color: "#475467", mb: 1.5 }}>
+                Safe, affordable, and eco-friendly rides across your city.
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={() => navigate("/rides/enter/details")}
+                endIcon={
+                  <Box sx={{ width: 28, height: 28, borderRadius: "50%", border: "1.5px solid rgba(255,255,255,0.95)", display: "grid", placeItems: "center" }}>
+                    <ArrowForwardIosRoundedIcon sx={{ fontSize: 14 }} />
+                  </Box>
+                }
+                sx={{
+                  textTransform: "none",
+                  borderRadius: 99,
+                  px: 3.4,
+                  py: 1,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                  color: "#FFFFFF",
+                  background: "#11B86A",
+                  "&:hover": { background: "#0F9B5D" }
+                }}
+              >
+                Book Now
+              </Button>
+            </Box>
+            <Box
+              sx={{
+                flex: "0 0 42%",
+                borderRadius: 2,
+                overflow: "hidden",
+                bgcolor: "#F8FBF9",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end"
+              }}
+            >
+              <Box
+                component="img"
+                src="/rides-ui/EV--6.jpg"
+                alt="Ride vehicle"
+                onError={(event) => {
+                  const target = event.currentTarget;
+                  if (target.src.includes("/rides-ui/EV--1.png")) return;
+                  target.src = "/rides-ui/EV--1.png";
+                }}
+                sx={{
+                  width: "100%",
+                  maxWidth: { xs: 210, sm: 280 },
+                  height: "100%",
+                  objectFit: "contain",
+                  objectPosition: "right center",
+                  filter: "drop-shadow(0 12px 20px rgba(15,23,42,0.22))",
+                  display: "block",
+                  pointerEvents: "none"
+                }}
+              />
+            </Box>
+          </Stack>
+        </Card>
+
+        <Card elevation={0} sx={{ borderRadius: 3, border: "1px solid #E4E7EC", p: 1 }}>
+          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
+            {[
+              { label: "Ride Now", icon: <TwoWheelerRoundedIcon sx={{ fontSize: 29, color: "#11B86A" }} />, onClick: () => navigate("/rides/enter/details") },
+              { label: "Book for someone", icon: <PersonRoundedIcon sx={{ fontSize: 29, color: "#F97316" }} />, onClick: () => navigate("/rides/enter/details", { state: { bookForSomeone: true, riderType: "manual" } }) },
+              { label: "Promotions", icon: <LocalOfferRoundedIcon sx={{ fontSize: 29, color: "#11B86A" }} />, onClick: () => navigate("/rides/promotions") },
+              { label: "History", icon: <HistoryRoundedIcon sx={{ fontSize: 29, color: "#F97316" }} />, onClick: () => navigate("/rides/history/past") }
+            ].map((item, index) => (
+              <Box
+                key={item.label}
+                onClick={item.onClick}
+                sx={{
+                  cursor: "pointer",
+                  py: 1,
+                  px: 0.5,
+                  textAlign: "center",
+                  borderRight: index < 3 ? "1px solid #EAECF0" : "none"
+                }}
+              >
+                <Box sx={{ width: 52, height: 52, borderRadius: "50%", bgcolor: "#F3FAF7", mx: "auto", mb: 0.7, display: "grid", placeItems: "center" }}>
+                  {item.icon}
+                </Box>
+                <Typography sx={{ fontSize: 17, fontWeight: 500 }}>{item.label}</Typography>
+              </Box>
+            ))}
+          </Box>
+        </Card>
+
+        <Box>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+            <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#101828" }}>Popular destinations</Typography>
+          </Stack>
+          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 1 }}>
+            {popularDestinations.map((item) => (
+              <Card
+                key={item.id}
+                elevation={0}
+                onClick={() =>
+                  navigate("/rides/enter/details", {
+                    state: {
+                      pickup: "Current location",
+                      destination: item.destination,
+                      isSharedRide: isSharedRideMode
+                    }
+                  })
+                }
+                sx={{ borderRadius: 2.5, border: "1px solid #E4E7EC", p: 1.1, cursor: "pointer", textAlign: "center" }}
+              >
+                <Box sx={{ width: 44, height: 44, borderRadius: "50%", bgcolor: "#F3FAF7", display: "grid", placeItems: "center", mb: 0.7, mx: "auto" }}>
+                  {item.icon}
+                </Box>
+                <Typography sx={{ fontSize: 16, fontWeight: 600 }}>{item.title}</Typography>
+                <Typography sx={{ fontSize: 14, color: "#667085" }}>{item.subtitle}</Typography>
+              </Card>
+            ))}
+          </Box>
         </Box>
-      )}
-      </ScreenScaffold>
+
+        <Box>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+            <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#101828" }}>Recommended ride types</Typography>
+          </Stack>
+          <Box className="ride-type-grid">
+            {dashboardRideTypeCards.map((item) => (
+              <RideTypeCard
+                key={item.id}
+                ride={item}
+                selected={false}
+                interactive={false}
+                showMeta={false}
+              />
+            ))}
+          </Box>
+        </Box>
+
+        <Card elevation={0} sx={{ borderRadius: 3, border: "1px solid #D6EFE4", bgcolor: "#F2FBF7", p: 1.1 }}>
+          <Stack direction="row" spacing={1.1} alignItems="center">
+            <Box component="img" src="/rides-ui/gift-promo.svg" alt="Gift promo" sx={{ width: 64, height: 44, objectFit: "contain" }} />
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={{ fontSize: 19, fontWeight: 700, color: "#101828" }}>
+                Get <Box component="span" sx={{ color: "#F97316" }}>20% off</Box> your next 3 rides
+              </Typography>
+              <Typography sx={{ fontSize: 15, color: "#667085" }}>Valid till 31 May 2024</Typography>
+            </Box>
+            <Button
+              variant="outlined"
+              onClick={() => navigate("/rides/promotions")}
+              sx={{
+                textTransform: "none",
+                borderRadius: 99,
+                borderColor: "#11B86A",
+                color: "#11B86A",
+                fontWeight: 700,
+                px: 2.1
+              }}
+            >
+              Claim Now
+            </Button>
+          </Stack>
+        </Card>
+      </Stack>
+      </Box>
+    </ScreenScaffold>
   );
 }
 

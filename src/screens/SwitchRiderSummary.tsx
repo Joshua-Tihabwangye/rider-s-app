@@ -1,7 +1,6 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
-  
   Box,
   IconButton,
   Typography,
@@ -10,7 +9,8 @@ import {
   Button,
   Chip,
   Avatar,
-  Stack
+  Stack,
+  TextField
 } from "@mui/material";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
@@ -20,12 +20,62 @@ import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFil
 
 function RideForContactSummaryScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const [contact] = useState({
-    name: "John Doe",
-    relation: "Friend",
-    phone: "+256 772 987654",
-    initials: "JD"
-  });
+  const location = useLocation();
+  const routeState = ((location.state as Record<string, unknown> | null) ?? {});
+  const selectedContact = (routeState.selectedContact as {
+    id?: number;
+    name?: string;
+    relation?: string;
+    phone?: string;
+    initials?: string;
+  } | null) ?? null;
+  const riderType = typeof routeState.riderType === "string" ? routeState.riderType : "manual";
+  const isManual = riderType === "manual" || !selectedContact;
+  const [manualName, setManualName] = useState<string>(String(routeState.bookedPersonName ?? ""));
+  const [manualPhone, setManualPhone] = useState<string>(
+    String(routeState.bookedPersonPhone ?? routeState.manualPhone ?? "")
+  );
+  const canContinue = useMemo(() => {
+    if (!isManual) return true;
+    return manualName.trim().length > 1 && manualPhone.trim().length >= 7;
+  }, [isManual, manualName, manualPhone]);
+
+  const contact = {
+    name: selectedContact?.name || manualName || "Booked rider",
+    relation: selectedContact?.relation || "Manual",
+    phone: selectedContact?.phone || manualPhone || "--",
+    initials:
+      selectedContact?.initials ||
+      (manualName
+        .split(" ")
+        .map((part) => part.trim()[0])
+        .filter(Boolean)
+        .slice(0, 2)
+        .join("")
+        .toUpperCase() || "BR")
+  };
+
+  const handleContinue = (): void => {
+    if (!canContinue) return;
+    navigate("/rides/enter/details", {
+      state: {
+        ...routeState,
+        riderType: "contact",
+        bookForSomeone: true,
+        selectedContact: selectedContact
+          ? {
+              id: selectedContact.id ?? Date.now(),
+              name: selectedContact.name || contact.name,
+              relation: selectedContact.relation || "Contact",
+              phone: selectedContact.phone || contact.phone,
+              initials: selectedContact.initials || contact.initials
+            }
+          : null,
+        bookedPersonName: selectedContact?.name || manualName.trim(),
+        bookedPersonPhone: selectedContact?.phone || manualPhone.trim()
+      }
+    });
+  };
 
   return (
     <Box sx={{ px: 2.5, pt: 2.5, pb: 3 }}>
@@ -66,7 +116,7 @@ function RideForContactSummaryScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 11, color: (theme) => theme.palette.text.secondary }}
             >
-              You are booking this ride on someone else’s behalf
+              Confirm who this ride is for before continuing
             </Typography>
           </Box>
         </Box>
@@ -145,6 +195,7 @@ function RideForContactSummaryScreen(): React.JSX.Element {
             <Button
               size="small"
               variant="outlined"
+              onClick={() => navigate("/rides/switch-rider/contact", { state: routeState })}
               sx={{
                 borderRadius: 5,
                 fontSize: 11,
@@ -160,6 +211,18 @@ function RideForContactSummaryScreen(): React.JSX.Element {
             <Button
               size="small"
               variant="text"
+              onClick={() =>
+                navigate("/rides/enter/details", {
+                  state: {
+                    ...routeState,
+                    riderType: "personal",
+                    bookForSomeone: false,
+                    selectedContact: null,
+                    bookedPersonName: "",
+                    bookedPersonPhone: ""
+                  }
+                })
+              }
               sx={{
                 borderRadius: 5,
                 fontSize: 11,
@@ -172,6 +235,42 @@ function RideForContactSummaryScreen(): React.JSX.Element {
           </Stack>
         </CardContent>
       </Card>
+
+      {isManual && (
+        <Card
+          elevation={0}
+          sx={{
+            mb: 2,
+            borderRadius: 2,
+            bgcolor: (theme) =>
+              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
+            border: (theme) =>
+              theme.palette.mode === "light"
+                ? "1px solid rgba(226,232,240,1)"
+                : "1px solid rgba(51,65,85,0.9)"
+          }}
+        >
+          <CardContent sx={{ px: 1.75, py: 1.4 }}>
+            <Typography variant="caption" sx={{ fontSize: 11, color: (theme) => theme.palette.text.secondary, display: "block", mb: 1 }}>
+              Rider details
+            </Typography>
+            <Stack spacing={1}>
+              <TextField
+                size="small"
+                label="Booked rider name"
+                value={manualName}
+                onChange={(event) => setManualName(event.target.value)}
+              />
+              <TextField
+                size="small"
+                label="Booked rider phone"
+                value={manualPhone}
+                onChange={(event) => setManualPhone(event.target.value)}
+              />
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Info */}
       <Card
@@ -223,6 +322,8 @@ function RideForContactSummaryScreen(): React.JSX.Element {
       <Button
         fullWidth
         variant="contained"
+        onClick={handleContinue}
+        disabled={!canContinue}
         sx={{
           borderRadius: 5,
           py: 1.1,

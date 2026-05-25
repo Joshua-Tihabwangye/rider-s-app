@@ -1,77 +1,117 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useTheme } from "@mui/material/styles";
+import React, { useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
+  Alert,
+  Avatar,
   Box,
-  IconButton,
-  Typography,
+  Button,
   Card,
   CardContent,
-  Button,
+  IconButton,
   Rating,
-  TextField,
-  Avatar,
   Snackbar,
-  Alert
+  Stack,
+  TextField,
+  Typography
 } from "@mui/material";
-
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
+import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
-import { uiTokens } from "../design/tokens";
+import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+import StarsRoundedIcon from "@mui/icons-material/StarsRounded";
+import SportsMotorsportsRoundedIcon from "@mui/icons-material/SportsMotorsportsRounded";
 import { useAppData } from "../contexts/AppDataContext";
-import GoogleMapView from "../components/maps/GoogleMapView";
+import type { RideFeedbackTagId } from "../store/types";
+
+interface FeedbackTag {
+  id: RideFeedbackTagId;
+  label: string;
+  icon: React.ReactNode;
+}
+
+const FEEDBACK_TAG_ICONS: Record<RideFeedbackTagId, React.ReactNode> = {
+  driving: <SportsMotorsportsRoundedIcon sx={{ fontSize: 22 }} />,
+  punctuality: <AccessTimeRoundedIcon sx={{ fontSize: 22 }} />,
+  vehicle: <DirectionsCarFilledRoundedIcon sx={{ fontSize: 22 }} />,
+  safety: <ShieldRoundedIcon sx={{ fontSize: 22 }} />,
+  courtesy: <PersonRoundedIcon sx={{ fontSize: 22 }} />,
+  overall: <StarsRoundedIcon sx={{ fontSize: 22 }} />
+};
+
+function ratingLabel(value: number): string {
+  if (value >= 5) return "Excellent!";
+  if (value >= 4) return "Great ride";
+  if (value >= 3) return "Good";
+  if (value >= 2) return "Could be better";
+  if (value >= 1) return "Needs improvement";
+  return "Tap a star to rate";
+}
 
 function RideRatingFeedbackScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = useTheme();
   const { ride } = useAppData();
-  
-  // Get driver data from navigation state or use defaults
+  const ratingWorkflow = ride.workflow.rating;
+  const feedbackTags = useMemo<FeedbackTag[]>(
+    () =>
+      ratingWorkflow.feedbackTags.map((tag) => ({
+        ...tag,
+        icon: FEEDBACK_TAG_ICONS[tag.id]
+      })),
+    [ratingWorkflow.feedbackTags]
+  );
+
   const driver = ride.activeTrip?.driver;
-  const driverData = location.state?.driverData || {
-    name: driver?.name ?? "Driver",
-    initials: driver?.avatar ?? driver?.name?.split(" ").map((part: string) => part[0]).join("").slice(0, 2) ?? "DR"
-  };
-  
-  const [rating, setRating] = useState(0);
+  const vehicle = ride.activeTrip?.vehicle;
+
+  const driverName =
+    (typeof location.state?.driverName === "string" && location.state.driverName) ||
+    driver?.name ||
+    ratingWorkflow.defaultDriverName;
+  const plate = vehicle?.plate || ratingWorkflow.defaultVehiclePlate;
+  const initials = useMemo(() => {
+    const parts = driverName
+      .split(" ")
+      .map((part) => part.trim()[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("");
+    return parts || "DR";
+  }, [driverName]);
+
+  const [rating, setRating] = useState<number>(5);
   const [feedback, setFeedback] = useState("");
-  const [tipAmount, setTipAmount] = useState("");
+  const [selectedTags, setSelectedTags] = useState<RideFeedbackTagId[]>([
+    feedbackTags[0]?.id ?? "driving"
+  ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const companyOrange = "#F79009";
+  const companyOrangeSoft = "rgba(247,144,9,0.14)";
 
-  // Prevent submission without selecting at least one star
   const canSubmit = rating > 0 && !isSubmitting;
 
-  const handleSubmit = async () => {
+  const toggleTag = (id: RideFeedbackTagId): void => {
+    setSelectedTags((prev) =>
+      prev.includes(id) ? prev.filter((entry) => entry !== id) : [...prev, id]
+    );
+  };
+
+  const handleSubmit = async (): Promise<void> => {
     if (!canSubmit) return;
-    
     setIsSubmitting(true);
-    
-    // API endpoint: /ride/feedback/submit
-    // Required fields: ride_id, rating
-    // Optional fields: message, tip_amount
-    const feedbackData = {
-      ride_id: location.state?.rideId || ride.activeTrip?.id || "trip_123",
-      rating: rating,
-      message: feedback || null,
-      tip_amount: tipAmount ? parseFloat(tipAmount.replace(/,/g, "")) : null
+
+    const payload = {
+      ride_id: location.state?.rideId || ride.activeTrip?.id || ratingWorkflow.defaultRideId,
+      rating,
+      tags: selectedTags,
+      message: feedback || null
     };
-    
+
     try {
-      // In production: API call
-      // await fetch('/api/ride/feedback/submit', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(feedbackData)
-      // });
-      
-      console.log("Submitting feedback:", feedbackData);
-      
-      // Show confirmation toast
+      console.log("Submitting feedback:", payload);
       setShowSuccessToast(true);
-      
-      // After submission, return to trip completion for payment when applicable.
       const returnTo =
         typeof location.state?.returnTo === "string" && location.state.returnTo.trim()
           ? location.state.returnTo
@@ -80,318 +120,222 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
             : "/home";
       setTimeout(() => {
         navigate(returnTo, { replace: true });
-      }, 2000);
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
+      }, ratingWorkflow.submitRedirectDelayMs);
+    } catch {
       setIsSubmitting(false);
     }
   };
 
-  const handleCloseToast = () => {
-    setShowSuccessToast(false);
-  };
-
   return (
-    <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: (theme) => theme.palette.background.default }}>
-      {/* Map Background - Faded map showing driver's last known position */}
+    <Box sx={{ minHeight: "100vh", bgcolor: "#F8FAFC", pb: 1.5 }}>
       <Box
         sx={{
-          position: "relative",
-          width: "100%",
-          height: { xs: "62vh", md: "55vh" },
-          overflow: "hidden",
-          opacity: 0.6
+          px: { xs: 2, md: 2.5 },
+          pt: { xs: 1.75, md: 2 }
         }}
       >
-        <GoogleMapView
-          center={{ lat: 0.3476, lng: 32.5825 }}
-          zoom={12}
-          routePolyline={[
-            { lat: 0.336, lng: 32.56 },
-            { lat: 0.345, lng: 32.575 },
-            { lat: 0.356, lng: 32.59 }
-          ]}
-        />
-        {/* Grid overlay */}
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            opacity: theme.palette.mode === "light" ? 0.08 : 0.15,
-            pointerEvents: "none",
-            backgroundImage:
-              "linear-gradient(to right, rgba(148,163,184,0.4) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.4) 1px, transparent 1px)",
-            backgroundSize: "32px 32px"
-        }}
-        />
-
-        {/* Driver's last known position marker */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            transform: "translate(-50%, -50%)",
-            zIndex: 5,
-            pointerEvents: "none"
-          }}
-        >
-          <DirectionsCarFilledRoundedIcon
-            sx={{
-              fontSize: 32,
-              color: "#03CD8C",
-              opacity: 0.5,
-              filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.3))"
-            }}
-          />
-        </Box>
-
-        {/* Back Arrow - Top left */}
+        <Box sx={{ position: "relative", minHeight: 40, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <IconButton
             size="small"
-            aria-label="Back"
             onClick={() => navigate(-1)}
             sx={{
-            position: "absolute",
-            top: uiTokens.spacing.lg,
-            left: uiTokens.spacing.lg,
-            bgcolor: "rgba(3,205,140,0.15)",
-            color: "#03CD8C",
-            width: 40,
-            height: 40,
-            borderRadius: uiTokens.radius.xl,
-            "&:hover": {
-              bgcolor: "#93C5FD"
-            },
-            zIndex: 10
+              position: "absolute",
+              left: 0,
+              width: 40,
+              height: 40,
+              borderRadius: 999,
+              bgcolor: "#FFFFFF",
+              border: `1px solid ${companyOrangeSoft}`,
+              boxShadow: "0 8px 18px rgba(15,23,42,0.09)",
+              color: "#0F172A"
             }}
           >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 18 }} />
+            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 16 }} />
           </IconButton>
-      </Box>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 700,
+              fontSize: 20,
+              letterSpacing: "-0.01em",
+              color: "#111827",
+              textDecoration: `underline 2px ${companyOrange}`,
+              textUnderlineOffset: "6px",
+              textDecorationThickness: "1.5px"
+            }}
+          >
+            Rate your driver
+          </Typography>
+        </Box>
 
-      {/* Content Section - White rounded card over faded map */}
-      <Box sx={{ px: uiTokens.spacing.xl, pt: uiTokens.spacing.xxl, pb: uiTokens.spacing.lg }}>
-      <Card
-        elevation={0}
-        sx={{
-            mb: uiTokens.spacing.lg,
-            borderRadius: uiTokens.radius.sm,
-          bgcolor: (theme) =>
-            theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-          border: (theme) =>
-            theme.palette.mode === "light"
-              ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
-        }}
-      >
-          <CardContent sx={{ px: uiTokens.spacing.xl, py: uiTokens.spacing.xl }}>
-            {/* Driver Section - Profile image centered at top */}
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: uiTokens.spacing.xl }}>
+        <Stack spacing={1.6} sx={{ mt: 1.6 }}>
+          <Box sx={{ display: "flex", justifyContent: "center" }}>
+            <Box sx={{ position: "relative" }}>
               <Avatar
                 sx={{
-                  width: 80,
-                  height: 80,
-                  bgcolor: "#03CD8C",
-                  fontSize: 32,
+                  width: 108,
+                  height: 108,
+                  bgcolor: "#D1FAE5",
+                  color: "#047857",
+                  fontSize: 34,
                   fontWeight: 700,
-                  mb: uiTokens.spacing.lg,
-                  border: "4px solid",
-                  borderColor: (theme) =>
-                    theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+                  border: "3px solid #FFFFFF",
+                  boxShadow: "0 8px 18px rgba(15,23,42,0.10), 0 0 0 2px rgba(247,144,9,0.25)"
                 }}
               >
-                {driverData.initials}
+                {initials}
               </Avatar>
-            <Typography
-                variant="h6"
+              <Box
                 sx={{
-                  fontWeight: 600,
-                  letterSpacing: "-0.01em",
-                  textAlign: "center",
-                  mb: uiTokens.spacing.xs,
-                  color: (theme) => theme.palette.text.primary
-                }}
-            >
-                How was your ride with <strong>{driverData.name}</strong>?
-            </Typography>
-          </Box>
-
-            {/* Rating Bar - 5-star horizontal rating system */}
-            <Box sx={{ display: "flex", justifyContent: "center", mb: uiTokens.spacing.xl }}>
-              <Rating
-                value={rating}
-                onChange={(_event, newValue) => {
-                  if (newValue !== null) {
-                    setRating(newValue);
-                  }
-                }}
-                size="large"
-            sx={{
-                  "& .MuiRating-iconFilled": {
-                    color: "#FFC107" // Gold/yellow for selected stars
-                  },
-                  "& .MuiRating-iconEmpty": {
-                    color: (theme) =>
-                      theme.palette.mode === "light" ? "#D1D5DB" : "#4B5563" // Grey for unselected
-                  },
-                  "& .MuiRating-icon": {
-                    fontSize: 40
-                  }
+                  position: "absolute",
+                  right: 6,
+                  bottom: 6,
+                  width: 14,
+                  height: 14,
+                  borderRadius: 999,
+                  bgcolor: companyOrange,
+                  border: "2px solid #FFFFFF"
                 }}
               />
             </Box>
+          </Box>
 
-            {/* Feedback Input Field */}
-            <Box sx={{ mb: uiTokens.spacing.xl }}>
-              <TextField
-                multiline
-                rows={4}
-                fullWidth
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-                placeholder="Write your message here…"
+          <Box sx={{ textAlign: "center" }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: "#111827", fontSize: 33 }}>
+              {driverName}
+            </Typography>
+            <Typography variant="h6" sx={{ color: "#64748B", fontWeight: 500, mt: 0.2, fontSize: 17 }}>
+              {plate}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 0.25 }}>
+            <Rating
+              value={rating}
+              onChange={(_event, nextValue) => setRating(nextValue ?? 0)}
+              size="large"
+              sx={{
+                "& .MuiRating-iconFilled": { color: "#22C55E" },
+                "& .MuiRating-iconEmpty": { color: "rgba(148,163,184,0.75)" },
+                "& .MuiRating-icon": { fontSize: 42, mx: 0.02 }
+              }}
+            />
+          </Box>
+
+          <Typography sx={{ textAlign: "center", color: companyOrange, fontWeight: 700, fontSize: 16 }}>
+            {ratingLabel(rating)}
+          </Typography>
+
+          <Typography variant="h6" sx={{ fontWeight: 700, color: "#111827", mt: 0.1, fontSize: 19 }}>
+            What did you like?
+          </Typography>
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gap: 1
+            }}
+          >
+            {feedbackTags.map((tag) => {
+              const active = selectedTags.includes(tag.id);
+              return (
+                <Card
+                  key={tag.id}
+                  elevation={0}
+                  onClick={() => toggleTag(tag.id)}
                   sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: uiTokens.radius.md,
-                    bgcolor: (theme) =>
-                      theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                    "& fieldset": {
-                      borderColor: (theme) =>
-                          theme.palette.mode === "light"
-                          ? "rgba(209,213,219,0.9)"
-                          : "rgba(51,65,85,0.9)"
-                    },
-                    "&:hover fieldset": {
-                      borderColor: "#03CD8C"
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#03CD8C"
-                    }
-                    }
+                    cursor: "pointer",
+                    borderRadius: 2.5,
+                    border: active ? `1.5px solid ${companyOrange}` : "1px solid rgba(148,163,184,0.24)",
+                    bgcolor: active ? "rgba(247,144,9,0.10)" : "#FFFFFF",
+                    boxShadow: active ? "0 8px 16px rgba(247,144,9,0.18)" : "none"
                   }}
-                />
-            </Box>
+                >
+                  <CardContent sx={{ px: 0.9, py: 1.2, textAlign: "center", "&:last-child": { pb: 1.2 } }}>
+                    <Box sx={{ color: active ? companyOrange : "#64748B", mb: 0.45 }}>{tag.icon}</Box>
+                    <Typography sx={{ fontWeight: 500, fontSize: 14, color: active ? "#B45309" : "#475569" }}>
+                      {tag.label}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </Box>
 
-            {/* Tip Section */}
-            <Box sx={{ mb: uiTokens.spacing.xl }}>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: 600,
-                  mb: uiTokens.spacing.mdPlus,
-                  color: (theme) => theme.palette.text.primary
-                }}
-              >
-                Add a tip to the driver
+          <Card
+            elevation={0}
+            sx={{
+              borderRadius: 2.5,
+              border: `1px solid ${companyOrangeSoft}`,
+              bgcolor: "#FFFFFF"
+            }}
+          >
+            <CardContent sx={{ p: 1.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1.1, fontSize: 19 }}>
+                Add a comment (optional)
               </Typography>
               <TextField
                 fullWidth
-              size="small"
-                value={tipAmount}
-                onChange={(e) => {
-                  // Allow only numbers and commas
-                  const value = e.target.value.replace(/[^0-9,]/g, "");
-                  setTipAmount(value);
-                }}
-                placeholder="0"
-                InputProps={{
-                  startAdornment: (
-                    <Typography
-                      sx={{
-                        mr: uiTokens.spacing.sm,
-                        color: (theme) => theme.palette.text.secondary,
-                        fontWeight: 500
-                      }}
-                    >
-                      UGX
-                    </Typography>
-                  )
-                }}
-              sx={{
+                multiline
+                rows={2.5}
+                value={feedback}
+                onChange={(event) => setFeedback(event.target.value)}
+                placeholder="Tell us more about your experience"
+                sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: uiTokens.radius.md,
-                    bgcolor: (theme) =>
-                      theme.palette.mode === "light" ? "#F9FAFB" : "rgba(15,23,42,0.96)",
-                    "& fieldset": {
-                      borderColor: (theme) =>
-                      theme.palette.mode === "light"
-                          ? "rgba(209,213,219,0.9)"
-                          : "rgba(51,65,85,0.9)"
-                    },
-                    "&:hover fieldset": {
-                      borderColor: "#03CD8C"
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#03CD8C"
-                    }
+                    borderRadius: 2,
+                    bgcolor: "#F8FAFC",
+                    fontSize: 14,
+                    "& fieldset": { borderColor: "rgba(148,163,184,0.34)" },
+                    "&:hover fieldset": { borderColor: companyOrange },
+                    "&.Mui-focused fieldset": { borderColor: companyOrange }
                   }
-              }}
-            />
-          <Typography
-            variant="caption"
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          <Button
+            fullWidth
+            disabled={!canSubmit}
+            variant="contained"
+            onClick={handleSubmit}
             sx={{
-                  mt: uiTokens.spacing.smPlus,
-              display: "block",
-              fontSize: 11,
-              color: (theme) => theme.palette.text.secondary
+              mt: 0.3,
+              height: 52,
+              borderRadius: 999,
+              textTransform: "none",
+              fontWeight: 700,
+              fontSize: 17,
+              bgcolor: "#10B981",
+              boxShadow: "0 8px 18px rgba(16,185,129,0.3), 0 0 0 2px rgba(247,144,9,0.2)",
+              "&:hover": { bgcolor: "#059669" },
+              "&.Mui-disabled": {
+                bgcolor: "rgba(148,163,184,0.5)",
+                color: "#FFFFFF"
+              }
             }}
           >
-                Optional - The tip will be added to the driver's payment
-          </Typography>
-            </Box>
-
-            {/* Submit Button - Large black button */}
-      <Button
-        fullWidth
-        variant="contained"
-        disabled={!canSubmit}
-        onClick={handleSubmit}
-        sx={{
-                borderRadius: uiTokens.radius.md,
-                py: uiTokens.spacing.mdPlus,
-                fontSize: 16,
-          fontWeight: 600,
-          textTransform: "none",
-                bgcolor: canSubmit ? "#000000" : "rgba(0,0,0,0.3)",
-                color: "#FFFFFF",
-                boxShadow: "none",
-          "&:hover": {
-                  bgcolor: canSubmit ? "#333333" : "rgba(0,0,0,0.4)",
-                  boxShadow: "none"
-                },
-                "&.Mui-disabled": {
-                  bgcolor: "rgba(0,0,0,0.3)",
-                  color: "#FFFFFF",
-                  opacity: 1
-          }
-        }}
-      >
-              {isSubmitting ? "Submitting..." : "Submit"}
-      </Button>
-          </CardContent>
-        </Card>
+            {isSubmitting ? "Submitting..." : "Submit rating"}
+          </Button>
+        </Stack>
       </Box>
 
-      {/* Success Toast/Snackbar */}
       <Snackbar
         open={showSuccessToast}
-        autoHideDuration={3000}
-        onClose={handleCloseToast}
+        autoHideDuration={2200}
+        onClose={() => setShowSuccessToast(false)}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert
-          onClose={handleCloseToast}
+          onClose={() => setShowSuccessToast(false)}
           severity="success"
           sx={{
             width: "100%",
-            bgcolor: "#22c55e",
+            bgcolor: "#16A34A",
             color: "#FFFFFF",
-            "& .MuiAlert-icon": {
-              color: "#FFFFFF"
-            }
+            "& .MuiAlert-icon": { color: "#FFFFFF" }
           }}
         >
           Thank you for your feedback!
@@ -401,18 +345,16 @@ function RideRatingFeedbackScreen(): React.JSX.Element {
   );
 }
 
-export default function RiderScreen35RateDriverAddTipDedicatedCanvas_v2() {
-      return (
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: (theme) => theme.palette.background.default
-        }}
-      >
-
-        <RideRatingFeedbackScreen />
-        
-      </Box>
+export default function RiderScreen35RateDriverAddTipDedicatedCanvas_v2(): React.JSX.Element {
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        minHeight: "100vh",
+        bgcolor: (theme) => theme.palette.background.default
+      }}
+    >
+      <RideRatingFeedbackScreen />
+    </Box>
   );
 }

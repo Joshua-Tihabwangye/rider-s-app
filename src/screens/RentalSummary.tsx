@@ -30,7 +30,13 @@ import {
   rentalUi,
   screenShellSx
 } from "../components/rental/RentalRedesignUI";
-import { buildRentalPricing, getRentalBookingVehicle } from "../features/rental/booking";
+import {
+  buildRentalPricing,
+  formatRentalDateTime,
+  getRentalBookingVehicle,
+  getRentalModeLabel,
+  getRentalVehicleLabel
+} from "../features/rental/booking";
 import { getVehicleImageFromName } from "../features/rental/uiAssets";
 
 function PaymentIcon({ type }: { type: "wallet" | "card" | "mobile_money" }): React.JSX.Element {
@@ -87,7 +93,11 @@ export default function RentalSummary(): React.JSX.Element {
     );
   }
 
-  const vehicleLabel = vehicle.name.includes("Nissan") ? "City EV" : vehicle.name.includes("Kona") ? "Family SUV" : "Executive EV";
+  const vehicleLabel = getRentalVehicleLabel(vehicle.name);
+  const rentalModeLabel = getRentalModeLabel(rental.booking);
+  const startDateDisplay = formatRentalDateTime(rental.booking.startDate);
+  const endDateDisplay = formatRentalDateTime(rental.booking.endDate);
+  const dailyRateForBreakdown = Math.max(0, Math.round(charges.rentalSubtotal / Math.max(1, pricing.durationDays)));
 
   return (
     <Box sx={screenShellSx}>
@@ -113,7 +123,7 @@ export default function RentalSummary(): React.JSX.Element {
               <Typography sx={{ fontSize: 24/1.2, fontWeight: 800 }}>{vehicleLabel}</Typography>
               <Chip
                 icon={<DirectionsCarRoundedIcon />}
-                label={rental.booking.rentalMode === "chauffeur" ? "Chauffeur" : "Self-drive"}
+                label={rentalModeLabel}
                 sx={{
                   mt: 0.6,
                   bgcolor: rentalUi.greenSoft,
@@ -131,17 +141,17 @@ export default function RentalSummary(): React.JSX.Element {
             <Stack direction="row" spacing={1} alignItems="center">
               <CalendarMonthRoundedIcon sx={{ color: rentalUi.green }} />
               <Typography sx={{ width: 90, color: rentalUi.muted }}>Pick-up</Typography>
-              <Typography sx={{ fontWeight: 600 }}>{rental.booking.startDate ?? "24 May 2025 • 10:00 AM"}</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{startDateDisplay}</Typography>
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
               <CalendarMonthRoundedIcon sx={{ color: rentalUi.green }} />
               <Typography sx={{ width: 90, color: rentalUi.muted }}>Return</Typography>
-              <Typography sx={{ fontWeight: 600 }}>{rental.booking.endDate ?? "27 May 2025 • 10:00 AM"}</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{endDateDisplay}</Typography>
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
               <LocationOnRoundedIcon sx={{ color: rentalUi.green }} />
               <Typography sx={{ width: 90, color: rentalUi.muted }}>Branch</Typography>
-              <Typography sx={{ fontWeight: 600 }}>{rental.booking.pickupBranch ?? "EVzone Koramangala"}</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{rental.booking.pickupBranch ?? "Nsambya EV Hub, Uganda"}</Typography>
             </Stack>
           </Stack>
         </CardContent>
@@ -152,7 +162,9 @@ export default function RentalSummary(): React.JSX.Element {
           <Typography sx={{ fontSize: 34/2, fontWeight: 700, mb: 0.95 }}>Charges breakdown</Typography>
           <Stack spacing={0.65}>
             <Stack direction="row" justifyContent="space-between">
-              <Typography sx={{ color: rentalUi.muted }}>Daily rental (3 days × {formatInr(Math.round(charges.rentalSubtotal / 3))})</Typography>
+              <Typography sx={{ color: rentalUi.muted }}>
+                Daily rental ({pricing.durationDays} day{pricing.durationDays === 1 ? "" : "s"} × {formatInr(dailyRateForBreakdown)})
+              </Typography>
               <Typography>{formatInr(charges.rentalSubtotal)}</Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between"><Typography sx={{ color: rentalUi.muted }}>Insurance</Typography><Typography>{formatInr(charges.insurance)}</Typography></Stack>

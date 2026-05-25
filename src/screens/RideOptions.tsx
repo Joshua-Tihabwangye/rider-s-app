@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -12,6 +12,7 @@ import {
 
 import TwoWheelerRoundedIcon from "@mui/icons-material/TwoWheelerRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import MapShell from "../components/maps/MapShell";
 import ExpandableMapPanel from "../components/maps/ExpandableMapPanel";
 import ScreenScaffold from "../components/ScreenScaffold";
@@ -26,29 +27,6 @@ interface RideOptionCardProps {
   onSelect: (id: string) => void;
 }
 
-interface RideOptionPricing {
-  id: string;
-  fareAmount: number;
-  fareLabel: string;
-}
-
-function parseUGXAmount(value: string): number {
-  const numeric = Number.parseInt(value.replace(/[^\d]/g, ""), 10);
-  return Number.isFinite(numeric) ? numeric : 0;
-}
-
-function formatUGX(amount: number): string {
-  return `UGX ${Math.max(0, Math.round(amount)).toLocaleString("en-US")}`;
-}
-
-function computePassengerAwareFare(baseFare: number, passengers: number, serviceClass: "standard" | "premium"): number {
-  const safePassengers = Math.max(1, Math.floor(passengers));
-  const passengerMultiplier = 1 + (safePassengers - 1) * 0.18;
-  const serviceMultiplier = serviceClass === "premium" ? 1.2 : 1;
-  const computed = baseFare * passengerMultiplier * serviceMultiplier;
-  return Math.round(computed / 100) * 100;
-}
-
 function getRideOptionIcon(id: string): React.ReactElement {
   if (id === "scooter") {
     return <TwoWheelerRoundedIcon sx={{ fontSize: 28 }} />;
@@ -56,9 +34,31 @@ function getRideOptionIcon(id: string): React.ReactElement {
   return <DirectionsCarRoundedIcon sx={{ fontSize: 28 }} />;
 }
 
+function getRideOptionImage(id: string): string {
+  if (id === "scooter") return "/rides-ui/EV--1.png";
+  if (id === "car-mini") return "/rides-ui/EV--3.png";
+  if (id === "car-comfort") return "/rides-ui/EV--4.png";
+  return "/rides-ui/EV--4.png";
+}
+
+function formatDistanceLabel(distanceKm?: number | null): string {
+  if (!distanceKm || !Number.isFinite(distanceKm) || distanceKm <= 0) return "—";
+  if (distanceKm >= 100) return `${Math.round(distanceKm)} km`;
+  if (distanceKm >= 10) return `${distanceKm.toFixed(1)} km`;
+  return `${distanceKm.toFixed(2)} km`;
+}
+
+function formatDurationLabel(durationMin?: number | null): string {
+  if (!durationMin || !Number.isFinite(durationMin) || durationMin <= 0) return "—";
+  const rounded = Math.max(1, Math.round(durationMin));
+  if (rounded < 60) return `${rounded} mins`;
+  return `${Math.floor(rounded / 60)} hr ${rounded % 60} mins`;
+}
+
 function RideOptionCard({ option, selected, passengers, onSelect }: RideOptionCardProps): React.JSX.Element {
   const theme = useTheme();
   const isActive = selected === option.id;
+  const hasFare = option.fare.trim().length > 0;
   
   return (
     <Card
@@ -87,7 +87,7 @@ function RideOptionCard({ option, selected, passengers, onSelect }: RideOptionCa
       <Box
         sx={{
           width: "100%",
-          height: 120,
+          height: 136,
           bgcolor: theme.palette.mode === "light" ? "#F3F4F6" : "rgba(15,23,42,1)",
           display: "flex",
           alignItems: "center",
@@ -96,15 +96,31 @@ function RideOptionCard({ option, selected, passengers, onSelect }: RideOptionCa
           overflow: "hidden"
         }}
       >
-        {/* Placeholder for vehicle image - in production this would be an actual image */}
         <Box
+          component="img"
+          src={getRideOptionImage(option.id)}
+          alt={option.name}
+          loading="lazy"
           sx={{
             width: "100%",
             height: "100%",
+            objectFit: "cover",
+            display: "block"
+          }}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            right: 8,
+            top: 8,
+            width: 30,
+            height: 30,
+            borderRadius: "50%",
+            bgcolor: "rgba(15,23,42,0.72)",
+            color: "#F8FAFC",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            bgcolor: theme.palette.mode === "light" ? "#E5E5E5" : "rgba(30,30,30,1)"
+            justifyContent: "center"
           }}
         >
           {getRideOptionIcon(option.id)}
@@ -132,34 +148,45 @@ function RideOptionCard({ option, selected, passengers, onSelect }: RideOptionCa
             
             {/* Fare with info icon */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
-              <Typography
-                variant="body2"
-                sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: 14 }}
-              >
-                {option.fare}
-              </Typography>
-              <Box
-                sx={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: "50%",
-                  bgcolor: "#F77F00",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}
-              >
+              {hasFare ? (
+                <>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: 14 }}
+                  >
+                    {option.fare}
+                  </Typography>
+                  <Box
+                    sx={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: "50%",
+                      bgcolor: "#F77F00",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: 10,
+                        color: "#FFFFFF",
+                        fontWeight: 600,
+                        lineHeight: 1
+                      }}
+                    >
+                      i
+                    </Typography>
+                  </Box>
+                </>
+              ) : (
                 <Typography
-                  sx={{
-                    fontSize: 10,
-                    color: "#FFFFFF",
-                    fontWeight: 600,
-                    lineHeight: 1
-                  }}
+                  variant="caption"
+                  sx={{ color: theme.palette.text.secondary, fontSize: 12, fontWeight: 500 }}
                 >
-                  i
+                  Fare appears after route is set
                 </Typography>
-              </Box>
+              )}
             </Box>
             <Typography variant="caption" sx={{ display: "block", mt: 0.5, color: theme.palette.text.secondary }}>
               for {passengers} {passengers === 1 ? "passenger" : "passengers"}
@@ -188,26 +215,7 @@ function SelectYourRideScreen(): React.JSX.Element {
   const [selectedRide, setSelectedRide] = useState(ride.request.serviceLevel ?? ride.options[0]?.id ?? "");
   const [rideType, setRideType] = useState<ServiceClass>(ride.request.serviceClass ?? "standard");
   const [selectionError, setSelectionError] = useState("");
-  const ridePricing = useMemo<Record<string, RideOptionPricing>>(() => {
-    return ride.options.reduce<Record<string, RideOptionPricing>>((acc, option) => {
-      const baseFareAmount = parseUGXAmount(option.fare);
-      const adjustedFareAmount = computePassengerAwareFare(baseFareAmount, passengerCount, rideType);
-      acc[option.id] = {
-        id: option.id,
-        fareAmount: adjustedFareAmount,
-        fareLabel: formatUGX(adjustedFareAmount)
-      };
-      return acc;
-    }, {});
-  }, [passengerCount, ride.options, rideType]);
-  const rideOptionsWithPricing = useMemo<RideOption[]>(
-    () =>
-      ride.options.map((option) => ({
-        ...option,
-        fare: ridePricing[option.id]?.fareLabel ?? option.fare
-      })),
-    [ride.options, ridePricing]
-  );
+  const rideOptionsWithPricing = ride.options;
 
   useEffect(() => {
     if (ride.request.serviceLevel && ride.request.serviceLevel !== selectedRide) {
@@ -254,22 +262,28 @@ function SelectYourRideScreen(): React.JSX.Element {
   };
   
   const handleConfirm = () => {
-    if (!sharedLocationState.pickupCoords || !sharedLocationState.destinationCoords) {
+    const hasRouteEndpoints =
+      Boolean(sharedLocationState.pickupCoords && sharedLocationState.destinationCoords) ||
+      Boolean(ride.request.origin && ride.request.destination);
+    if (!hasRouteEndpoints) {
       setSelectionError("Select pickup and destination first.");
       return;
     }
     const effectiveSelectedRide = selectedRide || rideOptionsWithPricing[0]?.id || "";
     if (!effectiveSelectedRide) return;
     const selectedRideOption = rideOptionsWithPricing.find((opt) => opt.id === effectiveSelectedRide);
-    const fare = selectedRideOption?.fare || ride.activeTrip?.fareEstimate || "UGX 40,365";
+    const fare = selectedRideOption?.fare || ride.activeTrip?.fareEstimate || "";
+    if (!fare) {
+      setSelectionError("Unable to estimate fare. Update your route and try again.");
+      return;
+    }
     const estimatedEtaMinutes =
       Number.parseInt(selectedRideOption?.eta?.replace(/[^0-9]/g, "") ?? "", 10) || ride.activeTrip?.etaMinutes || 0;
     const distanceLabel =
-      typeof tripData.distance === "string" ? tripData.distance : ride.activeTrip?.distance || "—";
-    const estimatedTimeLabel =
-      typeof tripData.estimatedTime === "string"
-        ? tripData.estimatedTime
-        : `${ride.activeTrip?.etaMinutes ?? 0} mins`;
+      sharedLocationState.routeDistanceKm && sharedLocationState.routeDistanceKm > 0
+        ? formatDistanceLabel(sharedLocationState.routeDistanceKm)
+        : ride.activeTrip?.distance || "—";
+    const estimatedTimeLabel = formatDurationLabel(sharedLocationState.routeDurationMin);
     
     updateRideTrip({
       pickup: ride.request.origin,
@@ -329,13 +343,40 @@ function SelectYourRideScreen(): React.JSX.Element {
     },
     overflow: "hidden"
   } as const;
+
+  const rideTypeToggleSx = {
+    flex: 1,
+    py: 1.2,
+    px: 2,
+    border: "1px solid rgba(209,213,219,0.95)",
+    borderRadius: 2,
+    textTransform: "none",
+    fontSize: 14,
+    fontWeight: 600,
+    color: theme.palette.text.primary,
+    bgcolor: "transparent",
+    boxShadow: "none",
+    position: "relative",
+    "&:hover": {
+      bgcolor: "transparent"
+    },
+    "&.Mui-selected": {
+      border: "3px solid #F77F00",
+      boxShadow: "0 0 0 1px rgba(247,127,0,0.45)",
+      bgcolor: "transparent",
+      color: theme.palette.text.primary
+    },
+    "&.Mui-selected:hover": {
+      bgcolor: "transparent"
+    }
+  } as const;
   
   return (
     <ScreenScaffold disableTopPadding>
       <ExpandableMapPanel
         containerSx={topMapBleedSx}
-        mapHeight={{ xs: "62dvh", md: "55vh" }}
-        expandedMapHeight={{ xs: "80dvh", md: "76vh" }}
+        mapHeight={{ xs: "62vh", md: "55vh" }}
+        expandedMapHeight={{ xs: "80vh", md: "76vh" }}
         map={
           <MapShell
             showControls={false}
@@ -391,8 +432,7 @@ function SelectYourRideScreen(): React.JSX.Element {
               variant="caption"
               sx={{ fontSize: 12, color: theme.palette.text.secondary, mb: 1.5, display: "block" }}
             >
-              Choose the type of ride service that fits your needs. Pricing adapts to {passengerCount}{" "}
-              {passengerCount === 1 ? "passenger" : "passengers"}.
+              Choose the type of ride service that fits your needs. Pricing updates by route distance.
             </Typography>
             
             <Box sx={{ display: "flex", gap: 1.25 }}>
@@ -401,32 +441,29 @@ function SelectYourRideScreen(): React.JSX.Element {
                 selected={rideType === "standard"}
                 onClick={() => handleRideTypeSelect("standard")}
                 aria-label="Standard Ride"
-                sx={{
-                  flex: 1,
-                  py: 1.2,
-                  px: 2,
-                  border: "1px solid rgba(209,213,219,0.95)",
-                  borderRadius: 2,
-                  textTransform: "none",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: theme.palette.text.primary,
-                  bgcolor: "transparent",
-                  boxShadow: "none",
-                  "&:hover": {
-                    bgcolor: "transparent"
-                  },
-                  "&.Mui-selected": {
-                    border: "3px solid #F77F00",
-                    boxShadow: "0 0 0 1px rgba(247,127,0,0.45)",
-                    bgcolor: "transparent",
-                    color: theme.palette.text.primary
-                  },
-                  "&.Mui-selected:hover": {
-                    bgcolor: "transparent"
-                  }
-                }}
+                sx={rideTypeToggleSx}
               >
+                {rideType === "standard" ? (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 8,
+                      left: 8,
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      border: "2px solid #F77F00",
+                      bgcolor: "#FFFFFF",
+                      color: "#F77F00",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: 0
+                    }}
+                  >
+                    <CheckRoundedIcon sx={{ fontSize: 14 }} />
+                  </Box>
+                ) : null}
                 Standard Ride
               </ToggleButton>
               <ToggleButton
@@ -434,32 +471,29 @@ function SelectYourRideScreen(): React.JSX.Element {
                 selected={rideType === "premium"}
                 onClick={() => handleRideTypeSelect("premium")}
                 aria-label="Premium Ride"
-                sx={{
-                  flex: 1,
-                  py: 1.2,
-                  px: 2,
-                  border: "1px solid rgba(209,213,219,0.95)",
-                  borderRadius: 2,
-                  textTransform: "none",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: theme.palette.text.primary,
-                  bgcolor: "transparent",
-                  boxShadow: "none",
-                  "&:hover": {
-                    bgcolor: "transparent"
-                  },
-                  "&.Mui-selected": {
-                    border: "3px solid #F77F00",
-                    boxShadow: "0 0 0 1px rgba(247,127,0,0.45)",
-                    bgcolor: "transparent",
-                    color: theme.palette.text.primary
-                  },
-                  "&.Mui-selected:hover": {
-                    bgcolor: "transparent"
-                  }
-                }}
+                sx={rideTypeToggleSx}
               >
+                {rideType === "premium" ? (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 8,
+                      left: 8,
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      border: "2px solid #F77F00",
+                      bgcolor: "#FFFFFF",
+                      color: "#F77F00",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: 0
+                    }}
+                  >
+                    <CheckRoundedIcon sx={{ fontSize: 14 }} />
+                  </Box>
+                ) : null}
                 Premium Ride
               </ToggleButton>
             </Box>

@@ -18,6 +18,8 @@ import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import HelpOutlineRoundedIcon from "@mui/icons-material/HelpOutlineRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 
 import { useAppData } from "../contexts/AppDataContext";
 import {
@@ -104,8 +106,8 @@ export default function RentalCardPayment(): React.JSX.Element {
 
       <Card sx={{ ...cardSx, mb: 1.45 }}>
         <CardContent sx={{ p: 1.55, "&:last-child": { pb: 1.55 } }}>
-          <Stack direction="row" justifyContent="space-between" spacing={1.1}>
-            <Box>
+          <Stack direction="row" justifyContent="space-between" spacing={1.1} alignItems="center">
+            <Box sx={{ minWidth: 0, flex: 1 }}>
               <Typography sx={{ color: rentalUi.muted, fontSize: 19 }}>Amount due</Typography>
               <Typography sx={{ fontSize: 74/2, fontWeight: 800 }}>{formatInr(amountDue)}</Typography>
               <Typography sx={{ color: rentalUi.greenDeep, fontWeight: 700, fontSize: 35/2 }}>View breakdown</Typography>
@@ -113,9 +115,16 @@ export default function RentalCardPayment(): React.JSX.Element {
             <CroppedReferenceImage
               src={RENTAL_UI_ASSETS.banners.cardHero}
               alt={vehicle?.name ?? "Vehicle"}
-              height={145}
+              height={108}
               scale={1}
-              sx={{ width: 240, borderRadius: 2.6 }}
+              fit="contain"
+              sx={{
+                width: { xs: 132, sm: 190 },
+                borderRadius: 2.4,
+                bgcolor: "transparent",
+                flexShrink: 0,
+                "& img": { objectPosition: "center center" }
+              }}
             />
           </Stack>
         </CardContent>
@@ -217,11 +226,20 @@ export default function RentalCardPayment(): React.JSX.Element {
 
       <Card sx={{ ...cardSx, mb: 1.35 }}>
         <CardContent sx={{ p: 1.35, "&:last-child": { pb: 1.35 } }}>
-          <Typography sx={{ fontWeight: 700, fontSize: 37/2, mb: 0.35 }}>Billing address</Typography>
-          <Typography sx={{ color: rentalUi.muted, fontSize: 19/1.2 }}>
-            123 Green Avenue, Koramangala,
-          </Typography>
-          <Typography sx={{ color: rentalUi.muted, fontSize: 19/1.2 }}>Bengaluru, Karnataka 560034, India</Typography>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={0.9}>
+            <Stack direction="row" spacing={0.8} alignItems="center" sx={{ minWidth: 0 }}>
+              <Box sx={{ width: 36, height: 36, borderRadius: "50%", bgcolor: rentalUi.greenSoft, color: rentalUi.green, display: "grid", placeItems: "center" }}>
+                <LocationOnRoundedIcon sx={{ fontSize: 20 }} />
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontWeight: 700, fontSize: 15, mb: 0.2 }}>Billing address</Typography>
+                <Typography sx={{ color: rentalUi.muted, fontSize: 13, lineHeight: 1.35 }}>
+                  Plot 12, Nsambya Road, Kampala, Uganda
+                </Typography>
+              </Box>
+            </Stack>
+            <ChevronRightRoundedIcon sx={{ color: rentalUi.muted }} />
+          </Stack>
         </CardContent>
       </Card>
 

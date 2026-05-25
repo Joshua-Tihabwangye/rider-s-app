@@ -41,6 +41,7 @@ export default function RideSOS(): React.JSX.Element {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { ride, sos, emergencyContacts, actions } = useAppData();
+  const sosWorkflow = ride.workflow.sos;
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [snackbar, setSnackbar] = React.useState<{ open: boolean; message: string }>({ open: false, message: "" });
 
@@ -71,10 +72,10 @@ export default function RideSOS(): React.JSX.Element {
     actions.updateSosStatus(eventId, "alert_sent", "Emergency alert sent to safety team.");
     setTimeout(() => {
       actions.updateSosStatus(eventId, "contacts_notified", "Emergency contacts notified via SMS.");
-    }, 800);
+    }, sosWorkflow.contactsNotifiedDelayMs);
     setTimeout(() => {
       actions.updateSosStatus(eventId, "support_notified", "Support agent assigned to your case.");
-    }, 1400);
+    }, sosWorkflow.supportNotifiedDelayMs);
     setSnackbar({ open: true, message: "SOS alert sent. Help is on the way." });
     setConfirmOpen(false);
   };

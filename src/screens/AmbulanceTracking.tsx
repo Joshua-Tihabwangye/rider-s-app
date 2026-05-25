@@ -24,6 +24,10 @@ import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded";
 import { useAppData } from "../contexts/AppDataContext";
+import {
+  ambulanceCompactTypographySx,
+  ambulanceContainedButtonSx
+} from "../components/ambulance/ambulanceTypography";
 import MapShell from "../components/maps/MapShell";
 import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 
@@ -131,7 +135,7 @@ function AmbulanceLiveTrackingScreen(): React.JSX.Element {
   const primaryLabel = request.status === "arrived" ? "Complete emergency trip" : "Mark ambulance arrived";
 
   return (
-    <Box sx={{ px: 2.5, pt: 2.5, pb: 15 }}>
+    <Box sx={[{ px: 2.5, pt: 2.5, pb: 15 }, ambulanceCompactTypographySx]}>
       <Box
         sx={{
           mb: 1.4,
@@ -310,7 +314,7 @@ function AmbulanceLiveTrackingScreen(): React.JSX.Element {
               <Stack alignItems="center" spacing={0.2} sx={{ minWidth: 82 }}>
                 <Typography sx={{ fontSize: 12, color: "#64748B" }}>Driver</Typography>
                 <PersonRoundedIcon sx={{ fontSize: 34, color: "#334155" }} />
-                <Typography sx={{ fontWeight: 700, fontSize: 13 }}>{request.driverName ?? "Rohit S."}</Typography>
+                <Typography sx={{ fontWeight: 700, fontSize: 13 }}>{request.driverName ?? "Moses K."}</Typography>
                 <Stack direction="row" spacing={0.2} alignItems="center">
                   <StarRoundedIcon sx={{ color: "#F59E0B", fontSize: 15 }} />
                   <Typography sx={{ fontSize: 12.5 }}>{request.status === "arrived" ? "4.9" : "4.8"}</Typography>
@@ -320,7 +324,7 @@ function AmbulanceLiveTrackingScreen(): React.JSX.Element {
               <Stack alignItems="center" spacing={0.2} sx={{ minWidth: 82 }}>
                 <Typography sx={{ fontSize: 12, color: "#64748B" }}>Paramedic</Typography>
                 <PersonRoundedIcon sx={{ fontSize: 34, color: "#334155" }} />
-                <Typography sx={{ fontWeight: 700, fontSize: 13 }}>Priya M.</Typography>
+                <Typography sx={{ fontWeight: 700, fontSize: 13 }}>Aisha N.</Typography>
                 <Stack direction="row" spacing={0.2} alignItems="center">
                   <StarRoundedIcon sx={{ color: "#F59E0B", fontSize: 15 }} />
                   <Typography sx={{ fontSize: 12.5 }}>4.9</Typography>
@@ -407,11 +411,7 @@ function AmbulanceLiveTrackingScreen(): React.JSX.Element {
             py: 1.2,
             fontWeight: 700,
             fontSize: 15,
-            color: "#FFFFFF",
-            background: "linear-gradient(90deg, #059669 0%, #EA580C 100%)",
-            "&:hover": {
-              background: "linear-gradient(90deg, #047857 0%, #C2410C 100%)"
-            }
+            ...ambulanceContainedButtonSx
           }}
         >
           {primaryLabel}

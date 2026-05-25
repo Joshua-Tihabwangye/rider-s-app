@@ -7,12 +7,10 @@ import {
   Card,
   CardContent,
   Chip,
-  IconButton,
   Stack,
   Typography
 } from "@mui/material";
 import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
-import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
@@ -31,7 +29,14 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
   const location = useLocation();
   const { ride, sharedLocationState, actions } = useAppData();
   const activeTrip = ride.activeTrip;
+  const completionWorkflow = ride.workflow.tripCompletion;
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
+  const bookedForLabel = React.useMemo(() => {
+    const bookedFor = activeTrip?.bookedFor ?? ride.request.bookedFor;
+    if (!bookedFor || bookedFor.source === "self") return "For: You";
+    const name = bookedFor.name?.trim() || "Booked rider";
+    return `For: ${name}${bookedFor.phone ? ` (${bookedFor.phone})` : ""}`;
+  }, [activeTrip?.bookedFor, ride.request.bookedFor]);
 
   const routeState = (location.state as Record<string, unknown> | null) ?? null;
 
@@ -39,19 +44,24 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
     (typeof routeState?.totalFare === "string" && routeState.totalFare) ||
     (typeof routeState?.fare === "string" && routeState.fare) ||
     activeTrip?.fareEstimate ||
-    "UGX 20,565";
+    completionWorkflow.fallbackFare;
   const fareDisplay = rawFare.toUpperCase().includes("UGX") ? rawFare : `UGX ${rawFare}`;
 
   const rawDistance =
     (typeof routeState?.distance === "string" && routeState.distance) ||
     activeTrip?.distance ||
-    "54 km";
+    completionWorkflow.fallbackDistance;
   const distanceDisplay = /km/i.test(rawDistance) ? rawDistance : `${rawDistance} km`;
 
+  const estimatedMinutesFromLegs = activeTrip?.legs?.reduce((sum, leg) => sum + Math.max(0, leg.etaMinutes ?? 0), 0) ?? 0;
   const durationDisplay =
     (typeof routeState?.estimatedTime === "string" && routeState.estimatedTime) ||
     (typeof routeState?.duration === "string" && routeState.duration) ||
-    "2 hr 20 mins";
+    (estimatedMinutesFromLegs > 0
+      ? estimatedMinutesFromLegs < 60
+        ? `${estimatedMinutesFromLegs} mins`
+        : `${Math.floor(estimatedMinutesFromLegs / 60)} hr ${estimatedMinutesFromLegs % 60} mins`
+      : completionWorkflow.fallbackDuration);
 
   const departurePoint =
     activeTrip?.pickup?.address ||
@@ -64,6 +74,10 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
     "Destination";
 
   const requestStops = ride.request.stops
+    .map((stop) => stop.address || stop.label)
+    .filter((value): value is string => Boolean(value && value.trim().length > 0));
+  const activeTripStops = (activeTrip?.routePoints ?? [])
+    .slice(1, Math.max(1, (activeTrip?.routePoints ?? []).length - 1))
     .map((stop) => stop.address || stop.label)
     .filter((value): value is string => Boolean(value && value.trim().length > 0));
 
@@ -82,27 +96,16 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
     : [];
 
   const stopovers = Array.from(
-    new Set([...requestStops, ...stateStops].map((value) => value.trim()).filter(Boolean))
+    new Set([...activeTripStops, ...requestStops, ...stateStops].map((value) => value.trim()).filter(Boolean))
   ).filter((stop) => stop !== departurePoint && stop !== destination);
 
-  const driverName = activeTrip?.driver?.name ?? "Driver";
-  const driverRating = activeTrip?.driver?.rating ?? 4.6;
+  const fallbackDriver = ride.workflow.tripSimulation.mockAssignments[0]?.driver;
+  const driverName = activeTrip?.driver?.name ?? fallbackDriver?.name ?? "Driver";
+  const driverRating = activeTrip?.driver?.rating ?? fallbackDriver?.rating ?? 0;
 
   React.useEffect(() => {
     actions.setRideStatus("completed");
   }, [actions.setRideStatus]);
-
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator
-        .share({
-          title: "Trip Completed",
-          text: `Trip completed from ${departurePoint} to ${destination}`,
-          url: window.location.href
-        })
-        .catch(() => undefined);
-    }
-  };
 
   const handleRateDriver = () => {
     navigate("/rides/rating/driver", {
@@ -148,9 +151,13 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
         containerSx={topMapBleedSx}
         mapHeight={{ xs: "44dvh", md: "52vh" }}
         expandedMapHeight={{ xs: "78dvh", md: "76vh" }}
+        buttonOffsetCollapsed={8}
+        buttonOffsetExpanded={14}
+        detailsWrapperSx={{ mt: 0.65 }}
         map={
           <MapShell
             showControls={false}
+            showRouteInfo={false}
             sx={{ height: "100%" }}
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
@@ -166,7 +173,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
           />
         }
         details={
-          <>
+          <Stack spacing={1.1}>
             <Card
         elevation={0}
         sx={{
@@ -187,55 +194,97 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
               <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
                 Final summary
               </Typography>
+              <Typography variant="caption" sx={{ color: "#B45309", fontWeight: 700, display: "block" }}>
+                {bookedForLabel}
+              </Typography>
             </Box>
-            <IconButton
+            <Button
               size="small"
-              onClick={handleShare}
+              variant="outlined"
+              onClick={handleRateDriver}
+              startIcon={<StarRoundedIcon sx={{ fontSize: 15 }} />}
               sx={{
-                bgcolor: (theme) =>
-                  theme.palette.mode === "light" ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.08)",
-                color: "#03CD8C"
+                borderRadius: uiTokens.radius.lg,
+                textTransform: "none",
+                fontWeight: 600,
+                borderColor: "rgba(247,144,9,0.45)",
+                color: "#B45309",
+                px: 1.2
               }}
             >
-              <ShareRoundedIcon sx={{ fontSize: 20 }} />
-            </IconButton>
+              Rate driver
+            </Button>
           </Box>
 
-          <Stack direction="row" spacing={1} sx={{ mb: 1.2, flexWrap: "wrap" }}>
-            <Chip label={`Distance: ${distanceDisplay}`} size="small" />
-            <Chip label={`Time: ${durationDisplay}`} size="small" />
-            <Chip label={`Amount: ${fareDisplay}`} size="small" color="success" />
+          <Stack direction="row" spacing={1} sx={{ mb: 1.25, flexWrap: "wrap" }}>
+            <Chip
+              label={`Distance: ${distanceDisplay}`}
+              size="small"
+              sx={{
+                bgcolor: "rgba(247,144,9,0.12)",
+                border: "1px solid rgba(247,144,9,0.34)",
+                color: "#B45309",
+                fontWeight: 600
+              }}
+            />
+            <Chip
+              label={`Time: ${durationDisplay}`}
+              size="small"
+              sx={{
+                bgcolor: "rgba(247,144,9,0.12)",
+                border: "1px solid rgba(247,144,9,0.34)",
+                color: "#B45309",
+                fontWeight: 600
+              }}
+            />
+            {activeTrip?.tripMode === "round_trip" && (
+              <Chip
+                label="Round trip"
+                size="small"
+                sx={{
+                  bgcolor: "rgba(3,205,140,0.12)",
+                  border: "1px solid rgba(3,205,140,0.34)",
+                  color: "#047857",
+                  fontWeight: 600
+                }}
+              />
+            )}
           </Stack>
 
-          <Button
-            variant="outlined"
-            onClick={handleRateDriver}
-            startIcon={<StarRoundedIcon sx={{ fontSize: 17 }} />}
-            sx={{
-              borderRadius: uiTokens.radius.xl,
-              textTransform: "none",
-              fontWeight: 600,
-              borderColor: (theme) =>
-                theme.palette.mode === "light" ? "rgba(0,0,0,0.22)" : "rgba(255,255,255,0.24)",
-              color: (theme) => theme.palette.text.primary
-            }}
-          >
-            Rate driver
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handlePayNow}
-            sx={{
-              mt: 1,
-              borderRadius: uiTokens.radius.xl,
-              textTransform: "none",
-              fontWeight: 700,
-              bgcolor: "#22c55e",
-              "&:hover": { bgcolor: "#16A34A" }
-            }}
-          >
-            Pay now
-          </Button>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+            <Box
+              sx={{
+                flex: 1,
+                px: 1.35,
+                py: 1.15,
+                borderRadius: uiTokens.radius.xl,
+                border: "1px solid rgba(22,163,74,0.35)",
+                bgcolor: "rgba(22,163,74,0.08)"
+              }}
+            >
+              <Typography variant="caption" sx={{ color: (theme) => theme.palette.text.secondary, fontSize: 11 }}>
+                Amount
+              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.01em", color: "#166534" }}>
+                {fareDisplay}
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              onClick={handlePayNow}
+              sx={{
+                minWidth: 150,
+                py: 1.2,
+                borderRadius: uiTokens.radius.xl,
+                textTransform: "none",
+                fontWeight: 700,
+                bgcolor: "#22c55e",
+                "&:hover": { bgcolor: "#16A34A" }
+              }}
+            >
+              Pay now
+            </Button>
+          </Stack>
         </CardContent>
             </Card>
 
@@ -293,6 +342,25 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
                 </Typography>
               </Box>
             </Box>
+
+            {(activeTrip?.legs?.length ?? 0) > 1 && (
+              <Box
+                sx={{
+                  mt: 0.45,
+                  p: 1.1,
+                  borderRadius: 1.5,
+                  bgcolor: "rgba(2,132,199,0.08)",
+                  border: "1px solid rgba(2,132,199,0.2)"
+                }}
+              >
+                <Typography variant="caption" sx={{ fontWeight: 700, color: "#0369A1" }}>
+                  Multi-leg summary
+                </Typography>
+                <Typography variant="caption" sx={{ display: "block", color: (t) => t.palette.text.secondary, mt: 0.35 }}>
+                  {activeTrip.legs?.filter((leg) => leg.status === "completed").length ?? 0} / {activeTrip.legs?.length ?? 0} legs completed
+                </Typography>
+              </Box>
+            )}
           </Stack>
 
           <Box sx={{ mt: 1.6, display: "flex", alignItems: "center", gap: 0.6 }}>
@@ -339,7 +407,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
           </Box>
         </CardContent>
             </Card>
-          </>
+          </Stack>
         }
       />
     </ScreenScaffold>
