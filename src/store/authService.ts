@@ -11,6 +11,8 @@ import {
 } from "../services/api/authApi";
 import { ApiRequestError } from "../services/api/httpClient";
 
+const DEV_AUTH_BYPASS_ENABLED = import.meta.env.DEV;
+
 function computeInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) {
@@ -36,14 +38,30 @@ function mapBackendUserToRider(
   };
 }
 
+function createDevAuthResponse(emailInput: string, fullName?: string): AuthResponse {
+  const email = emailInput.trim().toLowerCase();
+  const fallbackEmail = email || `dev-${Date.now()}@example.com`;
+  const user = mapBackendUserToRider(fallbackEmail, fullName, "email");
+  const nonce = Date.now().toString(36);
+
+  return {
+    user,
+    token: `dev_access_${nonce}_${user.id}`,
+    refreshToken: `dev_refresh_${nonce}_${user.id}`,
+  };
+}
+
 export async function signIn(credentials: SignInCredentials): Promise<AuthResponse> {
+  if (!isBackendAuthEnabled()) {
+    if (DEV_AUTH_BYPASS_ENABLED) {
+      return createDevAuthResponse(credentials.email);
+    }
+    throw new Error("Authentication service is unavailable.");
+  }
+
   const limiterKey = `sign-in:${credentials.email.trim().toLowerCase() || "anonymous"}`;
   if (!checkRateLimit(authRateLimiter, limiterKey, "sign-in")) {
     throw new Error("Too many sign in attempts. Please wait a few minutes.");
-  }
-
-  if (!isBackendAuthEnabled()) {
-    throw new Error("Authentication service is unavailable.");
   }
 
   try {
@@ -63,13 +81,16 @@ export async function signIn(credentials: SignInCredentials): Promise<AuthRespon
 }
 
 export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
+  if (!isBackendAuthEnabled()) {
+    if (DEV_AUTH_BYPASS_ENABLED) {
+      return createDevAuthResponse(payload.email, payload.fullName.trim());
+    }
+    throw new Error("Authentication service is unavailable.");
+  }
+
   const limiterKey = `sign-up:${payload.email.trim().toLowerCase() || "anonymous"}`;
   if (!checkRateLimit(authRateLimiter, limiterKey, "sign-up")) {
     throw new Error("Too many sign up attempts. Please wait a few minutes.");
-  }
-
-  if (!isBackendAuthEnabled()) {
-    throw new Error("Authentication service is unavailable.");
   }
 
   try {
@@ -90,13 +111,16 @@ export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
 }
 
 export async function forgotPassword(email: string): Promise<{ message: string }> {
+  if (!isBackendAuthEnabled()) {
+    if (DEV_AUTH_BYPASS_ENABLED) {
+      return { message: "Development mode: password reset is simulated locally." };
+    }
+    throw new Error("Authentication service is unavailable.");
+  }
+
   const limiterKey = `forgot-password:${email.trim().toLowerCase() || "anonymous"}`;
   if (!checkRateLimit(authRateLimiter, limiterKey, "forgot-password")) {
     throw new Error("Too many reset requests. Please wait a few minutes.");
-  }
-
-  if (!isBackendAuthEnabled()) {
-    throw new Error("Authentication service is unavailable.");
   }
 
   try {
@@ -110,6 +134,9 @@ export async function forgotPassword(email: string): Promise<{ message: string }
 
 export async function verifyOtp(email: string, otp: string): Promise<{ verified: boolean; resetRequired?: boolean }> {
   if (!isBackendAuthEnabled()) {
+    if (DEV_AUTH_BYPASS_ENABLED) {
+      return { verified: true, resetRequired: true };
+    }
     throw new Error("Authentication service is unavailable.");
   }
   try {
@@ -122,6 +149,9 @@ export async function verifyOtp(email: string, otp: string): Promise<{ verified:
 
 export async function resetPassword(email: string, otp: string, newPassword: string): Promise<{ reset: boolean }> {
   if (!isBackendAuthEnabled()) {
+    if (DEV_AUTH_BYPASS_ENABLED) {
+      return { reset: true };
+    }
     throw new Error("Authentication service is unavailable.");
   }
   try {
