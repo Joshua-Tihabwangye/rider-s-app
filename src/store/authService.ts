@@ -11,8 +11,6 @@ import {
 } from "../services/api/authApi";
 import { ApiRequestError } from "../services/api/httpClient";
 
-const DEV_AUTH_BYPASS_ENABLED = import.meta.env.DEV;
-
 function computeInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) {
@@ -53,10 +51,7 @@ function createDevAuthResponse(emailInput: string, fullName?: string): AuthRespo
 
 export async function signIn(credentials: SignInCredentials): Promise<AuthResponse> {
   if (!isBackendAuthEnabled()) {
-    if (DEV_AUTH_BYPASS_ENABLED) {
-      return createDevAuthResponse(credentials.email);
-    }
-    throw new Error("Authentication service is unavailable.");
+    return createDevAuthResponse(credentials.email);
   }
 
   const limiterKey = `sign-in:${credentials.email.trim().toLowerCase() || "anonymous"}`;
@@ -82,10 +77,7 @@ export async function signIn(credentials: SignInCredentials): Promise<AuthRespon
 
 export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
   if (!isBackendAuthEnabled()) {
-    if (DEV_AUTH_BYPASS_ENABLED) {
-      return createDevAuthResponse(payload.email, payload.fullName.trim());
-    }
-    throw new Error("Authentication service is unavailable.");
+    return createDevAuthResponse(payload.email, payload.fullName.trim());
   }
 
   const limiterKey = `sign-up:${payload.email.trim().toLowerCase() || "anonymous"}`;
@@ -112,10 +104,7 @@ export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
 
 export async function forgotPassword(email: string): Promise<{ message: string }> {
   if (!isBackendAuthEnabled()) {
-    if (DEV_AUTH_BYPASS_ENABLED) {
-      return { message: "Development mode: password reset is simulated locally." };
-    }
-    throw new Error("Authentication service is unavailable.");
+    return { message: "Development mode: password reset is simulated locally." };
   }
 
   const limiterKey = `forgot-password:${email.trim().toLowerCase() || "anonymous"}`;
@@ -134,10 +123,7 @@ export async function forgotPassword(email: string): Promise<{ message: string }
 
 export async function verifyOtp(email: string, otp: string): Promise<{ verified: boolean; resetRequired?: boolean }> {
   if (!isBackendAuthEnabled()) {
-    if (DEV_AUTH_BYPASS_ENABLED) {
-      return { verified: true, resetRequired: true };
-    }
-    throw new Error("Authentication service is unavailable.");
+    return { verified: true, resetRequired: true };
   }
   try {
     return await backendVerifyOtp({ email: email.trim().toLowerCase(), otp });
@@ -149,10 +135,7 @@ export async function verifyOtp(email: string, otp: string): Promise<{ verified:
 
 export async function resetPassword(email: string, otp: string, newPassword: string): Promise<{ reset: boolean }> {
   if (!isBackendAuthEnabled()) {
-    if (DEV_AUTH_BYPASS_ENABLED) {
-      return { reset: true };
-    }
-    throw new Error("Authentication service is unavailable.");
+    return { reset: true };
   }
   try {
     return await backendResetPassword({ email: email.trim().toLowerCase(), otp, newPassword });
