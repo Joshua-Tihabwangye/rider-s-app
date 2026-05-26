@@ -20,6 +20,7 @@ import RouteRoundedIcon from "@mui/icons-material/RouteRounded";
 import WorkRoundedIcon from "@mui/icons-material/WorkRounded";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
+import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import ActionGrid from "../components/primitives/ActionGrid";
 import AppCard from "../components/primitives/AppCard";
@@ -135,7 +136,7 @@ function HomeMultiServiceScreen(): React.JSX.Element {
     if (pickup && dropoff) {
       return `${pickup} \u2192 ${dropoff}`;
     }
-    return lastRide.routeSummary || "Last ride";
+    return (lastRide.routeSummary || "Last ride").replace(/\s+/g, " ").trim();
   }, [lastRide]);
 
 
@@ -244,22 +245,25 @@ function HomeMultiServiceScreen(): React.JSX.Element {
       </Card>
 
       {lastRide && (
-        <AppCard onClick={() => navigate("/rides/enter", { state: { rebook: true } })} variant="muted">
-          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={uiTokens.spacing.sm}>
-            <Box>
-              <Typography
-                variant="caption"
-                sx={{
-                  ...uiTokens.text.eyebrow,
-                  color: "#64748B"
-                }}
-              >
-                Your last ride
-              </Typography>
-              <Typography sx={{ fontSize: 17, fontWeight: 800, color: "#0F172A", mt: uiTokens.spacing.xxs }}>
-                {lastRideRoute}
-              </Typography>
-            </Box>
+        <AppCard
+          onClick={() => navigate("/rides/enter", { state: { rebook: true } })}
+          variant="muted"
+          sx={{
+            border: "1px solid rgba(16,24,40,0.08)",
+            bgcolor: (t) => (t.palette.mode === "light" ? "#F8FAFC" : "rgba(15,23,42,0.92)")
+          }}
+        >
+          <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={uiTokens.spacing.sm}>
+            <Typography
+              variant="caption"
+              sx={{
+                ...uiTokens.text.eyebrow,
+                color: "#64748B",
+                letterSpacing: "0.14em"
+              }}
+            >
+              Your last ride
+            </Typography>
             <Stack direction="row" spacing={uiTokens.spacing.xs}>
               <Button
                 size="small"
@@ -270,8 +274,12 @@ function HomeMultiServiceScreen(): React.JSX.Element {
                   color: uiTokens.colors.white,
                   px: uiTokens.spacing.mdPlus,
                   py: uiTokens.spacing.xxs,
+                  minWidth: 78,
                   fontSize: 11,
+                  fontWeight: 700,
                   textTransform: "none",
+                  borderRadius: uiTokens.radius.md,
+                  boxShadow: "0 6px 16px rgba(16,185,129,0.28)",
                   "&:hover": { bgcolor: uiTokens.colors.brandHover }
                 }}
               >
@@ -282,13 +290,15 @@ function HomeMultiServiceScreen(): React.JSX.Element {
                 variant="outlined"
                 onClick={() => navigate("/rides/history/past")}
                 sx={{
-                  borderColor: "rgba(249,115,22,0.5)",
+                  borderColor: "rgba(249,115,22,0.45)",
                   color: "#C2410C",
                   px: uiTokens.spacing.mdPlus,
                   py: uiTokens.spacing.xxs,
+                  minWidth: 74,
                   fontSize: 11,
                   fontWeight: 700,
                   textTransform: "none",
+                  borderRadius: uiTokens.radius.md,
                   "&:hover": {
                     borderColor: "rgba(249,115,22,0.8)",
                     bgcolor: "rgba(249,115,22,0.08)"
@@ -299,7 +309,51 @@ function HomeMultiServiceScreen(): React.JSX.Element {
               </Button>
             </Stack>
           </Stack>
-          <Stack direction="row" spacing={uiTokens.spacing.lg} sx={{ mt: uiTokens.spacing.smPlus }}>
+
+          <Box
+            sx={{
+              mt: uiTokens.spacing.xs,
+              px: uiTokens.spacing.sm,
+              py: uiTokens.spacing.sm,
+              borderRadius: uiTokens.radius.md,
+              bgcolor: "rgba(255,255,255,0.72)",
+              border: "1px solid rgba(148,163,184,0.28)"
+            }}
+          >
+            <Stack direction="row" spacing={uiTokens.spacing.sm} alignItems="center" sx={{ minWidth: 0 }}>
+              <Box
+                sx={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  bgcolor: "rgba(17,184,106,0.12)",
+                  color: "#059669",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0
+                }}
+              >
+                <PlaceRoundedIcon sx={{ fontSize: 16 }} />
+              </Box>
+              <Typography
+                sx={{
+                  fontSize: 15,
+                  fontWeight: 800,
+                  color: "#0F172A",
+                  lineHeight: 1.2,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
+                }}
+                title={lastRideRoute}
+              >
+                {lastRideRoute}
+              </Typography>
+            </Stack>
+          </Box>
+
+          <Stack direction="row" spacing={uiTokens.spacing.lg} sx={{ mt: uiTokens.spacing.sm }}>
             <InlineStat label="Travel time" value={`${Math.max(lastRide.etaMinutes, 1)} min`} />
             <InlineStat label="Fare" value={lastRide.fareEstimate || "UGX 0"} />
           </Stack>
