@@ -2,11 +2,11 @@ import React, { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
-  Button,
   Card,
   CardContent,
   Chip,
   IconButton,
+  MenuItem,
   Stack,
   TextField,
   Typography
@@ -19,7 +19,6 @@ import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import LocalOfferRoundedIcon from "@mui/icons-material/LocalOfferRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
-import BatteryChargingFullRoundedIcon from "@mui/icons-material/BatteryChargingFullRounded";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
 
@@ -33,8 +32,20 @@ import {
 } from "../components/rental/RentalRedesignUI";
 import { parseUgx } from "../features/rental/booking";
 import { RENTAL_UI_ASSETS, getVehicleImageFromName } from "../features/rental/uiAssets";
+import "../styles/rental-list.css";
 
 type FilterKey = "all" | "self" | "chauffeur" | "seats4" | "suv" | "low_price";
+
+type SeatCategoryKey =
+  | "motorcycle_1"
+  | "seat_2"
+  | "seat_4"
+  | "seat_5"
+  | "seat_7"
+  | "seat_8"
+  | "seat_12"
+  | "seat_14"
+  | "van";
 
 interface RentalListLocationState {
   mode?: string;
@@ -56,6 +67,38 @@ function displayLabelFromVehicleName(vehicleName: string, vehicleType: string): 
   return "City EV";
 }
 
+function parsePriceValue(value: string): number {
+  const compact = value.replace(/,/g, "");
+  const numeric = Number(compact.replace(/[^\d.]/g, ""));
+  return Number.isFinite(numeric) ? numeric : 0;
+}
+
+function matchesSeatCategory(seats: number, vehicleName: string, vehicleType: string, category: SeatCategoryKey): boolean {
+  const vehicleKey = `${vehicleName} ${vehicleType}`.toLowerCase();
+  switch (category) {
+    case "motorcycle_1":
+      return seats === 1 || vehicleKey.includes("motorcycle") || vehicleKey.includes("bike");
+    case "seat_2":
+      return seats === 2;
+    case "seat_4":
+      return seats === 4;
+    case "seat_5":
+      return seats === 5;
+    case "seat_7":
+      return seats === 7;
+    case "seat_8":
+      return seats === 8;
+    case "seat_12":
+      return seats === 12;
+    case "seat_14":
+      return seats === 14;
+    case "van":
+      return vehicleKey.includes("van");
+    default:
+      return false;
+  }
+}
+
 export default function RentalList(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
@@ -66,9 +109,22 @@ export default function RentalList(): React.JSX.Element {
   const [activeFilter, setActiveFilter] = useState<FilterKey>(
     routeState?.mode === "chauffeur" ? "chauffeur" : routeState?.mode === "self" ? "self" : "all"
   );
+  const [selectedSeatCategory, setSelectedSeatCategory] = useState<SeatCategoryKey>("seat_4");
+
+  const seatOptions: Array<{ value: SeatCategoryKey; label: string }> = [
+    { value: "motorcycle_1", label: "1 seater - Motorcycle" },
+    { value: "seat_2", label: "2 seater" },
+    { value: "seat_4", label: "4 seater" },
+    { value: "seat_5", label: "5 seater" },
+    { value: "seat_7", label: "7 seater" },
+    { value: "seat_8", label: "8 seater" },
+    { value: "seat_12", label: "12 seater" },
+    { value: "seat_14", label: "14 seater" },
+    { value: "van", label: "Van" }
+  ];
 
   const filteredVehicles = useMemo(() => {
-    return rental.vehicles.filter((vehicle) => {
+    const base = rental.vehicles.filter((vehicle) => {
       const searchable = `${vehicle.name} ${vehicle.type} ${vehicle.mode}`.toLowerCase();
       if (query.trim() && !searchable.includes(query.trim().toLowerCase())) {
         return false;
@@ -86,8 +142,10 @@ export default function RentalList(): React.JSX.Element {
           return false;
         }
       }
-      if (activeFilter === "seats4" && vehicle.seats !== 4) {
-        return false;
+      if (activeFilter === "seats4") {
+        if (!matchesSeatCategory(vehicle.seats, vehicle.name, vehicle.type, selectedSeatCategory)) {
+          return false;
+        }
       }
       if (activeFilter === "suv") {
         const vehicleKey = `${vehicle.name} ${vehicle.type}`.toLowerCase();
@@ -95,17 +153,19 @@ export default function RentalList(): React.JSX.Element {
           return false;
         }
       }
-      if (activeFilter === "low_price" && parseUgx(vehicle.dailyPrice) > 2500) {
-        return false;
-      }
       return true;
     });
-  }, [activeFilter, query, rental.vehicles]);
 
-  const displayedVehicles = useMemo(() => filteredVehicles.slice(0, 4), [filteredVehicles]);
+    if (activeFilter === "low_price") {
+      return [...base].sort((a, b) => parsePriceValue(a.dailyPrice) - parsePriceValue(b.dailyPrice));
+    }
+    return base;
+  }, [activeFilter, query, rental.vehicles, selectedSeatCategory]);
+
+  const displayedVehicles = useMemo(() => filteredVehicles, [filteredVehicles]);
 
   return (
-    <Box sx={{ ...screenShellSx, pb: { xs: 13, sm: 8 } }}>
+    <Box className="rental-list-page" sx={{ ...screenShellSx, pb: { xs: 13, sm: 8 } }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.05 }}>
         <IconButton onClick={() => navigate(-1)} sx={{ color: rentalUi.green, ml: -0.35 }}>
           <ArrowBackRoundedIcon />
@@ -136,85 +196,92 @@ export default function RentalList(): React.JSX.Element {
         }}
       />
 
-      <Stack direction="row" spacing={0.5} sx={{ mb: 1.55, overflowX: "auto", pb: 0.2 }}>
-        <Chip
-          icon={<DirectionsCarRoundedIcon />}
-          label="Self-drive"
-          onClick={() => setActiveFilter("self")}
-          sx={{
-            borderRadius: 99,
-            height: 40,
-            flexShrink: 0,
-            bgcolor: activeFilter === "self" ? rentalUi.greenSoft : "#fff",
-            color: activeFilter === "self" ? rentalUi.greenDeep : rentalUi.title,
-            border: `1px solid ${activeFilter === "self" ? rentalUi.green : rentalUi.border}`,
-            "& .MuiChip-label": { px: 0.9, fontSize: "11.8px !important", fontWeight: 600 },
-            "& .MuiChip-icon": { fontSize: 15, ml: 0.9, mr: -0.2 }
-          }}
-        />
-        <Chip
-          icon={<SupportAgentRoundedIcon />}
-          label="Chauffeur"
-          onClick={() => setActiveFilter("chauffeur")}
-          sx={{
-            borderRadius: 99,
-            height: 40,
-            flexShrink: 0,
-            bgcolor: activeFilter === "chauffeur" ? rentalUi.greenSoft : "#fff",
-            color: activeFilter === "chauffeur" ? rentalUi.greenDeep : rentalUi.title,
-            border: `1px solid ${activeFilter === "chauffeur" ? rentalUi.green : rentalUi.border}`,
-            "& .MuiChip-label": { px: 0.9, fontSize: "11.8px !important", fontWeight: 600 },
-            "& .MuiChip-icon": { fontSize: 15, ml: 0.9, mr: -0.2 }
-          }}
-        />
-        <Chip
-          icon={<PersonOutlineRoundedIcon />}
-          label="4 seats"
-          onClick={() => setActiveFilter((prev) => (prev === "seats4" ? "all" : "seats4"))}
-          sx={{
-            borderRadius: 99,
-            height: 40,
-            flexShrink: 0,
-            border: `1px solid ${activeFilter === "seats4" ? rentalUi.green : rentalUi.border}`,
-            bgcolor: activeFilter === "seats4" ? rentalUi.greenSoft : "#fff",
-            color: activeFilter === "seats4" ? rentalUi.greenDeep : rentalUi.title,
-            "& .MuiChip-label": { px: 0.9, fontSize: "11.8px !important", fontWeight: activeFilter === "seats4" ? 600 : 500 },
-            "& .MuiChip-icon": { fontSize: 15, ml: 0.9, mr: -0.2 }
-          }}
-        />
-        <Chip
-          icon={<DirectionsCarRoundedIcon />}
-          label="SUV"
-          onClick={() => setActiveFilter((prev) => (prev === "suv" ? "all" : "suv"))}
-          sx={{
-            borderRadius: 99,
-            height: 40,
-            flexShrink: 0,
-            border: `1px solid ${activeFilter === "suv" ? rentalUi.green : rentalUi.border}`,
-            bgcolor: activeFilter === "suv" ? rentalUi.greenSoft : "#fff",
-            color: activeFilter === "suv" ? rentalUi.greenDeep : rentalUi.title,
-            "& .MuiChip-label": { px: 0.9, fontSize: "11.8px !important", fontWeight: activeFilter === "suv" ? 600 : 500 },
-            "& .MuiChip-icon": { fontSize: 15, ml: 0.9, mr: -0.2 }
-          }}
-        />
-        <Chip
-          icon={<LocalOfferRoundedIcon />}
-          label="Low price"
-          onClick={() => setActiveFilter((prev) => (prev === "low_price" ? "all" : "low_price"))}
-          sx={{
-            borderRadius: 99,
-            height: 40,
-            flexShrink: 0,
-            border: `1px solid ${activeFilter === "low_price" ? rentalUi.green : rentalUi.border}`,
-            bgcolor: activeFilter === "low_price" ? rentalUi.greenSoft : "#fff",
-            color: activeFilter === "low_price" ? rentalUi.greenDeep : rentalUi.title,
-            "& .MuiChip-label": { px: 0.9, fontSize: "11.8px !important", fontWeight: activeFilter === "low_price" ? 600 : 500 },
-            "& .MuiChip-icon": { fontSize: 15, ml: 0.9, mr: -0.2 }
-          }}
-        />
+      <Stack
+        direction="row"
+        spacing={0.5}
+        sx={{
+          mb: activeFilter === "seats4" ? 0.9 : 1.55,
+          pb: 0.2,
+          width: "100%",
+          display: "grid",
+          gridTemplateColumns:
+            activeFilter === "all"
+              ? "repeat(5, minmax(0, 1fr))"
+              : "repeat(6, minmax(0, 1fr))",
+          gap: 0.45
+        }}
+      >
+        {[
+          { key: "self" as const, label: "Self-drive", icon: <DirectionsCarRoundedIcon /> },
+          { key: "chauffeur" as const, label: "Chauffeur", icon: <SupportAgentRoundedIcon /> },
+          { key: "seats4" as const, label: "Seats", icon: <PersonOutlineRoundedIcon /> },
+          { key: "suv" as const, label: "SUV", icon: <DirectionsCarRoundedIcon /> },
+          { key: "low_price" as const, label: "Low Price", icon: <LocalOfferRoundedIcon /> }
+        ].map((filter) => {
+          const isSelected = activeFilter === filter.key;
+          return (
+            <Chip
+              key={filter.key}
+              icon={filter.icon}
+              label={isSelected ? filter.label : ""}
+              onClick={() => setActiveFilter((prev) => (prev === filter.key ? "all" : filter.key))}
+              sx={{
+                gridColumn:
+                  activeFilter !== "all" && isSelected ? "span 2" : "span 1",
+                borderRadius: 99,
+                height: 42,
+                width: "100%",
+                minWidth: 0,
+                maxWidth: "100%",
+                bgcolor: isSelected ? rentalUi.greenSoft : "#fff",
+                color: isSelected ? rentalUi.greenDeep : rentalUi.title,
+                border: `1px solid ${isSelected ? rentalUi.green : rentalUi.border}`,
+                px: 0.2,
+                "& .MuiChip-label": {
+                  px: isSelected ? 0.4 : 0,
+                  width: isSelected ? "auto" : 0,
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                  fontSize: "10.6px !important",
+                  fontWeight: 700
+                },
+                "& .MuiChip-icon": {
+                  fontSize: 16,
+                  ml: isSelected ? 0.45 : 0,
+                  mr: isSelected ? -0.05 : 0
+                }
+              }}
+            />
+          );
+        })}
       </Stack>
 
-      <Stack spacing={1.45}>
+      {activeFilter === "seats4" ? (
+        <TextField
+          select
+          fullWidth
+          size="small"
+          label="Seats"
+          value={selectedSeatCategory}
+          onChange={(event) => setSelectedSeatCategory(event.target.value as SeatCategoryKey)}
+          sx={{
+            mb: 1.35,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 2.4,
+              bgcolor: "#fff",
+              "& fieldset": { borderColor: rentalUi.border }
+            }
+          }}
+        >
+          {seatOptions.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.label}
+            </MenuItem>
+          ))}
+        </TextField>
+      ) : null}
+
+      <Stack spacing={1.05}>
         {displayedVehicles.map((vehicle, index) => {
           const dailyPrice = parseUgx(vehicle.dailyPrice);
           const vehicleTypeLabel =
@@ -228,90 +295,63 @@ export default function RentalList(): React.JSX.Element {
           const displayLabel = displayLabelFromVehicleName(vehicle.name, vehicle.type);
 
           return (
-            <Card key={vehicle.id} sx={{ ...cardSx, borderRadius: 3.2 }}>
-              <CardContent sx={{ p: 1.25, "&:last-child": { pb: 1.25 } }}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.62 }}>
-                  <Chip
-                    label="Available"
-                    sx={{
-                      bgcolor: rentalUi.greenSoft,
-                      color: rentalUi.greenDeep,
-                      fontWeight: 700,
-                      height: 34,
-                      "& .MuiChip-label": { px: 1.05, fontSize: "11.4px !important" }
-                    }}
-                  />
-                  <Typography sx={{ color: rentalUi.greenDeep, fontSize: "20px !important", fontWeight: 800 }}>
-                    {formatInr(dailyPrice)}
-                    <Typography component="span" sx={{ color: rentalUi.muted, fontWeight: 500, fontSize: "11.5px !important" }}>
-                      {" "}/ day
-                    </Typography>
-                  </Typography>
-                </Stack>
-
-                <Stack direction="row" spacing={1.15} alignItems="flex-start">
-                  <Box sx={{ width: 132, flexShrink: 0, pt: 0.2 }}>
-                    <CroppedReferenceImage
+            <Card key={vehicle.id} sx={cardSx} className="rental-card">
+              <CardContent sx={{ p: 0 }}>
+                <div className="rental-card-top">
+                  <div className="rental-image-box">
+                    <img
                       src={getVehicleImageFromName(vehicle.name)}
                       alt={vehicle.name}
-                      height={108}
-                      scale={1}
-                      fit="contain"
+                      className="rental-image"
                     />
-                  </Box>
+                  </div>
 
-                  <Box sx={{ minWidth: 0, flex: 1, pt: 0.1 }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 0.18 }}>
-                      <Typography sx={{ fontSize: "22px !important", fontWeight: 800, lineHeight: 1.1 }}>{displayLabel}</Typography>
-                      <Stack direction="row" alignItems="center" spacing={0.35} sx={{ ml: 1 }}>
-                        <StarRoundedIcon sx={{ color: "#F59E0B", fontSize: 18 }} />
-                        <Typography sx={{ color: rentalUi.muted, fontSize: "11.4px !important" }}>{ratingForIndex(index)}</Typography>
-                      </Stack>
-                    </Stack>
-                    <Typography sx={{ color: rentalUi.muted, fontSize: "11.6px !important", mb: 0.55 }}>{vehicleTypeLabel}</Typography>
+                  <div className="rental-summary">
+                    <div className="rental-summary-head">
+                      <div className="rental-info-block">
+                        <div className="rental-price">
+                          {formatInr(dailyPrice)} <span>/ day</span>
+                        </div>
+                        <h3>{displayLabel}</h3>
+                        <p>{vehicleTypeLabel}</p>
+                      </div>
 
-                    <Stack direction="row" spacing={1.15} sx={{ mb: 0.42 }}>
-                      <Stack direction="row" spacing={0.36} alignItems="center">
-                        <PersonOutlineRoundedIcon sx={{ fontSize: 16, color: rentalUi.muted }} />
-                        <Typography sx={{ color: rentalUi.muted, fontSize: "11.4px !important" }}>{vehicle.seats} seats</Typography>
-                      </Stack>
-                      <Stack direction="row" spacing={0.36} alignItems="center">
-                        <DescriptionOutlinedIcon sx={{ fontSize: 16, color: rentalUi.muted }} />
-                        <Typography sx={{ color: rentalUi.muted, fontSize: "11.4px !important" }}>~ {parseUgx(vehicle.range)} km</Typography>
-                      </Stack>
-                    </Stack>
+                      <div className="rental-status-rating">
+                        <span className="available-badge">Available</span>
+                        <div className="rental-rating">
+                          <StarRoundedIcon sx={{ color: "#F59E0B", fontSize: 14 }} /> {ratingForIndex(index)}
+                        </div>
+                      </div>
+                    </div>
 
-                    <Stack direction="row" alignItems="center" spacing={0.36} sx={{ mb: 0.75 }}>
-                      <CircleOutlinedIcon sx={{ color: rentalUi.muted, fontSize: 16 }} />
-                      <Typography sx={{ color: rentalUi.muted, fontSize: "11.4px !important" }}>Automatic</Typography>
-                    </Stack>
+                    <div className="rental-card-body">
+                      <div className="rental-specs">
+                        <span className="rental-spec-item">
+                          <PersonOutlineRoundedIcon sx={{ fontSize: 13 }} /> {vehicle.seats} seats
+                        </span>
+                        <span className="rental-spec-item">
+                          <DescriptionOutlinedIcon sx={{ fontSize: 13 }} /> ~ {parseUgx(vehicle.range)} km
+                        </span>
+                        <span className="rental-spec-item">
+                          <CircleOutlinedIcon sx={{ fontSize: 12 }} /> Automatic
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                    <Button
-                      variant="outlined"
-                      endIcon={<ArrowForwardRoundedIcon />}
-                      onClick={() => {
-                        actions.selectRentalVehicle(vehicle.id);
-                        navigate(`/rental/vehicle/${vehicle.id}`);
-                      }}
-                      sx={{
-                        borderRadius: 99,
-                        textTransform: "none",
-                        borderColor: "#BEEAD2",
-                        color: rentalUi.greenDeep,
-                        px: 1.65,
-                        py: 0.42,
-                        minWidth: 132,
-                        height: 36,
-                        fontWeight: 600,
-                        fontSize: "11.8px !important",
-                        ml: "auto",
-                        display: "flex"
-                      }}
-                    >
-                      View details
-                    </Button>
-                  </Box>
-                </Stack>
+                <div className="rental-card-footer">
+                  <button
+                    type="button"
+                    className="view-details-btn"
+                    onClick={() => {
+                      actions.selectRentalVehicle(vehicle.id);
+                      navigate(`/rental/vehicle/${vehicle.id}`);
+                    }}
+                  >
+                    View details <ArrowForwardRoundedIcon sx={{ fontSize: 15 }} />
+                  </button>
+                </div>
               </CardContent>
             </Card>
           );

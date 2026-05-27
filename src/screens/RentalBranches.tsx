@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Card,
@@ -47,6 +47,13 @@ function deriveHours(location: RentalLocationOption): string {
 function deriveVehicleCount(location: RentalLocationOption): number {
   const index = EVZONE_RENTAL_LOCATIONS.findIndex((item) => item.id === location.id);
   return 12 + ((index >= 0 ? index : 0) % 12);
+}
+
+function normalizeBranchLabel(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
 
 function BranchCard({
@@ -124,21 +131,56 @@ function BranchCard({
 
 export default function RentalBranches(): React.JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
   const { actions } = useAppData();
+  const routeState = location.state as { focusPickupBranchLabel?: string } | null;
 
   const countries = useMemo(() => getRentalCountries(), []);
   const pickupLocations = useMemo(() => getPickupLocations(), []);
   const defaultCountryCode = countries.find((country) => country.code === "UG")?.code ?? countries[0]?.code ?? "UG";
+  const preferredPickupLocation = useMemo(() => {
+    const label = routeState?.focusPickupBranchLabel;
+    if (!label?.trim()) {
+      return null;
+    }
+    const normalizedLabel = normalizeBranchLabel(label);
+
+    return (
+      pickupLocations.find((entry) => normalizeBranchLabel(entry.displayName) === normalizedLabel) ??
+      pickupLocations.find(
+        (entry) => normalizeBranchLabel(`${entry.displayName} ${entry.country}`) === normalizedLabel
+      ) ??
+      pickupLocations.find((entry) => normalizedLabel.includes(normalizeBranchLabel(entry.displayName))) ??
+      pickupLocations.find((entry) => normalizeBranchLabel(entry.displayName).includes(normalizedLabel)) ??
+      null
+    );
+  }, [pickupLocations, routeState?.focusPickupBranchLabel]);
 
   const [tab, setTab] = useState<"pickup" | "return">("pickup");
-  const [pickupCountryCode, setPickupCountryCode] = useState(defaultCountryCode);
-  const [pickupRegion, setPickupRegion] = useState("");
-  const [pickupLocationId, setPickupLocationId] = useState("");
+  const [pickupCountryCode, setPickupCountryCode] = useState(
+    preferredPickupLocation?.countryCode ?? defaultCountryCode
+  );
+  const [pickupRegion, setPickupRegion] = useState(preferredPickupLocation?.region ?? "");
+  const [pickupLocationId, setPickupLocationId] = useState(preferredPickupLocation?.id ?? "");
 
   const [returnInAnotherCountry, setReturnInAnotherCountry] = useState(false);
-  const [returnCountryCode, setReturnCountryCode] = useState(defaultCountryCode);
-  const [returnRegion, setReturnRegion] = useState("");
-  const [returnLocationId, setReturnLocationId] = useState("");
+  const [returnCountryCode, setReturnCountryCode] = useState(
+    preferredPickupLocation?.countryCode ?? defaultCountryCode
+  );
+  const [returnRegion, setReturnRegion] = useState(preferredPickupLocation?.region ?? "");
+  const [returnLocationId, setReturnLocationId] = useState(preferredPickupLocation?.id ?? "");
+
+  useEffect(() => {
+    if (!preferredPickupLocation) {
+      return;
+    }
+    setPickupCountryCode(preferredPickupLocation.countryCode);
+    setPickupRegion(preferredPickupLocation.region);
+    setPickupLocationId(preferredPickupLocation.id);
+    setReturnCountryCode(preferredPickupLocation.countryCode);
+    setReturnRegion(preferredPickupLocation.region);
+    setReturnLocationId(preferredPickupLocation.id);
+  }, [preferredPickupLocation]);
 
   const pickupRegions = useMemo(() => getRentalRegionsByCountry(pickupCountryCode), [pickupCountryCode]);
 

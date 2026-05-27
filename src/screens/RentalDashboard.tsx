@@ -277,11 +277,11 @@ export default function RentalDashboard(): React.JSX.Element {
           onClick={() => navigate("/rental/branches")}
           sx={{ border: 0, p: 0, bgcolor: "transparent", color: rentalUi.green, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
         >
-          View all
+          Nearby branches
         </Typography>
       </Stack>
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" }, gap: 0.8, mb: 2 }}>
-        <Card sx={cardSx}>
+        <Card sx={{ ...cardSx, cursor: "pointer" }} onClick={() => navigate("/rental/branches")}>
           <CardContent sx={{ p: 0.95, "&:last-child": { pb: 0.95 } }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={0.7}>
               <Stack direction="row" spacing={0.7} alignItems="center" sx={{ minWidth: 0 }}>
@@ -301,7 +301,7 @@ export default function RentalDashboard(): React.JSX.Element {
           </CardContent>
         </Card>
 
-        <Card sx={cardSx}>
+        <Card sx={{ ...cardSx, cursor: "pointer" }} onClick={() => navigate("/rental/branches")}>
           <CardContent sx={{ p: 0.95, "&:last-child": { pb: 0.95 } }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={0.7}>
               <Stack direction="row" spacing={0.7} alignItems="center" sx={{ minWidth: 0 }}>
