@@ -46,15 +46,17 @@ interface FeatureStatProps {
 
 function FeatureStat({ icon, label, helper }: FeatureStatProps): React.JSX.Element {
   return (
-    <Card sx={{ ...cardSx, borderRadius: 2.3, minHeight: 118 }}>
-      <CardContent sx={{ p: 1.05, "&:last-child": { pb: 1.05 } }}>
-        <Box sx={{ color: rentalUi.green, mb: 0.4, display: "grid", placeItems: "center" }}>{icon}</Box>
-        <Typography sx={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2, textAlign: "center" }}>{label}</Typography>
+    <Card sx={{ ...cardSx, borderRadius: 1.8, minHeight: 74 }}>
+      <CardContent sx={{ p: 0.55, "&:last-child": { pb: 0.55 } }}>
+        <Box sx={{ color: rentalUi.green, mb: 0.22, display: "grid", placeItems: "center", "& .MuiSvgIcon-root": { fontSize: 16 } }}>
+          {icon}
+        </Box>
+        <Typography sx={{ fontSize: 11.2, fontWeight: 700, lineHeight: 1.15, textAlign: "center" }}>{label}</Typography>
         <Typography
           sx={{
-            fontSize: 11,
+            fontSize: 9.8,
             color: rentalUi.muted,
-            mt: 0.2,
+            mt: 0.12,
             textAlign: "center",
             lineHeight: 1.2,
             overflowWrap: "anywhere"
@@ -97,6 +99,11 @@ export default function RentalVehicleDetail(): React.JSX.Element {
   const price = parseUgx(vehicle.dailyPrice);
   const vehicleLabel = getRentalVehicleLabel(vehicle.name);
   const pickupBranchLabel = rental.booking.pickupBranch ?? "Nsambya EV Hub, Uganda";
+  const openPickupBranchSelector = (): void => {
+    navigate("/rental/branches", {
+      state: { focusPickupBranchLabel: pickupBranchLabel }
+    });
+  };
 
   return (
     <Box sx={{ ...screenShellSx, pb: { xs: 13, sm: 6 } }}>
@@ -170,7 +177,7 @@ export default function RentalVehicleDetail(): React.JSX.Element {
         Spacious, comfortable, and perfect for family trips. Enjoy long drives with zero emissions.
       </Typography>
 
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 0.75, mb: 1.55 }}>
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 0.55, mb: 1.2 }}>
         <FeatureStat icon={<AirlineSeatReclineNormalRoundedIcon />} label={`${vehicle.seats} Seats`} helper="Spacious cabin" />
         <FeatureStat icon={<BatteryChargingFullRoundedIcon />} label={`${parseUgx(vehicle.range)} km`} helper="ARAI range" />
         <FeatureStat icon={<SettingsSuggestRoundedIcon />} label="Automatic" helper="Transmission" />
@@ -207,7 +214,26 @@ export default function RentalVehicleDetail(): React.JSX.Element {
       </Card>
 
       <Typography sx={{ fontSize: "18px !important", fontWeight: 700, mb: 0.75 }}>Pickup branch</Typography>
-      <Card sx={{ ...cardSx, mb: 1.45 }}>
+      <Card
+        sx={{
+          ...cardSx,
+          mb: 1.45,
+          cursor: "pointer",
+          borderColor: "#CFE8D9",
+          "&:hover": {
+            borderColor: rentalUi.green
+          }
+        }}
+        onClick={openPickupBranchSelector}
+        onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openPickupBranchSelector();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+      >
         <CardContent sx={{ p: 1.2, "&:last-child": { pb: 1.2 } }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             <Stack direction="row" spacing={1} alignItems="center">
@@ -215,11 +241,14 @@ export default function RentalVehicleDetail(): React.JSX.Element {
                 <LocationOnRoundedIcon />
               </Box>
               <Box>
-                <Typography sx={{ fontSize: "16px !important", fontWeight: 700 }}>{pickupBranchLabel}</Typography>
-                <Typography sx={{ color: rentalUi.muted, fontSize: "11px !important", mt: 0.1 }}>1.8 km away</Typography>
-                <Typography sx={{ color: rentalUi.greenDeep, fontSize: "11px !important", mt: 0.05 }}>Open until 9:00 PM</Typography>
-              </Box>
-            </Stack>
+                  <Typography sx={{ fontSize: "16px !important", fontWeight: 700 }}>{pickupBranchLabel}</Typography>
+                  <Typography sx={{ color: rentalUi.muted, fontSize: "11px !important", mt: 0.1 }}>1.8 km away</Typography>
+                  <Typography sx={{ color: rentalUi.greenDeep, fontSize: "11px !important", mt: 0.05 }}>Open until 9:00 PM</Typography>
+                  <Typography sx={{ color: rentalUi.greenDeep, fontSize: "10.8px !important", mt: 0.2, fontWeight: 700 }}>
+                    Tap to change this branch
+                  </Typography>
+                </Box>
+              </Stack>
             <Stack direction="row" spacing={0.9} alignItems="center">
               <CroppedReferenceImage
                 src={RENTAL_UI_ASSETS.banners.branchMap}
