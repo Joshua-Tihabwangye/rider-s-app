@@ -26,7 +26,7 @@ export const FRONTEND_ONLY_MODE = parseBooleanFlag(
   env.VITE_FRONTEND_ONLY_MODE,
   false
 );
-export const USE_BACKEND = parseBooleanFlag(env.VITE_USE_BACKEND, false) && !FRONTEND_ONLY_MODE;
+export const USE_BACKEND = parseBooleanFlag(env.VITE_USE_BACKEND, true) && !FRONTEND_ONLY_MODE;
 export const ENABLE_COMPAT_BOOTSTRAP = parseBooleanFlag(
   env.VITE_ENABLE_COMPAT_BOOTSTRAP,
   USE_BACKEND
