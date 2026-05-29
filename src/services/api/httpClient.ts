@@ -1,4 +1,5 @@
-import { API_BASE_URL, APP_ID } from "./config";
+export * from "@shared/config/src/httpClient";
+
 
 interface ApiEnvelope<T> {
   code?: string;
