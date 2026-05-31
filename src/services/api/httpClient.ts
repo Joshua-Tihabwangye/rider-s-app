@@ -1,5 +1,6 @@
-export * from "@shared/config/src/httpClient";
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001/api/v1";
+const APP_ID = import.meta.env.VITE_APP_ID || "rider-app";
 
 interface ApiEnvelope<T> {
   code?: string;

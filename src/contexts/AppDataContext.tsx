@@ -536,7 +536,8 @@ function areRideOptionPricesEquivalent(current: RideOption[], next: RideOption[]
   if (current.length !== next.length) return false;
   return current.every((option, index) => {
     const target = next[index];
-    return Boolean(target) && option.id === target.id && option.fare === target.fare && option.eta === target.eta;
+    if (!target) return false;
+    return option.id === target.id && option.fare === target.fare && option.eta === target.eta;
   });
 }
 
@@ -759,6 +760,16 @@ function selectTripSimulationAssignment(state: AppState, request: RideRequest) {
   return byServiceClass ?? assignments[0] ?? null;
 }
 
+function hydrateRideTripWithSimulationDefaults(
+  state: AppState,
+  trip: RideTrip,
+  requestOverride?: RideRequest
+): RideTrip;
+function hydrateRideTripWithSimulationDefaults(
+  state: AppState,
+  trip: null,
+  requestOverride?: RideRequest
+): null;
 function hydrateRideTripWithSimulationDefaults(
   state: AppState,
   trip: RideTrip | null,
@@ -3151,6 +3162,8 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
             type: "ride/set-active",
             payload: {
               ...hydrateRideTripWithSimulationDefaults(state, mappedTrip, requestPayload),
+              // Ensure required fields conform to RideTrip type (id must be string)
+              id: mappedTrip.id ?? trip.id ?? `local-${Date.now()}`,
               bookedFor: mappedTrip.bookedFor ?? requestPayload.bookedFor ?? null
             }
           });
@@ -4186,7 +4199,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           })),
         });
 
-        const ambulanceHistory = ambulances.map((ambulance) => ({
+        const ambulanceHistory: AmbulanceRequest[] = ambulances.map((ambulance): AmbulanceRequest => ({
           id: ambulance.id,
           pickup: {
             label: ambulance.pickupAddress,
@@ -4218,8 +4231,9 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           requestedAt: new Date(ambulance.requestedAt).toISOString(),
         }));
         dispatch({ type: "ambulance/history-sync", payload: ambulanceHistory });
-        if (ambulanceHistory.length > 0) {
-          dispatch({ type: "ambulance/request-sync", payload: ambulanceHistory[0] });
+        const latestAmbulance = ambulanceHistory[0];
+        if (latestAmbulance) {
+          dispatch({ type: "ambulance/request-sync", payload: latestAmbulance });
         }
 
         if (activeTrip) {
