@@ -46,7 +46,7 @@ import type {
   SosEvent,
   SharedLocationState
 } from "../store/types";
-import { BACKEND_FLAG_EVENT } from "../services/api/config";
+import { API_BASE_URL, BACKEND_FLAG_EVENT } from "../services/api/config";
 import { useAuth } from "./AuthContext";
 import type { DeliveryRealtimePatch } from "../features/delivery/realtime";
 import {
@@ -536,7 +536,8 @@ function areRideOptionPricesEquivalent(current: RideOption[], next: RideOption[]
   if (current.length !== next.length) return false;
   return current.every((option, index) => {
     const target = next[index];
-    return Boolean(target) && option.id === target.id && option.fare === target.fare && option.eta === target.eta;
+    if (!target) return false;
+    return option.id === target.id && option.fare === target.fare && option.eta === target.eta;
   });
 }
 
@@ -759,6 +760,16 @@ function selectTripSimulationAssignment(state: AppState, request: RideRequest) {
   return byServiceClass ?? assignments[0] ?? null;
 }
 
+function hydrateRideTripWithSimulationDefaults(
+  state: AppState,
+  trip: RideTrip,
+  requestOverride?: RideRequest
+): RideTrip;
+function hydrateRideTripWithSimulationDefaults(
+  state: AppState,
+  trip: null,
+  requestOverride?: RideRequest
+): null;
 function hydrateRideTripWithSimulationDefaults(
   state: AppState,
   trip: RideTrip | null,
@@ -3151,6 +3162,8 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
             type: "ride/set-active",
             payload: {
               ...hydrateRideTripWithSimulationDefaults(state, mappedTrip, requestPayload),
+              // Ensure required fields conform to RideTrip type (id must be string)
+              id: mappedTrip.id ?? trip.id ?? `local-${Date.now()}`,
               bookedFor: mappedTrip.bookedFor ?? requestPayload.bookedFor ?? null
             }
           });
@@ -4186,7 +4199,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           })),
         });
 
-        const ambulanceHistory = ambulances.map((ambulance) => ({
+        const ambulanceHistory: AmbulanceRequest[] = ambulances.map((ambulance): AmbulanceRequest => ({
           id: ambulance.id,
           pickup: {
             label: ambulance.pickupAddress,
@@ -4218,8 +4231,9 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           requestedAt: new Date(ambulance.requestedAt).toISOString(),
         }));
         dispatch({ type: "ambulance/history-sync", payload: ambulanceHistory });
-        if (ambulanceHistory.length > 0) {
-          dispatch({ type: "ambulance/request-sync", payload: ambulanceHistory[0] });
+        const latestAmbulance = ambulanceHistory[0];
+        if (latestAmbulance) {
+          dispatch({ type: "ambulance/request-sync", payload: latestAmbulance });
         }
 
         if (activeTrip) {
@@ -4310,20 +4324,66 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       }
       dispatch({ type: "delivery/realtime", payload });
     });
-    const tripEvents = [
+    const riderEventAliases: Record<string, string[]> = {
+      "trip.driver.arrived": ["trip.arrived"],
+      "trip.arrived": ["trip.driver.arrived"],
+      "trip.state.changed": [
+        "trip.driver.assigned",
+        "trip.driver.arriving",
+        "trip.driver.arrived",
+        "trip.arrived",
+        "trip.started",
+        "trip.completed",
+        "trip.cancelled",
+      ],
+    };
+    const normalizeTripEvents = (events: string[]) => {
+      const normalized = new Set<string>();
+      events.forEach((eventName) => {
+        if (!eventName || !eventName.startsWith("trip.")) return;
+        normalized.add(eventName);
+        (riderEventAliases[eventName] || []).forEach((alias) => normalized.add(alias));
+      });
+      return Array.from(normalized);
+    };
+    const defaultTripEvents = normalizeTripEvents([
       "trip.driver.assigned",
       "trip.driver.arriving",
-      "trip.arrived",
+      "trip.driver.arrived",
       "trip.started",
       "trip.completed",
       "trip.cancelled",
-    ];
-    tripEvents.forEach((eventName) => {
-      socket.on(eventName, () => {
-        void syncRiderTripsFromBackend();
+      "trip.state.changed",
+    ]);
+    let tripEvents = [...defaultTripEvents];
+
+    const bootstrapRealtime = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/compat/realtime/events`);
+        if (response.ok) {
+          const payload = await response.json();
+          const data = (payload?.data || payload) as { rider?: { server?: Record<string, string> } };
+          const backendEvents = Object.values(data?.rider?.server || {}).filter(
+            (value): value is string => typeof value === "string" && value.startsWith("trip."),
+          );
+          if (backendEvents.length > 0) {
+            tripEvents = normalizeTripEvents([...defaultTripEvents, ...backendEvents]);
+          }
+        }
+      } catch {
+        // fallback to defaults
+      }
+
+      if (cancelled) return;
+      tripEvents.forEach((eventName) => {
+        socket.on(eventName, () => {
+          void syncRiderTripsFromBackend();
+        });
       });
-    });
-    socket.connect();
+      socket.connect();
+    };
+
+    void bootstrapRealtime();
 
     return () => {
       cancelled = true;

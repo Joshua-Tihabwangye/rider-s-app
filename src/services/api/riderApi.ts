@@ -17,6 +17,7 @@ export interface RiderNotificationApi {
   userId: string;
   title: string;
   body: string;
+  category?: string | null;
   read: boolean;
   createdAt: number;
 }

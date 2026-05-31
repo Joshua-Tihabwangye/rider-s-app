@@ -1,0 +1,260 @@
+src/components/maps/GoogleMapView.tsx(84,3): error TS2322: Type '"roadmap"' is not assignable to type 'MapTypeId'.
+src/components/maps/GoogleMapView.tsx(85,3): error TS2322: Type '"roadmap"' is not assignable to type 'MapTypeId'.
+src/components/maps/GoogleMapView.tsx(86,3): error TS2322: Type '"terrain"' is not assignable to type 'MapTypeId'.
+src/components/maps/GoogleMapView.tsx(87,3): error TS2322: Type '"satellite"' is not assignable to type 'MapTypeId'.
+src/components/maps/GoogleMapView.tsx(214,9): error TS2353: Object literal may only specify known properties, and 'padding' does not exist in type 'Padding'.
+src/components/maps/GoogleMapView.tsx(256,5): error TS2345: Argument of type 'MapTypeId | "roadmap"' is not assignable to parameter of type 'MapTypeId | (() => MapTypeId)'.
+  Type '"roadmap"' is not assignable to type 'MapTypeId | (() => MapTypeId)'.
+src/components/maps/GoogleMapView.tsx(261,18): error TS2345: Argument of type 'MapTypeId | "roadmap"' is not assignable to parameter of type 'SetStateAction<MapTypeId>'.
+  Type '"roadmap"' is not assignable to type 'SetStateAction<MapTypeId>'.
+src/components/maps/GoogleMapView.tsx(266,70): error TS2339: Property 'trim' does not exist on type 'string | true'.
+  Property 'trim' does not exist on type 'true'.
+src/components/maps/GoogleMapView.tsx(271,5): error TS4104: The type 'readonly ["places"]' is 'readonly' and cannot be assigned to the mutable type 'Library[]'.
+src/components/maps/GoogleMapView.tsx(317,45): error TS2322: Type '"roadmap"' is not assignable to type 'MapTypeId'.
+src/components/maps/GoogleMapView.tsx(317,56): error TS2322: Type '"satellite"' is not assignable to type 'MapTypeId'.
+src/components/maps/GoogleMapView.tsx(317,69): error TS2322: Type '"terrain"' is not assignable to type 'MapTypeId'.
+src/components/maps/GoogleMapView.tsx(317,80): error TS2322: Type '"hybrid"' is not assignable to type 'MapTypeId'.
+src/components/maps/GoogleMapView.tsx(320,18): error TS2345: Argument of type 'MapTypeId | undefined' is not assignable to parameter of type 'SetStateAction<MapTypeId>'.
+  Type 'undefined' is not assignable to type 'SetStateAction<MapTypeId>'.
+src/components/maps/GoogleMapView.tsx(324,37): error TS2694: Namespace 'google.maps' has no exported member 'MapListener'.
+src/components/maps/GoogleMapView.tsx(324,61): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/components/maps/GoogleMapView.tsx(447,9): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: GoogleMapProps): GoogleMap', gave the following error.
+    Type '{ children: (ReactNode | Element | Element[] | (Element | null)[])[]; center: { lat: number; lng: number; }; zoom: number; mapTypeId: MapTypeId; onClick: google.maps.MapListener; options: MapOptions; style: CSSProperties; }' is not assignable to type 'IntrinsicAttributes & IntrinsicClassAttributes<GoogleMap> & Readonly<GoogleMapProps>'.
+      Property 'style' does not exist on type 'IntrinsicAttributes & IntrinsicClassAttributes<GoogleMap> & Readonly<GoogleMapProps>'.
+  Overload 2 of 2, '(props: GoogleMapProps, context: any): GoogleMap', gave the following error.
+    Type '{ children: (ReactNode | Element | Element[] | (Element | null)[])[]; center: { lat: number; lng: number; }; zoom: number; mapTypeId: MapTypeId; onClick: google.maps.MapListener; options: MapOptions; style: CSSProperties; }' is not assignable to type 'IntrinsicAttributes & IntrinsicClassAttributes<GoogleMap> & Readonly<GoogleMapProps>'.
+      Property 'style' does not exist on type 'IntrinsicAttributes & IntrinsicClassAttributes<GoogleMap> & Readonly<GoogleMapProps>'.
+src/contexts/AppDataContext.tsx(539,45): error TS18048: 'target' is possibly 'undefined'.
+src/contexts/AppDataContext.tsx(539,74): error TS18048: 'target' is possibly 'undefined'.
+src/contexts/AppDataContext.tsx(539,104): error TS18048: 'target' is possibly 'undefined'.
+src/contexts/AppDataContext.tsx(3152,13): error TS2322: Type '{ bookedFor: { source: "self" | "contact" | "manual"; name?: string; phone?: string; relation?: string; contactId?: number | string; } | null; id?: string | undefined; status?: RideStatus | undefined; ... 20 more ...; completedAt?: string; }' is not assignable to type 'RideTrip'.
+  Types of property 'id' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/contexts/AppDataContext.tsx(4140,28): error TS2339: Property 'category' does not exist on type 'RiderNotificationApi'.
+src/contexts/AppDataContext.tsx(4220,52): error TS2322: Type '{ id: string; pickup: { label: string; address: string; }; destination: { label: string; address: string; } | null; urgency: string; status: string; requestedAt: string; }[]' is not assignable to type 'AmbulanceRequest[]'.
+  Type '{ id: string; pickup: { label: string; address: string; }; destination: { label: string; address: string; } | null; urgency: string; status: string; requestedAt: string; }' is not assignable to type 'AmbulanceRequest'.
+    Types of property 'urgency' are incompatible.
+      Type 'string' is not assignable to type '"medium" | "low" | "high"'.
+src/contexts/AppDataContext.tsx(4222,54): error TS2322: Type '{ id: string; pickup: { label: string; address: string; }; destination: { label: string; address: string; } | null; urgency: string; status: string; requestedAt: string; } | undefined' is not assignable to type 'AmbulanceRequest'.
+  Type 'undefined' is not assignable to type 'AmbulanceRequest'.
+src/screens/ActiveTrip.tsx(53,18): error TS18048: 'target' is possibly 'undefined'.
+src/screens/ActiveTrip.tsx(54,22): error TS18048: 'target' is possibly 'undefined'.
+src/screens/ActiveTrip.tsx(55,25): error TS18048: 'target' is possibly 'undefined'.
+src/screens/ActiveTrip.tsx(56,27): error TS18048: 'target' is possibly 'undefined'.
+src/screens/ActiveTrip.tsx(137,48): error TS2339: Property 'status' does not exist on type 'RideState'.
+src/screens/AmbulanceConfirmation.tsx(64,44): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulanceDashboard.tsx(60,44): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulanceDestination.tsx(85,25): error TS2304: Cannot find name 'uiTokens'.
+src/screens/AmbulanceDestination.tsx(92,76): error TS2345: Argument of type 'HospitalOption | undefined' is not assignable to parameter of type 'HospitalOption | (() => HospitalOption)'.
+  Type 'undefined' is not assignable to type 'HospitalOption | (() => HospitalOption)'.
+src/screens/AmbulanceDestination.tsx(93,79): error TS2345: Argument of type 'AmbulanceOption | undefined' is not assignable to parameter of type 'AmbulanceOption | (() => AmbulanceOption)'.
+  Type 'undefined' is not assignable to type 'AmbulanceOption | (() => AmbulanceOption)'.
+src/screens/AmbulanceDestination.tsx(103,44): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulanceGeneralDetails.tsx(111,46): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulanceGeneralDetails.tsx(124,44): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulanceHistory.tsx(197,44): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulanceHistoryDetail.tsx(135,46): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulanceHistoryDetail.tsx(185,44): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulanceHomeRequestTypeScreen.tsx(28,44): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulanceLocation.tsx(131,44): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulancePaymentCard.tsx(31,45): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulancePaymentMobileMoney.tsx(27,45): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulancePaymentWallet.tsx(27,45): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulanceReceipt.tsx(45,46): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulanceReceipt.tsx(64,44): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/AmbulanceTracking.tsx(138,45): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & BoxOwnProps<Theme> & Omit<any, keyof BoxOwnProps<Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+  Overload 2 of 2, '(props: DefaultComponentProps<BoxTypeMap<{}, "div", Theme>>): Element | null', gave the following error.
+    Type 'SxProps<Theme>' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+      Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'SystemStyleObject<Theme> | CssVariableType | ((theme: Theme) => string | number | SystemStyleObject<Theme>)'.
+        Type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]' is not assignable to type 'CSSSelectorObjectOrCssVariables<Theme>'.
+          Index signature for type 'string' is missing in type 'readonly (boolean | SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>))[]'.
+src/screens/Home.tsx(389,15): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & ChipOwnProps & CommonProps & Omit<any, "className" | ... 15 more ... | "skipFocusWhenDisabled">): Element | null', gave the following error.
+    Type 'ReactNode' is not assignable to type 'ReactElement<any, string | JSXElementConstructor<any>> | undefined'.
+      Type 'null' is not assignable to type 'ReactElement<any, string | JSXElementConstructor<any>> | undefined'.
+  Overload 2 of 2, '(props: DefaultComponentProps<ChipTypeMap<{}, "div">>): Element | null', gave the following error.
+    Type 'ReactNode' is not assignable to type 'ReactElement<any, string | JSXElementConstructor<any>> | undefined'.
+      Type 'null' is not assignable to type 'ReactElement<any, string | JSXElementConstructor<any>> | undefined'.
+src/screens/RateDriver.tsx(76,13): error TS7006: Parameter 'part' implicitly has an 'any' type.
+src/screens/RentalDashboard.tsx(72,11): error TS2322: Type '{ xs: number; sm: number; md: number; }' is not assignable to type 'string | number'.
+src/screens/RentalHistoryDetail.tsx(124,58): error TS2339: Property 'totalEstimated' does not exist on type 'RentalPricingSummary'.
+src/screens/RentalPaymentSuccess.tsx(77,9): error TS2322: Type '{ xs: number; sm: number; }' is not assignable to type 'string | number'.
+src/screens/RideEnterDetails.tsx(2671,5): error TS2322: Type '{ pickup: any; destination: any; passengers: any; rideType: "Personal" | "Business"; serviceLevel: any; tripType: "One Way" | "Round Trip" | "Multi-stop"; routeMode: RouteModeOption; ... 11 more ...; returnPattern: "direct" | "reverse_stops"; }' is not assignable to type 'TripData'.
+  Types of property 'scheduledDateTime' are incompatible.
+    Type 'string | null' is not assignable to type 'string | Date | undefined'.
+      Type 'null' is not assignable to type 'string | Date | undefined'.
+src/screens/RideHistoryDetail.tsx(226,56): error TS2532: Object is possibly 'undefined'.
+src/screens/RideHistoryDetail.tsx(227,58): error TS2532: Object is possibly 'undefined'.
+src/screens/RidesDashboard.tsx(960,9): error TS18048: 'sharedLocationState.routePolyline' is possibly 'undefined'.
+src/screens/RidesDashboard.tsx(961,9): error TS18048: 'sharedLocationState.routeAlternativePolylines' is possibly 'undefined'.
+src/screens/RidesDashboard.tsx(977,5): error TS18048: 'sharedLocationState.routeAlternativePolylines' is possibly 'undefined'.
+src/screens/RidesDashboard.tsx(980,5): error TS18048: 'sharedLocationState.routePolyline' is possibly 'undefined'.
+src/screens/TipDriver.tsx(37,9): error TS18048: 'sharedLocationState.routePolyline' is possibly 'undefined'.
+src/screens/TipDriver.tsx(53,7): error TS18048: 'mapRoute' is possibly 'undefined'.
+src/screens/TripCompleted.tsx(360,20): error TS18047: 'activeTrip' is possibly 'null'.
+src/screens/TripCompleted.tsx(360,97): error TS18047: 'activeTrip' is possibly 'null'.
+src/screens/TripSharing.tsx(124,9): error TS18048: 'sharedLocationState.routePolyline' is possibly 'undefined'.
+src/screens/TripSharing.tsx(140,7): error TS18048: 'mapRoute' is possibly 'undefined'.
+src/screens/auth/ForgotPassword.tsx(33,7): error TS2552: Cannot find name 'navigate'. Did you mean 'navigator'?
+src/services/api/riderApi.ts(476,5): error TS2353: Object literal may only specify known properties, and 'query' does not exist in type 'RequestOptions'.
+src/services/maps.ts(472,72): error TS2339: Property 'trim' does not exist on type 'string | true'.
+  Property 'trim' does not exist on type 'true'.
+src/services/maps.ts(511,18): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/services/maps.ts(513,16): error TS7006: Parameter 'route' implicitly has an 'any' type.
