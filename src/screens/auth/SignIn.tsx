@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
-import { Alert, Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, IconButton, InputAdornment, Stack, Typography } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import AuthLayout from "../../components/auth/AuthLayout";
 import AuthFormField from "../../components/auth/AuthFormField";
 import SocialAuthButtons from "../../components/auth/SocialAuthButtons";
@@ -14,6 +15,7 @@ export default function SignIn(): React.JSX.Element {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [socialProvider, setSocialProvider] = useState<AuthProvider | null>(null);
 
@@ -72,12 +74,27 @@ export default function SignIn(): React.JSX.Element {
           <AuthFormField
             id="signin-password"
             label="Password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             errorText={fieldErrors.password}
             disabled={loading}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    type="button"
+                    edge="end"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    disabled={loading}
+                  >
+                    {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
 
           <Box sx={{ textAlign: "right" }}>

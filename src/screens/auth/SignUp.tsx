@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
-import { Alert, Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, IconButton, InputAdornment, Stack, Typography } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import AuthLayout from "../../components/auth/AuthLayout";
 import AuthFormField from "../../components/auth/AuthFormField";
 import SocialAuthButtons from "../../components/auth/SocialAuthButtons";
@@ -16,6 +17,8 @@ export default function SignUp(): React.JSX.Element {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({});
   const [socialProvider, setSocialProvider] = useState<AuthProvider | null>(null);
 
@@ -90,23 +93,57 @@ export default function SignUp(): React.JSX.Element {
           <AuthFormField
             id="signup-password"
             label="Password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             errorText={fieldErrors.password}
             disabled={loading}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    type="button"
+                    edge="end"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    disabled={loading}
+                  >
+                    {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
 
           <AuthFormField
             id="signup-confirm"
             label="Confirm password"
-            type="password"
+            type={showConfirmPassword ? "text" : "password"}
             autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             errorText={fieldErrors.confirmPassword}
             disabled={loading}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    type="button"
+                    edge="end"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                    disabled={loading}
+                  >
+                    {showConfirmPassword ? (
+                      <VisibilityOff fontSize="small" />
+                    ) : (
+                      <Visibility fontSize="small" />
+                    )}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
 
           <Button
