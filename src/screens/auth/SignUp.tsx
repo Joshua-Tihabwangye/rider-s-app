@@ -42,7 +42,12 @@ export default function SignUp(): React.JSX.Element {
     }
     setFieldErrors({});
 
-    await signUp({ fullName, email, password });
+    try {
+      await signUp({ fullName, email, password });
+      navigate("/auth/sign-in", { replace: true });
+    } catch {
+      // Error message is already set by AuthContext
+    }
   };
 
   const handleSocial = async (provider: AuthProvider): Promise<void> => {

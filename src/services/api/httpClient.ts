@@ -1,6 +1,4 @@
-
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001/api/v1";
-const APP_ID = import.meta.env.VITE_APP_ID || "rider-app";
+import { API_BASE_URL, APP_ID } from "./config";
 
 interface ApiEnvelope<T> {
   code?: string;
