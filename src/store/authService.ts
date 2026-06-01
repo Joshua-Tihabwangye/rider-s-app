@@ -9,7 +9,7 @@ import {
   backendResetPassword,
   isBackendAuthEnabled,
 } from "../services/api/authApi";
-import { ApiRequestError } from "../services/api/httpClient";
+import { ALLOW_DEV_AUTH_FALLBACK } from "../services/api/config";
 
 function computeInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -49,8 +49,17 @@ function createDevAuthResponse(emailInput: string, fullName?: string): AuthRespo
   };
 }
 
+function ensureDevFallbackAllowed(featureName: string): void {
+  if (!ALLOW_DEV_AUTH_FALLBACK) {
+    throw new Error(
+      `${featureName} requires backend authentication. Set VITE_ALLOW_DEV_AUTH_FALLBACK=true in non-production if you intentionally want local auth simulation.`,
+    );
+  }
+}
+
 export async function signIn(credentials: SignInCredentials): Promise<AuthResponse> {
   if (!isBackendAuthEnabled()) {
+    ensureDevFallbackAllowed("Sign in");
     return createDevAuthResponse(credentials.email);
   }
 
@@ -77,6 +86,7 @@ export async function signIn(credentials: SignInCredentials): Promise<AuthRespon
 
 export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
   if (!isBackendAuthEnabled()) {
+    ensureDevFallbackAllowed("Sign up");
     return createDevAuthResponse(payload.email, payload.fullName.trim());
   }
 
@@ -104,6 +114,7 @@ export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
 
 export async function forgotPassword(email: string): Promise<{ message: string }> {
   if (!isBackendAuthEnabled()) {
+    ensureDevFallbackAllowed("Forgot password");
     return { message: "Development mode: password reset is simulated locally." };
   }
 
@@ -123,6 +134,7 @@ export async function forgotPassword(email: string): Promise<{ message: string }
 
 export async function verifyOtp(email: string, otp: string): Promise<{ verified: boolean; resetRequired?: boolean }> {
   if (!isBackendAuthEnabled()) {
+    ensureDevFallbackAllowed("OTP verification");
     return { verified: true, resetRequired: true };
   }
   try {
@@ -135,6 +147,7 @@ export async function verifyOtp(email: string, otp: string): Promise<{ verified:
 
 export async function resetPassword(email: string, otp: string, newPassword: string): Promise<{ reset: boolean }> {
   if (!isBackendAuthEnabled()) {
+    ensureDevFallbackAllowed("Password reset");
     return { reset: true };
   }
   try {
@@ -146,7 +159,9 @@ export async function resetPassword(email: string, otp: string, newPassword: str
 }
 
 export async function socialSignIn(provider: AuthProvider): Promise<AuthResponse> {
-  // Social sign-in remains simulated
+  ensureDevFallbackAllowed("Social sign in");
+
+  // Social sign-in remains simulated for non-production fallback mode.
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   await delay(1500);
 

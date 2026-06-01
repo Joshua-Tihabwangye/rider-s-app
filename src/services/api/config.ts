@@ -18,6 +18,8 @@ function normalizeSocketBaseUrl(value: string | undefined, apiBaseUrl: string): 
   return apiBaseUrl.replace(/\/api(?:\/v\d+)?$/, "");
 }
 
+const IS_NON_PROD = (env.MODE?.trim().toLowerCase() ?? "development") !== "production";
+
 export const API_BASE_URL = normalizeBaseUrl(env.VITE_API_BASE_URL);
 export const SOCKET_BASE_URL = normalizeSocketBaseUrl(env.VITE_SOCKET_BASE_URL, API_BASE_URL);
 export const SOCKET_PATH = (env.VITE_SOCKET_PATH || "/socket.io").trim() || "/socket.io";
@@ -27,6 +29,10 @@ export const FRONTEND_ONLY_MODE = parseBooleanFlag(
   false
 );
 export const USE_BACKEND = parseBooleanFlag(env.VITE_USE_BACKEND, true) && !FRONTEND_ONLY_MODE;
+export const ALLOW_DEV_AUTH_FALLBACK = parseBooleanFlag(
+  env.VITE_ALLOW_DEV_AUTH_FALLBACK,
+  false,
+) && IS_NON_PROD;
 export const ENABLE_COMPAT_BOOTSTRAP = parseBooleanFlag(
   env.VITE_ENABLE_COMPAT_BOOTSTRAP,
   USE_BACKEND

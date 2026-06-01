@@ -259,16 +259,17 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
     setLoading(true);
     setError(null);
     try {
-      const response = await authService.signUp(payload);
-      handleAuthSuccess(response.user, response.token, response.refreshToken);
+      await authService.signUp(payload);
+      setError(null);
     } catch (err) {
       // Sanitize error messages to prevent information leakage
       const errorMessage = err instanceof Error ? err.message : "An error occurred";
       setError(errorMessage.length > 100 ? "Sign up failed. Please try again." : errorMessage);
+      throw err instanceof Error ? err : new Error("Sign up failed.");
     } finally {
       setLoading(false);
     }
-  }, [handleAuthSuccess]);
+  }, []);
 
   const signOut = useCallback(() => {
     setUser(null);
