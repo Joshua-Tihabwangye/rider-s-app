@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import AuthLayout from "../../components/auth/AuthLayout";
@@ -8,6 +8,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { validateEmail } from "../../utils/validation";
 
 export default function ForgotPassword(): React.JSX.Element {
+  const navigate = useNavigate();
   const { forgotPassword, loading, error, clearError } = useAuth();
 
   const [email, setEmail] = useState("");
