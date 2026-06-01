@@ -31,6 +31,7 @@ export interface SignInCredentials {
 export interface SignUpPayload {
   fullName: string;
   email: string;
+  phone: string;
   password: string;
 }
 

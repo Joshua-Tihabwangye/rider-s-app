@@ -18,9 +18,11 @@ function normalizeSocketBaseUrl(value: string | undefined, apiBaseUrl: string): 
   return apiBaseUrl.replace(/\/api(?:\/v\d+)?$/, "");
 }
 
+const backendBaseUrlEnv = env.VITE_BACKEND_BASE_URL ?? env.VITE_API_BASE_URL;
+const backendEnabledEnv = env.VITE_BACKEND_ENABLED ?? env.VITE_USE_BACKEND;
 const IS_NON_PROD = (env.MODE?.trim().toLowerCase() ?? "development") !== "production";
 
-export const API_BASE_URL = normalizeBaseUrl(env.VITE_API_BASE_URL);
+export const API_BASE_URL = normalizeBaseUrl(backendBaseUrlEnv);
 export const SOCKET_BASE_URL = normalizeSocketBaseUrl(env.VITE_SOCKET_BASE_URL, API_BASE_URL);
 export const SOCKET_PATH = (env.VITE_SOCKET_PATH || "/socket.io").trim() || "/socket.io";
 export const APP_ID = (env.VITE_APP_ID || "rider").trim() || "rider";
@@ -28,7 +30,7 @@ export const FRONTEND_ONLY_MODE = parseBooleanFlag(
   env.VITE_FRONTEND_ONLY_MODE,
   false
 );
-export const USE_BACKEND = parseBooleanFlag(env.VITE_USE_BACKEND, true) && !FRONTEND_ONLY_MODE;
+export const USE_BACKEND = parseBooleanFlag(backendEnabledEnv, true) && !FRONTEND_ONLY_MODE;
 export const ALLOW_DEV_AUTH_FALLBACK = parseBooleanFlag(
   env.VITE_ALLOW_DEV_AUTH_FALLBACK,
   false,

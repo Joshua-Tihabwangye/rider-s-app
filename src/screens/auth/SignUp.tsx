@@ -15,6 +15,7 @@ export default function SignUp(): React.JSX.Element {
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -28,13 +29,15 @@ export default function SignUp(): React.JSX.Element {
 
     const nameErr = validateName(fullName);
     const emailErr = validateEmail(email);
+    const phoneErr = phone.trim().length < 9 ? "Phone number is required." : "";
     const passErr = validatePassword(password);
     const confirmErr = validateConfirmPassword(password, confirmPassword);
 
-    if (nameErr || emailErr || passErr || confirmErr) {
+    if (nameErr || emailErr || phoneErr || passErr || confirmErr) {
       setFieldErrors({
         fullName: nameErr || undefined,
         email: emailErr || undefined,
+        phone: phoneErr || undefined,
         password: passErr || undefined,
         confirmPassword: confirmErr || undefined
       });
@@ -43,7 +46,7 @@ export default function SignUp(): React.JSX.Element {
     setFieldErrors({});
 
     try {
-      await signUp({ fullName, email, password });
+      await signUp({ fullName, email, phone, password });
       navigate("/auth/sign-in", { replace: true });
     } catch {
       // Error message is already set by AuthContext
@@ -92,6 +95,17 @@ export default function SignUp(): React.JSX.Element {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             errorText={fieldErrors.email}
+            disabled={loading}
+          />
+
+          <AuthFormField
+            id="signup-phone"
+            label="Phone number"
+            type="tel"
+            autoComplete="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            errorText={fieldErrors.phone}
             disabled={loading}
           />
 

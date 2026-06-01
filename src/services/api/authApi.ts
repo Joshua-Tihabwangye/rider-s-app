@@ -25,6 +25,13 @@ export interface BackendRegisterInput {
   email: string;
   password: string;
   phone?: string;
+  riderProfile?: {
+    fullName?: string;
+    phone?: string;
+    city?: string;
+    country?: string;
+    preferredCurrency?: string;
+  };
 }
 
 export interface BackendLoginInput {

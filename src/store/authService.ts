@@ -99,7 +99,12 @@ export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
     const backend = await backendRegister({
       fullName: payload.fullName.trim(),
       email: payload.email.trim().toLowerCase(),
+      phone: payload.phone.trim(),
       password: payload.password,
+      riderProfile: {
+        fullName: payload.fullName.trim(),
+        phone: payload.phone.trim(),
+      },
     });
     return {
       user: mapBackendUserToRider(backend.user.email, payload.fullName, "email"),
