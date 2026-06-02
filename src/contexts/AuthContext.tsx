@@ -76,27 +76,6 @@ function hasUnsupportedRiderRoleClaims(token: string): boolean {
   return parseRiderRoles(payload.roles).hasUnknownRoles;
 }
 
-function parseJwtPayload(token: string): { exp?: number; roles?: unknown } | null {
-  const parts = token.split(".");
-  if (parts.length !== 3) return null;
-
-  try {
-    const encodedPayload = parts[1];
-    if (!encodedPayload) return null;
-    const normalized = encodedPayload.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
-    return JSON.parse(atob(padded)) as { exp?: number; roles?: unknown };
-  } catch {
-    return null;
-  }
-}
-
-function hasUnsupportedRiderRoleClaims(token: string): boolean {
-  const payload = parseJwtPayload(token);
-  if (!payload) return false;
-  return parseRiderRoles(payload.roles).hasUnknownRoles;
-}
-
 function isLikelyUsableAccessToken(token: string): boolean {
   try {
     if (!token || token.trim().length < 8) {
