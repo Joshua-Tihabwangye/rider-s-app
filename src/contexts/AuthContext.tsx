@@ -9,6 +9,7 @@ import {
 } from "../services/api/authApi";
 import { getRiderProfile, isRiderBackendEnabled } from "../services/api/riderApi";
 import { verifyOtp, resetPassword } from "../store/authService";
+import { parseRiderRoles } from "../auth/roles";
 
 // ─── Storage keys ────────────────────────────────────────────────────
 const STORAGE_KEY_USER = "evzone_auth_user";
@@ -54,47 +55,43 @@ function clearSession(): void {
   }
 }
 
+function parseJwtPayload(token: string): { exp?: number; roles?: unknown } | null {
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+
+  try {
+    const encodedPayload = parts[1];
+    if (!encodedPayload) return null;
+    const normalized = encodedPayload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    return JSON.parse(atob(padded)) as { exp?: number; roles?: unknown };
+  } catch {
+    return null;
+  }
+}
+
+function hasUnsupportedRiderRoleClaims(token: string): boolean {
+  const payload = parseJwtPayload(token);
+  if (!payload) return false;
+  return parseRiderRoles(payload.roles).hasUnknownRoles;
+}
+
 function isLikelyUsableAccessToken(token: string): boolean {
   try {
-    // Accept non-JWT opaque tokens (some backends return opaque bearer tokens).
-    // If it's not JWT-shaped but non-empty, defer validation to backend requests.
     if (!token || token.trim().length < 8) {
       return false;
     }
 
-    // Basic JWT structure validation (header.payload.signature)
-    const parts = token.split('.');
-    if (parts.length !== 3) {
+    const payload = parseJwtPayload(token);
+    if (!payload) {
       return true;
     }
 
-    // Check if header and payload are valid base64 and JSON
-    let header, payload;
-    try {
-      const encodedHeader = parts[0];
-      const encodedPayload = parts[1];
-      if (!encodedHeader || !encodedPayload) {
-        return false;
-      }
-      header = JSON.parse(atob(encodedHeader));
-      payload = JSON.parse(atob(encodedPayload));
-    } catch {
-      // If decode fails, still treat as usable and let backend decide.
-      return true;
-    }
-
-    // Check if token has not expired (with 5 minute grace period).
-    // If expired, caller may still keep session when refresh token exists.
-    if (payload.exp && payload.exp * 1000 < (Date.now() - 300000)) {
+    if (payload.exp && payload.exp * 1000 < Date.now() - 300000) {
       return false;
     }
 
-    // Basic structure validation
-    if (!header.alg) {
-      return false;
-    }
-
-    return true;
+    return !parseRiderRoles(payload.roles).hasUnknownRoles;
   } catch {
     return false;
   }
@@ -137,6 +134,12 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
         // If access token is stale but refresh token exists, keep session and allow
         // API layer to refresh transparently.
         if (!isLikelyUsableAccessToken(storedToken) && !storedRefreshToken) {
+          clearSession();
+          setUser(null);
+          return;
+        }
+
+        if (hasUnsupportedRiderRoleClaims(storedToken)) {
           clearSession();
           setUser(null);
           return;

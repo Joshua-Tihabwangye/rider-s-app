@@ -9,7 +9,7 @@ export interface User {
   phone: string;
   avatarUrl: string | null;
   provider: AuthProvider;
-  role: "rider" | "admin";
+  role: "rider";
   initials: string;
 }
 
@@ -33,6 +33,9 @@ export interface SignUpPayload {
   email: string;
   phone: string;
   password: string;
+  city?: string;
+  country?: string;
+  preferredCurrency?: string;
 }
 
 /** Auth service response */

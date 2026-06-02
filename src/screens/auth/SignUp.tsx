@@ -6,7 +6,7 @@ import AuthLayout from "../../components/auth/AuthLayout";
 import AuthFormField from "../../components/auth/AuthFormField";
 import SocialAuthButtons from "../../components/auth/SocialAuthButtons";
 import { useAuth } from "../../contexts/AuthContext";
-import { validateEmail, validatePassword, validateName, validateConfirmPassword } from "../../utils/validation";
+import { validateEmail, validatePassword, validateName, validateConfirmPassword, validatePhone } from "../../utils/validation";
 import type { AuthProvider } from "../../store/types";
 
 export default function SignUp(): React.JSX.Element {
@@ -29,7 +29,7 @@ export default function SignUp(): React.JSX.Element {
 
     const nameErr = validateName(fullName);
     const emailErr = validateEmail(email);
-    const phoneErr = phone.trim().length < 9 ? "Phone number is required." : "";
+    const phoneErr = validatePhone(phone);
     const passErr = validatePassword(password);
     const confirmErr = validateConfirmPassword(password, confirmPassword);
 
@@ -39,14 +39,14 @@ export default function SignUp(): React.JSX.Element {
         email: emailErr || undefined,
         phone: phoneErr || undefined,
         password: passErr || undefined,
-        confirmPassword: confirmErr || undefined
+        confirmPassword: confirmErr || undefined,
       });
       return;
     }
     setFieldErrors({});
 
     try {
-      await signUp({ fullName, email, phone, password });
+      await signUp({ fullName, email, phone, password, preferredCurrency: "UGX" });
       navigate("/auth/sign-in", { replace: true });
     } catch {
       // Error message is already set by AuthContext
@@ -60,7 +60,6 @@ export default function SignUp(): React.JSX.Element {
     setSocialProvider(null);
   };
 
-  // Redirect on success
   React.useEffect(() => {
     if (isAuthenticated) {
       navigate("/home", { replace: true });
@@ -178,7 +177,7 @@ export default function SignUp(): React.JSX.Element {
               borderRadius: "var(--evz-radius-md)",
               bgcolor: "var(--evz-brand-green)",
               color: "#fff",
-              "&:hover": { bgcolor: "var(--evz-brand-green-hover)" }
+              "&:hover": { bgcolor: "var(--evz-brand-green-hover)" },
             }}
           >
             {loading && !socialProvider ? (
@@ -209,7 +208,7 @@ export default function SignUp(): React.JSX.Element {
                 fontSize: 13,
                 fontWeight: 600,
                 textDecoration: "none",
-                "&:hover": { textDecoration: "underline" }
+                "&:hover": { textDecoration: "underline" },
               }}
             >
               Sign in
