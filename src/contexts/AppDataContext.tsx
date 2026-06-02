@@ -46,7 +46,7 @@ import type {
   SosEvent,
   SharedLocationState
 } from "../store/types";
-import { API_BASE_URL, BACKEND_FLAG_EVENT } from "../services/api/config";
+import { ALLOW_CACHE_FALLBACK, API_BASE_URL, BACKEND_FLAG_EVENT } from "../services/api/config";
 import { useAuth } from "./AuthContext";
 import type { DeliveryRealtimePatch } from "../features/delivery/realtime";
 import {
@@ -267,7 +267,7 @@ const initialState: AppState = {
 };
 
 function createInitialState(baseState: AppState): AppState {
-  if (typeof window === "undefined") {
+  if (typeof window === "undefined" || !ALLOW_CACHE_FALLBACK) {
     return baseState;
   }
 
@@ -4255,7 +4255,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   }, [riderBackendEnabled, user]);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
+    if (typeof window === "undefined" || !ALLOW_CACHE_FALLBACK) {
       return;
     }
 

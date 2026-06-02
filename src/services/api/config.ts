@@ -35,6 +35,7 @@ export const ALLOW_DEV_AUTH_FALLBACK = parseBooleanFlag(
   env.VITE_ALLOW_DEV_AUTH_FALLBACK,
   false,
 ) && IS_NON_PROD;
+export const ALLOW_CACHE_FALLBACK = IS_NON_PROD;
 export const ENABLE_COMPAT_BOOTSTRAP = parseBooleanFlag(
   env.VITE_ENABLE_COMPAT_BOOTSTRAP,
   USE_BACKEND

@@ -2,16 +2,37 @@ import React from "react";
 import { Typography, Box, Avatar, Stack } from "@mui/material";
 import ScreenScaffold from "../components/ScreenScaffold";
 import PageHeader from "../components/PageHeader";
+import PageState from "../components/PageState";
 import { uiTokens } from "../design/tokens";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Profile(): React.JSX.Element {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
-  const initials = user?.initials ?? "??";
-  const fullName = user?.fullName ?? "—";
-  const phone = user?.phone ?? "—";
-  const email = user?.email ?? "—";
+  if (loading) {
+    return (
+      <ScreenScaffold header={<PageHeader title="Profile" subtitle="Personal information" />}>
+        <PageState kind="loading" title="Loading profile" message="Fetching your rider account details." />
+      </ScreenScaffold>
+    );
+  }
+
+  if (!user) {
+    return (
+      <ScreenScaffold header={<PageHeader title="Profile" subtitle="Personal information" />}>
+        <PageState
+          kind="empty"
+          title="No profile loaded"
+          message="Sign in again to load your rider profile from the backend."
+        />
+      </ScreenScaffold>
+    );
+  }
+
+  const initials = user.initials ?? "??";
+  const fullName = user.fullName ?? "—";
+  const phone = user.phone ?? "—";
+  const email = user.email ?? "—";
 
   return (
     <ScreenScaffold
@@ -26,7 +47,7 @@ export default function Profile(): React.JSX.Element {
               bgcolor: uiTokens.colors.brand,
               fontSize: 24,
               fontWeight: 700,
-              color: uiTokens.colors.ink
+              color: uiTokens.colors.ink,
             }}
           >
             {initials}

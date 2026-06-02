@@ -10,6 +10,7 @@ import {
   isBackendAuthEnabled,
 } from "../services/api/authApi";
 import { ALLOW_DEV_AUTH_FALLBACK } from "../services/api/config";
+import { normalizeEmail, validateRiderSignUpInput } from "../utils/validation";
 
 function computeInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -37,7 +38,7 @@ function mapBackendUserToRider(
 }
 
 function createDevAuthResponse(emailInput: string, fullName?: string): AuthResponse {
-  const email = emailInput.trim().toLowerCase();
+  const email = normalizeEmail(emailInput);
   const fallbackEmail = email || `dev-${Date.now()}@example.com`;
   const user = mapBackendUserToRider(fallbackEmail, fullName, "email");
   const nonce = Date.now().toString(36);
@@ -52,25 +53,27 @@ function createDevAuthResponse(emailInput: string, fullName?: string): AuthRespo
 function ensureDevFallbackAllowed(featureName: string): void {
   if (!ALLOW_DEV_AUTH_FALLBACK) {
     throw new Error(
-      `${featureName} requires backend authentication. Set VITE_ALLOW_DEV_AUTH_FALLBACK=true in non-production if you intentionally want local auth simulation.`,
+      `${featureName} requires backend authentication. Set VITE_BACKEND_ENABLED=true and configure VITE_BACKEND_BASE_URL. For non-production local auth simulation, set VITE_ALLOW_DEV_AUTH_FALLBACK=true.`,
     );
   }
 }
 
 export async function signIn(credentials: SignInCredentials): Promise<AuthResponse> {
+  const normalizedEmail = normalizeEmail(credentials.email);
+
   if (!isBackendAuthEnabled()) {
     ensureDevFallbackAllowed("Sign in");
-    return createDevAuthResponse(credentials.email);
+    return createDevAuthResponse(normalizedEmail);
   }
 
-  const limiterKey = `sign-in:${credentials.email.trim().toLowerCase() || "anonymous"}`;
+  const limiterKey = `sign-in:${normalizedEmail || "anonymous"}`;
   if (!checkRateLimit(authRateLimiter, limiterKey, "sign-in")) {
     throw new Error("Too many sign in attempts. Please wait a few minutes.");
   }
 
   try {
     const backend = await backendLogin({
-      email: credentials.email.trim().toLowerCase(),
+      email: normalizedEmail,
       password: credentials.password,
     });
     return {
@@ -85,29 +88,34 @@ export async function signIn(credentials: SignInCredentials): Promise<AuthRespon
 }
 
 export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
+  const sanitized = validateRiderSignUpInput(payload);
+
   if (!isBackendAuthEnabled()) {
     ensureDevFallbackAllowed("Sign up");
-    return createDevAuthResponse(payload.email, payload.fullName.trim());
+    return createDevAuthResponse(sanitized.email, sanitized.fullName);
   }
 
-  const limiterKey = `sign-up:${payload.email.trim().toLowerCase() || "anonymous"}`;
+  const limiterKey = `sign-up:${sanitized.email || "anonymous"}`;
   if (!checkRateLimit(authRateLimiter, limiterKey, "sign-up")) {
     throw new Error("Too many sign up attempts. Please wait a few minutes.");
   }
 
   try {
     const backend = await backendRegister({
-      fullName: payload.fullName.trim(),
-      email: payload.email.trim().toLowerCase(),
-      phone: payload.phone.trim(),
-      password: payload.password,
+      fullName: sanitized.fullName,
+      email: sanitized.email,
+      phone: sanitized.phone,
+      password: sanitized.password,
       riderProfile: {
-        fullName: payload.fullName.trim(),
-        phone: payload.phone.trim(),
+        fullName: sanitized.fullName,
+        phone: sanitized.phone,
+        city: sanitized.city,
+        country: sanitized.country,
+        preferredCurrency: sanitized.preferredCurrency,
       },
     });
     return {
-      user: mapBackendUserToRider(backend.user.email, payload.fullName, "email"),
+      user: mapBackendUserToRider(backend.user.email, sanitized.fullName, "email"),
       token: backend.accessToken,
       refreshToken: backend.refreshToken,
     };
@@ -118,18 +126,20 @@ export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
 }
 
 export async function forgotPassword(email: string): Promise<{ message: string }> {
+  const normalizedEmail = normalizeEmail(email);
+
   if (!isBackendAuthEnabled()) {
     ensureDevFallbackAllowed("Forgot password");
     return { message: "Development mode: password reset is simulated locally." };
   }
 
-  const limiterKey = `forgot-password:${email.trim().toLowerCase() || "anonymous"}`;
+  const limiterKey = `forgot-password:${normalizedEmail || "anonymous"}`;
   if (!checkRateLimit(authRateLimiter, limiterKey, "forgot-password")) {
     throw new Error("Too many reset requests. Please wait a few minutes.");
   }
 
   try {
-    await backendForgotPassword({ email: email.trim().toLowerCase() });
+    await backendForgotPassword({ email: normalizedEmail });
     return { message: "If an account exists for this email, we've sent a password reset link." };
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Failed to send reset link.";
@@ -143,7 +153,7 @@ export async function verifyOtp(email: string, otp: string): Promise<{ verified:
     return { verified: true, resetRequired: true };
   }
   try {
-    return await backendVerifyOtp({ email: email.trim().toLowerCase(), otp });
+    return await backendVerifyOtp({ email: normalizeEmail(email), otp });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "OTP verification failed.";
     throw new Error(msg);
@@ -156,7 +166,7 @@ export async function resetPassword(email: string, otp: string, newPassword: str
     return { reset: true };
   }
   try {
-    return await backendResetPassword({ email: email.trim().toLowerCase(), otp, newPassword });
+    return await backendResetPassword({ email: normalizeEmail(email), otp, newPassword });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Password reset failed.";
     throw new Error(msg);
@@ -166,7 +176,6 @@ export async function resetPassword(email: string, otp: string, newPassword: str
 export async function socialSignIn(provider: AuthProvider): Promise<AuthResponse> {
   ensureDevFallbackAllowed("Social sign in");
 
-  // Social sign-in remains simulated for non-production fallback mode.
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   await delay(1500);
 
