@@ -8,6 +8,7 @@ import SocialAuthButtons from "../../components/auth/SocialAuthButtons";
 import { useAuth } from "../../contexts/AuthContext";
 import { validateEmail, validatePassword, validateName, validateConfirmPassword, validatePhone } from "../../utils/validation";
 import type { AuthProvider } from "../../store/types";
+import { saveAuthPrefill } from "../../utils/authPrefill";
 
 export default function SignUp(): React.JSX.Element {
   const navigate = useNavigate();
@@ -46,7 +47,9 @@ export default function SignUp(): React.JSX.Element {
     setFieldErrors({});
 
     try {
-      await signUp({ fullName, email, phone, password, preferredCurrency: "UGX" });
+      const normalizedEmail = email.trim().toLowerCase();
+      await signUp({ fullName, email: normalizedEmail, phone, password, preferredCurrency: "UGX" });
+      saveAuthPrefill({ email: normalizedEmail, password, identity: normalizedEmail });
       navigate("/auth/sign-in", { replace: true });
     } catch {
       // Error message is already set by AuthContext
