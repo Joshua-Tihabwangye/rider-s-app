@@ -8,13 +8,15 @@ import SocialAuthButtons from "../../components/auth/SocialAuthButtons";
 import { useAuth } from "../../contexts/AuthContext";
 import { validateEmail, validatePassword } from "../../utils/validation";
 import type { AuthProvider } from "../../store/types";
+import { clearAuthPrefillPassword, readAuthPrefill, saveAuthPrefill } from "../../utils/authPrefill";
 
 export default function SignIn(): React.JSX.Element {
   const navigate = useNavigate();
   const { signIn, socialSignIn, loading, error, clearError } = useAuth();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const prefill = React.useMemo(() => readAuthPrefill(), []);
+  const [email, setEmail] = useState(prefill.email || prefill.identity || "");
+  const [password, setPassword] = useState(prefill.password || "");
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [socialProvider, setSocialProvider] = useState<AuthProvider | null>(null);
@@ -31,7 +33,10 @@ export default function SignIn(): React.JSX.Element {
     }
     setFieldErrors({});
 
-    await signIn({ email, password });
+    const normalizedEmail = email.trim().toLowerCase();
+    await signIn({ email: normalizedEmail, password });
+    saveAuthPrefill({ email: normalizedEmail, identity: normalizedEmail });
+    clearAuthPrefillPassword();
     // Navigation happens in useEffect below only after isAuthenticated changes
   };
 

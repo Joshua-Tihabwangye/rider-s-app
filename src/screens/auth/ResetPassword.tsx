@@ -4,6 +4,7 @@ import { Box, Button, TextField, Alert, CircularProgress } from "@mui/material";
 import AuthLayout from "../../components/auth/AuthLayout";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useAuth } from "../../contexts/AuthContext";
+import { saveAuthPrefill } from "../../utils/authPrefill";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -42,12 +43,14 @@ export default function ResetPassword() {
     clearError();
 
     try {
-      const result = await resetPassword(identity, otp, password);
+      const normalizedIdentity = identity.trim().toLowerCase();
+      const result = await resetPassword(normalizedIdentity, otp, password);
       if (!result.reset) {
         setFormError("Password reset was not completed. Try again.");
         setIsSubmitting(false);
         return;
       }
+      saveAuthPrefill({ email: normalizedIdentity, identity: normalizedIdentity, password });
       navigate("/auth/sign-in", { replace: true });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Password reset failed.";

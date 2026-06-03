@@ -6,12 +6,14 @@ import AuthLayout from "../../components/auth/AuthLayout";
 import AuthFormField from "../../components/auth/AuthFormField";
 import { useAuth } from "../../contexts/AuthContext";
 import { validateEmail } from "../../utils/validation";
+import { readAuthPrefill, saveAuthPrefill } from "../../utils/authPrefill";
 
 export default function ForgotPassword(): React.JSX.Element {
   const navigate = useNavigate();
   const { forgotPassword, loading, error, clearError } = useAuth();
 
-  const [email, setEmail] = useState("");
+  const prefill = React.useMemo(() => readAuthPrefill(), []);
+  const [email, setEmail] = useState(prefill.email || prefill.identity || "");
   const [emailError, setEmailError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -29,9 +31,11 @@ export default function ForgotPassword(): React.JSX.Element {
 
     try {
       // Call the API; if successful, navigate to OTP verification
-      await forgotPassword(email);
+      const normalizedEmail = email.trim().toLowerCase();
+      await forgotPassword(normalizedEmail);
+      saveAuthPrefill({ email: normalizedEmail, identity: normalizedEmail });
       // Navigate to OTP verification with identity in state
-      navigate("/auth/verify-otp", { state: { identity: email.trim() } });
+      navigate("/auth/verify-otp", { state: { identity: normalizedEmail } });
     } catch {
       // Error handled by the auth context and displayed via error prop
     }
