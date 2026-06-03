@@ -1,424 +1,141 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Box,
-  IconButton,
-  Typography,
-  Card,
-  CardContent,
-  Avatar,
-  Chip,
-  Button,
-  Tabs,
-  Tab
-} from "@mui/material";
+import { Box, Button, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 
-import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
-import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFilledRounded";
-import StarRoundedIcon from "@mui/icons-material/StarRounded";
-import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
-import LocationAutocompleteField from "../components/location/LocationAutocompleteField";
+import ScreenScaffold from "../components/ScreenScaffold";
+import PageHeader from "../components/PageHeader";
+import PageState from "../components/PageState";
+import { useAppData } from "../contexts/AppDataContext";
 
-function CommuteCard(): React.JSX.Element {
-  const navigate = useNavigate();
-  return (
-    <Card
-      elevation={0}
-      onClick={() => navigate("/rides/details")}
-      sx={{
-        cursor: "pointer",
-        borderRadius: 2,
-        bgcolor: (theme) =>
-          theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
-        border: (theme) =>
-          theme.palette.mode === "light"
-            ? "1px solid rgba(209,213,219,0.9)"
-            : "1px solid rgba(51,65,85,0.9)",
-        mt: 1.5
-      }}
-    >
-      <CardContent sx={{ px: 1.75, py: 1.75 }}>
-        <Box
-          sx={{
-            mb: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 2
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Avatar
-              sx={{
-                width: 36,
-                height: 36,
-                bgcolor: "rgba(16,185,129,0.16)",
-                fontSize: 16,
-                fontWeight: 600,
-                color: "#047857"
-              }}
-            >
-              B
-            </Avatar>
-            <Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-                >
-                  Bwanbale
-                </Typography>
-                <Chip
-                  size="small"
-                  icon={
-                    <DirectionsCarFilledRoundedIcon
-                      sx={{ fontSize: 13, color: "#22c55e" }}
-                    />
-                  }
-                  label="Tesla Model X • UPL 630"
-                  sx={{
-                    bgcolor: (theme) =>
-                      theme.palette.mode === "light"
-                        ? "#F3F4F6"
-                        : "rgba(15,23,42,0.9)",
-                    borderRadius: 5,
-                    color: (theme) =>
-                      theme.palette.mode === "light"
-                        ? "#4B5563"
-                        : "rgba(148,163,184,1)",
-                    fontSize: 10,
-                    pl: 0.5
-                  }}
-                />
-              </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                <StarRoundedIcon sx={{ fontSize: 15, color: "#facc15" }} />
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: 11, color: (theme) => theme.palette.text.secondary }}
-                >
-                  4.0 • 87 trips
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-          <ArrowForwardIosRoundedIcon
-            sx={{ fontSize: 16, color: "rgba(148,163,184,1)" }}
-          />
-        </Box>
+type CommuteRoute = {
+  id: string;
+  originAddress: string;
+  destinationAddress: string;
+  originCoords?: { lat: number; lng: number };
+  destinationCoords?: { lat: number; lng: number };
+  fare: string;
+  distance: string;
+  count: number;
+  latestAt: string;
+};
 
-        <Box sx={{ mt: 1 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-            <Box sx={{ flex: 1 }}>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontSize: 11,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  color: (theme) => theme.palette.text.secondary
-                }}
-              >
-                From
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ fontWeight: 500, color: (theme) => theme.palette.text.primary }}
-              >
-                New School, JJ Street, Kampala
-              </Typography>
-            </Box>
-          </Box>
-          <Box
-            sx={{
-              my: 1,
-              height: 1,
-              bgcolor: (theme) =>
-                theme.palette.mode === "light" ? "#E5E7EB" : "rgba(30,64,175,0.4)"
-            }}
-          />
-          <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-            <Box sx={{ flex: 1 }}>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontSize: 11,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  color: (theme) => theme.palette.text.secondary
-                }}
-              >
-                To
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ fontWeight: 500, color: (theme) => theme.palette.text.primary }}
-              >
-                New School, JJ Street, Kampala
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-
-        <Box
-          sx={{
-            mt: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between"
-          }}
-        >
-          <Box>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (theme) => theme.palette.text.secondary }}
-            >
-              Tomorrow • 07:30 AM
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ fontSize: 11, color: (theme) => theme.palette.text.secondary }}
-            >
-              12 km • Est. UGX 20,000
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate("/rides/enter/details");
-            }}
-            sx={{
-              borderRadius: 5,
-              px: 2.4,
-              py: 0.4,
-              fontSize: 11,
-              bgcolor: "primary.main",
-              textTransform: "none",
-              "&:hover": { bgcolor: "#06e29a" }
-            }}
-          >
-            Request
-          </Button>
-        </Box>
-      </CardContent>
-    </Card>
-  );
+function formatSchedule(index: number, count: number): string {
+  if (count > 2 && index === 0) return "Frequent route";
+  if (index === 0) return "Weekdays · Morning";
+  if (index === 1) return "Weekdays · Evening";
+  return "Saved commute";
 }
 
-function DailyCommutesScreen(): React.JSX.Element {
+export default function Commutes(): React.JSX.Element {
   const navigate = useNavigate();
-  const [tab, setTab] = useState("commutes");
-  const [searchQuery, setSearchQuery] = useState("");
+  const { ride } = useAppData();
 
-  const handleTabChange = (_event: React.SyntheticEvent, value: string): void => {
-    setTab(value);
+  const commutes = useMemo<CommuteRoute[]>(() => {
+    const trips = [ride.activeTrip, ...ride.history].filter(
+      (trip): trip is NonNullable<typeof trip> =>
+        Boolean(trip?.pickup?.address && trip?.dropoff?.address)
+    );
+
+    const grouped = new Map<string, CommuteRoute>();
+    for (const trip of trips) {
+      const originAddress = trip.pickup.address;
+      const destinationAddress = trip.dropoff.address;
+      const key = `${originAddress.trim().toLowerCase()}->${destinationAddress.trim().toLowerCase()}`;
+      const latestAt = trip.completedAt ?? trip.startedAt ?? new Date().toISOString();
+      const existing = grouped.get(key);
+      if (existing) {
+        existing.count += 1;
+        if (latestAt > existing.latestAt) {
+          existing.latestAt = latestAt;
+          existing.fare = trip.fareEstimate || existing.fare;
+          existing.distance = trip.distance || existing.distance;
+          existing.originCoords = trip.pickup.coordinates ?? existing.originCoords;
+          existing.destinationCoords = trip.dropoff.coordinates ?? existing.destinationCoords;
+        }
+        continue;
+      }
+
+      grouped.set(key, {
+        id: key.replace(/[^a-z0-9]+/g, "-"),
+        originAddress,
+        destinationAddress,
+        originCoords: trip.pickup.coordinates,
+        destinationCoords: trip.dropoff.coordinates,
+        fare: trip.fareEstimate || "Fare shown on options",
+        distance: trip.distance || "Distance recalculated at booking",
+        count: 1,
+        latestAt,
+      });
+    }
+
+    return Array.from(grouped.values())
+      .sort((a, b) => {
+        if (b.count !== a.count) return b.count - a.count;
+        return b.latestAt.localeCompare(a.latestAt);
+      })
+      .slice(0, 4);
+  }, [ride.activeTrip, ride.history]);
+
+  const handleRequest = (commute: CommuteRoute): void => {
+    navigate("/rides/enter/details", {
+      state: {
+        pickup: commute.originAddress,
+        pickupCoords: commute.originCoords,
+        destination: commute.destinationAddress,
+        destinationCoords: commute.destinationCoords,
+        fare: commute.fare,
+        distance: commute.distance,
+        commuteId: commute.id,
+      },
+    });
   };
 
   return (
-    <Box sx={{ px: 2.5, pt: 2, pb: 3 }}>
-      <Box
-        sx={{
-          mb: 2.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}
-      >
-        <IconButton
-          size="small"
-          aria-label="Open menu"
-          onClick={() => navigate("/more")}
-          sx={{
-            borderRadius: 5,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.9)",
-            border: (theme) =>
-              theme.palette.mode === "light"
-                ? "1px solid rgba(209,213,219,0.9)"
-                : "1px solid rgba(51,65,85,0.9)"
-          }}
-        >
-          <MenuRoundedIcon sx={{ fontSize: 22 }} />
-        </IconButton>
-        <Typography
-          variant="subtitle1"
-          sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-        >
-          Where to today?
-        </Typography>
-        <Box sx={{ width: 32 }} />
-      </Box>
-
-      <LocationAutocompleteField
-        value={searchQuery}
-        onValueChange={setSearchQuery}
-        onSelectLocation={(selection) => {
-          navigate("/rides/enter/details", {
-            state: {
-              destination: selection.address,
-              destinationCoords: selection.coordinates
-            }
-          });
-        }}
-        placeholder="Where to?"
-        sx={{
-          mb: 2,
-          "& .MuiOutlinedInput-root": {
-            borderRadius: 5,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.96)",
-            "& fieldset": {
-              borderColor: (theme) =>
-                theme.palette.mode === "light"
-                  ? "rgba(209,213,219,0.9)"
-                  : "rgba(51,65,85,0.9)"
-            },
-            "&:hover fieldset": {
-              borderColor: "primary.main"
-            }
-          }
-        }}
-      />
-
-      <Box
-        sx={{
-          mb: 3,
-          borderRadius: 3,
-          height: 160,
-          position: "relative",
-          overflow: "hidden",
-          background: (theme) =>
-            theme.palette.mode === "light"
-              ? "radial-gradient(circle at top, #BBF7D0 0, #DCFCE7 50%, #F0FDF4 100%)"
-              : "radial-gradient(circle at top, rgba(52,211,153,0.55), rgba(15,23,42,1))"
-        }}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            opacity: 0.18,
-            backgroundImage:
-              "linear-gradient(to right, rgba(15,23,42,0.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(15,23,42,0.18) 1px, transparent 1px)",
-            backgroundSize: "30px 30px"
-          }}
-        />
-        <Box
-          sx={{
-            position: "absolute",
-            left: "20%",
-            top: "65%",
-            transform: "translate(-50%, -50%)"
-          }}
-        >
-          <Box
-            sx={{
-              width: 14,
-              height: 14,
-              borderRadius: "5px",
-              bgcolor: "#03CD8C",
-              border: "2px solid white"
-            }}
+    <ScreenScaffold header={<PageHeader title="Daily Commutes" subtitle="Derived from your rider trip history" onBack={() => navigate(-1)} />}>
+      <Stack spacing={2} sx={{ px: 2.5, pb: 3 }}>
+        {commutes.length === 0 ? (
+          <PageState
+            kind="empty"
+            title="No commute routes yet"
+            message="Complete a few trips and your frequent rider routes will show here."
+            actionLabel="Book a ride"
+            onAction={() => navigate("/rides/enter/details")}
           />
-        </Box>
-        <Box
-          sx={{
-            position: "absolute",
-            right: "20%",
-            top: "30%",
-            transform: "translate(50%, -50%)"
-          }}
-        >
-          <DirectionsCarFilledRoundedIcon
-            sx={{
-              fontSize: 26,
-              color: "primary.main",
-              filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.25))"
-            }}
-          />
-        </Box>
-      </Box>
-
-      <Tabs
-        value={tab}
-        onChange={handleTabChange}
-        variant="fullWidth"
-        sx={{
-          minHeight: 36,
-          mb: 1.5,
-          "& .MuiTab-root": {
-            minHeight: 36,
-            fontSize: 12,
-            textTransform: "none",
-            color: "rgba(148,163,184,1)"
-          },
-          "& .Mui-selected": {
-            color: "#111827"
-          },
-          "& .MuiTabs-indicator": {
-            height: 2,
-            borderRadius: 5,
-            bgcolor: "primary.main"
-          }
-        }}
-      >
-        <Tab value="common" label="Common Places" />
-        <Tab value="commutes" label="Daily Commutes" />
-        <Tab value="upcoming" label="Upcoming Rides" />
-      </Tabs>
-
-      <Box sx={{ mt: 1 }}>
-        {tab === "commutes" && <CommuteCard />}
-
-        {tab === "common" && (
-          <Typography
-            variant="caption"
-            sx={{
-              mt: 4,
-              display: "block",
-              textAlign: "center",
-              color: (theme) => theme.palette.text.secondary
-            }}
-          >
-            Your saved EV places (Home, Office) will appear here.
-          </Typography>
+        ) : (
+          commutes.map((commute, index) => (
+            <Card key={commute.id} elevation={0} sx={{ borderRadius: 3, border: (t) => `1px solid ${t.palette.divider}` }}>
+              <CardContent sx={{ px: 2, py: 1.75 }}>
+                <Stack spacing={1.25}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1.5}>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                        {commute.originAddress}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        to {commute.destinationAddress}
+                      </Typography>
+                    </Box>
+                    <Chip size="small" label={formatSchedule(index, commute.count)} sx={{ borderRadius: 4 }} />
+                  </Stack>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    <Chip size="small" label={`${commute.count} trip${commute.count === 1 ? "" : "s"}`} />
+                    <Chip size="small" label={commute.distance} />
+                    <Chip size="small" label={commute.fare} />
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1.5}>
+                    <Typography variant="caption" color="text.secondary">
+                      Synced from your latest rider trip activity
+                    </Typography>
+                    <Button variant="contained" onClick={() => handleRequest(commute)} sx={{ textTransform: "none", borderRadius: 999 }}>
+                      Rebook
+                    </Button>
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Card>
+          ))
         )}
-
-        {tab === "upcoming" && (
-          <Typography
-            variant="caption"
-            sx={{
-              mt: 4,
-              display: "block",
-              textAlign: "center",
-              color: (theme) => theme.palette.text.secondary
-            }}
-          >
-            No upcoming commutes. Schedule a Ride Later to see it here.
-          </Typography>
-        )}
-      </Box>
-    </Box>
-  );
-}
-
-export default function RiderScreen3DailyCommutesCanvas(): React.JSX.Element {
-      return (
-    
-      
-      <Box
-        sx={{
-          position: "relative",
-          minHeight: "100vh",
-          bgcolor: (theme) => theme.palette.background.default
-        }}
-      >
-
-          <DailyCommutesScreen />
-        
-      </Box>
-    
+      </Stack>
+    </ScreenScaffold>
   );
 }
