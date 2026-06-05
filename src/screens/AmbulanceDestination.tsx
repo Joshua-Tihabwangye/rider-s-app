@@ -29,6 +29,7 @@ import {
   ambulanceCompactTypographySx,
   ambulanceContainedButtonSx
 } from "../components/ambulance/ambulanceTypography";
+import { uiTokens } from "../design/tokens";
 
 interface HospitalOption {
   id: string;
