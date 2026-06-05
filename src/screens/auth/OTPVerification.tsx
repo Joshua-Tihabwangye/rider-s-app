@@ -9,7 +9,7 @@ export default function OTPVerification() {
   const location = useLocation();
   const { verifyOtp, loading, error, clearError } = useAuth();
 
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState(30);
   const [otpError, setOtpError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,7 +28,7 @@ export default function OTPVerification() {
       const newOtp = [...otp];
       newOtp[index] = value;
       setOtp(newOtp);
-      if (value && index < 3) {
+      if (value && index < otp.length - 1) {
         const nextInput = document.getElementById(`otp-${index + 1}`);
         (nextInput as HTMLElement | null)?.focus();
       }
@@ -78,7 +78,7 @@ export default function OTPVerification() {
   };
 
   return (
-    <AuthLayout title="Verify OTP" subtitle="Enter the code sent to your device">
+    <AuthLayout title="Verify OTP" subtitle="Enter the 6-digit code sent to your device">
       <Box component="form" onSubmit={(e) => { e.preventDefault(); handleVerify(); }} noValidate>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, mt: 2 }}>
           {otpError && <Alert severity="error" sx={{ borderRadius: "12px", fontSize: 13 }}>{otpError}</Alert>}
@@ -93,7 +93,7 @@ export default function OTPVerification() {
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 variant="outlined"
                 sx={{
-                  width: 56,
+                  width: 48,
                   height: 64,
                   "& .MuiOutlinedInput-root": {
                     fontSize: 24,
