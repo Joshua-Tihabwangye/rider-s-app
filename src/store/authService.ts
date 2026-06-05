@@ -9,6 +9,7 @@ import {
   backendVerifyOtp,
   backendResetPassword,
   isBackendAuthEnabled,
+  saveRiderBackendTokens,
 } from "../services/api/authApi";
 import { ALLOW_DEV_AUTH_FALLBACK } from "../services/api/config";
 import { normalizeEmail, validateRiderSignUpInput } from "../utils/validation";
@@ -77,6 +78,7 @@ export async function signIn(credentials: SignInCredentials): Promise<AuthRespon
       email: normalizedEmail,
       password: credentials.password,
     });
+    saveRiderBackendTokens(backend.accessToken, backend.refreshToken);
     const session = await backendFetchSession();
     return {
       user: mapBackendUserToRider(
