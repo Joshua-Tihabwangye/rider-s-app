@@ -4311,6 +4311,9 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     };
     socket.on("connect", () => {
       dispatch({ type: "delivery/ws-connected", payload: true });
+      if (state.ride.activeTrip?.id) {
+        socket.emit("subscribe", { channel: "trip", id: state.ride.activeTrip.id });
+      }
     });
     socket.on("disconnect", () => {
       dispatch({ type: "delivery/ws-connected", payload: false });
@@ -4323,6 +4326,17 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         return;
       }
       dispatch({ type: "delivery/realtime", payload });
+    });
+    socket.on("trip.location.updated", (payload: { latitude: number; longitude: number }) => {
+      dispatch({
+        type: "location/update",
+        payload: {
+          driverLocation: {
+            lat: payload.latitude,
+            lng: payload.longitude,
+          },
+        },
+      });
     });
     const riderEventAliases: Record<string, string[]> = {
       "trip.driver.arrived": ["trip.arrived"],
@@ -4390,10 +4404,11 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       tripEvents.forEach((eventName) => {
         socket.off(eventName);
       });
+      socket.off("trip.location.updated");
       socket.disconnect();
       dispatch({ type: "delivery/ws-connected", payload: false });
     };
-  }, [riderBackendEnabled]);
+  }, [riderBackendEnabled, state.ride.activeTrip?.id]);
 
   const actions: AppActions = useMemo(
     () => ({

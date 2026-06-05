@@ -2,6 +2,7 @@ import type { AuthProvider, AuthResponse, SignInCredentials, SignUpPayload, User
 import { SEED_USER } from "./seedData";
 import { authRateLimiter, checkRateLimit } from "../utils/rateLimit";
 import {
+  backendFetchSession,
   backendForgotPassword,
   backendLogin,
   backendRegister,
@@ -21,16 +22,16 @@ function computeInitials(name: string): string {
 }
 
 function mapBackendUserToRider(
-  email: string,
+  input: { id?: string; riderId?: string; email: string },
   fullName?: string,
   provider: AuthProvider = "email",
 ): User {
-  const resolvedName = fullName?.trim() || email.split("@")[0] || SEED_USER.fullName;
+  const resolvedName = fullName?.trim() || input.email.split("@")[0] || SEED_USER.fullName;
   return {
     ...SEED_USER,
-    id: `usr_${Date.now()}`,
+    id: input.riderId || input.id || SEED_USER.id,
     fullName: resolvedName,
-    email,
+    email: input.email,
     provider,
     role: "rider",
     initials: computeInitials(resolvedName),
@@ -40,7 +41,7 @@ function mapBackendUserToRider(
 function createDevAuthResponse(emailInput: string, fullName?: string): AuthResponse {
   const email = normalizeEmail(emailInput);
   const fallbackEmail = email || `dev-${Date.now()}@example.com`;
-  const user = mapBackendUserToRider(fallbackEmail, fullName, "email");
+  const user = mapBackendUserToRider({ email: fallbackEmail }, fullName, "email");
   const nonce = Date.now().toString(36);
 
   return {
@@ -76,8 +77,15 @@ export async function signIn(credentials: SignInCredentials): Promise<AuthRespon
       email: normalizedEmail,
       password: credentials.password,
     });
+    const session = await backendFetchSession();
     return {
-      user: mapBackendUserToRider(backend.user.email),
+      user: mapBackendUserToRider(
+        {
+          id: session.user.id || backend.user.id,
+          riderId: backend.user.riderId || session.profile.riderProfileId || undefined,
+          email: session.user.email || backend.user.email,
+        },
+      ),
       token: backend.accessToken,
       refreshToken: backend.refreshToken,
     };
@@ -115,7 +123,15 @@ export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
       },
     });
     return {
-      user: mapBackendUserToRider(backend.user.email, sanitized.fullName, "email"),
+      user: mapBackendUserToRider(
+        {
+          id: backend.user.id,
+          riderId: backend.user.riderId,
+          email: backend.user.email,
+        },
+        sanitized.fullName,
+        "email",
+      ),
       token: backend.accessToken,
       refreshToken: backend.refreshToken,
     };
