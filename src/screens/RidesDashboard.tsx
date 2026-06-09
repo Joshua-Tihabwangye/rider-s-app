@@ -49,6 +49,7 @@ import MapShell from "../components/maps/MapShell";
 import LocationAutocompleteField from "../components/location/LocationAutocompleteField";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { useRiderSharedRidesEnabled } from "../contexts/useRiderBackendCapabilities";
 import type { RideState } from "../store/types";
 import {
   calculateRoute,
@@ -727,6 +728,7 @@ function CommonPlaceCard({ icon, label, address, selected = false, onSelect }: C
 function EnterDestinationMainScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
+  const sharedRidesEnabled = useRiderSharedRidesEnabled();
   const { ride, sharedLocationState, actions } = useAppData();
   const { updateRideRequest, updateSharedLocationState } = actions;
   const updateRideRequestRef = useRef(updateRideRequest);
@@ -740,7 +742,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   
   // Check if this is a shared ride mode from query parameter
   const searchParams = new URLSearchParams(location.search);
-  const isSharedRideMode = searchParams.get("mode") === "share";
+  const isSharedRideMode = searchParams.get("mode") === "share" && sharedRidesEnabled;
   
   const [tab, setTab] = useState("common");
   const [helperState, setHelperState] = useState("idle");
