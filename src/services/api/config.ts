@@ -46,8 +46,14 @@ const BACKEND_FLAG_STORAGE_KEY = `evzone_backend_flag_${APP_ID}`;
 interface RuntimeFlagEnvelope {
   data?: {
     backendEnabled?: boolean;
+    capabilities?: {
+      sharedRidesEnabled?: boolean;
+    };
   };
   backendEnabled?: boolean;
+  capabilities?: {
+    sharedRidesEnabled?: boolean;
+  };
 }
 
 export interface CanonicalRouteContract {
@@ -57,6 +63,7 @@ export interface CanonicalRouteContract {
     namespace: string;
     path: string;
   };
+  uiRoutes?: Record<string, string>;
   notes?: string[];
 }
 
@@ -79,6 +86,7 @@ function readStoredBackendFlag(): boolean | undefined {
 }
 
 let runtimeBackendEnabled: boolean | undefined = readStoredBackendFlag();
+let runtimeSharedRidesEnabled: boolean | undefined;
 let runtimeFlagLoadPromise: Promise<boolean> | null = null;
 let runtimeCanonicalContract: CanonicalRouteContract | null = null;
 let runtimeCanonicalLoadPromise: Promise<CanonicalRouteContract | null> | null = null;
@@ -102,6 +110,10 @@ export function setBackendEnabled(enabled: boolean): void {
   window.dispatchEvent(new CustomEvent(BACKEND_FLAG_EVENT, { detail: { appId: APP_ID, enabled } }));
 }
 
+export function getSharedRidesEnabled(): boolean {
+  return runtimeSharedRidesEnabled ?? true;
+}
+
 export async function loadBackendRuntimeFlag(force = false): Promise<boolean> {
   if (FRONTEND_ONLY_MODE) {
     return false;
@@ -123,8 +135,14 @@ export async function loadBackendRuntimeFlag(force = false): Promise<boolean> {
 
       const payload = (await response.json()) as RuntimeFlagEnvelope;
       const enabled = payload.data?.backendEnabled ?? payload.backendEnabled;
+      const sharedRidesEnabled =
+        payload.data?.capabilities?.sharedRidesEnabled ??
+        payload.capabilities?.sharedRidesEnabled;
       if (typeof enabled === "boolean") {
         setBackendEnabled(enabled);
+      }
+      if (typeof sharedRidesEnabled === "boolean") {
+        runtimeSharedRidesEnabled = sharedRidesEnabled;
       }
       return getBackendEnabled();
     } catch {
