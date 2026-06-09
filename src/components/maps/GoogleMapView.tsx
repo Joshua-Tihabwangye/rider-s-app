@@ -10,6 +10,7 @@ import {
   useLoadScript,
   useGoogleMap
 } from "@react-google-maps/api";
+import type { Libraries } from "@react-google-maps/api";
 
 export interface MapPoint {
   lat: number;
@@ -67,7 +68,7 @@ export interface GoogleMapViewProps {
   resizeKey?: number | string;
 }
 
-const LIBRARIES = ["places"] as const;
+const LIBRARIES: Libraries = ["places"];
 
 const DEFAULT_ZOOM = 13;
 const MIN_ZOOM = 3;
@@ -81,10 +82,10 @@ const MAP_CONTAINER_STYLE: React.CSSProperties = {
 };
 
 const LAYER_TO_MAPTYPE: Record<string, google.maps.MapTypeId> = {
-  default: "roadmap",
-  transit: "roadmap",
-  terrain: "terrain",
-  satellite: "satellite"
+  default: "roadmap" as google.maps.MapTypeId,
+  transit: "roadmap" as google.maps.MapTypeId,
+  terrain: "terrain" as google.maps.MapTypeId,
+  satellite: "satellite" as google.maps.MapTypeId
 };
 
 function createDotIcon(color: string): google.maps.Symbol {
@@ -132,6 +133,38 @@ function splitRouteByProgress(route: MapPoint[], progress: number): { completed:
   return {
     completed: route.slice(0, splitIndex + 1),
     remaining: route.slice(splitIndex)
+  };
+}
+
+function classifyMapLoadError(loadError: unknown): { title: string; details: string } {
+  const rawMessage =
+    loadError instanceof Error
+      ? loadError.message
+      : typeof loadError === "string"
+        ? loadError
+        : "Unknown Google Maps loader error";
+  const normalized = rawMessage.toLowerCase();
+  if (normalized.includes("referer") || normalized.includes("origin") || normalized.includes("not allowed")) {
+    return {
+      title: "Google Maps origin restriction",
+      details: "The browser origin is not authorized for this Google Maps key."
+    };
+  }
+  if (normalized.includes("key") || normalized.includes("invalid") || normalized.includes("missing")) {
+    return {
+      title: "Google Maps key failure",
+      details: "The Google Maps API key is missing, invalid, or not enabled for this project."
+    };
+  }
+  if (normalized.includes("billing") || normalized.includes("proxy")) {
+    return {
+      title: "Google Maps proxy failure",
+      details: "The backend proxy or billing setup is blocking map loading."
+    };
+  }
+  return {
+    title: "Google Maps unavailable",
+    details: rawMessage
   };
 }
 
@@ -210,10 +243,7 @@ function MapFitBoundsController({
     const bounds = new google.maps.LatLngBounds();
     points.forEach((p) => bounds.extend({ lat: p.lat, lng: p.lng }));
     if (!bounds.isEmpty()) {
-      map.fitBounds(bounds, {
-        padding: { top: 40, right: 40, bottom: 40, left: 40 },
-        maxZoom: 16
-      });
+      map.fitBounds(bounds, 40);
     }
   }, [focusPoints, routePolyline, map]);
 
@@ -253,17 +283,17 @@ export default function GoogleMapView({
   resizeKey = 0
 }: GoogleMapViewProps): React.JSX.Element {
   const [mapTypeId, setMapTypeId] = useState<google.maps.MapTypeId>(
-    LAYER_TO_MAPTYPE[layer] || "roadmap"
+    (LAYER_TO_MAPTYPE[layer] ?? ("roadmap" as google.maps.MapTypeId))
   );
 
   // Sync map type if layer prop changes
   useEffect(() => {
-    setMapTypeId(LAYER_TO_MAPTYPE[layer] || "roadmap");
+    setMapTypeId(LAYER_TO_MAPTYPE[layer] ?? ("roadmap" as google.maps.MapTypeId));
   }, [layer]);
 
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const rawApiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "").trim();
+  const rawApiKey = String(import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? "").trim();
   const googleMapsApiKey = rawApiKey && !/^https?:\/\//i.test(rawApiKey) ? rawApiKey : "";
 
   const { isLoaded, loadError } = useLoadScript({
@@ -314,14 +344,14 @@ export default function GoogleMapView({
 
   // Cycle through map types
   const cycleMapType = (): void => {
-    const types: google.maps.MapTypeId[] = ["roadmap", "satellite", "terrain", "hybrid"];
+    const types = ["roadmap", "satellite", "terrain", "hybrid"] as google.maps.MapTypeId[];
     const currentIndex = types.indexOf(mapTypeId);
     const nextIndex = (currentIndex + 1) % types.length;
-    setMapTypeId(types[nextIndex]);
+    setMapTypeId(types[nextIndex] ?? (types[0] as google.maps.MapTypeId));
   };
 
   // Map click
-  const handleMapClick: google.maps.MapListener["click"] = (event) => {
+  const handleMapClick = (event: google.maps.MapMouseEvent) => {
     const lat = event.latLng?.lat();
     const lng = event.latLng?.lng();
     if (lat !== undefined && lng !== undefined) {
@@ -338,12 +368,7 @@ export default function GoogleMapView({
   };
 
   if (loadError) {
-    const details =
-      loadError instanceof Error
-        ? loadError.message
-        : typeof loadError === "string"
-          ? loadError
-          : "Unknown Google Maps loader error";
+    const error = classifyMapLoadError(loadError);
     const host = typeof window !== "undefined" ? window.location.host : "unknown-host";
     return (
       <div
@@ -363,10 +388,10 @@ export default function GoogleMapView({
           padding: 16,
           zIndex: 20
         }}
-      >
+        >
         <div>
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>Failed to load Google Map.</div>
-          <div style={{ fontSize: 12 }}>{details}</div>
+          <div style={{ fontWeight: 600, marginBottom: 6 }}>{error.title}</div>
+          <div style={{ fontSize: 12 }}>{error.details}</div>
           <div style={{ fontSize: 11, marginTop: 6 }}>Host: {host}</div>
         </div>
       </div>
@@ -444,7 +469,7 @@ export default function GoogleMapView({
         mapTypeId={mapTypeId}
         onClick={handleMapClick}
         options={mapOptions}
-        style={MAP_CONTAINER_STYLE}
+        mapContainerStyle={MAP_CONTAINER_STYLE}
       >
         <MapSyncController
           center={center}

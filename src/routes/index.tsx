@@ -323,6 +323,8 @@ export default function AppRouter(): React.JSX.Element {
 				{/* Wallet, Profile, More, Settings */}
 				<Route path="wallet" element={<Wallet />} />
 				<Route path="wallet/transactions/:transactionId" element={<WalletTransactionDetail />} />
+				<Route path="wallet/add-money" element={<WalletTransferSelectionScreen />} />
+				<Route path="wallet/withdraw" element={<WalletTransferSelectionScreen />} />
 				<Route path="wallet/:flowType" element={<WalletTransferSelectionScreen />} />
 				<Route path="wallet/:flowType/:method" element={<WalletTransferMethodScreen />} />
 				<Route path="wallet/:flowType/:method/success" element={<WalletTransferSuccessScreen />} />

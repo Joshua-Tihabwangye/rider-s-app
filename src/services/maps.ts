@@ -463,49 +463,32 @@ export async function calculateRoute(origin: Coordinates, destination: Coordinat
   const timeoutId = setTimeout(() => controller.abort(), 7000);
 
   try {
-    if (typeof window !== "undefined") {
-      // Google Directions REST is blocked by browser CORS from client-side apps.
-      // Use a deterministic local fallback route so UI rendering and tracking remain functional.
-      return buildFallbackRoute(origin, destination);
-    }
-
-    const rawApiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "").trim();
-    const apiKey = rawApiKey && !/^https?:\/\//i.test(rawApiKey) ? rawApiKey : "";
-    if (!apiKey) {
-      console.warn("Google Maps API key is not set. Route calculation disabled.");
-      return null;
-    }
-
-    const url = new URL('https://maps.googleapis.com/maps/api/directions/json');
-    url.searchParams.set('origin', `${origin.lat},${origin.lng}`);
-    url.searchParams.set('destination', `${destination.lat},${destination.lng}`);
-    url.searchParams.set('mode', 'driving');
-    url.searchParams.set('key', apiKey);
-    url.searchParams.set('alternatives', 'true');
-    url.searchParams.set('geometries', 'geojson');
-
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      },
-      signal: controller.signal
-    });
+    const response = await fetch(
+      `/api/osrm/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&alternatives=true`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json"
+        },
+        signal: controller.signal
+      }
+    );
 
     if (!response.ok) {
-      throw new Error(`Google Directions API error: ${response.status}`);
+      throw new Error(`Route proxy failed (${response.status})`);
     }
 
     const data = await response.json();
-
-    if (data.status !== 'OK') {
-      throw new Error(`Google Directions status: ${data.status}`);
-    }
-
-    const routes = data.routes ?? [];
+    const routes = (data?.routes ?? []) as Array<{
+      geometry?: { coordinates?: Array<[number, number]> };
+      legs?: Array<{
+        distance?: { value?: number };
+        duration?: { value?: number };
+      }>;
+    }>;
     if (routes.length === 0) return null;
 
-    const mappedRoutes = routes.map((route: any) => {
+    const mappedRoutes = routes.map((route) => {
       const coords: Coordinates[] = (route.geometry?.coordinates ?? [])
         .map(([lng, lat]: [number, number]) => ({ lat, lng }))
         .filter((p) => isFiniteCoordinate(p.lat) && isFiniteCoordinate(p.lng));
@@ -516,6 +499,7 @@ export async function calculateRoute(origin: Coordinates, destination: Coordinat
     if (!mainPath) return null;
 
     const mainRoute = routes[0];
+    if (!mainRoute) return null;
     const distanceKm = (mainRoute.legs?.[0]?.distance?.value ?? 0) / 1000;
     const durationMin = (mainRoute.legs?.[0]?.duration?.value ?? 0) / 60;
 
@@ -526,8 +510,8 @@ export async function calculateRoute(origin: Coordinates, destination: Coordinat
       alternativePaths: mappedRoutes.slice(1)
     };
   } catch (error) {
-    if ((error as any)?.name === 'AbortError') return null;
-    console.error('calculateRoute failed:', error);
+    if ((error as any)?.name === "AbortError") return null;
+    console.error("calculateRoute failed:", error);
     return null;
   } finally {
     clearTimeout(timeoutId);

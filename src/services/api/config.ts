@@ -58,6 +58,7 @@ interface RuntimeFlagEnvelope {
 
 export interface CanonicalRouteContract {
   appId: string;
+  contractVersion?: string;
   rest: Record<string, string>;
   realtime: {
     namespace: string;
@@ -111,7 +112,7 @@ export function setBackendEnabled(enabled: boolean): void {
 }
 
 export function getSharedRidesEnabled(): boolean {
-  return runtimeSharedRidesEnabled ?? true;
+  return runtimeSharedRidesEnabled ?? false;
 }
 
 export async function loadBackendRuntimeFlag(force = false): Promise<boolean> {

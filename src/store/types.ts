@@ -744,6 +744,7 @@ export type DeliveryParticipantRole = "sender" | "receiver";
 
 export interface DeliveryOrder {
   id: string;
+  routeId?: string;
   createdAt: string;
   updatedAt: string;
   participantRole: DeliveryParticipantRole;
