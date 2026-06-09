@@ -207,7 +207,6 @@ export default function AppRouter(): React.JSX.Element {
 						path="preferences/driver"
 						element={<DriverPreferences />}
 					/>
-					<Route path="options" element={<Navigate to="/rides/enter/details" replace />} />
 					<Route path="payment" element={<Payment />} />
 					<Route path="payment/gateway/:gatewayId" element={<PaymentGatewayFlow />} />
 					<Route path="payment/success" element={<PaymentSuccessScreen />} />
@@ -328,7 +327,6 @@ export default function AppRouter(): React.JSX.Element {
 				<Route path="wallet/:flowType/:method" element={<WalletTransferMethodScreen />} />
 				<Route path="wallet/:flowType/:method/success" element={<WalletTransferSuccessScreen />} />
 				<Route path="profile" element={<Profile />} />
-				<Route path="manager" element={<MoreMenu />} />
 				<Route path="more" element={<MoreMenu />} />
 				<Route path="settings">
 					<Route index element={<Settings />} />

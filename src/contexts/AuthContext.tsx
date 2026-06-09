@@ -5,6 +5,8 @@ import { BACKEND_FLAG_EVENT } from "../services/api/config";
 import {
   clearRiderBackendTokens,
   RIDER_BACKEND_REFRESH_TOKEN_KEY,
+  backendFetchSession,
+  readRiderBackendAccessToken,
   saveRiderBackendTokens,
 } from "../services/api/authApi";
 import { getRiderProfile, isRiderBackendEnabled } from "../services/api/riderApi";
@@ -97,6 +99,31 @@ function isLikelyUsableAccessToken(token: string): boolean {
   }
 }
 
+async function buildBackendAuthUser(fallback: User | null): Promise<User | null> {
+  try {
+    const session = await backendFetchSession();
+    const backendProfile = await getRiderProfile().catch(() => null);
+    const fullName =
+      backendProfile?.fullName?.trim() ||
+      fallback?.fullName ||
+      session.user.email.split("@")[0] ||
+      "Rider";
+
+    return {
+      id: backendProfile?.riderId || session.profile.riderProfileId || session.user.id,
+      fullName,
+      email: backendProfile?.email?.trim() || session.user.email || fallback?.email || "",
+      phone: backendProfile?.phone?.trim() || session.user.phone || fallback?.phone || "",
+      avatarUrl: fallback?.avatarUrl ?? null,
+      provider: fallback?.provider || "email",
+      role: "rider",
+      initials: fallback?.initials || fullName.slice(0, 2).toUpperCase(),
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ─── Provider ────────────────────────────────────────────────────────
 interface AuthProviderProps {
   children: ReactNode;
@@ -108,17 +135,61 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
   const [error, setError] = useState<string | null>(null);
   const [riderBackendEnabled, setRiderBackendEnabled] = useState(() => isRiderBackendEnabled());
 
-  // Hydrate auth session from localStorage on app load.
+  // Hydrate auth session from backend when enabled; otherwise use local fallback.
   useEffect(() => {
+    let cancelled = false;
+
     const hydrateAuth = async () => {
       try {
         const storedUser = localStorage.getItem(STORAGE_KEY_USER);
-        const storedToken = localStorage.getItem(STORAGE_KEY_TOKEN);
+        const storedToken = readRiderBackendAccessToken() ?? localStorage.getItem(STORAGE_KEY_TOKEN);
         const storedRefreshToken = localStorage.getItem(STORAGE_KEY_REFRESH_TOKEN);
+
+        if (riderBackendEnabled) {
+          if (!storedToken) {
+            clearSession();
+            if (!cancelled) {
+              setUser(null);
+            }
+            return;
+          }
+
+          if (!isLikelyUsableAccessToken(storedToken) && !storedRefreshToken) {
+            clearSession();
+            if (!cancelled) {
+              setUser(null);
+            }
+            return;
+          }
+
+          if (hasUnsupportedRiderRoleClaims(storedToken)) {
+            clearSession();
+            if (!cancelled) {
+              setUser(null);
+            }
+            return;
+          }
+
+          const backendUser = await buildBackendAuthUser(null);
+          if (!backendUser) {
+            clearSession();
+            if (!cancelled) {
+              setUser(null);
+            }
+            return;
+          }
+
+          if (!cancelled) {
+            setUser(backendUser);
+          }
+          return;
+        }
 
         if (!storedUser || !storedToken) {
           clearSession();
-          setUser(null);
+          if (!cancelled) {
+            setUser(null);
+          }
           return;
         }
 
@@ -126,7 +197,9 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
         const parsedUser = JSON.parse(storedUser);
         if (!parsedUser || typeof parsedUser !== "object" || Array.isArray(parsedUser) || !("id" in parsedUser)) {
           clearSession();
-          setUser(null);
+          if (!cancelled) {
+            setUser(null);
+          }
           return;
         }
 
@@ -141,22 +214,33 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
 
         if (hasUnsupportedRiderRoleClaims(storedToken)) {
           clearSession();
-          setUser(null);
+          if (!cancelled) {
+            setUser(null);
+          }
           return;
         }
 
-        setUser(parsedUser as User);
+        if (!cancelled) {
+          setUser(parsedUser as User);
+        }
       } catch (error) {
         console.error("Failed to parse stored auth data:", error);
         clearSession();
-        setUser(null);
+        if (!cancelled) {
+          setUser(null);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     hydrateAuth();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [riderBackendEnabled]);
 
   useEffect(() => {
     if (!user) return;
@@ -197,9 +281,9 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
 
   useEffect(() => {
     const refreshProfileFromBackend = async () => {
-      if (!riderBackendEnabled || !user) {
-        return;
-      }
+    if (!riderBackendEnabled || !user) {
+      return;
+    }
 
       if (!localStorage.getItem(STORAGE_KEY_TOKEN)) {
         return;
