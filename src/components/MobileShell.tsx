@@ -77,8 +77,7 @@ const ROUTE_TO_TAB_MAP: Record<string, string> = {
 
   "/help": "more",
   "/about": "more",
-  "/school": "more",
-  "/manager": "more"
+  "/school": "more"
 };
 
 const ShellContext = React.createContext<boolean>(false);
