@@ -488,6 +488,40 @@ export default function MapShell({
           </Box>
         </Box>
       )}
+
+      {showRouteInfo && !routeInfoText && (pickupLocation || dropoffLocation) && (
+        <Box
+          sx={{
+            position: "absolute",
+            left: leftInsetSx,
+            bottom: bottomInsetSx,
+            zIndex: 8,
+            px: 1.9,
+            py: 1.15,
+            borderRadius: "999px",
+            bgcolor: "rgba(15,23,42,0.94)",
+            border: "1px solid rgba(248,113,113,0.72)",
+            boxShadow: "0 12px 26px rgba(2,6,23,0.42)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            pointerEvents: "none"
+          }}
+        >
+          <Box
+            component="span"
+            sx={{
+              fontSize: 13,
+              fontWeight: 800,
+              letterSpacing: "0.01em",
+              lineHeight: 1.1,
+              color: "#FEE2E2",
+              whiteSpace: "nowrap"
+            }}
+          >
+            No backend route geometry available
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 }

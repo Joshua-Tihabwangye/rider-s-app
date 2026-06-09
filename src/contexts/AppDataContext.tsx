@@ -21,6 +21,7 @@ import type {
   DeliveryState,
   DeliveryDraft,
   DeliveryOrder,
+  DeliveryOrderModeConfig,
   DeliveryStatus,
   DeliverySettlement,
   DeliverySettlementStatus,
@@ -105,10 +106,24 @@ import {
   createRiderRental,
   createRiderTour,
   createRiderTripRequest,
+  createRiderDelivery,
+  type RiderDeliveryApi,
+  type RiderEmergencyContactApi,
+  type RiderPaymentMethodApi,
+  type RiderPreferencesApi,
+  type RiderWalletApi,
+  type RiderWalletTransactionApi,
   getRiderActiveTrip,
+  getRiderDelivery,
+  getRiderPreferences,
+  getRiderWallet,
+  listRiderDeliveries,
+  listRiderEmergencyContacts,
+  listRiderPaymentMethods,
   listRiderAmbulances,
   getRiderNotifications,
   listRiderRentals,
+  listRiderWalletTransactions,
   listRiderTours,
   getRiderTripHistory,
   isRiderBackendEnabled,
@@ -147,6 +162,7 @@ interface AppActions {
   setActiveTrip: (trip: RideTrip | null) => void;
   updateDeliveryDraft: (patch: Partial<DeliveryDraft>) => void;
   resetDeliveryDraft: () => void;
+  syncDeliveryOrders: (orders: DeliveryOrder[], activeOrder?: DeliveryOrder | null) => void;
   createDeliveryOrder: (draftOverride?: DeliveryDraft) => DeliveryOrder | null;
   setActiveDelivery: (order: DeliveryOrder | null) => void;
   setActiveDeliveryById: (orderId: string) => void;
@@ -266,9 +282,102 @@ const initialState: AppState = {
   sharedLocationState: SEED_SHARED_LOCATION_STATE
 };
 
+function createBackendNeutralState(baseState: AppState): AppState {
+  return {
+    ...baseState,
+    walletBalance: 0,
+    walletReserved: 0,
+    paymentMethods: [],
+    transactions: [],
+    reminders: [],
+    emergencyContacts: [],
+    ride: {
+      ...baseState.ride,
+      activeTrip: null,
+      history: [],
+      sharing: {
+        ...baseState.ride.sharing,
+        shareUrl: "",
+        splitFareEnabled: false,
+        invitePhone: "",
+        passengers: [],
+      },
+    },
+    delivery: {
+      ...baseState.delivery,
+      activeOrder: null,
+      orders: [],
+      notifications: [],
+      websocketConnected: false,
+      lastRealtimeSync: undefined,
+    },
+    rental: {
+      ...baseState.rental,
+      selectedVehicleId: null,
+      bookings: [],
+      activePayment: null,
+      paymentTransactions: [],
+      receipts: [],
+      booking: {
+        ...baseState.rental.booking,
+        status: "draft",
+        paymentStatus: "pending",
+        paymentFailureReason: undefined,
+        transactionId: undefined,
+        confirmedAt: undefined,
+      },
+    },
+    tours: {
+      ...baseState.tours,
+      selectedTourId: null,
+      bookings: [],
+      activePayment: null,
+      paymentTransactions: [],
+      receipts: [],
+      booking: {
+        ...baseState.tours.booking,
+        status: "draft",
+        paymentStatus: "pending",
+        paymentFailureReason: undefined,
+        transactionId: undefined,
+        confirmedAt: undefined,
+      },
+    },
+    ambulance: {
+      ...baseState.ambulance,
+      history: [],
+      request: {
+        ...baseState.ambulance.request,
+        id: "ambulance_current",
+        status: "idle",
+      },
+    },
+    sos: {
+      ...baseState.sos,
+      activeEventId: null,
+      events: [],
+    },
+    sharedLocationState: {
+      pickupCoords: null,
+      destinationCoords: null,
+      routePolyline: [],
+      routeAlternativePolylines: [],
+      routeDistanceKm: null,
+      routeDurationMin: null,
+      riderLocation: null,
+      driverLocation: null,
+      deliveryPickupCoords: null,
+      deliveryDropoffCoords: null,
+    },
+  };
+}
+
 function createInitialState(baseState: AppState): AppState {
+  const shouldUseBackendNeutralState = isRiderBackendEnabled();
+  const runtimeBaseState = shouldUseBackendNeutralState ? createBackendNeutralState(baseState) : baseState;
+
   if (typeof window === "undefined" || !ALLOW_CACHE_FALLBACK) {
-    return baseState;
+    return runtimeBaseState;
   }
 
   try {
@@ -281,11 +390,11 @@ function createInitialState(baseState: AppState): AppState {
     const mergedRentalVehicles = (() => {
       const persistedVehicles = persisted.rental?.vehicles ?? [];
       if (!persistedVehicles.length) {
-        return baseState.rental.vehicles;
+        return runtimeBaseState.rental.vehicles;
       }
 
       const byId = new Map<string, (typeof baseState.rental.vehicles)[number]>();
-      for (const vehicle of baseState.rental.vehicles) {
+      for (const vehicle of runtimeBaseState.rental.vehicles) {
         byId.set(vehicle.id, vehicle);
       }
       for (const vehicle of persistedVehicles) {
@@ -295,23 +404,235 @@ function createInitialState(baseState: AppState): AppState {
     })();
 
     return {
-      ...baseState,
+      ...runtimeBaseState,
       // Keep ride setup fresh on every full reload so route mode/trip mode and
       // destination draft selections always return to defaults.
-      ride: baseState.ride,
-      delivery: persisted.delivery ? { ...baseState.delivery, ...persisted.delivery } : baseState.delivery,
+      ride: runtimeBaseState.ride,
+      delivery: persisted.delivery ? { ...runtimeBaseState.delivery, ...persisted.delivery } : runtimeBaseState.delivery,
       rental: persisted.rental
-        ? { ...baseState.rental, ...persisted.rental, vehicles: mergedRentalVehicles }
-        : baseState.rental,
-      tours: persisted.tours ? { ...baseState.tours, ...persisted.tours } : baseState.tours,
+        ? { ...runtimeBaseState.rental, ...persisted.rental, vehicles: mergedRentalVehicles }
+        : runtimeBaseState.rental,
+      tours: persisted.tours ? { ...runtimeBaseState.tours, ...persisted.tours } : runtimeBaseState.tours,
       ambulance: persisted.ambulance
-        ? { ...baseState.ambulance, ...persisted.ambulance }
-        : baseState.ambulance,
-      sharedLocationState: baseState.sharedLocationState
+        ? { ...runtimeBaseState.ambulance, ...persisted.ambulance }
+        : runtimeBaseState.ambulance,
+      sharedLocationState: runtimeBaseState.sharedLocationState
     };
   } catch {
-    return baseState;
+    return runtimeBaseState;
   }
+}
+
+function mapBackendPaymentMethod(method: RiderPaymentMethodApi): PaymentMethod {
+  const detail =
+    typeof method.detail === "string" && method.detail.trim().length > 0
+      ? method.detail.trim()
+      : method.enabled === false
+        ? "Disabled in backend"
+        : method.isDefault
+          ? "Default backend payment method"
+          : "Backend payment method";
+
+  return {
+    id: method.id,
+    type: method.type,
+    label: method.label,
+    detail,
+    isDefault: method.isDefault,
+  };
+}
+
+function mapBackendWalletTransaction(transaction: RiderWalletTransactionApi): WalletTransaction {
+  const amountPrefix = transaction.amount >= 0 ? "+" : "-";
+  return {
+    id: transaction.id,
+    title: transaction.description || "Wallet activity",
+    source: transaction.relatedTripId ? `Trip ${transaction.relatedTripId}` : transaction.type.replace(/_/g, " "),
+    amount: `${amountPrefix}${transaction.currency} ${Math.abs(transaction.amount).toLocaleString()}`,
+    time: new Date(transaction.createdAt).toLocaleString(),
+    type:
+      transaction.type === "delivery_payment"
+        ? "delivery"
+        : transaction.type === "rental_payment"
+          ? "rental"
+          : transaction.type === "tour_payment"
+            ? "tour"
+            : transaction.type === "top_up"
+              ? "topup"
+              : transaction.type === "refund"
+                ? "withdrawal"
+                : "ride",
+  };
+}
+
+function mapBackendPreferencesToSettings(
+  preferences: RiderPreferencesApi | null,
+  fallback: SettingsState,
+): SettingsState {
+  if (!preferences) {
+    return fallback;
+  }
+
+  return {
+    ...fallback,
+    notifications: {
+      ...fallback.notifications,
+      rideUpdates: preferences.notificationSettings?.push ?? fallback.notifications.rideUpdates,
+      deliveryUpdates: preferences.notificationSettings?.push ?? fallback.notifications.deliveryUpdates,
+      rentalUpdates: preferences.notificationSettings?.push ?? fallback.notifications.rentalUpdates,
+      tourUpdates: preferences.notificationSettings?.push ?? fallback.notifications.tourUpdates,
+      safetyAlerts: preferences.notificationSettings?.sms ?? fallback.notifications.safetyAlerts,
+      promotions: preferences.notificationSettings?.email ?? fallback.notifications.promotions,
+    },
+    privacy: {
+      ...fallback.privacy,
+      shareTripStatus: preferences.privacySettings?.shareRideHistory ?? fallback.privacy.shareTripStatus,
+      shareLocation: preferences.privacySettings?.shareLocation ?? fallback.privacy.shareLocation,
+      allowContactBySupport: fallback.privacy.allowContactBySupport,
+    },
+    ride: {
+      ...fallback.ride,
+      quietRide: preferences.ridePreferences?.comfortLevel === "premium" ? true : fallback.ride.quietRide,
+      temperature: fallback.ride.temperature,
+      luggageAssistance: fallback.ride.luggageAssistance,
+      accessibilityNeeds: fallback.ride.accessibilityNeeds,
+      womenDriverPreferred: preferences.ridePreferences?.vehicleType === "car" ? fallback.ride.womenDriverPreferred : fallback.ride.womenDriverPreferred,
+    },
+    delivery: {
+      ...fallback.delivery,
+    },
+  };
+}
+
+function mapBackendEmergencyContact(contact: RiderEmergencyContactApi): EmergencyContact {
+  return {
+    id: contact.id,
+    name: contact.name,
+    phone: contact.phone,
+    relationship: contact.relationship,
+    isDefault: contact.isPrimary,
+    notifyOnSOS: true,
+  };
+}
+
+function mapBackendDeliveryStatus(status: RiderDeliveryApi["status"]): DeliveryStatus {
+  switch (status) {
+    case "accepted":
+      return "accepted";
+    case "picked_up":
+      return "picked_up";
+    case "in_transit":
+      return "in_transit";
+    case "delivered":
+      return "delivered";
+    case "cancelled":
+      return "cancelled";
+    default:
+      return "requested";
+  }
+}
+
+function mapBackendDeliveryApiToOrder(api: RiderDeliveryApi): DeliveryOrder {
+  const now = new Date(api.updatedAt || api.requestedAt).toISOString();
+  const pickupLabel = api.pickupAddress || "Pickup";
+  const dropoffLabel = api.dropoffAddress || "Dropoff";
+  const defaultLocation = { label: pickupLabel, address: pickupLabel };
+
+  return {
+    id: api.id,
+    routeId: api.routeId,
+    createdAt: new Date(api.requestedAt).toISOString(),
+    updatedAt: new Date(api.updatedAt).toISOString(),
+    participantRole: "sender",
+    status: mapBackendDeliveryStatus(api.status),
+    pickup: {
+      label: pickupLabel,
+      address: pickupLabel,
+      coordinates: undefined,
+    },
+    dropoff: {
+      label: dropoffLabel,
+      address: dropoffLabel,
+      coordinates: undefined,
+    },
+    routeMode: "single_stop",
+    stops: [],
+    routeSummary: {
+      totalStops: 0,
+      completedStops: 0,
+      failedStops: 0,
+      skippedStops: 0,
+      remainingStops: api.status === "delivered" ? 0 : 1,
+      totalDistanceKm: 0,
+      totalEtaMinutes: 0,
+      nextStopId: api.routeId ? `${api.routeId}_stop_1` : undefined,
+      currentStopId: api.routeId ? `${api.routeId}_stop_1` : undefined,
+      optimized: false,
+      manualOrder: false,
+    },
+    parcel: {
+      type: "other",
+      size: "small",
+      description: api.itemDescription || "",
+      value: 0,
+      fragile: false,
+      notes: "",
+    },
+    senderContact: {
+      name: "Rider",
+      phone: "",
+      address: pickupLabel,
+    },
+    recipient: {
+      name: "Recipient",
+      phone: "",
+      address: dropoffLabel,
+    },
+    orderMode: "individual",
+    orderModeConfig: {
+      family: { payer: "sender", memberName: "" },
+      business: { costCenter: "" },
+      company: { requesterName: "", delegateName: "", approvalRequired: true },
+    } satisfies DeliveryOrderModeConfig,
+    dropoffMethod: "hand_to_recipient",
+    schedule: "now",
+    paymentMethodId: "wallet",
+    costBreakdown: {
+      deliveryFee: 0,
+      serviceFee: 0,
+      insuranceFee: 0,
+      total: 0,
+      currency: "UGX",
+    },
+    tracking: {
+      etaMinutes: 0,
+      distanceKm: 0,
+      progress: api.status === "delivered" ? 100 : api.status === "in_transit" ? 68 : api.status === "picked_up" ? 42 : api.status === "accepted" ? 24 : 12,
+      courierPosition: api.status === "delivered" ? 1 : 0,
+      updatedAt: now,
+    },
+    timeline: [
+      {
+        status: "requested",
+        timestamp: new Date(api.requestedAt).toISOString(),
+        source: "system",
+        note: "Delivery request created",
+      },
+    ],
+    deliveredAt: api.deliveredAt ? new Date(api.deliveredAt).toISOString() : undefined,
+    packageName: api.itemDescription || "Delivery",
+    sender: {
+      city: "",
+      code: "",
+      name: "Rider",
+      avatar: "R",
+      address: pickupLabel,
+      profileImage: null,
+    },
+    receiver: { city: "", code: "" },
+    progress: api.status === "delivered" ? 100 : api.status === "in_transit" ? 68 : api.status === "picked_up" ? 42 : api.status === "accepted" ? 24 : 12,
+    needsPayment: false,
+  };
 }
 
 function mapRideStatusToBackendStatus(
@@ -342,6 +663,7 @@ type AppAction =
   | { type: "settings/privacy"; payload: Partial<PrivacyPreferences> }
   | { type: "settings/ride"; payload: Partial<RidePreferences> }
   | { type: "settings/delivery"; payload: Partial<DeliveryPreferences> }
+  | { type: "wallet/update"; payload: { walletBalance: number; walletReserved: number; paymentMethods: PaymentMethod[]; transactions: WalletTransaction[]; reminders: Reminder[] } }
   | { type: "ride/request"; payload: Partial<RideRequest> }
   | { type: "ride/trip"; payload: Partial<RideTrip> }
   | { type: "ride/options"; payload: RideOption[] }
@@ -352,6 +674,7 @@ type AppAction =
   | { type: "delivery/notifications-replace"; payload: DeliveryState["notifications"] }
   | { type: "delivery/draft"; payload: Partial<DeliveryDraft> }
   | { type: "delivery/reset-draft" }
+  | { type: "delivery/orders-sync"; payload: { orders: DeliveryOrder[]; activeOrder?: DeliveryOrder | null } }
   | {
       type: "delivery/create-order";
       payload: { orderId: string; senderName: string; senderPhone: string; draftOverride?: DeliveryDraft };
@@ -429,6 +752,7 @@ type AppAction =
   | { type: "emergency/update"; payload: EmergencyContact }
   | { type: "emergency/remove"; payload: string }
   | { type: "emergency/set-default"; payload: string }
+  | { type: "emergency/sync"; payload: EmergencyContact[] }
   | { type: "sos/start"; payload: SosEvent }
   | { type: "sos/status"; payload: { id: string; status: SosStatus; note?: string } }
   | { type: "reminder/dismiss"; payload: number }
@@ -1297,6 +1621,7 @@ function createDeliveryOrderFromDraft(
 
   const baseOrder: DeliveryOrder = {
     id: payload.orderId,
+    routeId: payload.orderId,
     createdAt: now,
     updatedAt: now,
     participantRole: "sender",
@@ -1428,6 +1753,15 @@ function appReducer(state: AppState, action: AppAction): AppState {
           ...state.settings,
           delivery: { ...state.settings.delivery, ...action.payload }
         }
+      };
+    case "wallet/update":
+      return {
+        ...state,
+        walletBalance: action.payload.walletBalance,
+        walletReserved: action.payload.walletReserved,
+        paymentMethods: action.payload.paymentMethods,
+        transactions: action.payload.transactions,
+        reminders: action.payload.reminders,
       };
     case "ride/request": {
       const mergedRequest = normalizeRideRequest({ ...state.ride.request, ...action.payload });
@@ -1568,6 +1902,19 @@ function appReducer(state: AppState, action: AppAction): AppState {
         delivery: {
           ...state.delivery,
           draft: createDefaultDeliveryDraft(state.delivery.draft)
+        }
+      };
+    case "delivery/orders-sync":
+      return {
+        ...state,
+        delivery: {
+          ...state.delivery,
+          orders: action.payload.orders,
+          activeOrder:
+            action.payload.activeOrder ??
+            action.payload.orders.find((order) => order.id === state.delivery.activeOrder?.id) ??
+            action.payload.orders[0] ??
+            null,
         }
       };
     case "delivery/create-order": {
@@ -2888,6 +3235,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         emergencyContacts: updateEmergencyContactsDefault(state.emergencyContacts, action.payload)
       };
+    case "emergency/sync":
+      return {
+        ...state,
+        emergencyContacts: action.payload,
+      };
     case "sos/start":
       return {
         ...state,
@@ -3085,7 +3437,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   const setRideStatus = useCallback((status: RideStatus) => {
     dispatch({ type: "ride/status", payload: status });
 
-    if (status === "searching" && !state.ride.activeTrip) {
+    if (status === "searching" && !state.ride.activeTrip && !riderBackendEnabled) {
       const repricedOptions = computeRideOptionsForDistance(
         state.ride,
         state.ride.request,
@@ -3241,7 +3593,15 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     dispatch({ type: "delivery/reset-draft" });
   }, []);
 
+  const syncDeliveryOrders = useCallback((orders: DeliveryOrder[], activeOrder?: DeliveryOrder | null) => {
+    dispatch({ type: "delivery/orders-sync", payload: { orders, activeOrder } });
+  }, []);
+
   const simulateDriverAddStopRequest = useCallback((requestNote?: string) => {
+    if (riderBackendEnabled) {
+      return;
+    }
+
     const nowIso = new Date().toISOString();
     const requestId = `stop_${Date.now()}`;
     dispatch({
@@ -3307,7 +3667,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       });
       dispatch({ type: "ride/status", payload: "ongoing" });
     }
-    if (state.ride.activeTrip) {
+    if (!riderBackendEnabled && state.ride.activeTrip) {
       setTimeout(() => {
         window.localStorage.setItem(
           "evzone_active_ride_stop_response",
@@ -3320,9 +3680,13 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         );
       }, 50);
     }
-  }, [state.ride.activeTrip, state.ride.temporaryStop.requestId]);
+  }, [riderBackendEnabled, state.ride.activeTrip, state.ride.temporaryStop.requestId]);
 
   const simulateDriverContinueTripRequest = useCallback((requestNote?: string) => {
+    if (riderBackendEnabled) {
+      return;
+    }
+
     if (state.ride.temporaryStop.status !== "paused_at_stop") {
       return;
     }
@@ -3355,6 +3719,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       }, 50);
     }
   }, [
+    riderBackendEnabled,
     state.ride.activeTrip,
     state.ride.temporaryStop.requestId,
     state.ride.temporaryStop.requestNote,
@@ -3409,7 +3774,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     });
     dispatch({ type: "ride/status", payload: "ongoing" });
 
-    if (state.ride.activeTrip) {
+    if (!riderBackendEnabled && state.ride.activeTrip) {
       setTimeout(() => {
         window.localStorage.setItem(
           "evzone_active_ride_stop_resume",
@@ -3417,7 +3782,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         );
       }, 50);
     }
-  }, [state.ride.activeTrip, state.ride.temporaryStop.pauseStartedAt, state.ride.temporaryStop.timerPaused, state.ride.temporaryStop.totalPausedDurationMs]);
+  }, [riderBackendEnabled, state.ride.activeTrip, state.ride.temporaryStop.pauseStartedAt, state.ride.temporaryStop.timerPaused, state.ride.temporaryStop.totalPausedDurationMs]);
 
   const markTemporaryStopContinuePromptShown = useCallback(() => {
     dispatch({
@@ -3428,14 +3793,18 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
   const respondToSafetyCheck = useCallback((action: "okay" | "sos") => {
     dispatch({ type: "ride/set-safety-check", payload: { status: action === "sos" ? "sos_triggered" : "resolved" } });
-    if (state.ride.activeTrip) {
+    if (!riderBackendEnabled && state.ride.activeTrip) {
         setTimeout(() => {
             window.localStorage.setItem('evzone_active_ride_safety_passenger_action', JSON.stringify({ tripId: state.ride.activeTrip!.id, action, ts: Date.now() }));
         }, 50);
     }
-  }, [state.ride.activeTrip]);
+  }, [riderBackendEnabled, state.ride.activeTrip]);
 
   useEffect(() => {
+    if (riderBackendEnabled) {
+      return;
+    }
+
     const handleStorageEvent = (e: StorageEvent) => {
       if (!e.newValue || !state.ride.activeTrip) return;
 
@@ -3524,7 +3893,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     };
     window.addEventListener("storage", handleStorageEvent);
     return () => window.removeEventListener("storage", handleStorageEvent);
-  }, [state.ride.activeTrip, state.ride.temporaryStop.pauseStartedAt, state.ride.temporaryStop.timerPaused, state.ride.temporaryStop.totalPausedDurationMs]);
+  }, [riderBackendEnabled, state.ride.activeTrip, state.ride.temporaryStop.pauseStartedAt, state.ride.temporaryStop.timerPaused, state.ride.temporaryStop.totalPausedDurationMs]);
 
   const createDeliveryOrder = useCallback((draftOverride?: DeliveryDraft) => {
     const orderId = `DLV-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Date.now()
@@ -3536,9 +3905,44 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     if (!previewOrder) {
       return null;
     }
+    if (riderBackendEnabled && user) {
+      const pickupCoords = previewOrder.pickup.coordinates ?? { lat: 0, lng: 0 };
+      const dropoffCoords = previewOrder.dropoff.coordinates ?? { lat: 0, lng: 0 };
+      dispatch({
+        type: "delivery/orders-sync",
+        payload: {
+          orders: [previewOrder, ...state.delivery.orders.filter((order) => order.id !== previewOrder.id)],
+          activeOrder: previewOrder
+        }
+      });
+      void createRiderDelivery({
+        pickupAddress: previewOrder.pickup.address,
+        pickupLat: pickupCoords.lat,
+        pickupLng: pickupCoords.lng,
+        dropoffAddress: previewOrder.dropoff.address,
+        dropoffLat: dropoffCoords.lat,
+        dropoffLng: dropoffCoords.lng,
+        itemDescription: previewOrder.parcel.description,
+      })
+        .then((savedOrder) => {
+          const backendOrder = mapBackendDeliveryApiToOrder(savedOrder);
+          dispatch({
+            type: "delivery/orders-sync",
+            payload: {
+              orders: [backendOrder, ...state.delivery.orders.filter((order) => order.id !== backendOrder.id)],
+              activeOrder: backendOrder
+            }
+          });
+        })
+        .catch((error) => {
+          console.warn("Rider backend delivery create failed. Keeping optimistic delivery cache in sync.", error);
+        });
+      return previewOrder;
+    }
+
     dispatch({ type: "delivery/create-order", payload: { orderId, senderName, senderPhone, draftOverride } });
     return previewOrder;
-  }, [state, user?.fullName, user?.phone]);
+  }, [riderBackendEnabled, state, user, state.delivery.orders, user?.fullName, user?.phone]);
 
   const setActiveDelivery = useCallback((order: DeliveryOrder | null) => {
     dispatch({ type: "delivery/active", payload: order });
@@ -4064,6 +4468,10 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   }, []);
 
   useEffect(() => {
+    if (riderBackendEnabled) {
+      return;
+    }
+
     const interval = window.setInterval(() => {
       dispatch({ type: "delivery/poll" });
     }, 7000);
@@ -4074,6 +4482,10 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   }, []);
 
   useEffect(() => {
+    if (riderBackendEnabled) {
+      return;
+    }
+
     const timers = senderConfirmationTimersRef.current;
     const pendingOrders = state.delivery.orders.filter(
       (order) =>
@@ -4130,8 +4542,27 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
     const hydrateReadOnlyDomains = async () => {
       try {
-        const [notifications, history, activeTrip, rentals, tours, ambulances] = await Promise.all([
+        const [
+          notifications,
+          deliveries,
+          wallet,
+          walletTransactions,
+          paymentMethods,
+          preferences,
+          contacts,
+          history,
+          activeTrip,
+          rentals,
+          tours,
+          ambulances,
+        ] = await Promise.all([
           getRiderNotifications(),
+          listRiderDeliveries(),
+          getRiderWallet(),
+          listRiderWalletTransactions(),
+          listRiderPaymentMethods(),
+          getRiderPreferences(),
+          listRiderEmergencyContacts(),
           getRiderTripHistory(),
           getRiderActiveTrip(),
           listRiderRentals(),
@@ -4154,6 +4585,38 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
             createdAt: new Date(item.createdAt).toISOString(),
             read: item.read,
           })),
+        });
+
+        const mappedDeliveries = deliveries.map((delivery) => mapBackendDeliveryApiToOrder(delivery));
+        const activeBackendDelivery =
+          mappedDeliveries.find((order) => !["delivered", "cancelled", "failed"].includes(order.status)) ?? mappedDeliveries[0] ?? null;
+        dispatch({
+          type: "delivery/orders-sync",
+          payload: {
+            orders: mappedDeliveries,
+            activeOrder: activeBackendDelivery,
+          },
+        });
+
+        dispatch({
+          type: "wallet/update",
+          payload: {
+            walletBalance: wallet.balance,
+            walletReserved: wallet.pendingAmount,
+            paymentMethods: paymentMethods.map(mapBackendPaymentMethod),
+            transactions: walletTransactions.map(mapBackendWalletTransaction),
+            reminders: state.reminders,
+          },
+        });
+
+        dispatch({
+          type: "settings/update",
+          payload: mapBackendPreferencesToSettings(preferences, state.settings),
+        });
+
+        dispatch({
+          type: "emergency/sync",
+          payload: contacts.map(mapBackendEmergencyContact),
         });
 
         dispatch({
@@ -4286,6 +4749,126 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
     const socket = createRiderSocket();
     let cancelled = false;
+    const syncBackendReadOnlyState = async () => {
+      try {
+        const [deliveries, wallet, walletTransactions, paymentMethods, preferences, contacts, rentals, tours, ambulances] =
+          await Promise.all([
+            listRiderDeliveries(),
+            getRiderWallet(),
+            listRiderWalletTransactions(),
+            listRiderPaymentMethods(),
+            getRiderPreferences(),
+            listRiderEmergencyContacts(),
+            listRiderRentals(),
+            listRiderTours(),
+            listRiderAmbulances()
+          ]);
+
+        if (cancelled) {
+          return;
+        }
+
+        const mappedDeliveries = deliveries.map((delivery) => mapBackendDeliveryApiToOrder(delivery));
+        dispatch({
+          type: "delivery/orders-sync",
+          payload: {
+            orders: mappedDeliveries,
+            activeOrder:
+              mappedDeliveries.find((order) => !["delivered", "cancelled", "failed"].includes(order.status)) ??
+              mappedDeliveries[0] ??
+              null
+          }
+        });
+        dispatch({
+          type: "wallet/update",
+          payload: {
+            walletBalance: wallet.balance,
+            walletReserved: wallet.pendingAmount,
+            paymentMethods: paymentMethods.map(mapBackendPaymentMethod),
+            transactions: walletTransactions.map(mapBackendWalletTransaction),
+            reminders: state.reminders
+          }
+        });
+        dispatch({
+          type: "settings/update",
+          payload: mapBackendPreferencesToSettings(preferences, state.settings)
+        });
+        dispatch({
+          type: "emergency/sync",
+          payload: contacts.map(mapBackendEmergencyContact)
+        });
+        dispatch({
+          type: "rental/bookings-sync",
+          payload: rentals.map((rental) => ({
+            id: rental.id,
+            vehicleId: rental.vehicleId,
+            startDate: rental.startDate,
+            endDate: rental.endDate,
+            priceEstimate: `UGX ${Math.round(rental.totalAmount).toLocaleString()}`,
+            status:
+              rental.status === "cancelled"
+                ? "cancelled"
+                : rental.status === "completed"
+                  ? "completed"
+                  : "confirmed",
+            confirmedAt: new Date(rental.createdAt).toISOString()
+          }))
+        });
+        dispatch({
+          type: "tours/bookings-sync",
+          payload: tours.map((tour) => ({
+            id: tour.id,
+            tourId: tour.tourId,
+            date: tour.scheduledDate,
+            guests: Math.max(1, tour.participantsCount || 1),
+            priceEstimate: `UGX ${Math.round(tour.totalPrice).toLocaleString()}`,
+            status:
+              tour.status === "cancelled"
+                ? "cancelled"
+                : tour.status === "completed"
+                  ? "completed"
+                  : "confirmed",
+            confirmedAt: new Date(tour.createdAt).toISOString()
+          }))
+        });
+        dispatch({
+          type: "ambulance/history-sync",
+          payload: ambulances.map((ambulance): AmbulanceRequest => ({
+            id: ambulance.id,
+            pickup: {
+              label: ambulance.pickupAddress,
+              address: ambulance.pickupAddress
+            },
+            destination: ambulance.dropoffAddress
+              ? {
+                  label: ambulance.dropoffAddress,
+                  address: ambulance.dropoffAddress
+                }
+              : null,
+            urgency:
+              ambulance.priority === "emergency"
+                ? "high"
+                : ambulance.priority === "urgent"
+                  ? "medium"
+                  : "low",
+            status:
+              ambulance.status === "dispatched"
+                ? "assigned"
+                : ambulance.status === "in_progress"
+                  ? "en_route"
+                  : (ambulance.status as
+                      | "requested"
+                      | "en_route"
+                      | "arrived"
+                      | "completed"
+                      | "cancelled"),
+            requestedAt: new Date(ambulance.requestedAt).toISOString()
+          }))
+        });
+      } catch (error) {
+        console.warn("Failed to sync backend read-only state from realtime event.", error);
+      }
+    };
     const subscribeToActiveRooms = () => {
       if (state.ride.activeTrip?.id) {
         socket.emit("subscribe", { channel: "trip", id: state.ride.activeTrip.id });
@@ -4328,15 +4911,20 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       dispatch({ type: "delivery/ws-connected", payload: false });
     });
     let deliveryPatchEvent = "delivery.patch";
+    let deliveryOrderNewEvent = "delivery.order.new";
+    let deliveryRouteUpdatedEvent = "delivery.route.updated";
+    let serviceRequestNewEvent = "service.request.new";
+    let serviceRequestUpdatedEvent = "service.request.updated";
     let tripLocationEvent = "trip.location.updated";
-    let tripEvents = [
+    const defaultTripEvents = [
       "trip.driver.assigned",
       "trip.driver.arriving",
       "trip.arrived",
       "trip.started",
       "trip.completed",
       "trip.cancelled",
-    ];
+    ] as const;
+    let tripEvents: string[] = [...defaultTripEvents];
 
     const handleDeliveryPatch = (payload: DeliveryRealtimePatch) => {
       if (!payload?.orderId) {
@@ -4361,17 +4949,21 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         const response = await fetch(`${API_BASE_URL}/compat/realtime/events`);
         if (response.ok) {
           const payload = await response.json();
-          const data = (payload?.data || payload) as { rider?: { server?: Record<string, string> } };
+          const data = (payload?.data || payload) as { rider?: { server?: Record<string, string | undefined> } };
           const server = data?.rider?.server || {};
           deliveryPatchEvent = server.DELIVERY_PATCH || deliveryPatchEvent;
+          deliveryOrderNewEvent = server.DELIVERY_ORDER_NEW || deliveryOrderNewEvent;
+          deliveryRouteUpdatedEvent = server.DELIVERY_ROUTE_UPDATED || deliveryRouteUpdatedEvent;
+          serviceRequestNewEvent = server.SERVICE_REQUEST_NEW || serviceRequestNewEvent;
+          serviceRequestUpdatedEvent = server.SERVICE_REQUEST_UPDATED || serviceRequestUpdatedEvent;
           tripLocationEvent = server.TRIP_LOCATION_UPDATED || tripLocationEvent;
           tripEvents = [
-            server.TRIP_DRIVER_ASSIGNED || tripEvents[0],
-            server.TRIP_DRIVER_ARRIVING || tripEvents[1],
-            server.TRIP_ARRIVED || tripEvents[2],
-            server.TRIP_STARTED || tripEvents[3],
-            server.TRIP_COMPLETED || tripEvents[4],
-            server.TRIP_CANCELLED || tripEvents[5],
+            server.TRIP_DRIVER_ASSIGNED ?? defaultTripEvents[0],
+            server.TRIP_DRIVER_ARRIVING ?? defaultTripEvents[1],
+            server.TRIP_ARRIVED ?? defaultTripEvents[2],
+            server.TRIP_STARTED ?? defaultTripEvents[3],
+            server.TRIP_COMPLETED ?? defaultTripEvents[4],
+            server.TRIP_CANCELLED ?? defaultTripEvents[5],
           ];
         }
       } catch {
@@ -4381,6 +4973,18 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       if (cancelled) return;
       socket.on(deliveryPatchEvent, handleDeliveryPatch);
       socket.on(tripLocationEvent, handleTripLocationUpdated);
+      socket.on(deliveryOrderNewEvent, () => {
+        void syncBackendReadOnlyState();
+      });
+      socket.on(deliveryRouteUpdatedEvent, () => {
+        void syncBackendReadOnlyState();
+      });
+      socket.on(serviceRequestNewEvent, () => {
+        void syncBackendReadOnlyState();
+      });
+      socket.on(serviceRequestUpdatedEvent, () => {
+        void syncBackendReadOnlyState();
+      });
       tripEvents.forEach((eventName) => {
         socket.on(eventName, () => {
           void syncRiderTripsFromBackend();
@@ -4397,6 +5001,10 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         socket.off(eventName);
       });
       socket.off(deliveryPatchEvent, handleDeliveryPatch);
+      socket.off(deliveryOrderNewEvent);
+      socket.off(deliveryRouteUpdatedEvent);
+      socket.off(serviceRequestNewEvent);
+      socket.off(serviceRequestUpdatedEvent);
       socket.off(tripLocationEvent, handleTripLocationUpdated);
       socket.disconnect();
       dispatch({ type: "delivery/ws-connected", payload: false });
@@ -4418,6 +5026,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       setActiveTrip,
       updateDeliveryDraft,
       resetDeliveryDraft,
+      syncDeliveryOrders,
       createDeliveryOrder,
       setActiveDelivery,
       setActiveDeliveryById,
@@ -4483,6 +5092,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       setActiveTrip,
       updateDeliveryDraft,
       resetDeliveryDraft,
+      syncDeliveryOrders,
       createDeliveryOrder,
       setActiveDelivery,
       setActiveDeliveryById,

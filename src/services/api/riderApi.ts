@@ -22,6 +22,32 @@ export interface RiderNotificationApi {
   createdAt: number;
 }
 
+export interface RiderPaymentMethodApi {
+  id: string;
+  type: "wallet" | "card" | "mobile_money" | "cash";
+  label: string;
+  enabled?: boolean;
+  isDefault: boolean;
+  detail?: string;
+}
+
+export interface RiderPromoApi {
+  code: string;
+  description: string;
+  discountType: string;
+  discountValue: number;
+}
+
+export interface RiderCommuteApi {
+  id: string;
+  name?: string;
+  pickupAddress: string;
+  dropoffAddress: string;
+  schedule?: Record<string, unknown>;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
 export interface RiderTripApi {
   id: string;
   riderId: string;
@@ -286,6 +312,36 @@ export async function getRiderNotifications(): Promise<RiderNotificationApi[]> {
   return request<RiderNotificationApi[]>("/riders/me/notifications", { method: "GET" });
 }
 
+export async function listRiderPaymentMethods(): Promise<RiderPaymentMethodApi[]> {
+  return request<RiderPaymentMethodApi[]>("/riders/me/payment-methods", { method: "GET" });
+}
+
+export async function listRiderEligiblePromos(): Promise<RiderPromoApi[]> {
+  return request<RiderPromoApi[]>("/riders/me/promos/eligible", { method: "GET" });
+}
+
+export async function listRiderCommutes(): Promise<RiderCommuteApi[]> {
+  return request<RiderCommuteApi[]>("/riders/me/commutes", { method: "GET" });
+}
+
+export async function listRiderWalletTransfers(): Promise<Array<{
+  id: string;
+  amount: number;
+  destination: string;
+  method?: string;
+  note?: string;
+  createdAt?: number;
+}>> {
+  return request<Array<{
+    id: string;
+    amount: number;
+    destination: string;
+    method?: string;
+    note?: string;
+    createdAt?: number;
+  }>>("/riders/me/wallet/transfers", { method: "GET" });
+}
+
 // Mapper: backend RiderTripApi → frontend RideTrip
 export function mapApiTripToRideTrip(apiTrip: RiderTripApi): RideTrip {
   const pickup: RideTrip["pickup"] = {
@@ -476,6 +532,21 @@ export async function listRiderWalletTransactions(limit = 20, offset = 0): Promi
     method: "GET",
     query: { limit, offset },
   });
+}
+
+export async function createRiderWalletTransfer(payload: {
+  amount: number;
+  destination: string;
+  method?: string;
+  note?: string;
+}): Promise<{ id: string; amount: number; destination: string; method?: string; note?: string }> {
+  return request<{ id: string; amount: number; destination: string; method?: string; note?: string }>(
+    "/riders/me/wallet/transfers",
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
 }
 
 // Payment methods could be added similarly.
