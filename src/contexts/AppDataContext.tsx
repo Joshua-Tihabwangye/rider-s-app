@@ -4286,6 +4286,14 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
     const socket = createRiderSocket();
     let cancelled = false;
+    const subscribeToActiveRooms = () => {
+      if (state.ride.activeTrip?.id) {
+        socket.emit("subscribe", { channel: "trip", id: state.ride.activeTrip.id });
+      }
+      if (state.delivery.activeOrder?.routeId) {
+        socket.emit("subscribe", { channel: "delivery-route", id: state.delivery.activeOrder.routeId });
+      }
+    };
     const syncRiderTripsFromBackend = async () => {
       try {
         const [activeTrip, history] = await Promise.all([
@@ -4311,9 +4319,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     };
     socket.on("connect", () => {
       dispatch({ type: "delivery/ws-connected", payload: true });
-      if (state.ride.activeTrip?.id) {
-        socket.emit("subscribe", { channel: "trip", id: state.ride.activeTrip.id });
-      }
+      subscribeToActiveRooms();
     });
     socket.on("disconnect", () => {
       dispatch({ type: "delivery/ws-connected", payload: false });
@@ -4321,13 +4327,24 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     socket.on("connect_error", () => {
       dispatch({ type: "delivery/ws-connected", payload: false });
     });
-    socket.on("delivery.patch", (payload: DeliveryRealtimePatch) => {
+    let deliveryPatchEvent = "delivery.patch";
+    let tripLocationEvent = "trip.location.updated";
+    let tripEvents = [
+      "trip.driver.assigned",
+      "trip.driver.arriving",
+      "trip.arrived",
+      "trip.started",
+      "trip.completed",
+      "trip.cancelled",
+    ];
+
+    const handleDeliveryPatch = (payload: DeliveryRealtimePatch) => {
       if (!payload?.orderId) {
         return;
       }
       dispatch({ type: "delivery/realtime", payload });
-    });
-    socket.on("trip.location.updated", (payload: { latitude: number; longitude: number }) => {
+    };
+    const handleTripLocationUpdated = (payload: { latitude: number; longitude: number }) => {
       dispatch({
         type: "location/update",
         payload: {
@@ -4337,39 +4354,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           },
         },
       });
-    });
-    const riderEventAliases: Record<string, string[]> = {
-      "trip.driver.arrived": ["trip.arrived"],
-      "trip.arrived": ["trip.driver.arrived"],
-      "trip.state.changed": [
-        "trip.driver.assigned",
-        "trip.driver.arriving",
-        "trip.driver.arrived",
-        "trip.arrived",
-        "trip.started",
-        "trip.completed",
-        "trip.cancelled",
-      ],
     };
-    const normalizeTripEvents = (events: string[]) => {
-      const normalized = new Set<string>();
-      events.forEach((eventName) => {
-        if (!eventName || !eventName.startsWith("trip.")) return;
-        normalized.add(eventName);
-        (riderEventAliases[eventName] || []).forEach((alias) => normalized.add(alias));
-      });
-      return Array.from(normalized);
-    };
-    const defaultTripEvents = normalizeTripEvents([
-      "trip.driver.assigned",
-      "trip.driver.arriving",
-      "trip.driver.arrived",
-      "trip.started",
-      "trip.completed",
-      "trip.cancelled",
-      "trip.state.changed",
-    ]);
-    let tripEvents = [...defaultTripEvents];
 
     const bootstrapRealtime = async () => {
       try {
@@ -4377,18 +4362,25 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         if (response.ok) {
           const payload = await response.json();
           const data = (payload?.data || payload) as { rider?: { server?: Record<string, string> } };
-          const backendEvents = Object.values(data?.rider?.server || {}).filter(
-            (value): value is string => typeof value === "string" && value.startsWith("trip."),
-          );
-          if (backendEvents.length > 0) {
-            tripEvents = normalizeTripEvents([...defaultTripEvents, ...backendEvents]);
-          }
+          const server = data?.rider?.server || {};
+          deliveryPatchEvent = server.DELIVERY_PATCH || deliveryPatchEvent;
+          tripLocationEvent = server.TRIP_LOCATION_UPDATED || tripLocationEvent;
+          tripEvents = [
+            server.TRIP_DRIVER_ASSIGNED || tripEvents[0],
+            server.TRIP_DRIVER_ARRIVING || tripEvents[1],
+            server.TRIP_ARRIVED || tripEvents[2],
+            server.TRIP_STARTED || tripEvents[3],
+            server.TRIP_COMPLETED || tripEvents[4],
+            server.TRIP_CANCELLED || tripEvents[5],
+          ];
         }
       } catch {
         // fallback to defaults
       }
 
       if (cancelled) return;
+      socket.on(deliveryPatchEvent, handleDeliveryPatch);
+      socket.on(tripLocationEvent, handleTripLocationUpdated);
       tripEvents.forEach((eventName) => {
         socket.on(eventName, () => {
           void syncRiderTripsFromBackend();
@@ -4404,11 +4396,12 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       tripEvents.forEach((eventName) => {
         socket.off(eventName);
       });
-      socket.off("trip.location.updated");
+      socket.off(deliveryPatchEvent, handleDeliveryPatch);
+      socket.off(tripLocationEvent, handleTripLocationUpdated);
       socket.disconnect();
       dispatch({ type: "delivery/ws-connected", payload: false });
     };
-  }, [riderBackendEnabled, state.ride.activeTrip?.id]);
+  }, [riderBackendEnabled, state.delivery.activeOrder?.routeId, state.ride.activeTrip?.id]);
 
   const actions: AppActions = useMemo(
     () => ({
