@@ -30,6 +30,7 @@ import ExpandableMapPanel from "../components/maps/ExpandableMapPanel";
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { isRiderBackendEnabled } from "../services/api/riderApi";
 import { getPointAtProgress, normalizeRoute } from "../utils/mapRoutes";
 
 function normalizeLegDuration(etaMinutes?: number): number {
@@ -49,6 +50,7 @@ function areLegsEquivalent(
   if (current.length !== next.length) return false;
   return current.every((leg, index) => {
     const target = next[index];
+    if (!target) return false;
     return (
       leg.id === target.id &&
       leg.status === target.status &&
@@ -101,6 +103,25 @@ function formatRemainingDuration(ms: number): string {
   return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
+function getBackendTripProgress(status?: string): number {
+  switch (status) {
+    case "requested":
+      return 0.05;
+    case "driver_assigned":
+      return 0.2;
+    case "driver_arriving":
+      return 0.35;
+    case "arrived":
+      return 0.55;
+    case "in_progress":
+      return 0.8;
+    case "completed":
+      return 1;
+    default:
+      return 0.1;
+  }
+}
+
 function TripInProgressBasicScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
@@ -124,6 +145,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   const [clockNowMs, setClockNowMs] = useState(() => Date.now());
   const [showContinueTripDialog, setShowContinueTripDialog] = useState(false);
   const [driverProgress, setDriverProgress] = useState(0);
+  const backendMode = isRiderBackendEnabled();
   const hasHandledReloadResetRef = useRef(false);
   const isTripCompletedRef = useRef(false);
   const continueRequestRetryTimerRef = useRef<number | null>(null);
@@ -134,7 +156,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   const isAddStopRequested =
     temporaryStop?.status === "add_stop_requested";
   const isTripCompleted =
-    activeTrip?.status === "completed" || ride.status === "completed";
+    activeTrip?.status === "completed";
   const tripWorkflow = ride.workflow.tripSimulation;
   const totalDistance =
     sharedLocationState.routeDistanceKm ??
@@ -179,6 +201,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     // Preserve active trip state when we have an actual trip context,
     // especially when entering from Driver Arrived -> Start trip.
     if (
+      backendMode ||
       isFromDriverVerification ||
       Boolean(activeTrip?.startedAt) ||
       activeTrip?.status === "in_progress" ||
@@ -206,6 +229,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     setRideStatus("idle");
     navigate("/rides/enter/details", { replace: true, state: { resetFromRefresh: true } });
   }, [
+    backendMode,
     activeTrip?.startedAt,
     activeTrip?.status,
     isFromDriverVerification,
@@ -241,19 +265,23 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     return `${distanceLabel} • ${durationLabel}`;
   }, [sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
   const companyOrange = "#F79009";
+  const backendDriverProgress = useMemo(() => getBackendTripProgress(activeTrip?.status), [activeTrip?.status]);
 
   // Calculate driver location along the route
   const driverLocation = React.useMemo(() => {
     return getPointAtProgress(
       routePolyline,
-      driverProgress,
+      backendMode ? backendDriverProgress : driverProgress,
       sharedLocationState.pickupCoords ?? null,
       sharedLocationState.destinationCoords ?? null
     );
-  }, [driverProgress, routePolyline, sharedLocationState.destinationCoords, sharedLocationState.pickupCoords]);
+  }, [backendDriverProgress, backendMode, driverProgress, routePolyline, sharedLocationState.destinationCoords, sharedLocationState.pickupCoords]);
 
   useEffect(() => {
     if (!activeTrip) {
+      return;
+    }
+    if (backendMode) {
       return;
     }
     if (!activeTrip.startedAt) {
@@ -266,16 +294,19 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     if (activeTrip.status !== "ongoing") {
       setRideStatus("ongoing");
     }
-  }, [activeTrip?.startedAt, activeTrip?.status, setRideStatus, updateRideTrip]);
+  }, [activeTrip?.startedAt, activeTrip?.status, backendMode, setRideStatus, updateRideTrip]);
 
   useEffect(() => {
+    if (backendMode) {
+      return undefined;
+    }
     if (isTripPaused) return undefined;
     const interval = window.setInterval(() => {
       setClockNowMs(Date.now());
       setDriverProgress((prev) => Math.min(prev + tripWorkflow.driverProgressPerTick, 1.0));
     }, tripWorkflow.driverProgressTickMs);
     return () => window.clearInterval(interval);
-  }, [isTripPaused, tripWorkflow.driverProgressPerTick, tripWorkflow.driverProgressTickMs]);
+  }, [backendMode, isTripPaused, tripWorkflow.driverProgressPerTick, tripWorkflow.driverProgressTickMs]);
 
   useEffect(() => {
     const nextDriver = driverLocation;
@@ -419,6 +450,9 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   const activeLeg = tripLegs[legProgress.activeLegIndex];
 
   useEffect(() => {
+    if (backendMode) {
+      return;
+    }
     if (!activeTrip?.id) return;
     if (isTripCompleted) return;
     if (!tripWorkflow.autoAddStopEnabled) return;
@@ -439,6 +473,9 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   ]);
 
   useEffect(() => {
+    if (backendMode) {
+      return;
+    }
     if (!activeTrip?.id || tripLegs.length === 0) return;
     const nowIso = new Date().toISOString();
     const allCompleted = simProgressRatio >= 1;
@@ -519,10 +556,14 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     legProgress.completedLegCount,
     simProgressRatio,
     tripLegs,
+    backendMode,
     updateRideTrip
   ]);
 
   useEffect(() => {
+    if (backendMode) {
+      return;
+    }
     if (!activeTrip?.id) return;
     if (isTripPaused || isAddStopRequested) return;
     if (tripElapsedMs < tripSimulationDurationMs) return;
@@ -555,6 +596,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     routeDurationLabel,
     tripElapsedMs,
     tripSimulationDurationMs,
+    backendMode,
     updateRideTrip
   ]);
 
@@ -651,6 +693,9 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   };
 
   const handleEndTrip = () => {
+    if (backendMode) {
+      return;
+    }
     updateRideTrip({
       status: "completed",
       completedAt: new Date().toISOString()
@@ -751,7 +796,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                   : "Select pickup and destination first.")}
           </Typography>
           <Stack direction="row" spacing={1}>
-            {temporaryStop?.status === "idle" && !isTripCompleted && (
+            {!backendMode && temporaryStop?.status === "idle" && !isTripCompleted && (
               <Button
                 size="small"
                 variant="outlined"
@@ -885,9 +930,9 @@ function TripInProgressBasicScreen(): React.JSX.Element {
                   mb: uiTokens.spacing.md
                 }}
               >
-                  Estimated remaining trip simulation time: {remainingSimulationLabel}
-                  {tripLegs.length > 1 ? ` • ${Math.max(0, tripLegs.length - legProgress.completedLegCount)} legs left` : ""}
-                </Typography>
+                Estimated remaining trip time: {remainingSimulationLabel}
+                {tripLegs.length > 1 ? ` • ${Math.max(0, tripLegs.length - legProgress.completedLegCount)} legs left` : ""}
+              </Typography>
 
               {/* Progress bar with car icon */}
               <Box sx={{ position: "relative", mb: uiTokens.spacing.xxs }}>
@@ -1009,24 +1054,26 @@ function TripInProgressBasicScreen(): React.JSX.Element {
           </CardContent>
         </Card>
 
-        <Button
-          fullWidth
-          variant="contained"
-          onClick={handleEndTrip}
-          sx={{
-            borderRadius: uiTokens.radius.xl,
-            py: 1.15,
-            fontSize: 14,
-            fontWeight: 700,
-            textTransform: "none",
-            bgcolor: "#16A34A",
-            "&:hover": {
-              bgcolor: "#15803D"
-            }
-          }}
-        >
-          End trip
-        </Button>
+        {!backendMode && (
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleEndTrip}
+            sx={{
+              borderRadius: uiTokens.radius.xl,
+              py: 1.15,
+              fontSize: 14,
+              fontWeight: 700,
+              textTransform: "none",
+              bgcolor: "#16A34A",
+              "&:hover": {
+                bgcolor: "#15803D"
+              }
+            }}
+          >
+            End trip
+          </Button>
+        )}
       </Box>
 
           </Stack>
@@ -1055,8 +1102,10 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         </DialogContent>
         <DialogActions>
           <Button
+            disabled={backendMode}
             onClick={() => {
               actions.respondToTemporaryStopRequest("decline");
+              if (backendMode) return;
               if (addStopRequestRetryTimerRef.current !== null) {
                 window.clearTimeout(addStopRequestRetryTimerRef.current);
               }
@@ -1073,6 +1122,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             Cancel
           </Button>
           <Button
+            disabled={backendMode}
             onClick={() => {
               if (addStopRequestRetryTimerRef.current !== null) {
                 window.clearTimeout(addStopRequestRetryTimerRef.current);
@@ -1103,8 +1153,10 @@ function TripInProgressBasicScreen(): React.JSX.Element {
         </DialogContent>
         <DialogActions>
           <Button
+            disabled={backendMode}
             onClick={() => {
               setShowContinueTripDialog(false);
+              if (backendMode) return;
               if (continueRequestRetryTimerRef.current !== null) {
                 window.clearTimeout(continueRequestRetryTimerRef.current);
               }

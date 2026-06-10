@@ -24,6 +24,7 @@ import DriverChatRoom from "../components/DriverChatRoom";
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { isRiderBackendEnabled } from "../services/api/riderApi";
 import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 
 function toRadians(value: number): number {
@@ -70,6 +71,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
   const otp = (activeTrip?.otp?.trim() || "").replace(/\s+/g, "").slice(0, 6);
   const [chatOpen, setChatOpen] = useState(false);
   const [arrivalProgress, setArrivalProgress] = useState(arrivalWorkflow.initialProgress);
+  const backendMode = isRiderBackendEnabled();
   const companyOrange = "#F79009";
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const driverLocation = React.useMemo(() => {
@@ -94,6 +96,9 @@ function DriverHasArrivedScreen(): React.JSX.Element {
   }, [approachDistanceKm, sharedLocationState.routeDurationMin]);
 
   useEffect(() => {
+    if (backendMode) {
+      return undefined;
+    }
     if (ride.activeTrip?.status !== "driver_arrived") {
       setRideStatus("driver_arrived");
     }
@@ -111,6 +116,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
 
     return () => window.clearTimeout(verificationTimer);
   }, [
+    backendMode,
     navigate,
     ride.activeTrip?.startedAt,
     ride.activeTrip?.status,
@@ -121,11 +127,25 @@ function DriverHasArrivedScreen(): React.JSX.Element {
   ]);
 
   useEffect(() => {
+    if (backendMode) {
+      return undefined;
+    }
     const interval = window.setInterval(() => {
       setArrivalProgress((prev) => Math.min(prev + arrivalWorkflow.progressStepPerTick, 1));
     }, arrivalWorkflow.progressTickMs);
     return () => window.clearInterval(interval);
-  }, [arrivalWorkflow.progressStepPerTick, arrivalWorkflow.progressTickMs]);
+  }, [arrivalWorkflow.progressStepPerTick, arrivalWorkflow.progressTickMs, backendMode]);
+
+  useEffect(() => {
+    if (!backendMode || !activeTrip?.status) return;
+    if (activeTrip.status === "in_progress") {
+      navigate("/rides/trip", { replace: true, state: { fromDriverVerification: true } });
+      return;
+    }
+    if (activeTrip.status === "completed") {
+      navigate("/rides/trip/completed", { replace: true });
+    }
+  }, [activeTrip?.status, backendMode, navigate]);
 
   useEffect(() => {
     const previous = sharedLocationState.driverLocation;
