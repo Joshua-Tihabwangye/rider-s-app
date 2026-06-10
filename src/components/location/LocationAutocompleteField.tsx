@@ -51,7 +51,7 @@ export default function LocationAutocompleteField({
   placeholder = "Search location",
   label,
   nearbyCoordinates = null,
-  minQueryLength = 2,
+  minQueryLength = 3,
   debounceMs = 320,
   limit = 8,
   disabled = false,

@@ -425,15 +425,6 @@ function EnterDestinationScreen(): React.JSX.Element {
 						.slice(0, Math.max(0, coordinateStops.length - 1))
 						.map((stop) => stop.coordinates!)
 				: [];
-			const hasTypedDestinationWithoutCoords =
-				!isMultiStop && debouncedDestination.trim().length > 0 && !routeDestinationCoords;
-			const hasTypedStopsWithoutCoords =
-				isMultiStop &&
-				normalizedStops.some((stop) => (stop.value || "").trim().length > 0) &&
-				coordinateStops.length === 0;
-			const shouldPreserveMockMetrics =
-				hasTypedDestinationWithoutCoords || hasTypedStopsWithoutCoords;
-
 			const baseRoutePoints = [
 				pickupCoords,
 				...waypointCoords,
@@ -468,12 +459,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 					destinationCoords: routeDestinationCoords,
 					routePolyline: [],
 					routeAlternativePolylines: [],
-					...(shouldPreserveMockMetrics
-						? {}
-						: {
-							routeDistanceKm: null,
-							routeDurationMin: null
-						})
+					routeDistanceKm: null,
+					routeDurationMin: null
 				});
 				return;
 			}
@@ -508,12 +495,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 						destinationCoords: routeDestinationCoords,
 						routePolyline: [],
 						routeAlternativePolylines: [],
-						...(shouldPreserveMockMetrics
-							? {}
-							: {
-								routeDistanceKm: null,
-								routeDurationMin: null
-							})
+						routeDistanceKm: null,
+						routeDurationMin: null
 					});
 				}
 			} catch (error) {
@@ -525,12 +508,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 					destinationCoords: routeDestinationCoords,
 					routePolyline: [],
 					routeAlternativePolylines: [],
-					...(shouldPreserveMockMetrics
-						? {}
-						: {
-							routeDistanceKm: null,
-							routeDurationMin: null
-						})
+					routeDistanceKm: null,
+					routeDurationMin: null
 				});
 			} finally {
 				setIsCalculatingRoute(false);
@@ -1572,18 +1551,33 @@ function EnterDestinationScreen(): React.JSX.Element {
 								</Box>
 
 								{/* Single Destination Mode */}
-									{!isMultiStopMode && (
-										<Box>
-											<Typography sx={{ fontSize: 12.5, color: "#667085", mb: 0.75 }}>
-												Destination
-											</Typography>
-											<LocationAutocompleteField
+								{!isMultiStopMode && (
+									<Box>
+										<Typography sx={{ fontSize: 12.5, color: "#667085", mb: 0.75 }}>
+											Destination
+										</Typography>
+										<LocationAutocompleteField
 											value={destination}
 											onValueChange={(nextValue) => {
 												setDestination(nextValue);
 												setShowError(false);
 												setErrorMessage("");
 												clearFieldError("destination");
+
+												if (!nextValue.trim()) {
+													setDestinationCoords(null);
+													setRoutePolyline([]);
+													setRouteAlternatives([]);
+													updateSharedLocationState({
+														destinationCoords: null,
+														routePolyline: [],
+														routeAlternativePolylines: [],
+														routeDistanceKm: null,
+														routeDurationMin: null
+													});
+													return;
+												}
+
 												if (destinationCoords && nextValue.trim() !== destination.trim()) {
 													setDestinationCoords(null);
 													setRoutePolyline([]);
@@ -1591,32 +1585,27 @@ function EnterDestinationScreen(): React.JSX.Element {
 													updateSharedLocationState({
 														destinationCoords: null,
 														routePolyline: [],
-														routeAlternativePolylines: []
+														routeAlternativePolylines: [],
+														routeDistanceKm: null,
+														routeDurationMin: null
 													});
-												} else if (!nextValue.trim()) {
-													setDestinationCoords(null);
-													updateSharedLocationState({
-														destinationCoords: null,
+												}
+											}}
+											onSelectLocation={(selection) => {
+												setDestination(selection.address);
+												setDestinationCoords(selection.coordinates);
+												clearFieldError("destination");
+												setRouteAlternatives([]);
+												updateSharedLocationState({
+													destinationCoords: selection.coordinates,
 													routePolyline: [],
 													routeAlternativePolylines: [],
 													routeDistanceKm: null,
 													routeDurationMin: null
 												});
-											}
-										}}
-										onSelectLocation={(selection) => {
-											setDestination(selection.address);
-											setDestinationCoords(selection.coordinates);
-											clearFieldError("destination");
-											setRouteAlternatives([]);
-											updateSharedLocationState({
-												destinationCoords: selection.coordinates,
-												routePolyline: [],
-												routeAlternativePolylines: []
-											});
-											setShowError(false);
-											setErrorMessage("");
-										}}
+												setShowError(false);
+												setErrorMessage("");
+											}}
 											placeholder="Enter drop-off location"
 											nearbyCoordinates={pickupCoords}
 											textFieldProps={{
@@ -1627,32 +1616,30 @@ function EnterDestinationScreen(): React.JSX.Element {
 												helperText: fieldErrors.destination || " ",
 												InputProps: {
 													startAdornment: (
-														<PlaceRoundedIcon
-															sx={{ fontSize: 19, color: "#F79009" }}
-														/>
+														<PlaceRoundedIcon sx={{ fontSize: 19, color: "#F79009" }} />
 													)
 												}
 											}}
 											sx={{
 												flex: 1,
 												"& .MuiOutlinedInput-root": {
-												borderRadius: 5,
-												bgcolor:
-													theme.palette.mode === "light"
-														? "rgba(0,0,0,0.05)"
-														: "rgba(255,255,255,0.05)",
-												color: theme.palette.text.primary,
-												"& fieldset": {
-													borderColor:
+													borderRadius: 5,
+													bgcolor:
 														theme.palette.mode === "light"
-															? fieldErrors.destination
-																? "#D92D20"
-																: "rgba(0,0,0,0.15)"
-															: "rgba(255,255,255,0.2)"
-												},
-												"&:hover fieldset": {
-													borderColor: accentGreen
-												},
+															? "rgba(0,0,0,0.05)"
+															: "rgba(255,255,255,0.05)",
+													color: theme.palette.text.primary,
+													"& fieldset": {
+														borderColor:
+															theme.palette.mode === "light"
+																? fieldErrors.destination
+																	? "#D92D20"
+																	: "rgba(0,0,0,0.15)"
+																: "rgba(255,255,255,0.2)"
+													},
+													"&:hover fieldset": {
+														borderColor: accentGreen
+													},
 													"&.Mui-focused fieldset": {
 														borderColor: accentGreen
 													}
@@ -1667,8 +1654,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 													mt: 0.7,
 													mb: -0.25
 												}
-												}}
-											/>
+											}}
+										/>
 									</Box>
 								)}
 

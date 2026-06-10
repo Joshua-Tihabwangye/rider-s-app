@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "./api/config";
 export interface Coordinates {
   lat: number;
   lng: number;
@@ -24,13 +25,6 @@ export interface RouteResult {
 
 function samePoint(a: Coordinates, b: Coordinates): boolean {
   return Math.abs(a.lat - b.lat) < 0.000001 && Math.abs(a.lng - b.lng) < 0.000001;
-}
-
-interface MockPlaceEntry {
-  id: string;
-  name: string;
-  address: string;
-  coordinates: Coordinates;
 }
 
 function isFiniteCoordinate(value: unknown): value is number {
@@ -62,29 +56,6 @@ function distanceKm(a: Coordinates, b: Coordinates): number {
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
-function buildFallbackRoute(origin: Coordinates, destination: Coordinates): RouteResult {
-  const midLat = (origin.lat + destination.lat) / 2;
-  const midLng = (origin.lng + destination.lng) / 2;
-  const curveFactor = 0.005;
-  const controlA: Coordinates = {
-    lat: midLat + curveFactor,
-    lng: midLng - curveFactor
-  };
-  const controlB: Coordinates = {
-    lat: midLat - curveFactor * 0.6,
-    lng: midLng + curveFactor * 0.8
-  };
-  const path = [origin, controlA, controlB, destination];
-  const totalDistanceKm = Math.max(0.2, distanceKm(origin, destination) * 1.18);
-  const durationMin = Math.max(3, Math.round(totalDistanceKm * 2.8));
-  return {
-    distanceKm: Number(totalDistanceKm.toFixed(1)),
-    durationMin,
-    path,
-    alternativePaths: [[origin, { lat: midLat, lng: midLng }, destination]]
-  };
-}
-
 function isValidCoordinates(point: Coordinates | null | undefined): point is Coordinates {
   return Boolean(
     point &&
@@ -95,191 +66,9 @@ function isValidCoordinates(point: Coordinates | null | undefined): point is Coo
   );
 }
 
-const MOCK_PLACE_GROUPS: Record<string, MockPlaceEntry[]> = {
-  mall: [
-    {
-      id: "mall-1",
-      name: "Arena Mall",
-      address: "Nsambya, Kampala",
-      coordinates: { lat: 0.3097, lng: 32.5893 }
-    },
-    {
-      id: "mall-2",
-      name: "Acacia Mall",
-      address: "Kisementi, Kampala",
-      coordinates: { lat: 0.3397, lng: 32.5864 }
-    },
-    {
-      id: "mall-3",
-      name: "Victoria Mall",
-      address: "Entebbe Road, Entebbe",
-      coordinates: { lat: 0.0507, lng: 32.4639 }
-    },
-    {
-      id: "mall-4",
-      name: "Jinja City Mall",
-      address: "Main Street, Jinja",
-      coordinates: { lat: 0.4314, lng: 33.2032 }
-    },
-    {
-      id: "mall-5",
-      name: "Metroplex Mall",
-      address: "Naalya, Kampala",
-      coordinates: { lat: 0.3777, lng: 32.6372 }
-    }
-  ],
-  market: [
-    {
-      id: "market-1",
-      name: "Nakasero Market",
-      address: "Nakasero, Kampala",
-      coordinates: { lat: 0.3182, lng: 32.5805 }
-    },
-    {
-      id: "market-2",
-      name: "Owino Market",
-      address: "Downtown, Kampala",
-      coordinates: { lat: 0.3118, lng: 32.5726 }
-    },
-    {
-      id: "market-3",
-      name: "Kalerwe Market",
-      address: "Kalerwe, Kampala",
-      coordinates: { lat: 0.3564, lng: 32.5612 }
-    },
-    {
-      id: "market-4",
-      name: "Nakawa Market",
-      address: "Nakawa, Kampala",
-      coordinates: { lat: 0.3364, lng: 32.6188 }
-    },
-    {
-      id: "market-5",
-      name: "Nateete Market",
-      address: "Nateete, Kampala",
-      coordinates: { lat: 0.3043, lng: 32.5325 }
-    }
-  ],
-  church: [
-    {
-      id: "church-1",
-      name: "Rubaga Cathedral",
-      address: "Rubaga, Kampala",
-      coordinates: { lat: 0.3009, lng: 32.5522 }
-    },
-    {
-      id: "church-2",
-      name: "Namirembe Cathedral",
-      address: "Namirembe Hill, Kampala",
-      coordinates: { lat: 0.3133, lng: 32.5566 }
-    },
-    {
-      id: "church-3",
-      name: "St. Francis Chapel",
-      address: "Kololo, Kampala",
-      coordinates: { lat: 0.3371, lng: 32.5923 }
-    },
-    {
-      id: "church-4",
-      name: "Watoto Church Downtown",
-      address: "Bugolobi, Kampala",
-      coordinates: { lat: 0.3229, lng: 32.6131 }
-    },
-    {
-      id: "church-5",
-      name: "All Saints Church",
-      address: "Nakasero, Kampala",
-      coordinates: { lat: 0.3246, lng: 32.5822 }
-    }
-  ],
-  hospital: [
-    {
-      id: "hospital-1",
-      name: "Mulago National Referral Hospital",
-      address: "Mulago Hill, Kampala",
-      coordinates: { lat: 0.3382, lng: 32.5762 }
-    },
-    {
-      id: "hospital-2",
-      name: "Nakasero Hospital",
-      address: "Akii Bua Road, Kampala",
-      coordinates: { lat: 0.3234, lng: 32.5856 }
-    },
-    {
-      id: "hospital-3",
-      name: "Case Hospital",
-      address: "Buganda Road, Kampala",
-      coordinates: { lat: 0.3099, lng: 32.5808 }
-    },
-    {
-      id: "hospital-4",
-      name: "International Hospital Kampala",
-      address: "Namuwongo, Kampala",
-      coordinates: { lat: 0.3041, lng: 32.6123 }
-    },
-    {
-      id: "hospital-5",
-      name: "Mengo Hospital",
-      address: "Mengo Hill, Kampala",
-      coordinates: { lat: 0.3078, lng: 32.5613 }
-    }
-  ],
-  school: [
-    {
-      id: "school-1",
-      name: "Makerere University",
-      address: "Makerere Hill, Kampala",
-      coordinates: { lat: 0.3345, lng: 32.5686 }
-    },
-    {
-      id: "school-2",
-      name: "Kyambogo University",
-      address: "Kyambogo, Kampala",
-      coordinates: { lat: 0.3499, lng: 32.6304 }
-    },
-    {
-      id: "school-3",
-      name: "Gayaza High School",
-      address: "Gayaza, Wakiso",
-      coordinates: { lat: 0.4428, lng: 32.6061 }
-    },
-    {
-      id: "school-4",
-      name: "King's College Budo",
-      address: "Budo, Wakiso",
-      coordinates: { lat: 0.2551, lng: 32.4632 }
-    },
-    {
-      id: "school-5",
-      name: "Namilyango College",
-      address: "Namugongo, Mukono",
-      coordinates: { lat: 0.3812, lng: 32.6727 }
-    }
-  ]
-};
-
-const DEFAULT_MOCK_SEQUENCE = ["mall", "market", "church", "hospital", "school"] as const;
-type MockGroupKey = (typeof DEFAULT_MOCK_SEQUENCE)[number];
-
-function getMockGroup(key: MockGroupKey): MockPlaceEntry[] {
-  return MOCK_PLACE_GROUPS[key] ?? [];
-}
-
-function flattenMockPlaces(): MockPlaceEntry[] {
-  return DEFAULT_MOCK_SEQUENCE.flatMap((group) => getMockGroup(group));
-}
-
-function mapMockPlacesToSuggestions(places: MockPlaceEntry[]): PlaceSuggestion[] {
-  return places.map((place) => ({
-    description: `${place.name}, ${place.address}`,
-    placeId: place.id,
-    coordinates: place.coordinates
-  }));
-}
-
 export async function searchPlaces(query: string, options: PlaceSearchOptions = {}): Promise<PlaceSuggestion[]> {
   const term = normalizeQuery(query);
-  if (term.length < 2) return [];
+  if (term.length < 3) return [];
 
   try {
     const limit = Math.max(1, Math.min(options.limit ?? 8, 20));
@@ -310,7 +99,7 @@ export async function searchPlaces(query: string, options: PlaceSearchOptions = 
       params.set("bounded", "0");
     }
 
-    const response = await fetch(`/api/osm/search?${params.toString()}`, {
+    const response = await fetch(`${API_BASE_URL}/geo/places/search?${params.toString()}`, {
       method: "GET",
       headers: {
         Accept: "application/json"
@@ -407,52 +196,45 @@ export async function searchPlaces(query: string, options: PlaceSearchOptions = 
       return [];
     }
 
-    // Keep mock fallback only for local development.
-    if ((import.meta as any).env?.DEV) {
-      return getFallbackPlaces(term);
-    }
     return [];
   }
 }
 
-function getFallbackPlaces(term: string): PlaceSuggestion[] {
-  const matches = flattenMockPlaces().filter((place) => {
-    const haystack = normalizeQuery(`${place.name} ${place.address}`);
-    return haystack.includes(term);
+export async function geocodeAddress(query: string): Promise<Coordinates | null> {
+  const term = normalizeQuery(query);
+  if (term.length < 3) return null;
+
+  const params = new URLSearchParams({ q: term });
+  const response = await fetch(`${API_BASE_URL}/geo/places/resolve?${params.toString()}`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json"
+    }
   });
 
-  if (matches.length >= 5) {
-    return mapMockPlacesToSuggestions(matches.slice(0, 5));
+  if (!response.ok) return null;
+  const payload = await response.json() as { data?: { latitude?: number; longitude?: number } | null; latitude?: number; longitude?: number };
+  const data = payload?.data ?? payload;
+  if (!data || !Number.isFinite(data.latitude ?? Number.NaN) || !Number.isFinite(data.longitude ?? Number.NaN)) {
+    return null;
   }
-
-  const seed = DEFAULT_MOCK_SEQUENCE.flatMap((group) => getMockGroup(group).slice(0, 1));
-  const fallback = [...matches, ...seed].filter(
-    (place, index, list) => list.findIndex((candidate) => candidate.id === place.id) === index
-  );
-
-  return mapMockPlacesToSuggestions(fallback.slice(0, 5));
-}
-
-export async function geocodeAddress(query: string): Promise<Coordinates | null> {
-  const results = await searchPlaces(query);
-  return results[0]?.coordinates ?? null;
+  return { lat: Number(data.latitude), lng: Number(data.longitude) };
 }
 
 export async function reverseGeocode(point: Coordinates): Promise<string | null> {
-  const response = await fetch(
-    `/api/osm/reverse?format=jsonv2&lat=${point.lat}&lon=${point.lng}`,
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/json"
-      }
+  const params = new URLSearchParams({ lat: String(point.lat), lng: String(point.lng) });
+  const response = await fetch(`${API_BASE_URL}/geo/places/reverse?${params.toString()}`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json"
     }
-  );
+  });
 
   if (!response.ok) return null;
 
-  const payload = (await response.json()) as { display_name?: string };
-  return payload.display_name?.trim() || null;
+  const payload = (await response.json()) as { data?: { displayName?: string; display_name?: string } | null; displayName?: string; display_name?: string };
+  const data = payload.data ?? payload;
+  return (data.displayName ?? data.display_name ?? null)?.trim() || null;
 }
 
 export async function calculateRoute(origin: Coordinates, destination: Coordinates): Promise<RouteResult | null> {
@@ -463,51 +245,37 @@ export async function calculateRoute(origin: Coordinates, destination: Coordinat
   const timeoutId = setTimeout(() => controller.abort(), 7000);
 
   try {
-    const response = await fetch(
-      `/api/osrm/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&alternatives=true`,
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json"
-        },
-        signal: controller.signal
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/geo/routes/estimate`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        points: [origin, destination],
+        alternatives: true
+      })
+    });
 
     if (!response.ok) {
       throw new Error(`Route proxy failed (${response.status})`);
     }
 
-    const data = await response.json();
-    const routes = (data?.routes ?? []) as Array<{
-      geometry?: { coordinates?: Array<[number, number]> };
-      legs?: Array<{
-        distance?: { value?: number };
-        duration?: { value?: number };
-      }>;
-    }>;
-    if (routes.length === 0) return null;
-
-    const mappedRoutes = routes.map((route) => {
-      const coords: Coordinates[] = (route.geometry?.coordinates ?? [])
-        .map(([lng, lat]: [number, number]) => ({ lat, lng }))
-        .filter((p) => isFiniteCoordinate(p.lat) && isFiniteCoordinate(p.lng));
-      return coords;
-    }).filter((route) => route.length > 0);
-
-    const mainPath = mappedRoutes[0];
-    if (!mainPath) return null;
-
-    const mainRoute = routes[0];
-    if (!mainRoute) return null;
-    const distanceKm = (mainRoute.legs?.[0]?.distance?.value ?? 0) / 1000;
-    const durationMin = (mainRoute.legs?.[0]?.duration?.value ?? 0) / 60;
+    const payload = await response.json();
+    const data = (payload?.data ?? payload) as {
+      distanceKm?: number;
+      durationMin?: number;
+      path?: Coordinates[];
+      alternativePaths?: Coordinates[][];
+    } | null;
+    if (!data?.path || data.path.length === 0) return null;
 
     return {
-      distanceKm,
-      durationMin,
-      path: mainPath,
-      alternativePaths: mappedRoutes.slice(1)
+      distanceKm: Number.isFinite(data.distanceKm ?? Number.NaN) ? Number(data.distanceKm) : 0,
+      durationMin: Number.isFinite(data.durationMin ?? Number.NaN) ? Number(data.durationMin) : 0,
+      path: data.path.filter((p) => isFiniteCoordinate(p.lat) && isFiniteCoordinate(p.lng)),
+      alternativePaths: (data.alternativePaths ?? []).map((route) => route.filter((p) => isFiniteCoordinate(p.lat) && isFiniteCoordinate(p.lng)))
     };
   } catch (error) {
     if ((error as any)?.name === "AbortError") return null;

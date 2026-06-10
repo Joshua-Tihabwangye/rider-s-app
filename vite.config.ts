@@ -2,9 +2,6 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
-const OSRM_TARGET = process.env.VITE_OSRM_BASE_URL || "https://router.project-osrm.org";
-const OSM_TARGET = process.env.VITE_OSM_BASE_URL || "https://nominatim.openstreetmap.org";
-
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
@@ -28,36 +25,12 @@ export default defineConfig({
         '**/baseline-screenshots/**',
         '**/rider (1)/**',
       ],
-    },
-    proxy: {
-      "/api/osrm": {
-        target: OSRM_TARGET,
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/osrm/, "")
-      },
-      "/api/osm": {
-        target: OSM_TARGET,
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/osm/, "")
-      }
     }
   },
   preview: {
     headers: {
       "X-Frame-Options": "DENY"
     },
-    proxy: {
-      "/api/osrm": {
-        target: OSRM_TARGET,
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/osrm/, "")
-      },
-      "/api/osm": {
-        target: OSM_TARGET,
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/osm/, "")
-      }
-    }
   },
   build: {
     outDir: 'build',

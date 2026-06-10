@@ -23,7 +23,7 @@ function AddStopSearchResultsScreen(): React.JSX.Element {
 	const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 	const { suggestions } = useLocationAutocomplete({
 		query,
-		minQueryLength: 2,
+		minQueryLength: 3,
 		debounceMs: 280
 	});
 

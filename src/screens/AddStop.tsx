@@ -20,7 +20,7 @@ function AddStopSearchOverlayScreen(): React.JSX.Element {
 	const [query, setQuery] = useState("");
 	const { suggestions } = useLocationAutocomplete({
 		query,
-		minQueryLength: 2,
+		minQueryLength: 3,
 		debounceMs: 280
 	});
 
