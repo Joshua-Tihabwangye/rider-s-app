@@ -80,7 +80,7 @@ export default function TourPaymentWallet(): React.JSX.Element {
             EVzone Wallet Payment
           </Typography>
           <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-            Simulated wallet checkout
+            Wallet checkout
           </Typography>
         </Box>
       </Stack>
@@ -125,7 +125,7 @@ export default function TourPaymentWallet(): React.JSX.Element {
               Schedule: {tours.booking.date ?? selectedTour?.scheduleLabel ?? "Pending"}
             </Typography>
             <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-              By continuing, this simulated wallet payment will debit your wallet and confirm the booking.
+              By continuing, this wallet payment will debit your wallet and confirm the booking.
             </Typography>
 
             {walletInsufficient && (

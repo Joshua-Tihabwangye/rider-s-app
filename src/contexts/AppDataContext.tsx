@@ -42,6 +42,7 @@ import type {
   TourPaymentReceipt,
   AmbulanceState,
   AmbulanceRequest,
+  AmbulanceStatus,
   SosState,
   SosStatus,
   SosEvent,
@@ -107,6 +108,7 @@ import {
   createRiderTour,
   createRiderTripRequest,
   createRiderDelivery,
+  type RiderAmbulanceApi,
   type RiderDeliveryApi,
   type RiderEmergencyContactApi,
   type RiderPaymentMethodApi,
@@ -632,6 +634,44 @@ function mapBackendDeliveryApiToOrder(api: RiderDeliveryApi): DeliveryOrder {
     receiver: { city: "", code: "" },
     progress: api.status === "delivered" ? 100 : api.status === "in_transit" ? 68 : api.status === "picked_up" ? 42 : api.status === "accepted" ? 24 : 12,
     needsPayment: false,
+  };
+}
+
+function mapBackendAmbulanceApiToRequest(api: RiderAmbulanceApi): AmbulanceRequest {
+  const status: AmbulanceStatus =
+    api.status === "dispatched"
+      ? "assigned"
+      : api.status === "in_progress"
+        ? "en_route"
+        : api.status === "arrived"
+          ? "arrived"
+          : api.status === "completed"
+            ? "completed"
+            : api.status === "cancelled"
+              ? "cancelled"
+              : "requested";
+
+  return {
+    id: api.id,
+    pickup: {
+      label: api.pickupAddress,
+      address: api.pickupAddress,
+    },
+    destination: api.dropoffAddress
+      ? {
+          label: api.dropoffAddress,
+          address: api.dropoffAddress,
+        }
+      : null,
+    urgency:
+      api.priority === "emergency"
+        ? "high"
+        : api.priority === "urgent"
+          ? "medium"
+          : "low",
+    status,
+    requestedAt: new Date(api.requestedAt).toISOString(),
+    dispatchedAt: api.status !== "requested" ? new Date(api.updatedAt).toISOString() : undefined,
   };
 }
 
@@ -3323,6 +3363,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   const { user } = useAuth();
   const [state, dispatch] = useReducer(appReducer, initialState, createInitialState);
   const senderConfirmationTimersRef = useRef<Map<string, number>>(new Map());
+  const ambulanceCreateInFlightRef = useRef(false);
   const [riderBackendEnabled, setRiderBackendEnabled] = useState(() => isRiderBackendEnabled());
 
   useEffect(() => {
@@ -4373,7 +4414,12 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           ? "urgent"
           : "normal";
 
-    if ((patch.status === "requested" || nextRequest.status === "requested") && pickup) {
+    if (nextRequest.id === "ambulance_current") {
+      if (ambulanceCreateInFlightRef.current || !pickup || nextRequest.status === "idle") {
+        return;
+      }
+
+      ambulanceCreateInFlightRef.current = true;
       void createRiderAmbulance({
         pickupAddress: pickup.address || pickup.label,
         pickupLat: pickup.coordinates?.lat ?? 0.3136,
@@ -4381,9 +4427,22 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         dropoffAddress: nextRequest.destination?.address || nextRequest.destination?.label,
         hospitalName: nextRequest.hospitalContactName,
         priority,
-      }).catch((error) => {
-        console.warn("Rider backend ambulance request create failed.", error);
-      });
+      })
+        .then((created) => {
+          dispatch({
+            type: "ambulance/request-sync",
+            payload: {
+              ...nextRequest,
+              ...mapBackendAmbulanceApiToRequest(created),
+            },
+          });
+        })
+        .catch((error) => {
+          console.warn("Rider backend ambulance request create failed.", error);
+        })
+        .finally(() => {
+          ambulanceCreateInFlightRef.current = false;
+        });
       return;
     }
 
@@ -4403,9 +4462,19 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
                 | "in_progress"
                 | "completed"
                 | "cancelled"),
-      }).catch((error) => {
-        console.warn("Rider backend ambulance request update failed.", error);
-      });
+      })
+        .then((updated) => {
+          dispatch({
+            type: "ambulance/request-sync",
+            payload: {
+              ...nextRequest,
+              ...mapBackendAmbulanceApiToRequest(updated),
+            },
+          });
+        })
+        .catch((error) => {
+          console.warn("Rider backend ambulance request update failed.", error);
+        });
     }
   }, [riderBackendEnabled, state.ambulance.request]);
 

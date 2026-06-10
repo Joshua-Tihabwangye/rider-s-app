@@ -67,7 +67,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
   );
   const currentLeg = legs[currentLegIndex];
   const arrivalWorkflow = ride.workflow.driverArrival;
-  const otp = (activeTrip?.otp?.trim() || arrivalWorkflow.fallbackOtp).replace(/\s+/g, "").slice(0, 6);
+  const otp = (activeTrip?.otp?.trim() || "").replace(/\s+/g, "").slice(0, 6);
   const [chatOpen, setChatOpen] = useState(false);
   const [arrivalProgress, setArrivalProgress] = useState(arrivalWorkflow.initialProgress);
   const companyOrange = "#F79009";
