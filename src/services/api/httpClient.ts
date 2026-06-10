@@ -1,4 +1,4 @@
-import { API_BASE_URL, APP_ID } from "./config";
+import { APP_ID, getApiBaseUrl } from "./config";
 
 interface ApiEnvelope<T> {
   code?: string;
@@ -88,15 +88,16 @@ function appendQueryValue(search: URLSearchParams, key: string, value: QueryValu
 }
 
 function buildRequestUrl(path: string, query?: Record<string, QueryValue>): string {
+  const apiBaseUrl = getApiBaseUrl();
   if (!query) {
-    return `${API_BASE_URL}${path}`;
+    return `${apiBaseUrl}${path}`;
   }
 
   const search = new URLSearchParams();
   Object.entries(query).forEach(([key, value]) => appendQueryValue(search, key, value));
 
   const suffix = search.toString();
-  return suffix ? `${API_BASE_URL}${path}?${suffix}` : `${API_BASE_URL}${path}`;
+  return suffix ? `${apiBaseUrl}${path}?${suffix}` : `${apiBaseUrl}${path}`;
 }
 
 async function attemptRefresh(): Promise<TokenRefreshResult> {

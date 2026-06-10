@@ -6,15 +6,18 @@ function parseBooleanFlag(value: string | undefined, fallback = false): boolean 
   return normalized === "true" || normalized === "1" || normalized === "yes";
 }
 
+const DEFAULT_LOCAL_BACKEND_BASE_URL = "http://localhost:3000/api/v1";
+
 function normalizeBaseUrl(value: string | undefined): string {
   const raw = value?.trim();
-  if (!raw) return "/api/v1";
-  return raw.replace(/\/+$/, "");
+  if (raw) return raw.replace(/\/+$/, "");
+  return IS_NON_PROD ? DEFAULT_LOCAL_BACKEND_BASE_URL : "";
 }
 
 function normalizeSocketBaseUrl(value: string | undefined, apiBaseUrl: string): string {
   const raw = value?.trim();
   if (raw) return raw.replace(/\/+$/, "");
+  if (!apiBaseUrl) return "";
   return apiBaseUrl.replace(/\/api(?:\/v\d+)?$/, "");
 }
 
@@ -25,6 +28,24 @@ const IS_NON_PROD = (env.MODE?.trim().toLowerCase() ?? "development") !== "produ
 export const API_BASE_URL = normalizeBaseUrl(backendBaseUrlEnv);
 export const SOCKET_BASE_URL = normalizeSocketBaseUrl(env.VITE_SOCKET_BASE_URL, API_BASE_URL);
 export const SOCKET_PATH = (env.VITE_SOCKET_PATH || "/socket.io").trim() || "/socket.io";
+
+export function getApiBaseUrl(): string {
+  if (!API_BASE_URL) {
+    throw new Error(
+      "VITE_BACKEND_BASE_URL must be configured to the backend origin, for example https://your-backend-domain.com/api/v1.",
+    );
+  }
+  return API_BASE_URL;
+}
+
+export function getSocketBaseUrl(): string {
+  if (!SOCKET_BASE_URL) {
+    throw new Error(
+      "VITE_SOCKET_BASE_URL must be configured to the backend origin without /api/v1.",
+    );
+  }
+  return SOCKET_BASE_URL;
+}
 export const APP_ID = (env.VITE_APP_ID || "rider").trim() || "rider";
 export const FRONTEND_ONLY_MODE = parseBooleanFlag(
   env.VITE_FRONTEND_ONLY_MODE,
@@ -129,7 +150,7 @@ export async function loadBackendRuntimeFlag(force = false): Promise<boolean> {
 
   runtimeFlagLoadPromise = (async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/compat/flags/${APP_ID}`);
+      const response = await fetch(`${getApiBaseUrl()}/compat/flags/${APP_ID}`);
       if (!response.ok) {
         throw new Error(`Runtime flag request failed with status ${response.status}`);
       }
@@ -172,7 +193,7 @@ export async function loadCanonicalRouteContract(force = false): Promise<Canonic
 
   runtimeCanonicalLoadPromise = (async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/compat/canonical-routes/${APP_ID}`);
+      const response = await fetch(`${getApiBaseUrl()}/compat/canonical-routes/${APP_ID}`);
       if (!response.ok) {
         throw new Error(`Canonical contract request failed with status ${response.status}`);
       }

@@ -29,7 +29,9 @@ import {
   ambulanceContainedButtonSx
 } from "../components/ambulance/ambulanceTypography";
 import MapShell from "../components/maps/MapShell";
-import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
+import { getApproachPoint } from "../utils/mapRoutes";
+
+const KAMPALA_CENTER = { lat: 0.3476, lng: 32.5825 };
 
 interface TimelineItem {
   id: string;
@@ -70,7 +72,7 @@ function AmbulanceLiveTrackingScreen(): React.JSX.Element {
 
   const pickupCoords = request.pickup?.coordinates ?? { lat: 0.3136, lng: 32.5811 };
   const destinationCoords = request.destination?.coordinates ?? { lat: 0.3378, lng: 32.6071 };
-  const route = normalizeRoute([pickupCoords, destinationCoords]);
+  const route: Array<{ lat: number; lng: number }> = [];
 
   const [progress, setProgress] = useState(request.status === "arrived" ? 1 : 0.45);
   const [contentExtendedDown, setContentExtendedDown] = useState(false);
@@ -135,7 +137,7 @@ function AmbulanceLiveTrackingScreen(): React.JSX.Element {
   const primaryLabel = request.status === "arrived" ? "Complete emergency trip" : "Mark ambulance arrived";
 
   return (
-    <Box sx={[{ px: 2.5, pt: 2.5, pb: 15 }, ambulanceCompactTypographySx]}>
+    <Box sx={{ px: 2.5, pt: 2.5, pb: 15, ...(ambulanceCompactTypographySx as Record<string, unknown>) }}>
       <Box
         sx={{
           mb: 1.4,

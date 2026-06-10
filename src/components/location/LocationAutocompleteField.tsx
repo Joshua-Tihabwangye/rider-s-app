@@ -58,7 +58,7 @@ export default function LocationAutocompleteField({
   sx,
   textFieldProps
 }: LocationAutocompleteFieldProps): React.JSX.Element {
-  const { suggestions, loading } = useLocationAutocomplete({
+  const { suggestions, loading, error } = useLocationAutocomplete({
     query: value,
     near: nearbyCoordinates,
     minQueryLength,
@@ -70,6 +70,11 @@ export default function LocationAutocompleteField({
   const optionMap = useMemo(() => new Map(suggestions.map((item) => [item.placeId, item])), [suggestions]);
   const customStartAdornment = textFieldProps?.InputProps?.startAdornment;
   const customEndAdornment = textFieldProps?.InputProps?.endAdornment;
+  const customHelperText = textFieldProps?.helperText;
+  const resolvedHelperText =
+    error && (!customHelperText || (typeof customHelperText === "string" && !customHelperText.trim()))
+      ? error
+      : customHelperText;
 
   return (
     <Autocomplete
@@ -119,6 +124,8 @@ export default function LocationAutocompleteField({
           {...textFieldProps}
           label={label}
           placeholder={placeholder}
+          error={Boolean(textFieldProps?.error) || Boolean(error)}
+          helperText={resolvedHelperText}
           InputProps={{
             ...params.InputProps,
             ...textFieldProps?.InputProps,

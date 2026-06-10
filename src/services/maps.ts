@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./api/config";
+import { getApiBaseUrl } from "./api/config";
 export interface Coordinates {
   lat: number;
   lng: number;
@@ -70,36 +70,20 @@ export async function searchPlaces(query: string, options: PlaceSearchOptions = 
   const term = normalizeQuery(query);
   if (term.length < 3) return [];
 
+  const limit = Math.max(1, Math.min(options.limit ?? 8, 20));
+  const params = new URLSearchParams({
+    q: term,
+    countryCode: "UG",
+    limit: String(limit)
+  });
+
+  if (isValidCoordinates(options.near)) {
+    params.set("lat", String(options.near.lat));
+    params.set("lng", String(options.near.lng));
+  }
+
   try {
-    const limit = Math.max(1, Math.min(options.limit ?? 8, 20));
-    const params = new URLSearchParams({
-      format: "jsonv2",
-      q: term,
-      countrycodes: "UG",
-      limit: String(limit),
-      addressdetails: "1",
-      dedupe: "1",
-      extratags: "1",
-      namedetails: "1"
-    });
-
-    // Keep UG as default bounded fallback area so search still works when location permission is denied.
-    params.set("viewbox", "29.5,4.3,35.0,-1.5");
-    params.set("bounded", "0");
-
-    if (isValidCoordinates(options.near)) {
-      // Bias results around current location when available.
-      const latSpan = 0.45;
-      const lngSpan = 0.45 / Math.max(0.35, Math.cos(toRadians(options.near.lat)));
-      const west = options.near.lng - lngSpan;
-      const east = options.near.lng + lngSpan;
-      const north = options.near.lat + latSpan;
-      const south = options.near.lat - latSpan;
-      params.set("viewbox", `${west},${north},${east},${south}`);
-      params.set("bounded", "0");
-    }
-
-    const response = await fetch(`${API_BASE_URL}/geo/places/search?${params.toString()}`, {
+    const response = await fetch(`${getApiBaseUrl()}/geo/places/search?${params.toString()}`, {
       method: "GET",
       headers: {
         Accept: "application/json"
@@ -108,95 +92,46 @@ export async function searchPlaces(query: string, options: PlaceSearchOptions = 
     });
 
     if (!response.ok) {
-      throw new Error(`Nominatim search failed (${response.status})`);
+      throw new Error(`Backend place search failed (${response.status})`);
     }
 
-    const data = await response.json();
+    const payload = (await response.json()) as {
+      data?: Array<{
+        placeId: string;
+        displayName: string;
+        name?: string;
+        latitude: number;
+        longitude: number;
+      }>;
+    } | Array<{
+      placeId: string;
+      displayName: string;
+      name?: string;
+      latitude: number;
+      longitude: number;
+    }>;
 
-    const validResults = data
-      .filter((item: any) => {
-        const lat = parseFloat(item.lat);
-        const lng = parseFloat(item.lon);
-        const isValidCoord = isFiniteCoordinate(lat) && isFiniteCoordinate(lng) && isValidUgandaCoordinate(lat, lng);
-        const hasMeaningfulName = item.display_name && item.display_name.length > 10;
-
-        return isValidCoord && hasMeaningfulName;
-      })
-      .sort((a: any, b: any) => {
-        const aImportance = parseFloat(a.importance) || 0;
-        const bImportance = parseFloat(b.importance) || 0;
-        const keyPlaceTypes = ["amenity", "tourism", "leisure", "historic", "shop", "place", "education"];
-        const aTypeScore = keyPlaceTypes.includes(a.class) ? 1.5 : a.class === "highway" ? 0.7 : 0;
-        const bTypeScore = keyPlaceTypes.includes(b.class) ? 1.5 : b.class === "highway" ? 0.7 : 0;
-        const aText = String(a.display_name || "").toLowerCase();
-        const bText = String(b.display_name || "").toLowerCase();
-        const aTokenScore = aText.includes(term) ? 2 : 0;
-        const bTokenScore = bText.includes(term) ? 2 : 0;
-
-        let aNearbyScore = 0;
-        let bNearbyScore = 0;
-        if (isValidCoordinates(options.near)) {
-          const aDist = distanceKm(options.near, {
-            lat: parseFloat(a.lat),
-            lng: parseFloat(a.lon)
-          });
-          const bDist = distanceKm(options.near, {
-            lat: parseFloat(b.lat),
-            lng: parseFloat(b.lon)
-          });
-          aNearbyScore = Math.max(0, 2 - Math.min(aDist / 25, 2));
-          bNearbyScore = Math.max(0, 2 - Math.min(bDist / 25, 2));
-        }
-
-        const aScore = aImportance * 4 + aTypeScore + aTokenScore + aNearbyScore;
-        const bScore = bImportance * 4 + bTypeScore + bTokenScore + bNearbyScore;
-        return bScore - aScore;
-      })
-      .slice(0, limit);
-
-    const suggestions: PlaceSuggestion[] = validResults.map((item: any, index: number) => {
-      let description = item.display_name;
-
-      if (item.namedetails && item.namedetails.name) {
-        const name = item.namedetails.name;
-        const addressParts = [];
-
-        if (item.address) {
-          if (item.address.city) addressParts.push(item.address.city);
-          if (item.address.state) addressParts.push(item.address.state);
-          if (item.address.country) addressParts.push(item.address.country);
-        }
-
-        description = addressParts.length > 0 ? `${name}, ${addressParts.join(', ')}` : name;
-      }
-
-      return {
-        description,
-        placeId: `nominatim-${item.place_id}-${index}`,
+    const results = Array.isArray(payload) ? payload : payload.data ?? [];
+    return results
+      .filter(
+        (item) =>
+          isFiniteCoordinate(item.latitude) &&
+          isFiniteCoordinate(item.longitude) &&
+          isValidUgandaCoordinate(item.latitude, item.longitude)
+      )
+      .map((item) => ({
+        description: item.displayName || item.name || term,
+        placeId: item.placeId,
         coordinates: {
-          lat: parseFloat(item.lat),
-          lng: parseFloat(item.lon)
+          lat: item.latitude,
+          lng: item.longitude
         }
-      };
-    });
-
-    const deduped = suggestions.filter((suggestion, index, allSuggestions) => {
-      const key = `${suggestion.description.toLowerCase()}::${suggestion.coordinates.lat.toFixed(5)}::${suggestion.coordinates.lng.toFixed(5)}`;
-      return (
-        allSuggestions.findIndex((candidate) => {
-          const candidateKey = `${candidate.description.toLowerCase()}::${candidate.coordinates.lat.toFixed(5)}::${candidate.coordinates.lng.toFixed(5)}`;
-          return candidateKey === key;
-        }) === index
-      );
-    });
-
-    return deduped;
+      }));
   } catch (error) {
     if ((error as Error)?.name === "AbortError") {
       return [];
     }
-
-    return [];
+    throw error;
   }
 }
 
@@ -205,7 +140,7 @@ export async function geocodeAddress(query: string): Promise<Coordinates | null>
   if (term.length < 3) return null;
 
   const params = new URLSearchParams({ q: term });
-  const response = await fetch(`${API_BASE_URL}/geo/places/resolve?${params.toString()}`, {
+  const response = await fetch(`${getApiBaseUrl()}/geo/places/resolve?${params.toString()}`, {
     method: "GET",
     headers: {
       Accept: "application/json"
@@ -223,7 +158,7 @@ export async function geocodeAddress(query: string): Promise<Coordinates | null>
 
 export async function reverseGeocode(point: Coordinates): Promise<string | null> {
   const params = new URLSearchParams({ lat: String(point.lat), lng: String(point.lng) });
-  const response = await fetch(`${API_BASE_URL}/geo/places/reverse?${params.toString()}`, {
+  const response = await fetch(`${getApiBaseUrl()}/geo/places/reverse?${params.toString()}`, {
     method: "GET",
     headers: {
       Accept: "application/json"
@@ -245,7 +180,7 @@ export async function calculateRoute(origin: Coordinates, destination: Coordinat
   const timeoutId = setTimeout(() => controller.abort(), 7000);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/geo/routes/estimate`, {
+    const response = await fetch(`${getApiBaseUrl()}/geo/routes/estimate`, {
       method: "POST",
       headers: {
         Accept: "application/json",

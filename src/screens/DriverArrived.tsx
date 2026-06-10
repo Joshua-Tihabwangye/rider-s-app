@@ -72,21 +72,14 @@ function DriverHasArrivedScreen(): React.JSX.Element {
   const [arrivalProgress, setArrivalProgress] = useState(arrivalWorkflow.initialProgress);
   const companyOrange = "#F79009";
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
-  const fallbackRoute = React.useMemo(() => {
-    if (routePolyline.length > 1) return routePolyline;
-    if (sharedLocationState.pickupCoords && sharedLocationState.destinationCoords) {
-      return [sharedLocationState.pickupCoords, sharedLocationState.destinationCoords];
-    }
-    return [];
-  }, [routePolyline, sharedLocationState.destinationCoords, sharedLocationState.pickupCoords]);
   const driverLocation = React.useMemo(() => {
     return (
-      getApproachPoint(fallbackRoute, arrivalProgress) ??
+      getApproachPoint(routePolyline, arrivalProgress) ??
       sharedLocationState.driverLocation ??
       sharedLocationState.pickupCoords ??
       null
     );
-  }, [arrivalProgress, fallbackRoute, sharedLocationState.driverLocation, sharedLocationState.pickupCoords]);
+  }, [arrivalProgress, routePolyline, sharedLocationState.driverLocation, sharedLocationState.pickupCoords]);
   const approachDistanceKm = React.useMemo(() => {
     if (!driverLocation || !sharedLocationState.pickupCoords) {
       return sharedLocationState.routeDistanceKm;
@@ -200,7 +193,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
             driverLocation={driverLocation}
-            routePolyline={fallbackRoute}
+            routePolyline={routePolyline}
             routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
             routeDistanceKm={approachDistanceKm}
             routeDurationMin={approachDurationMin}
