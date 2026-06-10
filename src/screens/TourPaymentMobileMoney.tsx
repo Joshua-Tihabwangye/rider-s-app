@@ -17,6 +17,7 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import ScreenScaffold from "../components/ScreenScaffold";
 import TourPaymentSummaryCard from "../components/tours/payments/TourPaymentSummaryCard";
 import { useAppData } from "../contexts/AppDataContext";
+import { isRiderBackendEnabled } from "../services/api/riderApi";
 import {
   resolveMobileMoneyOutcome,
   validateMobileMoneyPhone
@@ -28,6 +29,7 @@ export default function TourPaymentMobileMoney(): React.JSX.Element {
   const navigate = useNavigate();
   const { tours, paymentMethods, actions } = useAppData();
   const activePayment = tours.activePayment;
+  const backendMode = isRiderBackendEnabled();
 
   const [provider, setProvider] = useState<(typeof PROVIDERS)[number]>(
     activePayment?.provider ?? "MTN Mobile Money"
@@ -61,15 +63,9 @@ export default function TourPaymentMobileMoney(): React.JSX.Element {
       return;
     }
 
-    const outcome = resolveMobileMoneyOutcome(phoneNumber);
-    if (!outcome) {
-      setFormError("Use one of the test numbers to simulate a gateway response.");
-      return;
-    }
-
     actions.updateTourPaymentSession({
       status: "processing",
-      gatewayOutcome: outcome,
+      gatewayOutcome: backendMode ? "success" : resolveMobileMoneyOutcome(phoneNumber) ?? "success",
       provider,
       mobileMoneyPhone: phoneNumber.trim(),
       billingPhone: phoneNumber.trim(),
@@ -101,7 +97,7 @@ export default function TourPaymentMobileMoney(): React.JSX.Element {
             EVzone Mobile Money Gateway
           </Typography>
           <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-            Simulated push prompt checkout
+            Mobile money checkout
           </Typography>
         </Box>
       </Stack>
@@ -130,7 +126,7 @@ export default function TourPaymentMobileMoney(): React.JSX.Element {
         <CardContent sx={{ px: 1.75, py: 1.75 }}>
           <Stack spacing={1.2}>
             <Alert severity="warning">
-              We simulate: sending prompt, waiting approval, then provider response.
+              Mobile money processing continues through the backend payment workflow.
             </Alert>
             {formError && <Alert severity="error">{formError}</Alert>}
 
@@ -148,11 +144,11 @@ export default function TourPaymentMobileMoney(): React.JSX.Element {
               ))}
             </TextField>
 
-            <TextField
-              label="Phone number"
-              value={phoneNumber}
-              onChange={(event) => setPhoneNumber(event.target.value)}
-              helperText="Use test numbers: 0700000001..0700000004"
+              <TextField
+                label="Phone number"
+                value={phoneNumber}
+                onChange={(event) => setPhoneNumber(event.target.value)}
+              helperText={backendMode ? "Use a valid mobile money number." : "Use test numbers: 0700000001..0700000004"}
               fullWidth
             />
 
@@ -176,7 +172,7 @@ export default function TourPaymentMobileMoney(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      {showTestHelpers && (
+      {!backendMode && showTestHelpers && (
         <Card
           elevation={0}
           sx={{

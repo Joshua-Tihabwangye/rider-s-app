@@ -38,7 +38,6 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const driver = activeTrip?.driver;
   const vehicle = activeTrip?.vehicle;
   const arrivalWorkflow = ride.workflow.driverArrival;
-  const fallbackDriverFromWorkflow = ride.workflow.tripSimulation.mockAssignments[0]?.driver;
   const legs = activeTrip?.legs ?? [];
   const currentLegIndex = Math.min(
     Math.max(activeTrip?.currentLegIndex ?? 0, 0),
@@ -95,10 +94,10 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
     return "/rides-ui/EV--3.png";
   }, [vehicle?.model]);
   const callTarget = useMemo(() => {
-    const raw = driver?.phone || fallbackDriverFromWorkflow?.phone || "+256700000000";
+    const raw = driver?.phone || "+256700000000";
     const cleaned = raw.replace(/[^\d+]/g, "");
     return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
-  }, [driver?.phone, fallbackDriverFromWorkflow?.phone]);
+  }, [driver?.phone]);
 
   useEffect(() => {
     if (hasInitializedOnWayStatusRef.current) {

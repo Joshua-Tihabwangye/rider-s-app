@@ -29,7 +29,6 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
   const location = useLocation();
   const { ride, sharedLocationState, actions } = useAppData();
   const activeTrip = ride.activeTrip;
-  const completionWorkflow = ride.workflow.tripCompletion;
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const bookedForLabel = React.useMemo(() => {
     const bookedFor = activeTrip?.bookedFor ?? ride.request.bookedFor;
@@ -44,13 +43,13 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
     (typeof routeState?.totalFare === "string" && routeState.totalFare) ||
     (typeof routeState?.fare === "string" && routeState.fare) ||
     activeTrip?.fareEstimate ||
-    completionWorkflow.fallbackFare;
+    "UGX 0";
   const fareDisplay = rawFare.toUpperCase().includes("UGX") ? rawFare : `UGX ${rawFare}`;
 
   const rawDistance =
     (typeof routeState?.distance === "string" && routeState.distance) ||
     activeTrip?.distance ||
-    completionWorkflow.fallbackDistance;
+    "0 km";
   const distanceDisplay = /km/i.test(rawDistance) ? rawDistance : `${rawDistance} km`;
 
   const estimatedMinutesFromLegs = activeTrip?.legs?.reduce((sum, leg) => sum + Math.max(0, leg.etaMinutes ?? 0), 0) ?? 0;
@@ -61,7 +60,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
       ? estimatedMinutesFromLegs < 60
         ? `${estimatedMinutesFromLegs} mins`
         : `${Math.floor(estimatedMinutesFromLegs / 60)} hr ${estimatedMinutesFromLegs % 60} mins`
-      : completionWorkflow.fallbackDuration);
+      : "—");
 
   const departurePoint =
     activeTrip?.pickup?.address ||
@@ -99,9 +98,8 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
     new Set([...activeTripStops, ...requestStops, ...stateStops].map((value) => value.trim()).filter(Boolean))
   ).filter((stop) => stop !== departurePoint && stop !== destination);
 
-  const fallbackDriver = ride.workflow.tripSimulation.mockAssignments[0]?.driver;
-  const driverName = activeTrip?.driver?.name ?? fallbackDriver?.name ?? "Driver";
-  const driverRating = activeTrip?.driver?.rating ?? fallbackDriver?.rating ?? 0;
+  const driverName = activeTrip?.driver?.name ?? "Driver";
+  const driverRating = activeTrip?.driver?.rating ?? 0;
 
   React.useEffect(() => {
     actions.setRideStatus("completed");
@@ -357,7 +355,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
                   Multi-leg summary
                 </Typography>
                 <Typography variant="caption" sx={{ display: "block", color: (t) => t.palette.text.secondary, mt: 0.35 }}>
-                  {activeTrip.legs?.filter((leg) => leg.status === "completed").length ?? 0} / {activeTrip.legs?.length ?? 0} legs completed
+                  {activeTrip?.legs?.filter((leg) => leg.status === "completed").length ?? 0} / {activeTrip?.legs?.length ?? 0} legs completed
                 </Typography>
               </Box>
             )}

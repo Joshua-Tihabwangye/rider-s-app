@@ -27,24 +27,24 @@ function RideRatingTipScreen(): React.JSX.Element {
   const { ride, sharedLocationState } = useAppData();
   const tipWorkflow = ride.workflow.tip;
   const sharingWorkflow = ride.workflow.sharing;
-  const fallbackDriver = ride.workflow.tripSimulation.mockAssignments[0]?.driver;
+  const routePolyline = sharedLocationState.routePolyline ?? [];
   
   const driverData = location.state?.driverData || {
-    name: ride.activeTrip?.driver?.name || fallbackDriver?.name || "Driver",
-    initials: ride.activeTrip?.driver?.avatar || fallbackDriver?.avatar || "DR"
+    name: ride.activeTrip?.driver?.name || "Driver",
+    initials: ride.activeTrip?.driver?.avatar || "DR"
   };
   const mapRoute = useMemo(() => {
-    if (sharedLocationState.routePolyline.length > 1) {
-      return sharedLocationState.routePolyline;
+    if (routePolyline.length > 1) {
+      return routePolyline;
     }
     if (sharedLocationState.pickupCoords && sharedLocationState.destinationCoords) {
       return [sharedLocationState.pickupCoords, sharedLocationState.destinationCoords];
     }
-    return sharingWorkflow.mapPreviewPolyline;
+    return sharingWorkflow.mapPreviewPolyline ?? [];
   }, [
     sharedLocationState.destinationCoords,
     sharedLocationState.pickupCoords,
-    sharedLocationState.routePolyline,
+    routePolyline,
     sharingWorkflow.mapPreviewPolyline
   ]);
   const mapCenter = useMemo(

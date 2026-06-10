@@ -16,12 +16,14 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import ScreenScaffold from "../components/ScreenScaffold";
 import TourPaymentSummaryCard from "../components/tours/payments/TourPaymentSummaryCard";
 import { useAppData } from "../contexts/AppDataContext";
+import { isRiderBackendEnabled } from "../services/api/riderApi";
 
 const TEST_OTP = "123456";
 
 export default function TourPaymentVerify(): React.JSX.Element {
   const navigate = useNavigate();
   const { tours, paymentMethods, actions } = useAppData();
+  const backendMode = isRiderBackendEnabled();
   const activePayment = tours.activePayment;
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
@@ -43,7 +45,10 @@ export default function TourPaymentVerify(): React.JSX.Element {
     paymentMethods.find((method) => method.id === activePayment.paymentMethodId)?.label ?? "Bank card";
 
   const handleVerify = () => {
-    if (otp.trim() === TEST_OTP) {
+    const verificationCode = otp.trim();
+    const isValidVerification = backendMode ? verificationCode.length >= 6 : verificationCode === TEST_OTP;
+
+    if (isValidVerification) {
       actions.updateTourPaymentSession({ status: "processing" });
       const tx = actions.completeTourPayment({
         paymentMethodLabel,
@@ -59,7 +64,11 @@ export default function TourPaymentVerify(): React.JSX.Element {
       return;
     }
 
-    setError("Incorrect OTP. Use test OTP 123456.");
+    setError(
+      backendMode
+        ? "Enter the verification code sent by your payment provider."
+        : "Incorrect OTP. Use test OTP 123456."
+    );
     actions.updateTourPaymentSession({ otpAttempts: activePayment.otpAttempts + 1, status: "requires_verification" });
   };
 
@@ -86,7 +95,7 @@ export default function TourPaymentVerify(): React.JSX.Element {
             Verify Card Payment
           </Typography>
           <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-            OTP verification required
+            {backendMode ? "Verification required" : "OTP verification required"}
           </Typography>
         </Box>
       </Stack>
@@ -111,7 +120,7 @@ export default function TourPaymentVerify(): React.JSX.Element {
       >
         <CardContent sx={{ px: 1.75, py: 1.8 }}>
           <Stack spacing={1.1}>
-            <Alert severity="warning">Enter test OTP: 123456</Alert>
+            {!backendMode ? <Alert severity="warning">Enter test OTP: 123456</Alert> : null}
             {error && <Alert severity="error">{error}</Alert>}
             <TextField
               label="One-time password"

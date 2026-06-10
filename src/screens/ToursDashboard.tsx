@@ -25,16 +25,8 @@ function ToursGatewayScreen(): React.JSX.Element {
 
   const handleAccessTourApp = () => {
     setIsRedirecting(true);
-
-    // Simulate connection to external Tour and Travel app
-    // In a real implementation, this would redirect to the external app
-    // or open it in a new window/tab with proper authentication tokens
-
     setTimeout(() => {
-      // For demo purposes, show an alert. In production, this would redirect to the actual Tour app
-      alert("Redirecting to Tour and Travel Application...\n\nIn a production environment, this would open the dedicated Tour and Travel app with your EVzone authentication.");
-
-      // Reset loading state
+      navigate("/tours");
       setIsRedirecting(false);
     }, 2000);
   };

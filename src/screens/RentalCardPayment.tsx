@@ -22,6 +22,7 @@ import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 
 import { useAppData } from "../contexts/AppDataContext";
+import { isRiderBackendEnabled } from "../services/api/riderApi";
 import {
   CroppedReferenceImage,
   GradientActionButton,
@@ -44,6 +45,7 @@ import {
 export default function RentalCardPayment(): React.JSX.Element {
   const navigate = useNavigate();
   const { rental, actions } = useAppData();
+  const backendMode = isRiderBackendEnabled();
   const activePayment = rental.activePayment;
   const vehicle = useMemo(
     () => rental.vehicles.find((entry) => entry.id === rental.booking.vehicleId) ?? rental.vehicles[0] ?? null,
@@ -76,16 +78,16 @@ export default function RentalCardPayment(): React.JSX.Element {
       return;
     }
 
-    const outcome = resolveCardOutcome(cardNumber);
-    if (!outcome) {
-      setFormError("Use a valid test card number. Example: 4242 4242 4242 4242.");
+    const outcome = backendMode ? "success" : resolveCardOutcome(cardNumber);
+    if (!backendMode && !outcome) {
+      setFormError("Use a valid card number. Example: 4242 4242 4242 4242.");
       return;
     }
 
     const digits = normalizeDigits(cardNumber);
     actions.updateRentalPaymentSession({
       status: "processing",
-      gatewayOutcome: outcome,
+      gatewayOutcome: outcome ?? "success",
       cardHolderName: cardholderName.trim(),
       cardLast4: digits.slice(-4),
       maskedCardNumber: maskCardNumber(cardNumber),

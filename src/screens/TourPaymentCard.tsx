@@ -17,6 +17,7 @@ import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import ScreenScaffold from "../components/ScreenScaffold";
 import TourPaymentSummaryCard from "../components/tours/payments/TourPaymentSummaryCard";
 import { useAppData } from "../contexts/AppDataContext";
+import { isRiderBackendEnabled } from "../services/api/riderApi";
 import {
   TourCardFormErrors,
   formatCardNumberInput,
@@ -31,6 +32,7 @@ export default function TourPaymentCard(): React.JSX.Element {
   const navigate = useNavigate();
   const { tours, paymentMethods, actions } = useAppData();
   const activePayment = tours.activePayment;
+  const backendMode = isRiderBackendEnabled();
 
   const [cardholderName, setCardholderName] = useState(activePayment?.customerName ?? "");
   const [cardNumber, setCardNumber] = useState("");
@@ -72,16 +74,10 @@ export default function TourPaymentCard(): React.JSX.Element {
       return;
     }
 
-    const outcome = resolveCardOutcome(cardNumber);
-    if (!outcome) {
-      setFormError("Use one of the provided test card numbers for this simulation.");
-      return;
-    }
-
     const digits = normalizeDigits(cardNumber);
     actions.updateTourPaymentSession({
       status: "processing",
-      gatewayOutcome: outcome,
+      gatewayOutcome: backendMode ? "success" : resolveCardOutcome(cardNumber) ?? "success",
       cardHolderName: cardholderName.trim(),
       cardLast4: digits.slice(-4),
       maskedCardNumber: maskCardNumber(cardNumber),
@@ -115,7 +111,7 @@ export default function TourPaymentCard(): React.JSX.Element {
             EVzone Card Gateway
           </Typography>
           <Typography variant="caption" sx={{ fontSize: 11, color: (t) => t.palette.text.secondary }}>
-            Secure simulated payment
+            Secure card checkout
           </Typography>
         </Box>
       </Stack>
@@ -144,7 +140,7 @@ export default function TourPaymentCard(): React.JSX.Element {
         <CardContent sx={{ px: 1.75, py: 1.75 }}>
           <Stack spacing={1.2}>
             <Alert severity="info" icon={<LockRoundedIcon fontSize="inherit" />}>
-              Secure simulated payment. CVV is never stored.
+              Secure payment. CVV is never stored.
             </Alert>
             {formError && <Alert severity="error">{formError}</Alert>}
 
