@@ -21,7 +21,7 @@ export function useLocationAutocomplete({
   near = null,
   enabled = true,
   debounceMs = 320,
-  minQueryLength = 2,
+  minQueryLength = 3,
   limit = 8
 }: UseLocationAutocompleteOptions): UseLocationAutocompleteResult {
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);

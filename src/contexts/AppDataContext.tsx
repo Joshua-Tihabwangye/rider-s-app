@@ -854,42 +854,6 @@ function estimateRideRouteDistanceFromRequest(request: RideRequest): number {
   return total;
 }
 
-function estimateRideRouteMetricsFromRequest(
-  request: RideRequest
-): { distanceKm: number; durationMin: number } | null {
-  const normalized = normalizeRideRequest(request);
-  const points = normalized.routePoints ?? [];
-  if (points.length < 2) return null;
-  let totalDistanceKm = 0;
-  let totalDurationMin = 0;
-  let validLegs = 0;
-  for (let index = 0; index < points.length - 1; index += 1) {
-    const from = points[index];
-    const to = points[index + 1];
-    if (!from?.coordinates || !to?.coordinates) continue;
-    const legDistanceKm = estimateRideLegDistanceKm(from, to);
-    totalDistanceKm += legDistanceKm;
-    totalDurationMin += estimateRideLegDurationMin(legDistanceKm);
-    validLegs += 1;
-  }
-  if (validLegs === 0) {
-    const labels = points
-      .map((point) => (point.label || point.address || "").trim())
-      .filter((value) => value.length > 0);
-    if (labels.length < 2) return null;
-    const seedSource = labels.join("|").toLowerCase();
-    const seed = seedSource.split("").reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 1), 0);
-    const stopCount = Math.max(0, points.length - 2);
-    const distanceKm = Math.max(0.6, Number((2.4 + (seed % 180) / 10 + stopCount * 1.3).toFixed(2)));
-    const durationMin = Math.max(6, Math.round(distanceKm * 2.3 + (seed % 7)));
-    return { distanceKm, durationMin };
-  }
-  return {
-    distanceKm: Math.max(0.6, Number(totalDistanceKm.toFixed(2))),
-    durationMin: Math.max(3, Math.round(totalDurationMin))
-  };
-}
-
 function isRidePricingLocked(rideState: RideState): boolean {
   if (!rideState.activeTrip) return false;
   if (rideState.activeTrip.id === "ride_temp") return false;
@@ -954,28 +918,22 @@ function computeRideOptionsForDistance(
   const distanceFromShared = sharedLocationState.routeDistanceKm ?? null;
   const hasDistanceFromOverride = Number.isFinite(distanceFromOverride ?? Number.NaN) && (distanceFromOverride as number) > 0;
   const hasDistanceFromShared = Number.isFinite(distanceFromShared ?? Number.NaN) && (distanceFromShared as number) > 0;
-  const hasRouteCoordinates = hasRideRouteCoordinates(request);
 
-  if (!hasDistanceFromOverride && !hasDistanceFromShared && !hasRouteCoordinates) {
+  if (!hasDistanceFromOverride && !hasDistanceFromShared) {
     return rideState.options.map((option) =>
       option.pricingModel
         ? {
             ...option,
-            fare: ""
+            fare: "",
+            eta: "",
           }
         : option
     );
   }
 
-  const fallbackDistance = estimateRideRouteDistanceFromRequest(request);
-  const effectiveDistanceKm = Math.max(
-    0.6,
-    hasDistanceFromOverride
-      ? (distanceFromOverride as number)
-      : hasDistanceFromShared
-        ? (distanceFromShared as number)
-      : fallbackDistance
-  );
+  const effectiveDistanceKm = hasDistanceFromOverride
+    ? (distanceFromOverride as number)
+    : (distanceFromShared as number);
   const pricingWorkflow = rideState.workflow.tripSimulation.pricing;
   const extraStopCount = Math.max(0, (request.routePoints?.length ?? 0) - 2);
   const stopSurcharge = extraStopCount * pricingWorkflow.extraStopUGX;
@@ -985,7 +943,6 @@ function computeRideOptionsForDistance(
     Number.isFinite(sharedLocationState.routeDurationMin ?? Number.NaN) && (sharedLocationState.routeDurationMin as number) > 0
       ? (sharedLocationState.routeDurationMin as number)
       : null;
-  const effectiveDurationMin = routeDurationFromShared ?? estimateRideLegDurationMin(effectiveDistanceKm);
 
   return rideState.options.map((option) => {
     if (!option.pricingModel) {
@@ -1000,7 +957,7 @@ function computeRideOptionsForDistance(
     return {
       ...option,
       fare: formatCurrencyUGX(totalAmount),
-      eta: formatRideEtaLabel(effectiveDurationMin)
+      eta: routeDurationFromShared ? formatRideEtaLabel(routeDurationFromShared) : ""
     };
   });
 }
@@ -3404,51 +3361,21 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   const updateRideRequest = useCallback((patch: Partial<RideRequest>) => {
     const nextRequest = normalizeRideRequest({ ...state.ride.request, ...patch });
     dispatch({ type: "ride/request", payload: patch });
-    const mockRouteMetrics = estimateRideRouteMetricsFromRequest(nextRequest);
-    const currentRouteSignature = buildRideRouteSignature(state.ride.request);
-    const nextRouteSignature = buildRideRouteSignature(nextRequest);
-    const routeChanged = currentRouteSignature !== nextRouteSignature;
-    const hasRouteDistance =
-      Number.isFinite(state.sharedLocationState.routeDistanceKm ?? Number.NaN) &&
-      (state.sharedLocationState.routeDistanceKm as number) > 0;
-    const hasRouteDuration =
-      Number.isFinite(state.sharedLocationState.routeDurationMin ?? Number.NaN) &&
-      (state.sharedLocationState.routeDurationMin as number) > 0;
-    const shouldApplyMockMetrics =
-      Boolean(mockRouteMetrics) && (routeChanged || !hasRouteDistance || !hasRouteDuration);
-    if (shouldApplyMockMetrics && mockRouteMetrics) {
-      dispatch({
-        type: "location/update",
-        payload: {
-          pickupCoords: nextRequest.origin?.coordinates ?? state.sharedLocationState.pickupCoords,
-          destinationCoords: nextRequest.destination?.coordinates ?? state.sharedLocationState.destinationCoords,
-          routeDistanceKm: mockRouteMetrics.distanceKm,
-          routeDurationMin: mockRouteMetrics.durationMin
-        }
-      });
-    } else if (routeChanged && !mockRouteMetrics) {
+
+    if (buildRideRouteSignature(state.ride.request) !== buildRideRouteSignature(nextRequest) && !hasRideRouteCoordinates(nextRequest)) {
       dispatch({
         type: "location/update",
         payload: {
           routeDistanceKm: null,
-          routeDurationMin: null
-        }
+          routeDurationMin: null,
+        },
       });
     }
+
     const repricedOptions = computeRideOptionsForDistance(
       state.ride,
       nextRequest,
-      {
-        ...state.sharedLocationState,
-        routeDistanceKm:
-          shouldApplyMockMetrics && mockRouteMetrics
-            ? mockRouteMetrics.distanceKm
-            : state.sharedLocationState.routeDistanceKm,
-        routeDurationMin:
-          shouldApplyMockMetrics && mockRouteMetrics
-            ? mockRouteMetrics.durationMin
-            : state.sharedLocationState.routeDurationMin
-      }
+      state.sharedLocationState,
     );
     if (!areRideOptionPricesEquivalent(state.ride.options, repricedOptions)) {
       dispatch({ type: "ride/options", payload: repricedOptions });

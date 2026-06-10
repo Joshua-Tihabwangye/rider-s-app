@@ -54,7 +54,7 @@ function AddStopModal({ open, onClose, onSelectStop, currentStopCount }: AddStop
   const [recentSearches, setRecentSearches] = useState<Location[]>([]);
   const { suggestions, loading } = useLocationAutocomplete({
     query,
-    minQueryLength: 2,
+    minQueryLength: 3,
     debounceMs: 280,
     enabled: open
   });
