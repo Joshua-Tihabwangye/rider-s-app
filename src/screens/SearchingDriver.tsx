@@ -21,6 +21,7 @@ import ExpandableMapPanel from "../components/maps/ExpandableMapPanel";
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { isRiderBackendEnabled } from "../services/api/riderApi";
 import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 
 function SearchingForDriverScreen(): React.JSX.Element {
@@ -36,6 +37,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
   const hasTransitionedToOnWayRef = React.useRef(false);
   const companyOrange = "#F79009";
   const tripWorkflow = ride.workflow.tripSimulation;
+  const backendMode = isRiderBackendEnabled();
   const routeSummary = React.useMemo(() => {
     const distance = sharedLocationState.routeDistanceKm;
     const duration = sharedLocationState.routeDurationMin;
@@ -101,19 +103,47 @@ function SearchingForDriverScreen(): React.JSX.Element {
   }, [location.pathname]);
 
   useEffect(() => {
+    if (backendMode) {
+      return undefined;
+    }
     if (!routeReady) {
       return undefined;
     }
     const interval = setInterval(() => {
       setDots((prev) => (prev.length >= 4 ? "." : `${prev}.`));
       setSearchTime((prev) => prev + 1);
-      // Simulate driver approaching pickup location
       setDriverProgress((prev) =>
         Math.min(prev + tripWorkflow.searchingDriverProgressPerTick, tripWorkflow.searchingDriverProgressCap)
       );
     }, 1000);
     return () => clearInterval(interval);
-  }, [routeReady, tripWorkflow.searchingDriverProgressCap, tripWorkflow.searchingDriverProgressPerTick]);
+  }, [backendMode, routeReady, tripWorkflow.searchingDriverProgressCap, tripWorkflow.searchingDriverProgressPerTick]);
+
+  useEffect(() => {
+    const backendTripStatus = ride.activeTrip?.status as string | undefined;
+    if (!backendMode || !backendTripStatus) {
+      return;
+    }
+
+    if (backendTripStatus === "driver_assigned" || backendTripStatus === "driver_arriving") {
+      navigate("/rides/driver-on-way", { replace: true });
+      return;
+    }
+
+    if (backendTripStatus === "arrived") {
+      navigate("/rides/driver-arrived", { replace: true });
+      return;
+    }
+
+    if (backendTripStatus === "in_progress") {
+      navigate("/rides/trip", { replace: true, state: { fromDriverVerification: true } });
+      return;
+    }
+
+    if (backendTripStatus === "completed") {
+      navigate("/rides/trip/completed", { replace: true });
+    }
+  }, [backendMode, navigate, ride.activeTrip?.status]);
 
   useEffect(() => {
     if (hasTransitionedToOnWayRef.current) return;

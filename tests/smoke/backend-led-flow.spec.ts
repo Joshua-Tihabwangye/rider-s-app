@@ -112,7 +112,11 @@ async function requestRideThroughUi(page: Page): Promise<void> {
   const form = page.locator(".ride-enter-details-form");
   await expect(form.getByRole("textbox").nth(0)).toBeVisible({ timeout: 20_000 });
   await form.getByRole("textbox").nth(0).fill("Kampala Road");
-  await page.getByPlaceholder("Enter drop-off location").fill("Ntinda Main Road");
+  const destinationInput = page.getByPlaceholder("Enter drop-off location");
+  await destinationInput.fill("Arena");
+  await expect(page.getByRole("option", { name: /Arena, Kampala, Central Region, Uganda/i })).toBeVisible({ timeout: 20_000 });
+  await page.getByRole("option", { name: /Arena, Kampala, Central Region, Uganda/i }).click();
+  await expect(destinationInput).toHaveValue(/Arena, Kampala, Central Region, Uganda/i);
   await page.getByRole("button", { name: /continue to options/i }).click();
   await page.waitForURL(/\/rides\/searching$/, { timeout: 30_000 });
   await expect(page.getByText(/searching for driver/i).first()).toBeVisible({ timeout: 30_000 });
@@ -157,12 +161,14 @@ test.describe("backend-led smoke flow", () => {
       token: driver.accessToken,
       appId: "driver",
     });
+    await page.waitForURL(/\/rides\/driver-on-way$/, { timeout: 30_000 });
 
     await request(`/drivers/me/trips/${ride.id}/arrive`, {
       method: "POST",
       token: driver.accessToken,
       appId: "driver",
     });
+    await page.waitForURL(/\/rides\/driver-arrived$/, { timeout: 30_000 });
     if (ride.otpCode) {
       await request(`/drivers/me/trips/${ride.id}/verify-rider`, {
         method: "POST",
@@ -176,13 +182,14 @@ test.describe("backend-led smoke flow", () => {
       token: driver.accessToken,
       appId: "driver",
     });
+    await page.waitForURL(/\/rides\/trip$/, { timeout: 30_000 });
     await request(`/drivers/me/trips/${ride.id}/complete`, {
       method: "POST",
       token: driver.accessToken,
       appId: "driver",
     });
 
-    await page.goto("/rides/trip/completed", { waitUntil: "networkidle" });
+    await page.waitForURL(/\/rides\/trip\/completed$/, { timeout: 30_000 });
     await expect(page.getByText("Trip Completed").first()).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText("Final summary").first()).toBeVisible();
 
