@@ -79,7 +79,7 @@ export default function DeliveryTrackingMap({
       pickupLocation={startPoint}
       dropoffLocation={endPoint}
       driverLocation={courierGeoPoint}
-      routePolyline={resolvedRoute.length > 1 ? resolvedRoute : [startPoint, endPoint]}
+      routePolyline={resolvedRoute}
       routeProgress={courierPosition}
       routeCompletedColor="#16a34a"
       routeRemainingColor="#f97316"

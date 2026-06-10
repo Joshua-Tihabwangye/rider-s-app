@@ -39,7 +39,7 @@ import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
 import LocationAutocompleteField from "../components/location/LocationAutocompleteField";
 import RideTypeCard, { type RideTypeCardData } from "../components/rides/RideTypeCard";
 import { useAppData } from "../contexts/AppDataContext";
-import { calculateRouteThroughPoints, geocodeAddress } from "../services/maps";
+import { calculateRouteThroughPoints } from "../services/maps";
 import { getLocationPermissionState, watchLiveLocation } from "../services/location";
 import {
 	DEFAULT_ROUND_TRIP_RETURN_PATTERN,
@@ -48,6 +48,7 @@ import {
 } from "../features/rides/constants";
 
 const DESTINATION_INPUT_DEBOUNCE_MS = 550;
+const KAMPALA_CENTER = { lat: 0.3476, lng: 32.5825 };
 
 interface Stop {
 	id: string;
@@ -223,31 +224,14 @@ function EnterDestinationScreen(): React.JSX.Element {
 			null,
 	);
 
-	// Geocode pickup location if it's not "Current location"
+	// Keep current-location pickup in sync with live rider coordinates.
 	useEffect(() => {
-		const geocodePickup = async () => {
-			if (pickup === "Current location" && sharedLocationState.riderLocation) {
-				if (!pickupCoords || !areSameCoordinates(pickupCoords, sharedLocationState.riderLocation)) {
-					setPickupCoords(sharedLocationState.riderLocation);
-					updateSharedLocationState({ pickupCoords: sharedLocationState.riderLocation });
-				}
-				return;
+		if (pickup === "Current location" && sharedLocationState.riderLocation) {
+			if (!pickupCoords || !areSameCoordinates(pickupCoords, sharedLocationState.riderLocation)) {
+				setPickupCoords(sharedLocationState.riderLocation);
+				updateSharedLocationState({ pickupCoords: sharedLocationState.riderLocation });
 			}
-			if (pickup && pickup !== "Current location" && !pickupCoords) {
-				try {
-					const coords = await geocodeAddress(pickup);
-					if (coords) {
-						setPickupCoords(coords);
-						// Update shared state with pickup coordinates
-						updateSharedLocationState({ pickupCoords: coords });
-					}
-				} catch (error) {
-					console.error("Failed to geocode pickup location:", error);
-				}
-			}
-		};
-
-		geocodePickup();
+		}
 	}, [pickup, pickupCoords, sharedLocationState.riderLocation, updateSharedLocationState]);
 	const [destination, setDestination] = useState(
 		initialState.destination || ride.request.destination?.label || "",
@@ -350,6 +334,18 @@ function EnterDestinationScreen(): React.JSX.Element {
 		() => (destinationCoords ? destination : debouncedDestination),
 		[destinationCoords, destination, debouncedDestination]
 	);
+	const mapCenter = pickupCoords ?? sharedLocationState.riderLocation ?? ride.request.origin?.coordinates ?? KAMPALA_CENTER;
+	const handleUseCurrentLocation = useCallback(() => {
+		if (!sharedLocationState.riderLocation) {
+			return;
+		}
+		setPickup("Current location");
+		setPickupCoords(sharedLocationState.riderLocation);
+		updateSharedLocationState({ pickupCoords: sharedLocationState.riderLocation });
+		setShowError(false);
+		setErrorMessage("");
+		clearFieldError("pickup");
+	}, [sharedLocationState.riderLocation, updateSharedLocationState]);
 
 	useEffect(() => {
 		if (!destination.trim()) {
@@ -1073,7 +1069,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 		// Convert Date objects to ISO strings for serialization
 		const tripState = {
 			...baseState,
-			scheduledDateTime: scheduledDateTimeIso,
+			scheduledDateTime: scheduledDateTimeIso ?? undefined,
 			// Ensure selectedContact is a plain object (not containing any non-serializable data)
 			selectedContact: baseState.selectedContact
 				? {
@@ -1177,7 +1173,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 			scheduleTime,
 			isScheduled,
 			// Convert Date to ISO string if it exists
-			scheduledDateTime: scheduledDateTimeIso,
+			scheduledDateTime: scheduledDateTimeIso ?? undefined,
 			// Ensure selectedContact is a plain object
 			selectedContact: selectedContact
 				? {
@@ -1286,30 +1282,34 @@ function EnterDestinationScreen(): React.JSX.Element {
 					}}
 				>
 						<MapShell
-							fullBleed={false}
-							showControls={false}
-							showRouteInfo={false}
-							resizeKey={isMapExpanded ? "expanded" : "default"}
-							sx={{
-								height: isMapExpanded ? mapExpandedHeight : mapNormalHeight,
-									minHeight: { xs: 280, md: 330 },
-								flex: "0 0 auto",
-								transition: "height 320ms ease-in-out"
-							}}
+								fullBleed={false}
+								showControls={false}
+								showRouteInfo={false}
+								resizeKey={isMapExpanded ? "expanded" : "default"}
+								sx={{
+									height: isMapExpanded ? mapExpandedHeight : mapNormalHeight,
+										minHeight: { xs: 280, md: 330 },
+									flex: "0 0 auto",
+									transition: "height 320ms ease-in-out"
+								}}
+								mapCenter={mapCenter}
+								onRecenter={handleUseCurrentLocation}
 								pickupLocation={pickupCoords}
 								dropoffLocation={destinationCoords}
-							routePolyline={routePolyline}
-							routeAlternativePolylines={routeAlternatives}
-							routeDistanceKm={sharedLocationState.routeDistanceKm}
-							routeDurationMin={sharedLocationState.routeDurationMin}
-						canvasSx={{
-							background:
-								theme.palette.mode === "light"
-								? "linear-gradient(160deg, #F2F4F7 0%, #EEF2F6 68%, #E8F5EE 100%)"
-								: "linear-gradient(160deg, #1B2D3E 0%, #223A4F 25%, #1A2533 25%, #1A2533 100%)",
-					}}
-				/>
-					<IconButton
+								routePolyline={routePolyline}
+								routeAlternativePolylines={routeAlternatives}
+								routeDistanceKm={sharedLocationState.routeDistanceKm}
+								routeDurationMin={sharedLocationState.routeDurationMin}
+								canvasSx={{
+									background:
+										theme.palette.mode === "light"
+										? "linear-gradient(160deg, #F2F4F7 0%, #EEF2F6 68%, #E8F5EE 100%)"
+										: "linear-gradient(160deg, #1B2D3E 0%, #223A4F 25%, #1A2533 25%, #1A2533 100%)",
+								}}
+							/>
+<IconButton
+						onClick={handleUseCurrentLocation}
+						aria-label="Recenter to current location"
 						sx={{
 							position: "absolute",
 							right: { xs: 6, md: 8 },
@@ -1431,126 +1431,117 @@ function EnterDestinationScreen(): React.JSX.Element {
 					<CardContent sx={{ px: 2, py: 2 }}>
 						<Stack spacing={2}>
 								{/* Origin Field with Green Pin */}
-								<Box sx={{ position: "relative" }}>
-									<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
-										<Typography sx={{ fontSize: 12.5, color: "#667085" }}>
-											Pickup location
-										</Typography>
-										<Button
-											size="small"
-											startIcon={<MyLocationRoundedIcon sx={{ fontSize: 16 }} />}
-											onClick={() => {
-												setPickup("Current location");
-												clearFieldError("pickup");
-												if (sharedLocationState.riderLocation) {
-													setPickupCoords(sharedLocationState.riderLocation);
-													updateSharedLocationState({
-														pickupCoords: sharedLocationState.riderLocation
-													});
-												}
+						<Box sx={{ position: "relative" }}>
+							<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
+								<Typography sx={{ fontSize: 12.5, color: "#667085" }}>
+									Pickup location
+								</Typography>
+								<Button
+									size="small"
+									startIcon={<MyLocationRoundedIcon sx={{ fontSize: 16 }} />}
+									onClick={handleUseCurrentLocation}
+									sx={{
+										textTransform: "none",
+										fontWeight: 700,
+										fontSize: 12,
+										color: "#12B76A",
+										px: 1.2,
+										borderRadius: 99,
+										border: "1px solid #A6F4C5",
+										bgcolor: "#ECFDF3"
+									}}
+								>
+									Use current
+								</Button>
+							</Stack>
+							<TextField
+								fullWidth
+								size="small"
+								variant="outlined"
+								value={pickup}
+								onChange={(e) => {
+									const nextValue = e.target.value;
+									setPickup(nextValue);
+									if (nextValue.trim() !== "Current location") {
+										setPickupCoords(null);
+										updateSharedLocationState({
+											pickupCoords: null,
+											routePolyline: [],
+											routeAlternativePolylines: [],
+											routeDistanceKm: null,
+											routeDurationMin: null
+										});
+									}
+									clearFieldError("pickup");
+								}}
+								onFocus={() => {
+									setShowError(false);
+									setErrorMessage("");
+									clearFieldError("pickup");
+								}}
+								error={Boolean(fieldErrors.pickup)}
+								helperText={fieldErrors.pickup || " "}
+								InputProps={{
+									startAdornment: (
+										<InputAdornment position="start">
+											<PlaceRoundedIcon
+												sx={{
+												fontSize: 20,
+												color: "#4CAF50",
 											}}
-											sx={{
-												textTransform: "none",
-												fontWeight: 700,
-												fontSize: 12,
-												color: "#12B76A",
-												px: 1.2,
-												borderRadius: 99,
-												border: "1px solid #A6F4C5",
-												bgcolor: "#ECFDF3"
-											}}
-										>
-											Use current
-										</Button>
-									</Stack>
-									<TextField
-										fullWidth
-										size="small"
-										variant="outlined"
-										value={pickup}
-										onChange={(e) => {
-											const nextValue = e.target.value;
-											setPickup(nextValue);
-											if (pickupCoords && nextValue.trim() !== pickup.trim()) {
-												setPickupCoords(null);
-												updateSharedLocationState({
-													pickupCoords: null,
-													routePolyline: [],
-													routeAlternativePolylines: [],
-													routeDistanceKm: null,
-													routeDurationMin: null
-												});
-											}
-											clearFieldError("pickup");
-										}}
-										onFocus={() => {
-											setShowError(false);
-											setErrorMessage("");
-											clearFieldError("pickup");
-										}}
-										error={Boolean(fieldErrors.pickup)}
-										helperText={fieldErrors.pickup || " "}
-										InputProps={{
-											startAdornment: (
-												<InputAdornment position="start">
-													<PlaceRoundedIcon
-														sx={{
-															fontSize: 20,
-															color: "#4CAF50",
-														}}
-													/>
-												</InputAdornment>
-											),
-											endAdornment: (
-												<InputAdornment position="end">
-													<IconButton
-														size="small"
-														onClick={handleSwitchLocations}
-														sx={{
-															color: theme.palette.text.secondary,
-															"&:hover": {
-																bgcolor:
-																	theme.palette.mode === "light"
-																		? "rgba(0,0,0,0.05)"
-																		: "rgba(255,255,255,0.05)",
-															},
-														}}
-													>
-														<SwapVertRoundedIcon sx={{ fontSize: 20 }} />
-													</IconButton>
-												</InputAdornment>
-											),
-										}}
-										sx={{
-											"& .MuiOutlinedInput-root": {
-												borderRadius: 5,
-												bgcolor:
-													theme.palette.mode === "light"
-														? "rgba(0,0,0,0.05)"
-														: "rgba(255,255,255,0.05)",
-												color: theme.palette.text.primary,
-												"& fieldset": {
-													borderColor:
-														theme.palette.mode === "light"
-															? "rgba(0,0,0,0.15)"
-															: "rgba(255,255,255,0.2)",
-												},
-												"&:hover fieldset": {
-													borderColor: accentGreen,
-												},
-												"&.Mui-focused fieldset": {
-													borderColor: accentGreen,
-												},
-											},
-											"& .MuiFormHelperText-root": {
-												mt: 0.7,
-												mb: -0.25,
-											},
-										}}
-									/>
-								</Box>
+											/>
+										</InputAdornment>
+									),
+									endAdornment: (
+										<InputAdornment position="end">
+											<IconButton
+												size="small"
+												onClick={handleSwitchLocations}
+												sx={{
+													color: theme.palette.text.secondary,
+													"&:hover": {
+														bgcolor:
+															theme.palette.mode === "light"
+															? "rgba(0,0,0,0.05)"
+															: "rgba(255,255,255,0.05)",
+													},
+												}}
+											>
+												<SwapVertRoundedIcon sx={{ fontSize: 20 }} />
+											</IconButton>
+										</InputAdornment>
+									),
+								}}
+								sx={{
+									"& .MuiOutlinedInput-root": {
+										borderRadius: 5,
+										bgcolor:
+											theme.palette.mode === "light"
+												? "rgba(0,0,0,0.05)"
+												: "rgba(255,255,255,0.05)",
+										color: theme.palette.text.primary,
+										"& fieldset": {
+											borderColor:
+												theme.palette.mode === "light"
+													? "rgba(0,0,0,0.15)"
+													: "rgba(255,255,255,0.2)",
+										},
+										"&:hover fieldset": {
+											borderColor: accentGreen,
+										},
+										"&.Mui-focused fieldset": {
+											borderColor: accentGreen,
+										},
+									},
+									"& .MuiFormHelperText-root": {
+										mt: 0.7,
+										mb: -0.25,
+									},
+								}}
+							/>
+						</Box>
 
-								{/* Single Destination Mode */}
+{/* Single Destination Mode */}
 								{!isMultiStopMode && (
 									<Box>
 										<Typography sx={{ fontSize: 12.5, color: "#667085", mb: 0.75 }}>

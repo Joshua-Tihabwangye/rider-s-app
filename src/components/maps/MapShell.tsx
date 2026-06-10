@@ -181,14 +181,8 @@ export default function MapShell({
     if (routePolyline.length > 1) {
       return routePolyline;
     }
-    if (pickupLocation && dropoffLocation) {
-      return [pickupLocation, dropoffLocation];
-    }
-    if (mapMarkers.length > 1) {
-      return [mapMarkers[0]!.position, mapMarkers[mapMarkers.length - 1]!.position];
-    }
     return [];
-  }, [dropoffLocation, mapMarkers, pickupLocation, routePolyline]);
+  }, [routePolyline]);
 
   const canShowBack = showBackButton ?? isRideMapRoute;
   const canShowSos = (showSosButton ?? isRideMapRoute) && Boolean(onSos ?? isRideMapRoute);

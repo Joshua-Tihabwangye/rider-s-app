@@ -21,6 +21,8 @@ import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFil
 import GoogleMapView from "../components/maps/GoogleMapView";
 import { useAppData } from "../contexts/AppDataContext";
 
+const KAMPALA_CENTER = { lat: 0.3476, lng: 32.5825 };
+
 interface Passenger {
   id: string;
   name: string;
@@ -120,26 +122,17 @@ function SharingPassengersScreen(): React.JSX.Element {
   const sharing = ride.sharing;
   const sharingWorkflow = ride.workflow.sharing;
   const [isActivated, setIsActivated] = useState(sharing.splitFareEnabled);
+  const routePolyline = sharedLocationState.routePolyline ?? [];
   const mapRoute = useMemo(() => {
-    if (sharedLocationState.routePolyline.length > 1) {
-      return sharedLocationState.routePolyline;
-    }
-    if (sharedLocationState.pickupCoords && sharedLocationState.destinationCoords) {
-      return [sharedLocationState.pickupCoords, sharedLocationState.destinationCoords];
-    }
-    return sharingWorkflow.mapPreviewPolyline;
-  }, [
-    sharedLocationState.destinationCoords,
-    sharedLocationState.pickupCoords,
-    sharedLocationState.routePolyline,
-    sharingWorkflow.mapPreviewPolyline
-  ]);
+    return routePolyline.length > 1 ? routePolyline : [];
+  }, [routePolyline]);
   const mapCenter = useMemo(
     () =>
       sharedLocationState.pickupCoords ??
       mapRoute[0] ??
-      sharingWorkflow.mapPreviewCenter,
-    [mapRoute, sharedLocationState.pickupCoords, sharingWorkflow.mapPreviewCenter]
+      sharedLocationState.destinationCoords ??
+      KAMPALA_CENTER,
+    [mapRoute, sharedLocationState.destinationCoords, sharedLocationState.pickupCoords]
   );
 
   const handleToggleActivation = (event: React.ChangeEvent<HTMLInputElement>): void => {

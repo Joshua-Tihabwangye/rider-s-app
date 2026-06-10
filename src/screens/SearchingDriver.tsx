@@ -53,13 +53,6 @@ function SearchingForDriverScreen(): React.JSX.Element {
     return `${distanceLabel} • ${durationLabel}`;
   }, [sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
-  const fallbackRoute = React.useMemo(() => {
-    if (routePolyline.length > 1) return routePolyline;
-    if (sharedLocationState.pickupCoords && sharedLocationState.destinationCoords) {
-      return [sharedLocationState.pickupCoords, sharedLocationState.destinationCoords];
-    }
-    return [];
-  }, [routePolyline, sharedLocationState.destinationCoords, sharedLocationState.pickupCoords]);
   const routeReady =
     (Boolean(sharedLocationState.pickupCoords) &&
       Boolean(sharedLocationState.destinationCoords)) ||
@@ -74,8 +67,8 @@ function SearchingForDriverScreen(): React.JSX.Element {
 
   // Calculate driver location along the route
   const driverLocation = React.useMemo(() => {
-    return getApproachPoint(fallbackRoute, driverProgress);
-  }, [fallbackRoute, driverProgress]);
+    return getApproachPoint(routePolyline, driverProgress);
+  }, [driverProgress, routePolyline]);
 
   useEffect(() => {
     if (hasInitializedSearchStatusRef.current) {
@@ -166,7 +159,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
             driverLocation={driverLocation}
-            routePolyline={fallbackRoute}
+            routePolyline={routePolyline}
             routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
             routeDistanceKm={sharedLocationState.routeDistanceKm}
             routeDurationMin={sharedLocationState.routeDurationMin}

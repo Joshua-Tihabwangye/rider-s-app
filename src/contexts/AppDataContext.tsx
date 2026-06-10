@@ -48,7 +48,7 @@ import type {
   SosEvent,
   SharedLocationState
 } from "../store/types";
-import { ALLOW_CACHE_FALLBACK, API_BASE_URL, BACKEND_FLAG_EVENT } from "../services/api/config";
+import { ALLOW_CACHE_FALLBACK, BACKEND_FLAG_EVENT, getApiBaseUrl } from "../services/api/config";
 import { useAuth } from "./AuthContext";
 import type { DeliveryRealtimePatch } from "../features/delivery/realtime";
 import {
@@ -4942,7 +4942,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
     const bootstrapRealtime = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/compat/realtime/events`);
+        const response = await fetch(`${getApiBaseUrl()}/compat/realtime/events`);
         if (response.ok) {
           const payload = await response.json();
           const data = (payload?.data || payload) as { rider?: { server?: Record<string, string | undefined> } };

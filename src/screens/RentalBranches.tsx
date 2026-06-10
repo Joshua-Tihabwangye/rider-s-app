@@ -286,13 +286,7 @@ export default function RentalBranches(): React.JSX.Element {
       : null
   ].filter((item): item is { id: string; position: { lat: number; lng: number }; label: string; color: string } => Boolean(item));
 
-  const routePolyline =
-    selectedPickup && selectedReturn
-      ? [
-          { lat: selectedPickup.latitude, lng: selectedPickup.longitude },
-          { lat: selectedReturn.latitude, lng: selectedReturn.longitude }
-        ]
-      : [];
+  const routePolyline: Array<{ lat: number; lng: number }> = [];
 
   const branchList = tab === "pickup" ? pickupOptions : returnOptions;
   const selectedId = tab === "pickup" ? pickupLocationId : returnLocationId;

@@ -20,13 +20,14 @@ import DirectionsCarFilledRoundedIcon from "@mui/icons-material/DirectionsCarFil
 import GoogleMapView from "../components/maps/GoogleMapView";
 import { useAppData } from "../contexts/AppDataContext";
 
+const KAMPALA_CENTER = { lat: 0.3476, lng: 32.5825 };
+
 function RideRatingTipScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
   const { ride, sharedLocationState } = useAppData();
   const tipWorkflow = ride.workflow.tip;
-  const sharingWorkflow = ride.workflow.sharing;
   const routePolyline = sharedLocationState.routePolyline ?? [];
   
   const driverData = location.state?.driverData || {
@@ -34,25 +35,15 @@ function RideRatingTipScreen(): React.JSX.Element {
     initials: ride.activeTrip?.driver?.avatar || "DR"
   };
   const mapRoute = useMemo(() => {
-    if (routePolyline.length > 1) {
-      return routePolyline;
-    }
-    if (sharedLocationState.pickupCoords && sharedLocationState.destinationCoords) {
-      return [sharedLocationState.pickupCoords, sharedLocationState.destinationCoords];
-    }
-    return sharingWorkflow.mapPreviewPolyline ?? [];
-  }, [
-    sharedLocationState.destinationCoords,
-    sharedLocationState.pickupCoords,
-    routePolyline,
-    sharingWorkflow.mapPreviewPolyline
-  ]);
+    return routePolyline.length > 1 ? routePolyline : [];
+  }, [routePolyline]);
   const mapCenter = useMemo(
     () =>
       sharedLocationState.pickupCoords ??
       mapRoute[0] ??
-      sharingWorkflow.mapPreviewCenter,
-    [mapRoute, sharedLocationState.pickupCoords, sharingWorkflow.mapPreviewCenter]
+      sharedLocationState.destinationCoords ??
+      KAMPALA_CENTER,
+    [mapRoute, sharedLocationState.destinationCoords, sharedLocationState.pickupCoords]
   );
   
   const [rating, setRating] = useState(0);
