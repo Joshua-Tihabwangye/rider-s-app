@@ -135,6 +135,7 @@ import {
 } from "../services/api/riderApi";
 import { createRiderSocket } from "../services/riderSocket";
 import { DEFAULT_ROUND_TRIP_RETURN_PATTERN, RIDE_MAX_STOPS } from "../features/rides/constants";
+import { useRiderLiveLocation } from "../hooks/useRiderLiveLocation";
 
 interface AppState extends AppData {
   settings: SettingsState;
@@ -3323,6 +3324,16 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   const ambulanceCreateInFlightRef = useRef(false);
   const [riderBackendEnabled, setRiderBackendEnabled] = useState(() => isRiderBackendEnabled());
 
+  // Phase 5.1 — Watch device GPS and keep sharedLocationState.riderLocation in
+  // sync so MapShell automatically renders the blue "you are here" pin on every
+  // map screen without per-screen wiring.
+  useRiderLiveLocation({
+    enabled: true,
+    onLocation: (coords) => {
+      dispatch({ type: "location/update", payload: { riderLocation: coords } });
+    },
+  });
+
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
 
@@ -4940,32 +4951,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       });
     };
 
-    const bootstrapRealtime = async () => {
-      try {
-        const response = await fetch(`${getApiBaseUrl()}/compat/realtime/events`);
-        if (response.ok) {
-          const payload = await response.json();
-          const data = (payload?.data || payload) as { rider?: { server?: Record<string, string | undefined> } };
-          const server = data?.rider?.server || {};
-          deliveryPatchEvent = server.DELIVERY_PATCH || deliveryPatchEvent;
-          deliveryOrderNewEvent = server.DELIVERY_ORDER_NEW || deliveryOrderNewEvent;
-          deliveryRouteUpdatedEvent = server.DELIVERY_ROUTE_UPDATED || deliveryRouteUpdatedEvent;
-          serviceRequestNewEvent = server.SERVICE_REQUEST_NEW || serviceRequestNewEvent;
-          serviceRequestUpdatedEvent = server.SERVICE_REQUEST_UPDATED || serviceRequestUpdatedEvent;
-          tripLocationEvent = server.TRIP_LOCATION_UPDATED || tripLocationEvent;
-          tripEvents = [
-            server.TRIP_DRIVER_ASSIGNED ?? defaultTripEvents[0],
-            server.TRIP_DRIVER_ARRIVING ?? defaultTripEvents[1],
-            server.TRIP_ARRIVED ?? defaultTripEvents[2],
-            server.TRIP_STARTED ?? defaultTripEvents[3],
-            server.TRIP_COMPLETED ?? defaultTripEvents[4],
-            server.TRIP_CANCELLED ?? defaultTripEvents[5],
-          ];
-        }
-      } catch {
-        // fallback to defaults
-      }
-
+    const bootstrapRealtime = () => {
       if (cancelled) return;
       socket.on(deliveryPatchEvent, handleDeliveryPatch);
       socket.on(tripLocationEvent, handleTripLocationUpdated);
@@ -4989,7 +4975,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       socket.connect();
     };
 
-    void bootstrapRealtime();
+    bootstrapRealtime();
 
     return () => {
       cancelled = true;

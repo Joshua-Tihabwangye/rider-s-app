@@ -4,15 +4,28 @@ import { readRiderBackendAccessToken } from "./api/authApi";
 
 export type RiderSocket = Socket;
 
+// singleton socket, same pattern as the driver app.
+// createRiderSocket() now returns the same instance on every call
+// and refreshes the auth token without re-creating the connection.
+let riderSocket: RiderSocket | null = null;
+
 export function createRiderSocket(): RiderSocket {
-  const socketBaseUrl = getSocketBaseUrl();
-  return io(`${socketBaseUrl}/rider`, {
-    path: SOCKET_PATH,
-    transports: ["websocket"],
-    autoConnect: false,
-    withCredentials: false,
-    auth: {
-      token: readRiderBackendAccessToken(),
-    },
-  });
+  if (!riderSocket) {
+    riderSocket = io(`${getSocketBaseUrl()}/rider`, {
+      path: SOCKET_PATH,
+      transports: ["websocket"],
+      autoConnect: false,
+      withCredentials: false,
+      auth: {
+        token: readRiderBackendAccessToken(),
+      },
+    });
+  }
+
+  // Refresh the auth token on every call so reconnects pick up a fresh JWT.
+  riderSocket.auth = {
+    token: readRiderBackendAccessToken(),
+  };
+
+  return riderSocket;
 }

@@ -1307,23 +1307,6 @@ function EnterDestinationScreen(): React.JSX.Element {
 										: "linear-gradient(160deg, #1B2D3E 0%, #223A4F 25%, #1A2533 25%, #1A2533 100%)",
 								}}
 							/>
-<IconButton
-						onClick={handleUseCurrentLocation}
-						aria-label="Recenter to current location"
-						sx={{
-							position: "absolute",
-							right: { xs: 6, md: 8 },
-							top: { xs: 76, md: 86 },
-							zIndex: 7,
-							width: 46,
-							height: 46,
-							bgcolor: "rgba(255,255,255,0.95)",
-							border: "1px solid #E4E7EC",
-							boxShadow: "0 4px 12px rgba(16,24,40,0.12)"
-						}}
-					>
-						<MyLocationRoundedIcon sx={{ color: "#344054" }} />
-					</IconButton>
 						<Button
 							onClick={() => setIsMapExpanded(!isMapExpanded)}
 							aria-label={isMapExpanded ? "Show details panel" : "Expand map"}
