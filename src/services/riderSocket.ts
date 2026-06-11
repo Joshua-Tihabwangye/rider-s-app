@@ -1,5 +1,5 @@
 import { io, type Socket } from "socket.io-client";
-import { SOCKET_PATH, getSocketBaseUrl } from "./api/config";
+import { SOCKET_BASE_URL, SOCKET_PATH } from "./api/config";
 import { readRiderBackendAccessToken } from "./api/authApi";
 
 export type RiderSocket = Socket;
@@ -9,9 +9,13 @@ export type RiderSocket = Socket;
 // and refreshes the auth token without re-creating the connection.
 let riderSocket: RiderSocket | null = null;
 
-export function createRiderSocket(): RiderSocket {
+export function createRiderSocket(): RiderSocket | null {
+  if (!SOCKET_BASE_URL) {
+    return null;
+  }
+
   if (!riderSocket) {
-    riderSocket = io(`${getSocketBaseUrl()}/rider`, {
+    riderSocket = io(`${SOCKET_BASE_URL}/rider`, {
       path: SOCKET_PATH,
       transports: ["websocket"],
       autoConnect: false,
