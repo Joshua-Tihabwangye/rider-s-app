@@ -3,6 +3,14 @@
   "outputDirectory": "build",
   "installCommand": "npm install",
   "framework": null,
+  "env": {
+    "VITE_BACKEND_BASE_URL": "https://api.evzone.app/api/v1",
+    "VITE_SOCKET_BASE_URL": "https://api.evzone.app",
+    "VITE_BACKEND_ENABLED": "true",
+    "VITE_USE_BACKEND": "true",
+    "VITE_FRONTEND_ONLY_MODE": "false",
+    "VITE_ALLOW_DEV_AUTH_FALLBACK": "false"
+  },
   "rewrites": [
     {
       "source": "/(.*)",
