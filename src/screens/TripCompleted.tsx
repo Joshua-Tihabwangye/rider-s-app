@@ -160,6 +160,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
             driverLocation={sharedLocationState.destinationCoords}
+            riderLocation={sharedLocationState.riderLocation}
             routePolyline={routePolyline}
             routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
             routeDistanceKm={sharedLocationState.routeDistanceKm}

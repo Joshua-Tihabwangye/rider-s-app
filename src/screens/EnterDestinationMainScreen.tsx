@@ -1,11 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  
   Box,
   IconButton,
-  TextField,
-  InputAdornment,
   Typography,
   Card,
   CardContent,
@@ -14,31 +11,37 @@ import {
 } from "@mui/material";
 
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
 import GoogleMapView from "../components/maps/GoogleMapView";
+import LocationAutocompleteField, {
+  type LocationSelection
+} from "../components/location/LocationAutocompleteField";
+import { useAppData } from "../contexts/AppDataContext";
 
 interface CommonPlaceCardProps {
   icon: React.ReactElement;
   label: string;
   address: string;
+  onClick?: () => void;
 }
 
-function CommonPlaceCard({ icon, label, address }: CommonPlaceCardProps): React.JSX.Element {
+function CommonPlaceCard({ icon, label, address, onClick }: CommonPlaceCardProps): React.JSX.Element {
   return (
     <Card
       elevation={0}
+      onClick={onClick}
       sx={{
         borderRadius: 2,
+        cursor: onClick ? "pointer" : "default",
         bgcolor: (theme) =>
           theme.palette.mode === "light" ? "#FFFFFF" : "rgba(15,23,42,0.98)",
         border: (theme) =>
           theme.palette.mode === "light"
             ? "1px solid rgba(209,213,219,0.9)"
             : "1px solid rgba(51,65,85,0.8)",
-        mb: 1.5
+        mb: 1.5,
+        "&:hover": onClick ? { borderColor: "primary.main" } : {}
       }}
     >
       <CardContent sx={{ py: 1.5, px: 1.75 }}>
@@ -81,10 +84,38 @@ function CommonPlaceCard({ icon, label, address }: CommonPlaceCardProps): React.
 
 function EnterDestinationMainScreen(): React.JSX.Element {
   const navigate = useNavigate();
+  const { sharedLocationState, actions } = useAppData();
+  const { updateRideRequest, updateSharedLocationState } = actions;
+  const [destinationQuery, setDestinationQuery] = useState("");
   const [tab, setTab] = useState("common");
 
   const handleTabChange = (_event: React.SyntheticEvent, value: string): void => {
     setTab(value);
+  };
+
+  // Phase 6.2 — when the rider picks a destination, store it in ride state
+  // and navigate directly to the ride options / confirm screen.
+  const handleSelectDestination = (selection: LocationSelection) => {
+    updateRideRequest({
+      destination: {
+        label: selection.label,
+        address: selection.address,
+        coordinates: selection.coordinates,
+      },
+    });
+    updateSharedLocationState({
+      destinationCoords: selection.coordinates,
+    });
+    navigate("/rides/options");
+  };
+
+  // Quick-tap on a common place card
+  const handleCommonPlace = (label: string, address: string) => {
+    setDestinationQuery(address);
+    updateRideRequest({
+      destination: { label, address, coordinates: undefined },
+    });
+    navigate("/rides/options");
   };
 
   return (
@@ -123,19 +154,13 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         <Box sx={{ width: 32 }} />
       </Box>
 
-      {/* Search */}
-      <TextField
-        fullWidth
-        size="small"
+      {/* Phase 6.2 — live location autocomplete replaces the static search input */}
+      <LocationAutocompleteField
+        value={destinationQuery}
+        onValueChange={setDestinationQuery}
+        onSelectLocation={handleSelectDestination}
         placeholder="Where to?"
-        variant="outlined"
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchRoundedIcon sx={{ fontSize: 20, color: "text.secondary" }} />
-            </InputAdornment>
-          )
-        }}
+        nearbyCoordinates={sharedLocationState.riderLocation ?? sharedLocationState.pickupCoords ?? null}
         sx={{
           mb: 2,
           "& .MuiOutlinedInput-root": {
@@ -148,14 +173,12 @@ function EnterDestinationMainScreen(): React.JSX.Element {
                   ? "rgba(209,213,219,0.9)"
                   : "rgba(51,65,85,0.9)"
             },
-            "&:hover fieldset": {
-              borderColor: "primary.main"
-            }
+            "&:hover fieldset": { borderColor: "primary.main" }
           }
         }}
       />
 
-      {/* Map preview */}
+      {/* Map preview — shows rider's current position */}
       <Box
         sx={{
           mb: 3,
@@ -166,71 +189,16 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         }}
       >
         <GoogleMapView
-          center={{ lat: 0.3476, lng: 32.5825 }}
-          zoom={12}
-          routePolyline={[
-            { lat: 0.339, lng: 32.568 },
-            { lat: 0.348, lng: 32.58 },
-            { lat: 0.357, lng: 32.592 }
-          ]}
+          center={sharedLocationState.riderLocation ?? { lat: 0.3476, lng: 32.5825 }}
+          zoom={14}
+          riderLocation={sharedLocationState.riderLocation}
+          pickupLocation={sharedLocationState.pickupCoords}
+          dropoffLocation={
+            destinationQuery
+              ? sharedLocationState.destinationCoords ?? null
+              : null
+          }
         />
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            opacity: 0.18,
-            pointerEvents: "none",
-            backgroundImage:
-              "linear-gradient(to right, rgba(148,163,184,0.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.35) 1px, transparent 1px)",
-            backgroundSize: "28px 28px"
-          }}
-        />
-        <Box
-          sx={{
-            position: "absolute",
-            left: "24%",
-            top: "60%",
-            transform: "translate(-50%, -50%)",
-            pointerEvents: "none"
-          }}
-        >
-          <Box sx={{ position: "relative" }}>
-            <Box
-              sx={{
-                width: 14,
-                height: 14,
-                borderRadius: "5px",
-                bgcolor: "#03CD8C",
-                border: "2px solid white"
-              }}
-            />
-            <Box
-              sx={{
-                position: "absolute",
-                inset: -8,
-                borderRadius: "5px",
-                border: "1px solid rgba(59,130,246,0.5)"
-              }}
-            />
-          </Box>
-        </Box>
-        <Box
-          sx={{
-            position: "absolute",
-            right: "18%",
-            top: "26%",
-            transform: "translate(50%, -50%)",
-            pointerEvents: "none"
-          }}
-        >
-          <PlaceRoundedIcon
-            sx={{
-              fontSize: 28,
-              color: "primary.main",
-              filter: "drop-shadow(0 4px 8px rgba(15,23,42,0.9))"
-            }}
-          />
-        </Box>
       </Box>
 
       {/* Tabs */}
@@ -270,13 +238,13 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               icon={<HomeRoundedIcon sx={{ fontSize: 20, color: "#F97316" }} />}
               label="Home"
               address="12, JJ Apartments, New Street, Kampala"
+              onClick={() => handleCommonPlace("Home", "12, JJ Apartments, New Street, Kampala")}
             />
             <CommonPlaceCard
-              icon={
-                <ApartmentRoundedIcon sx={{ fontSize: 20, color: "#F97316" }} />
-              }
+              icon={<ApartmentRoundedIcon sx={{ fontSize: 20, color: "#F97316" }} />}
               label="Office"
               address="12, JJ Apartments, New Street, Kampala"
+              onClick={() => handleCommonPlace("Office", "12, JJ Apartments, New Street, Kampala")}
             />
           </>
         )}

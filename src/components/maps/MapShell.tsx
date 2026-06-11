@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
+import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import { useLocation, useNavigate } from "react-router-dom";
 import { uiTokens } from "../../design/tokens";
 import { MAP_HEIGHT_PRESETS, MapHeightPreset } from "./mapPresets";
@@ -131,6 +132,7 @@ export default function MapShell({
   showSosButton,
   onBack,
   onSos,
+  onRecenter,
   onZoomChange,
   onMapClick,
   onLocationSelect,
@@ -168,7 +170,7 @@ export default function MapShell({
   const isRideMapRoute = location.pathname.startsWith("/rides");
   const [zoom, setZoom] = useState<number>(clampZoom(initialZoom));
   const layer = initialLayer;
-  const recenterKey = 0;
+  const [recenterKey, setRecenterKey] = useState(0);
 
   const resolvedHeight = useMemo(() => {
     if (height !== undefined) {
@@ -267,6 +269,11 @@ export default function MapShell({
     if (isRideMapRoute) {
       navigate("/rides/sos");
     }
+  };
+
+  const handleRecenter = (): void => {
+    onRecenter?.();
+    setRecenterKey((value) => value + 1);
   };
 
   return (
@@ -414,6 +421,34 @@ export default function MapShell({
         </IconButton>
       )}
 
+      {onRecenter && (
+        <IconButton
+          size="small"
+          aria-label="Recenter to current location"
+          onClick={handleRecenter}
+          sx={{
+            position: "absolute",
+            top: canShowSos ? { xs: "calc(env(safe-area-inset-top, 0px) + 64px)", md: 66 } : topInsetSx,
+            right: rightInsetSx,
+            zIndex: 7,
+            width: 44,
+            height: 44,
+            bgcolor: "var(--evz-map-overlay-bg)",
+            color: (theme) => theme.palette.text.primary,
+            borderRadius: "14px",
+            border: "1px solid var(--evz-map-control-border)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            boxShadow: "0 8px 18px rgba(15,23,42,0.2)",
+            "&:hover": {
+              bgcolor: "var(--evz-map-control-bg)"
+            }
+          }}
+        >
+          <MyLocationRoundedIcon sx={{ fontSize: 20 }} />
+        </IconButton>
+      )}
+
       {canShowSos && (
         <Button
           size="small"
@@ -512,7 +547,7 @@ export default function MapShell({
               whiteSpace: "nowrap"
             }}
           >
-            No backend route geometry available
+            No backend route available yet
           </Box>
         </Box>
       )}

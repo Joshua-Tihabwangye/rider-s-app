@@ -78,8 +78,18 @@ export interface RiderTripApi {
   completedAt?: number;
 }
 
+export interface RiderJobOfferApi {
+  id: string;
+  type: string;
+  status: string;
+  tripId?: string | null;
+  driverId?: string | null;
+  distanceMeters?: number;
+}
+
 interface RiderTripRequestResponse {
   trip: RiderTripApi;
+  jobOffers?: RiderJobOfferApi[];
   nearbyDriverCount: number;
 }
 
@@ -293,11 +303,31 @@ export async function getRiderTripHistory(): Promise<RiderTripApi[]> {
   return request<RiderTripApi[]>("/riders/me/trips/history", { method: "GET" });
 }
 
+function persistTripDispatchMetadata(response: RiderTripRequestResponse): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(
+    "evzone_last_trip_dispatch",
+    JSON.stringify({
+      tripId: response.trip.id,
+      nearbyDriverCount: response.nearbyDriverCount,
+      jobOffers: response.jobOffers ?? [],
+      updatedAt: Date.now(),
+    }),
+  );
+}
+
 export async function createRiderTripRequest(payload: CreateRiderTripRequestPayload): Promise<RiderTripApi> {
-  return request<RiderTripApi>("/riders/me/trips/request", {
+  const response = await request<RiderTripApi | RiderTripRequestResponse>("/riders/me/trips/request", {
     method: "POST",
     body: payload,
   });
+
+  if (response && typeof response === "object" && "trip" in response) {
+    persistTripDispatchMetadata(response);
+    return response.trip;
+  }
+
+  return response;
 }
 
 export async function updateRiderTripTracking(tripId: string, patch: UpdateRiderTripTrackingPayload): Promise<RiderTripApi> {

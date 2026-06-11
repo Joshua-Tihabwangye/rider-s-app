@@ -87,6 +87,8 @@ export default function LocationAutocompleteField({
       disabled={disabled}
       options={suggestions}
       loading={loading}
+      loadingText="Searching live places…"
+      noOptionsText={value.trim().length < minQueryLength ? `Type at least ${minQueryLength} characters` : "No matching backend places found"}
       inputValue={value}
       value={null}
       getOptionLabel={(option) => (typeof option === "string" ? option : option.description)}

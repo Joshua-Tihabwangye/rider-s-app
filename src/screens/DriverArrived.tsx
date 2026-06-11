@@ -213,6 +213,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
             driverLocation={driverLocation}
+            riderLocation={sharedLocationState.riderLocation}
             routePolyline={routePolyline}
             routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
             routeDistanceKm={approachDistanceKm}

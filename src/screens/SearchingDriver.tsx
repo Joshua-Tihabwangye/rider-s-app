@@ -38,6 +38,19 @@ function SearchingForDriverScreen(): React.JSX.Element {
   const companyOrange = "#F79009";
   const tripWorkflow = ride.workflow.tripSimulation;
   const backendMode = isRiderBackendEnabled();
+
+  // Phase 5.3 — pan map to rider's current GPS position on button tap
+  const handleLocateMe = React.useCallback(() => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        updateSharedLocationState({ riderLocation: coords });
+      },
+      undefined,
+      { enableHighAccuracy: true, timeout: 8000 },
+    );
+  }, [updateSharedLocationState]);
   const routeSummary = React.useMemo(() => {
     const distance = sharedLocationState.routeDistanceKm;
     const duration = sharedLocationState.routeDurationMin;
@@ -189,10 +202,12 @@ function SearchingForDriverScreen(): React.JSX.Element {
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
             driverLocation={driverLocation}
+            riderLocation={sharedLocationState.riderLocation}
             routePolyline={routePolyline}
             routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
             routeDistanceKm={sharedLocationState.routeDistanceKm}
             routeDurationMin={sharedLocationState.routeDurationMin}
+            onRecenter={handleLocateMe}
             canvasSx={{ background: uiTokens.map.canvasEmphasis }}
           />
         }
