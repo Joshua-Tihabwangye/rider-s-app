@@ -16,7 +16,10 @@ function normalizeBaseUrl(value: string | undefined): string {
 
 function normalizeSocketBaseUrl(value: string | undefined, apiBaseUrl: string): string {
   const raw = value?.trim();
-  if (raw) return raw.replace(/\/+$/, "");
+  if (raw) {
+    const normalized = raw.replace(/\/+$/, "");
+    return normalized.replace(/\/api(?:\/v\d+)?$/, "");
+  }
   if (!apiBaseUrl) return "";
   return apiBaseUrl.replace(/\/api(?:\/v\d+)?$/, "");
 }
@@ -39,11 +42,6 @@ export function getApiBaseUrl(): string {
 }
 
 export function getSocketBaseUrl(): string {
-  if (!SOCKET_BASE_URL) {
-    throw new Error(
-      "VITE_SOCKET_BASE_URL must be configured to the backend origin without /api/v1.",
-    );
-  }
   return SOCKET_BASE_URL;
 }
 export const APP_ID = (env.VITE_APP_ID || "rider").trim() || "rider";

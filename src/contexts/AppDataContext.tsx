@@ -48,7 +48,12 @@ import type {
   SosEvent,
   SharedLocationState
 } from "../store/types";
-import { ALLOW_CACHE_FALLBACK, BACKEND_FLAG_EVENT, getApiBaseUrl } from "../services/api/config";
+import {
+  ALLOW_CACHE_FALLBACK,
+  BACKEND_FLAG_EVENT,
+  getApiBaseUrl,
+  SOCKET_BASE_URL,
+} from "../services/api/config";
 import { useAuth } from "./AuthContext";
 import type { DeliveryRealtimePatch } from "../features/delivery/realtime";
 import {
@@ -4754,7 +4759,22 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       return;
     }
 
+    if (!SOCKET_BASE_URL) {
+      console.warn(
+        "Rider realtime socket is disabled because VITE_SOCKET_BASE_URL is missing. The app will continue without live updates.",
+      );
+      dispatch({ type: "delivery/ws-connected", payload: false });
+      return;
+    }
+
     const socket = createRiderSocket();
+    if (!socket) {
+      console.warn(
+        "Rider realtime socket is disabled because the socket backend URL is missing or invalid. The app will continue without live updates.",
+      );
+      dispatch({ type: "delivery/ws-connected", payload: false });
+      return;
+    }
     let cancelled = false;
     const syncBackendReadOnlyState = async () => {
       try {
