@@ -182,12 +182,46 @@ function MapSyncController({
 }): null {
   const map = useGoogleMap();
   const zoomListenerRef = useRef<google.maps.MapsEventListener | null>(null);
+  // Track whether the user has manually interacted — if so, don't override their
+  // view on every location update. Only recenter when recenterKey increments.
+  const userInteractedRef = useRef(false);
+  const recenterKeyRef = useRef(recenterKey);
+  const initialMountRef = useRef(true);
 
+  // Register interaction listeners once
+  useEffect(() => {
+    if (!map) return;
+    const dragListener = map.addListener("dragstart", () => { userInteractedRef.current = true; });
+    const pinchListener = map.addListener("zoom_changed", () => {
+      // Only mark as user-interacted if the change didn't come from our own setZoom call
+      if (!initialMountRef.current) {
+        userInteractedRef.current = true;
+      }
+    });
+    return () => {
+      google.maps.event.removeListener(dragListener);
+      google.maps.event.removeListener(pinchListener);
+    };
+  }, [map]);
+
+  // Initial center + zoom on first mount only
   useEffect(() => {
     if (!map) return;
     map.setCenter({ lat: center.lat, lng: center.lng });
     map.setZoom(zoom);
-  }, [center.lat, center.lng, map, recenterKey, zoom]);
+    setTimeout(() => { initialMountRef.current = false; }, 500);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map]); // intentionally omit center/zoom — set once on mount
+
+  // Explicit recenter: fires only when recenterKey increments (user taps locate-me)
+  useEffect(() => {
+    if (!map) return;
+    if (recenterKeyRef.current === recenterKey) return; // no change
+    recenterKeyRef.current = recenterKey;
+    userInteractedRef.current = false;
+    map.setCenter({ lat: center.lat, lng: center.lng });
+    map.setZoom(zoom);
+  }, [recenterKey, center.lat, center.lng, zoom, map]);
 
   useEffect(() => {
     if (!map || !onZoomChange) return;
@@ -219,7 +253,8 @@ function MapResizeController({ resizeKey }: { resizeKey: number | string }): nul
   return null;
 }
 
-// Child component: fit bounds to given points
+// Child component: fit bounds to given points — fires ONCE on initial load only.
+// Never overrides user gestures (pinch, rotate, drag).
 function MapFitBoundsController({
   focusPoints,
   routePolyline
@@ -228,18 +263,14 @@ function MapFitBoundsController({
   routePolyline: MapPoint[];
 }): null {
   const map = useGoogleMap();
-  const lastBoundsKeyRef = useRef("");
+  const hasFitRef = useRef(false);
 
   useEffect(() => {
     if (!map) return;
+    if (hasFitRef.current) return; // only run once
     const points = [...routePolyline, ...focusPoints].filter(isValidPoint);
     if (points.length < 2) return;
-    const boundsKey = points
-      .map((p) => `${p.lat.toFixed(5)},${p.lng.toFixed(5)}`)
-      .join("|");
-    if (lastBoundsKeyRef.current === boundsKey) return;
-    lastBoundsKeyRef.current = boundsKey;
-
+    hasFitRef.current = true;
     const bounds = new google.maps.LatLngBounds();
     points.forEach((p) => bounds.extend({ lat: p.lat, lng: p.lng }));
     if (!bounds.isEmpty()) {
@@ -321,6 +352,21 @@ export default function GoogleMapView({
     return items;
   }, [driverLocation, dropoffLocation, markers, pickupLocation, riderLocation]);
 
+  // Stable positions array for MapFitBoundsController — only recomputed when
+  // the actual coordinate values change, not on every render.
+  const fitBoundsPoints = useMemo(
+    () => combinedMarkers.map((m) => m.position),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      pickupLocation?.lat, pickupLocation?.lng,
+      dropoffLocation?.lat, dropoffLocation?.lng,
+      driverLocation?.lat, driverLocation?.lng,
+      riderLocation?.lat, riderLocation?.lng,
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      resolvedRoute.length,
+    ]
+  );
+
   // Determine current location marker position
   const currentLocationMarker = useMemo((): MapPoint => {
     const existingCurrent = combinedMarkers.find(
@@ -360,6 +406,12 @@ export default function GoogleMapView({
       onLocationSelect?.(point);
     }
   };
+
+  // Stable center object — prevents Google Maps from re-initialising on every render
+  const stableCenter = useMemo(
+    () => ({ lat: center.lat, lng: center.lng }),
+    [center.lat, center.lng]
+  );
 
   // Marker click handler
   const handleMarkerClick = (id: string) => {
@@ -419,7 +471,9 @@ export default function GoogleMapView({
     );
   }
 
-  const mapOptions: google.maps.MapOptions = {
+  // Memoize mapOptions — a new object reference every render causes Google Maps
+  // to re-apply options and interrupts ongoing touch gestures.
+  const mapOptions = useMemo((): google.maps.MapOptions => ({
     minZoom: MIN_ZOOM,
     maxZoom: MAX_ZOOM,
     disableDefaultUI: false,
@@ -427,8 +481,13 @@ export default function GoogleMapView({
     streetViewControl: false,
     mapTypeControl: false,
     fullscreenControl: false,
-    gestureHandling: "greedy"
-  };
+    // "auto" lets users pinch-to-zoom and rotate freely on touch without
+    // requiring a two-finger scroll. "greedy" consumed all scroll events
+    // and caused the device freeze.
+    gestureHandling: "auto",
+    rotateControl: false,
+    tilt: 0,
+  }), []);
 
   return (
     <div
@@ -464,7 +523,7 @@ export default function GoogleMapView({
         </button>
       )}
       <GoogleMap
-        center={{ lat: center.lat, lng: center.lng }}
+        center={stableCenter}
         zoom={zoom}
         mapTypeId={mapTypeId}
         onClick={handleMapClick}
@@ -479,7 +538,7 @@ export default function GoogleMapView({
         />
         <MapResizeController resizeKey={resizeKey} />
         <MapFitBoundsController
-          focusPoints={combinedMarkers.map((m) => m.position)}
+          focusPoints={fitBoundsPoints}
           routePolyline={resolvedRoute}
         />
 

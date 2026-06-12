@@ -98,6 +98,19 @@ export default function ExpandableMapPanel({
   minMapHeight = 320
 }: ExpandableMapPanelProps): React.JSX.Element {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const mapWrapperRef = useRef<HTMLDivElement | null>(null);
+
+  // Fire a single resize event after the height transition completes so the
+  // Google Map tiles re-render correctly without spamming resize every frame.
+  const handleMapTransitionEnd = (event: React.TransitionEvent<HTMLDivElement>) => {
+    if (event.propertyName !== "height") return;
+    if (mapWrapperRef.current) {
+      const mapEl = mapWrapperRef.current.querySelector("[data-map-shell]") as HTMLElement | null;
+      if (mapEl) {
+        window.dispatchEvent(new Event("resize"));
+      }
+    }
+  };
 
   return (
     <>
@@ -113,6 +126,8 @@ export default function ExpandableMapPanel({
         ]}
       >
         <Box
+          ref={mapWrapperRef}
+          onTransitionEnd={handleMapTransitionEnd}
           sx={[
             {
               height: isExpanded ? expandedMapHeight : mapHeight,
@@ -132,8 +147,8 @@ export default function ExpandableMapPanel({
           sx={{
             position: "absolute",
             left: "50%",
-            bottom: isExpanded ? buttonOffsetExpanded : buttonOffsetCollapsed,
-            transform: "translateX(-50%)",
+            bottom: 0,
+            transform: `translateX(-50%) translateY(${isExpanded ? `${buttonOffsetExpanded}px` : `${buttonOffsetCollapsed}px`})`,
             zIndex: 14,
             borderRadius: 999,
             px: 1.4,
@@ -144,11 +159,13 @@ export default function ExpandableMapPanel({
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
             boxShadow: "0 2px 10px rgba(2,6,23,0.2)",
-            transition: "all 0.3s ease",
+            // Use transform-only animation — avoids layout reflow on every frame
+            transition: "transform 0.3s ease",
             textTransform: "none",
             color: "#334155",
             fontSize: 12,
             fontWeight: 700,
+            willChange: "transform",
             "&:hover": { bgcolor: "var(--evz-map-control-bg)" }
           }}
         >
