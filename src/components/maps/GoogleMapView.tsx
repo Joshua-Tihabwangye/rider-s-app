@@ -413,6 +413,24 @@ export default function GoogleMapView({
     [center.lat, center.lng]
   );
 
+  // Keep map options stable so Google Maps does not re-create the instance when
+  // the loader flips from "loading" to "loaded" on the next render.
+  const mapOptions = useMemo((): google.maps.MapOptions => ({
+    minZoom: MIN_ZOOM,
+    maxZoom: MAX_ZOOM,
+    disableDefaultUI: false,
+    zoomControl: false,
+    streetViewControl: false,
+    mapTypeControl: false,
+    fullscreenControl: false,
+    draggable: true,
+    // Greedy gesture handling lets touch users pan with one finger and pinch
+    // to zoom without the "use two fingers" prompt.
+    gestureHandling: "greedy",
+    rotateControl: false,
+    tilt: 0
+  }), []);
+
   // Marker click handler
   const handleMarkerClick = (id: string) => {
     setSelectedMarkerId((prev) => (prev === id ? null : id));
@@ -470,24 +488,6 @@ export default function GoogleMapView({
       </div>
     );
   }
-
-  // Memoize mapOptions — a new object reference every render causes Google Maps
-  // to re-apply options and interrupts ongoing touch gestures.
-  const mapOptions = useMemo((): google.maps.MapOptions => ({
-    minZoom: MIN_ZOOM,
-    maxZoom: MAX_ZOOM,
-    disableDefaultUI: false,
-    zoomControl: false,
-    streetViewControl: false,
-    mapTypeControl: false,
-    fullscreenControl: false,
-    // "auto" lets users pinch-to-zoom and rotate freely on touch without
-    // requiring a two-finger scroll. "greedy" consumed all scroll events
-    // and caused the device freeze.
-    gestureHandling: "auto",
-    rotateControl: false,
-    tilt: 0,
-  }), []);
 
   return (
     <div

@@ -18,6 +18,7 @@ export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
+  hydrated: boolean;
   error: string | null;
 }
 

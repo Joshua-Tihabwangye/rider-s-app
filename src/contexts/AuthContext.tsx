@@ -132,6 +132,7 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // true while hydrating
+  const [hydrated, setHydrated] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [riderBackendEnabled, setRiderBackendEnabled] = useState(() => isRiderBackendEnabled());
 
@@ -232,6 +233,7 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
       } finally {
         if (!cancelled) {
           setLoading(false);
+          setHydrated(true);
         }
       }
     };
@@ -428,6 +430,7 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
     user,
     isAuthenticated: !!user,
     loading,
+    hydrated,
     error,
     signIn,
     signUp,
@@ -437,7 +440,7 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
     resetPassword,
     socialSignIn,
     clearError
-  }), [user, loading, error, signIn, signUp, signOut, forgotPassword, verifyOtp, resetPassword, socialSignIn, clearError]);
+  }), [user, loading, hydrated, error, signIn, signUp, signOut, forgotPassword, verifyOtp, resetPassword, socialSignIn, clearError]);
 
   return (
     <AuthContext.Provider value={value}>
