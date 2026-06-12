@@ -10,9 +10,21 @@ import MobileShell from "./components/MobileShell";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
 function AppDataGate({ children }: { children: ReactNode }): React.JSX.Element {
-	const { loading, isAuthenticated } = useAuth();
+	const { loading, hydrated, isAuthenticated } = useAuth();
 	const { pathname } = useLocation();
 	const isAuthRoute = pathname.startsWith("/auth");
+
+	if (!hydrated) {
+		return (
+			<div
+				aria-hidden
+				style={{
+					minHeight: "100vh",
+					background: "var(--evz-background, #f3f4f6)"
+				}}
+			/>
+		);
+	}
 
 	if (loading || !isAuthenticated || isAuthRoute) {
 		return <>{children}</>;

@@ -1,18 +1,26 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import PageState from "./PageState";
+import { Box } from "@mui/material";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps): React.JSX.Element {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { isAuthenticated, hydrated, user } = useAuth();
   const location = useLocation();
 
-  if (loading) {
-    return <PageState kind="loading" title="Checking your session" message="Verifying your rider access." />;
+  if (!hydrated) {
+    return (
+      <Box
+        aria-hidden
+        sx={{
+          minHeight: "100vh",
+          bgcolor: "background.default"
+        }}
+      />
+    );
   }
 
   if (!isAuthenticated || user?.role !== "rider") {
