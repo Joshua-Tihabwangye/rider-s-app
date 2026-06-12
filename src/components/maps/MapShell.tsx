@@ -171,6 +171,8 @@ export default function MapShell({
   const [zoom, setZoom] = useState<number>(clampZoom(initialZoom));
   const layer = initialLayer;
   const [recenterKey, setRecenterKey] = useState(0);
+  // Phase 5.3 — internal center state so "locate me" can pan to device position
+  const [activeCenter, setActiveCenter] = useState<MapPoint>(mapCenter);
 
   const resolvedHeight = useMemo(() => {
     if (height !== undefined) {
@@ -273,7 +275,24 @@ export default function MapShell({
 
   const handleRecenter = (): void => {
     onRecenter?.();
-    setRecenterKey((value) => value + 1);
+    // Get device position, pan map there, reset zoom to 15, collapse expansion
+    if (typeof navigator !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const coords: MapPoint = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setActiveCenter(coords);
+          setZoom(15);
+          setRecenterKey((v) => v + 1);
+        },
+        () => {
+          // fallback — just bump the key to re-sync to current mapCenter
+          setRecenterKey((v) => v + 1);
+        },
+        { enableHighAccuracy: true, timeout: 6000 },
+      );
+    } else {
+      setRecenterKey((v) => v + 1);
+    }
   };
 
   return (
@@ -318,7 +337,7 @@ export default function MapShell({
         ]}
       >
         <GoogleMapView
-          center={mapCenter}
+          center={activeCenter}
           zoom={zoom}
           layer={layer}
           markers={mapMarkers}
