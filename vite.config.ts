@@ -1,9 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const projectRoot = fileURLToPath(new URL('.', import.meta.url));
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  cacheDir: process.env.VITE_CACHE_DIR || "/tmp/rider-vite-cache",
   plugins: [react()],
   server: {
     port: 5173,
@@ -33,7 +37,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'build',
+    outDir: process.env.VITE_BUILD_OUT_DIR || 'build',
     sourcemap: true,
     chunkSizeWarningLimit: 1000, // Increase limit for large apps
     rollupOptions: {
@@ -47,7 +51,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(projectRoot, './src'),
     },
   },
   // Optimize dependencies
