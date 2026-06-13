@@ -366,12 +366,11 @@ function ProtectedOutlet(): React.JSX.Element {
 }
 
 function AuthAwareRedirect(): React.JSX.Element {
- 	const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, hydrated } = useAuth();
 
-  // Show loading indicator while hydrating auth state
-  if (loading) {
+  if (!hydrated) {
     return <Box aria-hidden sx={{ minHeight: "100vh", bgcolor: (t) => t.palette.background.default }} />;
   }
 
- 	return <Navigate to={isAuthenticated ? "/home" : "/auth/sign-in"} replace />;
+  return <Navigate to={isAuthenticated ? "/home" : "/auth/sign-in"} replace />;
 }

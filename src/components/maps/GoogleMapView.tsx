@@ -326,11 +326,33 @@ export default function GoogleMapView({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rawApiKey = String(import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? "").trim();
   const googleMapsApiKey = rawApiKey && !/^https?:\/\//i.test(rawApiKey) ? rawApiKey : "";
+  const [isOnline, setIsOnline] = useState(
+    () => typeof navigator === "undefined" || typeof navigator.onLine !== "boolean" ? true : navigator.onLine
+  );
 
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey,
     libraries: LIBRARIES
   });
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const updateOnlineState = (): void => {
+      setIsOnline(window.navigator.onLine);
+    };
+
+    window.addEventListener("online", updateOnlineState);
+    window.addEventListener("offline", updateOnlineState);
+    updateOnlineState();
+
+    return () => {
+      window.removeEventListener("online", updateOnlineState);
+      window.removeEventListener("offline", updateOnlineState);
+    };
+  }, []);
 
   const resolvedRoute = useMemo(() => routePolyline.filter(isValidPoint), [routePolyline]);
 
@@ -437,8 +459,21 @@ export default function GoogleMapView({
     onMarkerClick?.(id);
   };
 
-  if (loadError) {
-    const error = classifyMapLoadError(loadError);
+  const fallbackState = !googleMapsApiKey
+    ? {
+        title: "Google Maps API key missing",
+        details: "Set VITE_GOOGLE_MAPS_API_KEY to load interactive maps. Location entry still works with manual typing.",
+      }
+    : !isOnline
+      ? {
+          title: "Offline mode",
+          details: "Interactive maps are unavailable while offline. You can still enter pickup and destination manually.",
+        }
+      : loadError
+        ? classifyMapLoadError(loadError)
+        : null;
+
+  if (fallbackState) {
     const host = typeof window !== "undefined" ? window.location.host : "unknown-host";
     return (
       <div
@@ -458,11 +493,24 @@ export default function GoogleMapView({
           padding: 16,
           zIndex: 20
         }}
-        >
-        <div>
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>{error.title}</div>
-          <div style={{ fontSize: 12 }}>{error.details}</div>
+      >
+        <div style={{ maxWidth: 360 }}>
+          <div style={{ fontWeight: 600, marginBottom: 6, color: "#0f172a" }}>{fallbackState.title}</div>
+          <div style={{ fontSize: 12, lineHeight: 1.45 }}>{fallbackState.details}</div>
           <div style={{ fontSize: 11, marginTop: 6 }}>Host: {host}</div>
+          <Button
+            type="button"
+            variant="outlined"
+            size="small"
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: 12,
+              borderColor: "#cbd5e1",
+              color: "#0f172a"
+            }}
+          >
+            Reload maps
+          </Button>
         </div>
       </div>
     );

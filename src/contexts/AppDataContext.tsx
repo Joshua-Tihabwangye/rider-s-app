@@ -380,6 +380,42 @@ function createBackendNeutralState(baseState: AppState): AppState {
   };
 }
 
+type PersistedRideState = Partial<Pick<RideState, "request" | "savedPlaces" | "options" | "sharing">>;
+
+interface PersistedAppState {
+  delivery?: DeliveryState;
+  rental?: RentalState;
+  tours?: ToursState;
+  ambulance?: AmbulanceState;
+  ride?: PersistedRideState;
+  sharedLocationState?: SharedLocationState;
+}
+
+function mergePersistedRideState(baseRide: RideState, persistedRide?: PersistedRideState): RideState {
+  if (!persistedRide?.request) {
+    return baseRide;
+  }
+
+  return {
+    ...baseRide,
+    request: normalizeRideRequest({
+      ...baseRide.request,
+      ...persistedRide.request,
+      roundTripConfig: {
+        ...baseRide.request.roundTripConfig,
+        ...persistedRide.request.roundTripConfig
+      }
+    }),
+    savedPlaces: persistedRide.savedPlaces?.length ? persistedRide.savedPlaces : baseRide.savedPlaces,
+    options: persistedRide.options?.length ? persistedRide.options : baseRide.options,
+    sharing: {
+      ...baseRide.sharing,
+      ...persistedRide.sharing,
+      passengers: persistedRide.sharing?.passengers?.length ? persistedRide.sharing.passengers : baseRide.sharing.passengers
+    }
+  };
+}
+
 function createInitialState(baseState: AppState): AppState {
   const shouldUseBackendNeutralState = isRiderBackendEnabled();
   const runtimeBaseState = shouldUseBackendNeutralState ? createBackendNeutralState(baseState) : baseState;
@@ -391,10 +427,10 @@ function createInitialState(baseState: AppState): AppState {
   try {
     const raw = window.localStorage.getItem(APP_DATA_STORAGE_KEY);
     if (!raw) {
-      return baseState;
+      return runtimeBaseState;
     }
 
-    const persisted = JSON.parse(raw) as Partial<AppState>;
+    const persisted = JSON.parse(raw) as PersistedAppState;
     const mergedRentalVehicles = (() => {
       const persistedVehicles = persisted.rental?.vehicles ?? [];
       if (!persistedVehicles.length) {
@@ -413,9 +449,7 @@ function createInitialState(baseState: AppState): AppState {
 
     return {
       ...runtimeBaseState,
-      // Keep ride setup fresh on every full reload so route mode/trip mode and
-      // destination draft selections always return to defaults.
-      ride: runtimeBaseState.ride,
+      ride: mergePersistedRideState(runtimeBaseState.ride, persisted.ride),
       delivery: persisted.delivery ? { ...runtimeBaseState.delivery, ...persisted.delivery } : runtimeBaseState.delivery,
       rental: persisted.rental
         ? { ...runtimeBaseState.rental, ...persisted.rental, vehicles: mergedRentalVehicles }
@@ -424,7 +458,9 @@ function createInitialState(baseState: AppState): AppState {
       ambulance: persisted.ambulance
         ? { ...runtimeBaseState.ambulance, ...persisted.ambulance }
         : runtimeBaseState.ambulance,
-      sharedLocationState: runtimeBaseState.sharedLocationState
+      sharedLocationState: persisted.sharedLocationState
+        ? { ...runtimeBaseState.sharedLocationState, ...persisted.sharedLocationState }
+        : runtimeBaseState.sharedLocationState
     };
   } catch {
     return runtimeBaseState;
@@ -4734,7 +4770,14 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       return;
     }
 
-    const persistedState: Partial<AppState> = {
+    const persistedState: PersistedAppState = {
+      ride: {
+        request: state.ride.request,
+        savedPlaces: state.ride.savedPlaces,
+        options: state.ride.options,
+        sharing: state.ride.sharing
+      },
+      sharedLocationState: state.sharedLocationState,
       delivery: state.delivery,
       rental: state.rental,
       tours: state.tours,

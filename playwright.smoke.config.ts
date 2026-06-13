@@ -5,6 +5,7 @@ export default defineConfig({
   timeout: 120_000,
   fullyParallel: false,
   workers: 1,
+  outputDir: "/tmp/playwright-rider-smoke",
   reporter: [["list"]],
   use: {
     ...devices["Pixel 7"],
@@ -13,7 +14,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "node scripts/serve-smoke.mjs",
+    command: "SMOKE_SKIP_BACKEND=1 node scripts/serve-smoke.mjs",
     url: "http://127.0.0.1:4178/home",
     reuseExistingServer: false,
     timeout: 300_000,

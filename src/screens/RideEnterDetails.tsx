@@ -40,7 +40,7 @@ import LocationAutocompleteField from "../components/location/LocationAutocomple
 import RideTypeCard, { type RideTypeCardData } from "../components/rides/RideTypeCard";
 import { useAppData } from "../contexts/AppDataContext";
 import { calculateRouteThroughPoints } from "../services/maps";
-import { getLocationPermissionState, watchLiveLocation } from "../services/location";
+import { getLocationPermissionState, watchLiveLocation, type LocationPermissionState } from "../services/location";
 import {
 	DEFAULT_ROUND_TRIP_RETURN_PATTERN,
 	type RoundTripReturnPattern,
@@ -214,13 +214,17 @@ function EnterDestinationScreen(): React.JSX.Element {
 
 	const hasInitialPickupLabel =
 		typeof initialState.pickup === "string" && initialState.pickup.trim().length > 0;
-	const defaultPickupLabel = hasInitialPickupLabel ? initialState.pickup : "Current location";
+	const defaultPickupLabel = hasInitialPickupLabel
+		? initialState.pickup
+		: (ride.request.origin?.label && ride.request.origin.label.trim().length > 0
+				? ride.request.origin.label
+				: "Current location");
 	const [pickup, setPickup] = useState(defaultPickupLabel);
 	const [pickupCoords, setPickupCoords] = useState(
 		initialState.pickupCoords ||
-			(defaultPickupLabel === "Current location"
-				? sharedLocationState.riderLocation || sharedLocationState.pickupCoords
-				: sharedLocationState.pickupCoords || ride.request.origin?.coordinates) ||
+			(ride.request.origin?.coordinates ||
+				sharedLocationState.riderLocation ||
+				sharedLocationState.pickupCoords) ||
 			null,
 	);
 
@@ -309,6 +313,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [showError, setShowError] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
 	const [fieldErrors, setFieldErrors] = useState<Partial<Record<RequiredFieldKey, string>>>({});
+	const [locationPermission, setLocationPermission] = useState<LocationPermissionState>("prompt");
+	const [isOnline, setIsOnline] = useState(
+		() => typeof navigator === "undefined" || typeof navigator.onLine !== "boolean" ? true : navigator.onLine
+	);
 	const [showSwitchRiderModal, setShowSwitchRiderModal] = useState(false);
 	const [routePolyline, setRoutePolyline] = useState<{ lat: number; lng: number }[]>([]);
 	const [routeAlternatives, setRouteAlternatives] = useState<Array<{ lat: number; lng: number }[]>>([]);
@@ -518,13 +526,15 @@ function EnterDestinationScreen(): React.JSX.Element {
 		void calculateAndSetRoute();
 	}, [debouncedDestination, destinationCoords, pickupCoords, returnPattern, routeMode, stops, tripMode, updateSharedLocationState]);
 
-	useEffect(() => {
-		let mounted = true;
-		let dispose = () => {};
+		useEffect(() => {
+			let mounted = true;
+			let dispose = () => {};
 
-		getLocationPermissionState().then((permission) => {
-			if (!mounted || pickup !== "Current location") return;
-			if (permission === "denied" || permission === "unsupported") return;
+			getLocationPermissionState().then((permission) => {
+				if (!mounted) return;
+				setLocationPermission(permission);
+				if (pickup !== "Current location") return;
+				if (permission === "denied" || permission === "unsupported") return;
 
 			dispose = watchLiveLocation(
 				(coords) => {
@@ -543,11 +553,30 @@ function EnterDestinationScreen(): React.JSX.Element {
 			);
 		});
 
-		return () => {
-			mounted = false;
-			dispose();
-		};
-	}, [pickup, updateSharedLocationState]);
+			return () => {
+				mounted = false;
+				dispose();
+			};
+		}, [pickup, updateSharedLocationState]);
+
+		useEffect(() => {
+			if (typeof window === "undefined") {
+				return;
+			}
+
+			const updateOnlineState = (): void => {
+				setIsOnline(window.navigator.onLine);
+			};
+
+			window.addEventListener("online", updateOnlineState);
+			window.addEventListener("offline", updateOnlineState);
+			updateOnlineState();
+
+			return () => {
+				window.removeEventListener("online", updateOnlineState);
+				window.removeEventListener("offline", updateOnlineState);
+			};
+		}, []);
 
 	// Update destination when returning from map screen
 	useEffect(() => {
@@ -1258,6 +1287,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 			durationLabel
 		};
 	}, [sharedLocationState.routeDistanceKm, sharedLocationState.routeDurationMin]);
+	const showLocationFallback =
+		locationPermission === "unsupported" ||
+		locationPermission === "denied" ||
+		!isOnline;
 
 	return (
 			<ScreenScaffold
@@ -1382,10 +1415,22 @@ function EnterDestinationScreen(): React.JSX.Element {
 								>
 									{`${routeSummary.distanceLabel} • ${routeSummary.durationLabel}`}
 								</Box>
-						</Box>
+							</Box>
+							{showLocationFallback && (
+								<Alert
+									severity={isOnline ? "warning" : "info"}
+									sx={{ mx: 2, mb: 2, borderRadius: 3, alignItems: "flex-start" }}
+								>
+									{locationPermission === "unsupported"
+										? "Location access is not available on this device."
+										: locationPermission === "denied"
+											? "Location permission is blocked."
+											: "You are offline."} You can still type pickup and destination manually.
+								</Alert>
+							)}
 
-						{/* Trip Setup Card - Neutral Background */}
-					<SmoothHeightPanel open>
+							{/* Trip Setup Card - Neutral Background */}
+						<SmoothHeightPanel open>
 					<Box
 						className="ride-enter-details-form"
 						sx={{

@@ -7,7 +7,8 @@ import {
   Card,
   CardContent,
   Tabs,
-  Tab
+  Tab,
+  Alert
 } from "@mui/material";
 
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
@@ -88,6 +89,9 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const { updateRideRequest, updateSharedLocationState } = actions;
   const [destinationQuery, setDestinationQuery] = useState("");
   const [tab, setTab] = useState("common");
+  const isOffline = typeof navigator !== "undefined" && navigator.onLine === false;
+  const hasGeolocation = typeof navigator !== "undefined" && Boolean(navigator.geolocation);
+  const showLocationFallback = isOffline || !hasGeolocation;
 
   const handleTabChange = (_event: React.SyntheticEvent, value: string): void => {
     setTab(value);
@@ -177,6 +181,14 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           }
         }}
       />
+
+      {showLocationFallback && (
+        <Alert severity={isOffline ? "info" : "warning"} sx={{ mb: 2, borderRadius: 3 }}>
+          {isOffline
+            ? "You are offline, so live map loading is limited."
+            : "This device does not expose geolocation."} You can still type a destination and continue.
+        </Alert>
+      )}
 
       {/* Map preview — shows rider's current position */}
       <Box
