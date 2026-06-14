@@ -15,12 +15,12 @@ import {
   Typography
 } from "@mui/material";
 
-import LocalTaxiRoundedIcon from "@mui/icons-material/LocalTaxiRounded";
 import MapShell from "../components/maps/MapShell";
 import ExpandableMapPanel from "../components/maps/ExpandableMapPanel";
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { useLiveLocation } from "../contexts/LiveLocationContext";
 import { isRiderBackendEnabled } from "../services/api/riderApi";
 import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 
@@ -28,6 +28,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const { ride, sharedLocationState, actions } = useAppData();
+  const { riderLocation } = useLiveLocation();
   const { setRideStatus, updateSharedLocationState } = actions;
   const [dots, setDots] = useState(".");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -50,8 +51,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
       undefined,
       { enableHighAccuracy: true, timeout: 8000 },
     );
-  }, [updateSharedLocationState]);
-  const routeSummary = React.useMemo(() => {
+  }, [updateSharedLocationState]);  const routeSummary = React.useMemo(() => {
     const distance = sharedLocationState.routeDistanceKm;
     const duration = sharedLocationState.routeDurationMin;
     if (!distance || !duration) return null;
@@ -202,7 +202,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
             driverLocation={driverLocation}
-            riderLocation={sharedLocationState.riderLocation}
+            riderLocation={riderLocation}
             routePolyline={routePolyline}
             routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
             routeDistanceKm={sharedLocationState.routeDistanceKm}

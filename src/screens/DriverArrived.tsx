@@ -24,6 +24,7 @@ import DriverChatRoom from "../components/DriverChatRoom";
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { useLiveLocation } from "../contexts/LiveLocationContext";
 import { isRiderBackendEnabled } from "../services/api/riderApi";
 import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 
@@ -46,6 +47,7 @@ function distanceKmBetween(a: { lat: number; lng: number }, b: { lat: number; ln
 function DriverHasArrivedScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { ride, sharedLocationState, actions } = useAppData();
+  const { riderLocation } = useLiveLocation();
   const {
     resetTemporaryStopState,
     setRideStatus,
@@ -213,7 +215,7 @@ function DriverHasArrivedScreen(): React.JSX.Element {
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
             driverLocation={driverLocation}
-            riderLocation={sharedLocationState.riderLocation}
+            riderLocation={riderLocation}
             routePolyline={routePolyline}
             routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
             routeDistanceKm={approachDistanceKm}

@@ -135,6 +135,22 @@ test.describe("rider refresh behavior", () => {
     await expect(page.getByText(/Checking your session|Verifying your rider access/i)).toHaveCount(0);
   });
 
+  test("destination entry restores the last selected location after revisit", async ({ page }) => {
+    await seedRiderSession(page);
+
+    await page.goto("/rides/enter", { waitUntil: "networkidle" });
+    const destinationInput = page.getByPlaceholder("Where to?");
+    await destinationInput.fill("Arena");
+    await expect(page.getByRole("option", { name: /Arena, Kampala, Central Region, Uganda/i })).toBeVisible({ timeout: 20_000 });
+    await page.getByRole("option", { name: /Arena, Kampala, Central Region, Uganda/i }).click();
+    await page.waitForURL(/\/rides\/options$/, { timeout: 30_000 });
+
+    await page.goto("/rides/enter", { waitUntil: "networkidle" });
+    await expect(page.getByText("Where to today?")).toBeVisible();
+    await expect(page.getByPlaceholder("Where to?")).toHaveValue(/Arena, Kampala, Central Region, Uganda/i);
+    await expect(page.getByText(/Checking your session|Verifying your rider access/i)).toHaveCount(0);
+  });
+
   test("ride details render without an auth loading gate", async ({ page }) => {
     await seedRiderSession(page);
 
