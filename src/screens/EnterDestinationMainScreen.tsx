@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -18,6 +18,10 @@ import GoogleMapView from "../components/maps/GoogleMapView";
 import LocationAutocompleteField, {
   type LocationSelection
 } from "../components/location/LocationAutocompleteField";
+import {
+  loadRideLocationDraft,
+  saveRideLocationDraft
+} from "../features/rides/locationDraft";
 import { useAppData } from "../contexts/AppDataContext";
 
 interface CommonPlaceCardProps {
@@ -87,11 +91,58 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { sharedLocationState, actions } = useAppData();
   const { updateRideRequest, updateSharedLocationState } = actions;
-  const [destinationQuery, setDestinationQuery] = useState("");
+  const draftLocation = useMemo(() => loadRideLocationDraft(), []);
+  const [destinationQuery, setDestinationQuery] = useState(() => {
+    return draftLocation?.destination?.address ?? "";
+  });
   const [tab, setTab] = useState("common");
   const isOffline = typeof navigator !== "undefined" && navigator.onLine === false;
   const hasGeolocation = typeof navigator !== "undefined" && Boolean(navigator.geolocation);
   const showLocationFallback = isOffline || !hasGeolocation;
+
+  useEffect(() => {
+    if (!draftLocation) {
+      return;
+    }
+
+    if (draftLocation.destination?.address) {
+      setDestinationQuery((current) => (current.trim().length > 0 ? current : draftLocation.destination!.address));
+    }
+
+    if (draftLocation.pickup?.coordinates && !sharedLocationState.pickupCoords) {
+      updateSharedLocationState({ pickupCoords: draftLocation.pickup.coordinates });
+    }
+
+    if (draftLocation.destination?.coordinates && !sharedLocationState.destinationCoords) {
+      updateSharedLocationState({ destinationCoords: draftLocation.destination.coordinates });
+    }
+
+    if (draftLocation.routePolyline?.length || draftLocation.routeAlternativePolylines?.length) {
+      updateSharedLocationState({
+        routePolyline: draftLocation.routePolyline ?? sharedLocationState.routePolyline,
+        routeAlternativePolylines: draftLocation.routeAlternativePolylines ?? sharedLocationState.routeAlternativePolylines
+      });
+    }
+  }, [draftLocation, sharedLocationState.destinationCoords, sharedLocationState.pickupCoords, sharedLocationState.routeAlternativePolylines, sharedLocationState.routePolyline, updateSharedLocationState]);
+
+  const persistDestinationDraft = (selection: LocationSelection): void => {
+    saveRideLocationDraft({
+      pickup: sharedLocationState.pickupCoords || sharedLocationState.riderLocation
+        ? {
+            label: "Current location",
+            address: "Current location",
+            coordinates: sharedLocationState.pickupCoords ?? sharedLocationState.riderLocation ?? null
+          }
+        : null,
+      destination: {
+        label: selection.label,
+        address: selection.address,
+        coordinates: selection.coordinates
+      },
+      routePolyline: sharedLocationState.routePolyline,
+      routeAlternativePolylines: sharedLocationState.routeAlternativePolylines
+    });
+  };
 
   const handleTabChange = (_event: React.SyntheticEvent, value: string): void => {
     setTab(value);
@@ -110,6 +161,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     updateSharedLocationState({
       destinationCoords: selection.coordinates,
     });
+    persistDestinationDraft(selection);
     navigate("/rides/options");
   };
 
@@ -118,6 +170,18 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     setDestinationQuery(address);
     updateRideRequest({
       destination: { label, address, coordinates: undefined },
+    });
+    saveRideLocationDraft({
+      pickup: sharedLocationState.pickupCoords || sharedLocationState.riderLocation
+        ? {
+            label: "Current location",
+            address: "Current location",
+            coordinates: sharedLocationState.pickupCoords ?? sharedLocationState.riderLocation ?? null
+          }
+        : null,
+      destination: { label, address, coordinates: null },
+      routePolyline: sharedLocationState.routePolyline,
+      routeAlternativePolylines: sharedLocationState.routeAlternativePolylines
     });
     navigate("/rides/options");
   };

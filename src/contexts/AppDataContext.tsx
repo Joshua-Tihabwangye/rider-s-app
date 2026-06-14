@@ -140,7 +140,6 @@ import {
 } from "../services/api/riderApi";
 import { createRiderSocket } from "../services/riderSocket";
 import { DEFAULT_ROUND_TRIP_RETURN_PATTERN, RIDE_MAX_STOPS } from "../features/rides/constants";
-import { useRiderLiveLocation } from "../hooks/useRiderLiveLocation";
 
 interface AppState extends AppData {
   settings: SettingsState;
@@ -3365,15 +3364,9 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   const ambulanceCreateInFlightRef = useRef(false);
   const [riderBackendEnabled, setRiderBackendEnabled] = useState(() => isRiderBackendEnabled());
 
-  // Phase 5.1 — Watch device GPS and keep sharedLocationState.riderLocation in
-  // sync so MapShell automatically renders the blue "you are here" pin on every
-  // map screen without per-screen wiring.
-  useRiderLiveLocation({
-    enabled: true,
-    onLocation: (coords) => {
-      dispatch({ type: "location/update", payload: { riderLocation: coords } });
-    },
-  });
+  // GPS live location is now handled by the isolated LiveLocationContext.
+  // Removed from AppDataContext to prevent full re-renders on every GPS tick
+  // which was causing the device to freeze on low-end phones.
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;

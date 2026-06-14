@@ -42,6 +42,11 @@ import { useAppData } from "../contexts/AppDataContext";
 import { calculateRouteThroughPoints } from "../services/maps";
 import { getLocationPermissionState, watchLiveLocation, type LocationPermissionState } from "../services/location";
 import {
+	clearRideLocationDraft,
+	loadRideLocationDraft,
+	saveRideLocationDraft
+} from "../features/rides/locationDraft";
+import {
 	DEFAULT_ROUND_TRIP_RETURN_PATTERN,
 	type RoundTripReturnPattern,
 	RIDE_MAX_STOPS
@@ -193,6 +198,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const location = useLocation();
 	const theme = useTheme();
 	const { ride, sharedLocationState, actions } = useAppData();
+	const locationDraft = useMemo(() => loadRideLocationDraft(), []);
 	const updateSharedLocationStateRef = useRef(actions.updateSharedLocationState);
 	const updateRideRequestRef = useRef(actions.updateRideRequest);
 	useEffect(() => {
@@ -218,10 +224,11 @@ function EnterDestinationScreen(): React.JSX.Element {
 		? initialState.pickup
 		: (ride.request.origin?.label && ride.request.origin.label.trim().length > 0
 				? ride.request.origin.label
-				: "Current location");
+				: locationDraft?.pickup?.label?.trim() || "Current location");
 	const [pickup, setPickup] = useState(defaultPickupLabel);
 	const [pickupCoords, setPickupCoords] = useState(
 		initialState.pickupCoords ||
+			locationDraft?.pickup?.coordinates ||
 			(ride.request.origin?.coordinates ||
 				sharedLocationState.riderLocation ||
 				sharedLocationState.pickupCoords) ||
@@ -238,13 +245,14 @@ function EnterDestinationScreen(): React.JSX.Element {
 		}
 	}, [pickup, pickupCoords, sharedLocationState.riderLocation, updateSharedLocationState]);
 	const [destination, setDestination] = useState(
-		initialState.destination || ride.request.destination?.label || "",
+		initialState.destination || ride.request.destination?.label || locationDraft?.destination?.address || "",
 	);
 	const [debouncedDestination, setDebouncedDestination] = useState(
-		initialState.destination || ride.request.destination?.label || "",
+		initialState.destination || ride.request.destination?.label || locationDraft?.destination?.address || "",
 	);
 	const [destinationCoords, setDestinationCoords] = useState(
 		initialState.destinationCoords ||
+			locationDraft?.destination?.coordinates ||
 			sharedLocationState.destinationCoords ||
 			ride.request.destination?.coordinates ||
 			null,
@@ -318,8 +326,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 		() => typeof navigator === "undefined" || typeof navigator.onLine !== "boolean" ? true : navigator.onLine
 	);
 	const [showSwitchRiderModal, setShowSwitchRiderModal] = useState(false);
-	const [routePolyline, setRoutePolyline] = useState<{ lat: number; lng: number }[]>([]);
-	const [routeAlternatives, setRouteAlternatives] = useState<Array<{ lat: number; lng: number }[]>>([]);
+	const [routePolyline, setRoutePolyline] = useState<{ lat: number; lng: number }[]>(
+		locationDraft?.routePolyline || sharedLocationState.routePolyline || [],
+	);
+	const [routeAlternatives, setRouteAlternatives] = useState<Array<{ lat: number; lng: number }[]>>(
+		locationDraft?.routeAlternativePolylines || sharedLocationState.routeAlternativePolylines || [],
+	);
 	const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
 	const [isMapExpanded, setIsMapExpanded] = useState(false);
 	const [showTripTypeModal, setShowTripTypeModal] = useState(false);
@@ -343,17 +355,6 @@ function EnterDestinationScreen(): React.JSX.Element {
 		[destinationCoords, destination, debouncedDestination]
 	);
 	const mapCenter = pickupCoords ?? sharedLocationState.riderLocation ?? ride.request.origin?.coordinates ?? KAMPALA_CENTER;
-	const handleUseCurrentLocation = useCallback(() => {
-		if (!sharedLocationState.riderLocation) {
-			return;
-		}
-		setPickup("Current location");
-		setPickupCoords(sharedLocationState.riderLocation);
-		updateSharedLocationState({ pickupCoords: sharedLocationState.riderLocation });
-		setShowError(false);
-		setErrorMessage("");
-		clearFieldError("pickup");
-	}, [sharedLocationState.riderLocation, updateSharedLocationState]);
 
 	useEffect(() => {
 		if (!destination.trim()) {
@@ -383,6 +384,78 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const isMultiStopMode = routeMode === "multi_stop";
 	const isRoundTripMode = tripMode === "round_trip";
 	const tripType = deriveTripTypeLabel(routeMode, tripMode);
+	const persistRideLocationDraft = useCallback(() => {
+		const normalizedStops = uniqueStops(removeConsecutiveDuplicateStops(stops));
+		const fallbackPickupCoords = pickupCoords ?? sharedLocationState.pickupCoords ?? sharedLocationState.riderLocation ?? null;
+		const lastStop = normalizedStops[normalizedStops.length - 1] || null;
+		const draftDestination = isMultiStopMode
+			? lastStop
+				? {
+						label: lastStop.value,
+						address: lastStop.address || lastStop.value,
+						coordinates: lastStop.coordinates ?? null,
+					}
+				: null
+			: destination.trim().length > 0
+				? {
+						label: destinationLabelForRequest,
+						address: destinationLabelForRequest,
+						coordinates: destinationCoords ?? null,
+					}
+				: null;
+
+		saveRideLocationDraft({
+			pickup: pickup.trim().length > 0
+				? {
+						label: pickup,
+						address: pickup,
+						coordinates: fallbackPickupCoords,
+					}
+				: null,
+			destination: draftDestination,
+			routePolyline,
+			routeAlternativePolylines: routeAlternatives,
+		});
+	}, [
+		destination,
+		destinationCoords,
+		destinationLabelForRequest,
+		isMultiStopMode,
+		pickup,
+		pickupCoords,
+		routeAlternatives,
+		routePolyline,
+		sharedLocationState.pickupCoords,
+		sharedLocationState.riderLocation,
+		stops,
+	]);
+	const handleUseCurrentLocation = useCallback(() => {
+		if (!sharedLocationState.riderLocation) {
+			return;
+		}
+		setPickup("Current location");
+		setPickupCoords(sharedLocationState.riderLocation);
+		updateSharedLocationState({ pickupCoords: sharedLocationState.riderLocation });
+		saveRideLocationDraft({
+			pickup: {
+				label: "Current location",
+				address: "Current location",
+				coordinates: sharedLocationState.riderLocation,
+			},
+			destination: destination.trim().length > 0
+				? {
+						label: destinationLabelForRequest,
+						address: destinationLabelForRequest,
+						coordinates: destinationCoords ?? null,
+					}
+				: null,
+			routePolyline,
+			routeAlternativePolylines: routeAlternatives,
+		});
+		setShowError(false);
+		setErrorMessage("");
+		clearFieldError("pickup");
+	}, [destination, destinationCoords, destinationLabelForRequest, routeAlternatives, routePolyline, sharedLocationState.riderLocation, updateSharedLocationState]);
 
 	const rideTypeCards = ride.options.slice(0, 3).map((option, index): RideTypeCardData => ({
 		id: option.id,
@@ -525,6 +598,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 
 		void calculateAndSetRoute();
 	}, [debouncedDestination, destinationCoords, pickupCoords, returnPattern, routeMode, stops, tripMode, updateSharedLocationState]);
+
+	useEffect(() => {
+		persistRideLocationDraft();
+	}, [persistRideLocationDraft]);
 
 		useEffect(() => {
 			let mounted = true;
@@ -946,6 +1023,24 @@ function EnterDestinationScreen(): React.JSX.Element {
 			pickupCoords: destinationCoords,
 			destinationCoords: tempPickupCoords
 		});
+		saveRideLocationDraft({
+			pickup: destination.trim().length > 0
+				? {
+						label: destinationLabelForRequest,
+						address: destinationLabelForRequest,
+						coordinates: destinationCoords ?? null
+					}
+				: null,
+			destination: tempPickup.trim().length > 0
+				? {
+						label: tempPickup,
+						address: tempPickup,
+						coordinates: tempPickupCoords ?? null
+					}
+				: null,
+			routePolyline: [],
+			routeAlternativePolylines: []
+		});
 		setShowError(false);
 		setErrorMessage("");
 		clearAllFieldErrors();
@@ -1146,6 +1241,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 		// into a newly selected trip mode (single, round trip, or multi-stop).
 		actions.setActiveTrip(null);
 			actions.resetTemporaryStopState();
+			clearRideLocationDraft();
 			navigate("/rides/searching", {
 				state: tripState,
 			});

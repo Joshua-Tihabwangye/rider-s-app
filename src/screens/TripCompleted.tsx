@@ -22,12 +22,14 @@ import MapShell from "../components/maps/MapShell";
 import ExpandableMapPanel from "../components/maps/ExpandableMapPanel";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { useLiveLocation } from "../contexts/LiveLocationContext";
 import { normalizeRoute } from "../utils/mapRoutes";
 
 function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const { ride, sharedLocationState, actions } = useAppData();
+  const { riderLocation } = useLiveLocation();
   const activeTrip = ride.activeTrip;
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const bookedForLabel = React.useMemo(() => {
@@ -160,7 +162,7 @@ function TripCompletedArrivalSummaryScreen(): React.JSX.Element {
             pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
             driverLocation={sharedLocationState.destinationCoords}
-            riderLocation={sharedLocationState.riderLocation}
+            riderLocation={riderLocation}
             routePolyline={routePolyline}
             routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
             routeDistanceKm={sharedLocationState.routeDistanceKm}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useNavigate } from "react-router-dom";
 import {
@@ -20,13 +20,48 @@ import ElectricCarRoundedIcon from "@mui/icons-material/ElectricCarRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { useAppData } from "../contexts/AppDataContext";
 import GoogleMapView from "../components/maps/GoogleMapView";
+import { loadRideLocationDraft } from "../features/rides/locationDraft";
 import { uiTokens } from "../design/tokens";
 
 function RideDetailsPreConfirmScreen(): React.JSX.Element {
   const navigate = useNavigate();
-  const { ride } = useAppData();
-  const origin = ride.request.origin ?? ride.activeTrip?.pickup;
-  const destination = ride.request.destination ?? ride.activeTrip?.dropoff;
+  const { ride, sharedLocationState } = useAppData();
+  const locationDraft = useMemo(() => loadRideLocationDraft(), []);
+  const origin =
+    ride.request.origin ??
+    ride.activeTrip?.pickup ??
+    locationDraft?.pickup ??
+    (sharedLocationState.pickupCoords
+      ? {
+          label: "Current location",
+          address: "Current location",
+          coordinates: sharedLocationState.pickupCoords
+        }
+      : null);
+  const destination =
+    ride.request.destination ??
+    ride.activeTrip?.dropoff ??
+    locationDraft?.destination ??
+    (sharedLocationState.destinationCoords
+      ? {
+          label: "Selected destination",
+          address: "Selected destination",
+          coordinates: sharedLocationState.destinationCoords
+        }
+      : null);
+  const routePolyline = useMemo(() => {
+    const sharedPolyline = sharedLocationState.routePolyline ?? [];
+    if (sharedPolyline.length > 1) {
+      return sharedPolyline;
+    }
+    if (locationDraft?.routePolyline?.length) {
+      return locationDraft.routePolyline;
+    }
+    const points = [origin?.coordinates, destination?.coordinates].filter(
+      (point): point is { lat: number; lng: number } => Boolean(point)
+    );
+    return points.length === 2 ? points : [];
+  }, [destination?.coordinates, locationDraft?.routePolyline, origin?.coordinates, sharedLocationState.routePolyline]);
   const fareEstimate =
     ride.activeTrip?.fareEstimate ||
     ride.options.find((option) => option.id === ride.request.serviceLevel)?.fare ||
@@ -77,13 +112,11 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
         }}
       >
         <GoogleMapView
-          center={{ lat: 0.3476, lng: 32.5825 }}
+          center={origin?.coordinates ?? destination?.coordinates ?? { lat: 0.3476, lng: 32.5825 }}
           zoom={12}
-          routePolyline={[
-            { lat: 0.338, lng: 32.563 },
-            { lat: 0.346, lng: 32.577 },
-            { lat: 0.358, lng: 32.591 }
-          ]}
+          pickupLocation={origin?.coordinates ?? null}
+          dropoffLocation={destination?.coordinates ?? null}
+          routePolyline={routePolyline}
         />
         <Box
           sx={{
@@ -160,7 +193,7 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
               variant="body2"
               sx={{ fontWeight: 500, letterSpacing: "-0.01em" }}
             >
-              {origin?.address ?? "Select pickup"}
+            {origin?.address ?? "Select pickup"}
             </Typography>
           </Box>
           <Box sx={{ mb: uiTokens.spacing.smPlus }}>
@@ -174,7 +207,7 @@ function RideDetailsPreConfirmScreen(): React.JSX.Element {
               variant="body2"
               sx={{ fontWeight: 500, letterSpacing: "-0.01em" }}
             >
-              {destination?.address ?? "Select destination"}
+            {destination?.address ?? "Select destination"}
             </Typography>
           </Box>
           <Stack direction="row" spacing={uiTokens.spacing.mdPlus} alignItems="center">
