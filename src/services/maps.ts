@@ -59,10 +59,10 @@ function distanceKm(a: Coordinates, b: Coordinates): number {
 function isValidCoordinates(point: Coordinates | null | undefined): point is Coordinates {
   return Boolean(
     point &&
-      typeof point.lat === "number" &&
-      Number.isFinite(point.lat) &&
-      typeof point.lng === "number" &&
-      Number.isFinite(point.lng)
+    typeof point.lat === "number" &&
+    Number.isFinite(point.lat) &&
+    typeof point.lng === "number" &&
+    Number.isFinite(point.lng)
   );
 }
 
@@ -172,6 +172,89 @@ export async function reverseGeocode(point: Coordinates): Promise<string | null>
   return (data.displayName ?? data.display_name ?? null)?.trim() || null;
 }
 
+/**
+ * Try route calculation via the Google Maps Directions Service running in the
+ * browser. This works whenever the Maps JS SDK is loaded (VITE_GOOGLE_MAPS_API_KEY
+ * is set) even if the backend /geo/routes/estimate endpoint is unavailable.
+ */
+async function calculateRouteClientSide(
+  origin: Coordinates,
+  destination: Coordinates,
+): Promise<RouteResult | null> {
+  const googleMaps = (window as any).google?.maps;
+  if (!googleMaps) return null;
+
+  return new Promise((resolve) => {
+    const service = new googleMaps.DirectionsService();
+    service.route(
+      {
+        origin: { lat: origin.lat, lng: origin.lng },
+        destination: { lat: destination.lat, lng: destination.lng },
+        travelMode: googleMaps.TravelMode.DRIVING,
+        provideRouteAlternatives: true,
+      },
+      (
+        result: any,
+        status: string,
+      ) => {
+        if (status !== "OK" || !result?.routes?.length) {
+          resolve(null);
+          return;
+        }
+
+        const decodePolyline = (encoded: string): Coordinates[] => {
+          const points: Coordinates[] = [];
+          let index = 0;
+          let lat = 0;
+          let lng = 0;
+          while (index < encoded.length) {
+            let shift = 0;
+            let result2 = 0;
+            let byte: number;
+            do {
+              byte = encoded.charCodeAt(index++) - 63;
+              result2 |= (byte & 0x1f) << shift;
+              shift += 5;
+            } while (byte >= 0x20);
+            lat += result2 & 1 ? ~(result2 >> 1) : result2 >> 1;
+            shift = 0;
+            result2 = 0;
+            do {
+              byte = encoded.charCodeAt(index++) - 63;
+              result2 |= (byte & 0x1f) << shift;
+              shift += 5;
+            } while (byte >= 0x20);
+            lng += result2 & 1 ? ~(result2 >> 1) : result2 >> 1;
+            points.push({ lat: lat / 1e5, lng: lng / 1e5 });
+          }
+          return points;
+        };
+
+        const mainRoute = result.routes[0];
+        const leg = mainRoute?.legs?.[0];
+        const path = decodePolyline(mainRoute?.overview_polyline?.points ?? "");
+        const distanceKmVal = (leg?.distance?.value ?? 0) / 1000;
+        const durationMinVal = (leg?.duration?.value ?? 0) / 60;
+        const alternativePaths = (result.routes as any[]).slice(1).map((r: any) =>
+          decodePolyline(r?.overview_polyline?.points ?? ""),
+        ).filter((p: Coordinates[]) => p.length > 1);
+
+        if (path.length < 2) {
+          resolve(null);
+          return;
+        }
+
+        resolve({
+          distanceKm: Math.round(distanceKmVal * 10) / 10,
+          durationMin: Math.max(1, Math.round(durationMinVal)),
+          path,
+          alternativePaths,
+        });
+      },
+    );
+  });
+}
+
 export async function calculateRoute(origin: Coordinates, destination: Coordinates): Promise<RouteResult | null> {
   if (!isFiniteCoordinate(origin.lat) || !isFiniteCoordinate(origin.lng)) return null;
   if (!isFiniteCoordinate(destination.lat) || !isFiniteCoordinate(destination.lng)) return null;
@@ -214,11 +297,14 @@ export async function calculateRoute(origin: Coordinates, destination: Coordinat
     };
   } catch (error) {
     if ((error as any)?.name === "AbortError") return null;
-    console.error("calculateRoute failed:", error);
-    return null;
+    // Backend unavailable — fall through to client-side Google Maps Directions
   } finally {
     clearTimeout(timeoutId);
   }
+
+  // Fallback: use Google Maps Directions Service directly in the browser.
+  // This draws the route even when the backend /geo/routes/estimate is down.
+  return calculateRouteClientSide(origin, destination);
 }
 
 export async function calculateRouteThroughPoints(points: Coordinates[]): Promise<RouteResult | null> {

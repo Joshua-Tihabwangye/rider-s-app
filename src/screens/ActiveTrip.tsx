@@ -30,6 +30,7 @@ import ExpandableMapPanel from "../components/maps/ExpandableMapPanel";
 import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { useLiveLocation } from "../contexts/LiveLocationContext";
 import { isRiderBackendEnabled } from "../services/api/riderApi";
 import { getPointAtProgress, normalizeRoute } from "../utils/mapRoutes";
 
@@ -126,6 +127,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const { ride, sharedLocationState, actions } = useAppData();
+  const { riderLocation } = useLiveLocation();
   const {
     markTemporaryStopContinuePromptShown,
     resumeTripAfterTemporaryStop,
@@ -312,7 +314,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     const nextDriver = driverLocation;
     const nextRider = driverLocation ?? sharedLocationState.pickupCoords ?? null;
     const prevDriver = sharedLocationState.driverLocation ?? null;
-    const prevRider = sharedLocationState.riderLocation ?? null;
+    const prevRider = riderLocation ?? null;
     const sameDriver =
       (!prevDriver && !nextDriver) ||
       (prevDriver &&
@@ -336,7 +338,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     driverLocation,
     sharedLocationState.driverLocation,
     sharedLocationState.pickupCoords,
-    sharedLocationState.riderLocation,
+    riderLocation,
     updateSharedLocationState
   ]);
 

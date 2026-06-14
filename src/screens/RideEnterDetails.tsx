@@ -39,6 +39,7 @@ import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
 import LocationAutocompleteField from "../components/location/LocationAutocompleteField";
 import RideTypeCard, { type RideTypeCardData } from "../components/rides/RideTypeCard";
 import { useAppData } from "../contexts/AppDataContext";
+import { useLiveLocation } from "../contexts/LiveLocationContext";
 import { calculateRouteThroughPoints } from "../services/maps";
 import { getLocationPermissionState, watchLiveLocation, type LocationPermissionState } from "../services/location";
 import {
@@ -198,6 +199,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const location = useLocation();
 	const theme = useTheme();
 	const { ride, sharedLocationState, actions } = useAppData();
+	const { riderLocation } = useLiveLocation();
 	const locationDraft = useMemo(() => loadRideLocationDraft(), []);
 	const updateSharedLocationStateRef = useRef(actions.updateSharedLocationState);
 	const updateRideRequestRef = useRef(actions.updateRideRequest);
@@ -230,20 +232,20 @@ function EnterDestinationScreen(): React.JSX.Element {
 		initialState.pickupCoords ||
 			locationDraft?.pickup?.coordinates ||
 			(ride.request.origin?.coordinates ||
-				sharedLocationState.riderLocation ||
+				riderLocation ||
 				sharedLocationState.pickupCoords) ||
 			null,
 	);
 
 	// Keep current-location pickup in sync with live rider coordinates.
 	useEffect(() => {
-		if (pickup === "Current location" && sharedLocationState.riderLocation) {
-			if (!pickupCoords || !areSameCoordinates(pickupCoords, sharedLocationState.riderLocation)) {
-				setPickupCoords(sharedLocationState.riderLocation);
-				updateSharedLocationState({ pickupCoords: sharedLocationState.riderLocation });
+		if (pickup === "Current location" && riderLocation) {
+			if (!pickupCoords || !areSameCoordinates(pickupCoords, riderLocation)) {
+				setPickupCoords(riderLocation);
+				updateSharedLocationState({ pickupCoords: riderLocation });
 			}
 		}
-	}, [pickup, pickupCoords, sharedLocationState.riderLocation, updateSharedLocationState]);
+	}, [pickup, pickupCoords, riderLocation, updateSharedLocationState]);
 	const [destination, setDestination] = useState(
 		initialState.destination || ride.request.destination?.label || locationDraft?.destination?.address || "",
 	);
@@ -354,7 +356,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 		() => (destinationCoords ? destination : debouncedDestination),
 		[destinationCoords, destination, debouncedDestination]
 	);
-	const mapCenter = pickupCoords ?? sharedLocationState.riderLocation ?? ride.request.origin?.coordinates ?? KAMPALA_CENTER;
+	const mapCenter = pickupCoords ?? riderLocation ?? ride.request.origin?.coordinates ?? KAMPALA_CENTER;
 
 	useEffect(() => {
 		if (!destination.trim()) {
@@ -386,7 +388,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const tripType = deriveTripTypeLabel(routeMode, tripMode);
 	const persistRideLocationDraft = useCallback(() => {
 		const normalizedStops = uniqueStops(removeConsecutiveDuplicateStops(stops));
-		const fallbackPickupCoords = pickupCoords ?? sharedLocationState.pickupCoords ?? sharedLocationState.riderLocation ?? null;
+		const fallbackPickupCoords = pickupCoords ?? sharedLocationState.pickupCoords ?? riderLocation ?? null;
 		const lastStop = normalizedStops[normalizedStops.length - 1] || null;
 		const draftDestination = isMultiStopMode
 			? lastStop
@@ -426,21 +428,21 @@ function EnterDestinationScreen(): React.JSX.Element {
 		routeAlternatives,
 		routePolyline,
 		sharedLocationState.pickupCoords,
-		sharedLocationState.riderLocation,
+		riderLocation,
 		stops,
 	]);
 	const handleUseCurrentLocation = useCallback(() => {
-		if (!sharedLocationState.riderLocation) {
+		if (!riderLocation) {
 			return;
 		}
 		setPickup("Current location");
-		setPickupCoords(sharedLocationState.riderLocation);
-		updateSharedLocationState({ pickupCoords: sharedLocationState.riderLocation });
+		setPickupCoords(riderLocation);
+		updateSharedLocationState({ pickupCoords: riderLocation });
 		saveRideLocationDraft({
 			pickup: {
 				label: "Current location",
 				address: "Current location",
-				coordinates: sharedLocationState.riderLocation,
+				coordinates: riderLocation,
 			},
 			destination: destination.trim().length > 0
 				? {
@@ -455,7 +457,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 		setShowError(false);
 		setErrorMessage("");
 		clearFieldError("pickup");
-	}, [destination, destinationCoords, destinationLabelForRequest, routeAlternatives, routePolyline, sharedLocationState.riderLocation, updateSharedLocationState]);
+	}, [destination, destinationCoords, destinationLabelForRequest, routeAlternatives, routePolyline, riderLocation, updateSharedLocationState]);
 
 	const rideTypeCards = ride.options.slice(0, 3).map((option, index): RideTypeCardData => ({
 		id: option.id,
