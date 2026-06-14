@@ -53,13 +53,13 @@ export interface RiderTripApi {
   riderId: string;
   driverId?: string;
   status:
-    | "requested"
-    | "driver_assigned"
-    | "driver_arriving"
-    | "arrived"
-    | "in_progress"
-    | "completed"
-    | "cancelled";
+  | "requested"
+  | "driver_assigned"
+  | "driver_arriving"
+  | "arrived"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
   pickup: string;
   dropoff: string;
   pickupLocation: { lat: number; lng: number };
@@ -400,15 +400,15 @@ export function mapApiTripToRideTrip(apiTrip: RiderTripApi): RideTrip {
     legs:
       pickup && dropoff
         ? [
-            {
-              id: "leg_1",
-              from: pickup,
-              to: dropoff,
-              order: 0,
-              status: "pending",
-              isReturnLeg: false,
-            }
-          ]
+          {
+            id: "leg_1",
+            from: pickup,
+            to: dropoff,
+            order: 0,
+            status: "pending",
+            isReturnLeg: false,
+          }
+        ]
         : [],
     currentLegIndex: 0,
     totalLegs: 1,
@@ -626,4 +626,60 @@ export async function triggerRiderSOS(payload: { message?: string; location?: { 
 
 export async function listRiderSOSHistory(): Promise<RiderSosEventApi[]> {
   return request<RiderSosEventApi[]>("/riders/me/sos/history", { method: "GET" });
+}
+
+// ─── Fare Estimate ────────────────────────────────────────────────────────────
+
+export interface RideFareOption {
+  vehicleCategoryId: string;
+  vehicleCategoryName: string;
+  fare: {
+    baseFare: number;
+    distanceCharge: number;
+    durationCharge: number;
+    surcharge: number;
+    subtotal: number;
+    total: number;
+    minimumFare: number;
+    currency: string;
+    formula: string;
+  };
+}
+
+/**
+ * Fetches live fare estimates for all active ride vehicle categories.
+ * Returns an array so the rider can see options for Motorcycle, Sedan, SUV etc.
+ *
+ * @param distanceKm  Route distance in kilometres
+ * @param durationMin Optional estimated trip duration in minutes
+ */
+export async function getRideFareEstimates(
+  distanceKm: number,
+  durationMin?: number,
+): Promise<RideFareOption[]> {
+  const params = new URLSearchParams({
+    distanceKm: String(distanceKm),
+    serviceType: "ride",
+    ...(durationMin !== undefined ? { durationMinutes: String(durationMin) } : {}),
+  });
+  return request<RideFareOption[]>(`/riders/me/fare-estimate?${params.toString()}`, {
+    method: "GET",
+  });
+}
+
+/**
+ * Fetches a delivery fare estimate for a given vehicle category.
+ */
+export async function getDeliveryFareEstimate(
+  distanceKm: number,
+  vehicleCategoryId?: string,
+): Promise<RideFareOption["fare"]> {
+  const params = new URLSearchParams({
+    distanceKm: String(distanceKm),
+    serviceType: "delivery",
+    ...(vehicleCategoryId ? { vehicleCategoryId } : {}),
+  });
+  return request<RideFareOption["fare"]>(`/riders/me/fare-estimate?${params.toString()}`, {
+    method: "GET",
+  });
 }
