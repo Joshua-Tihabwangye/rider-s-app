@@ -49,6 +49,7 @@ import MapShell from "../components/maps/MapShell";
 import LocationAutocompleteField from "../components/location/LocationAutocompleteField";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { useLiveLocation } from "../contexts/LiveLocationContext";
 import { useRiderSharedRidesEnabled } from "../contexts/useRiderBackendCapabilities";
 import type { RideState } from "../store/types";
 import {
@@ -730,6 +731,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const location = useLocation();
   const sharedRidesEnabled = useRiderSharedRidesEnabled();
   const { ride, sharedLocationState, actions } = useAppData();
+  const { riderLocation } = useLiveLocation();
   const { updateRideRequest, updateSharedLocationState } = actions;
   const updateRideRequestRef = useRef(updateRideRequest);
   const updateSharedLocationStateRef = useRef(updateSharedLocationState);
@@ -751,7 +753,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const [whereTo, setWhereTo] = useState("");
   const [locationPermission, setLocationPermission] = useState<LocationPermissionState>("prompt");
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(
-    sharedLocationState.riderLocation ?? sharedLocationState.pickupCoords ?? ride.request.origin?.coordinates ?? null
+    riderLocation ?? sharedLocationState.pickupCoords ?? ride.request.origin?.coordinates ?? null
   );
   const [routeData, setRouteData] = useState<RouteData | null>(null);
   const [destinationCoords, setDestinationCoords] = useState<Coordinates | null>(null);
@@ -870,9 +872,9 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       sharedLocationState.pickupCoords?.lat === currentLocation.lat &&
       sharedLocationState.pickupCoords?.lng === currentLocation.lng;
     const sameRiderCoords =
-      Boolean(sharedLocationState.riderLocation) &&
-      sharedLocationState.riderLocation?.lat === currentLocation.lat &&
-      sharedLocationState.riderLocation?.lng === currentLocation.lng;
+      Boolean(riderLocation) &&
+      riderLocation?.lat === currentLocation.lat &&
+      riderLocation?.lng === currentLocation.lng;
 
     if (!sameOriginCoords) {
       updateRideRequestRef.current({
@@ -898,7 +900,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     ride.request.origin?.coordinates?.lng,
     ride.request.origin?.label,
     sharedLocationState.pickupCoords,
-    sharedLocationState.riderLocation
+    riderLocation
   ]);
 
   // Calculate route when destination is selected

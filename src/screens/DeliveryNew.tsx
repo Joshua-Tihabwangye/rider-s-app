@@ -32,6 +32,7 @@ import PhoneBookPickerButton from "../components/PhoneBookPickerButton";
 import LocationAutocompleteField from "../components/location/LocationAutocompleteField";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
+import { useLiveLocation } from "../contexts/LiveLocationContext";
 import type { DeliveryDraft, DeliveryOrderMode, RideLocation } from "../store/types";
 import { DEFAULT_DELIVERY_SCHEDULE_POLICY } from "../features/delivery/schedulePolicy";
 import { createEmptyDeliveryDraftStop, deriveDraftStops } from "../features/delivery/multiStop";
@@ -207,6 +208,7 @@ export default function DeliveryNew(): React.JSX.Element {
   const theme = useTheme();
   const isPhone = useMediaQuery(theme.breakpoints.down("sm"));
   const { delivery, paymentMethods, actions, sharedLocationState } = useAppData();
+  const { riderLocation } = useLiveLocation();
   const [activeStep, setActiveStep] = useState<number>(0);
   const [submitError, setSubmitError] = useState<string>("");
   const [showStepValidation, setShowStepValidation] = useState(false);
@@ -641,7 +643,7 @@ export default function DeliveryNew(): React.JSX.Element {
                 }
                 label="Pickup location"
                 placeholder="e.g. Plot 14, Nakasero Rd, Kampala"
-                nearbyCoordinates={sharedLocationState.riderLocation ?? sharedLocationState.pickupCoords ?? null}
+                nearbyCoordinates={riderLocation ?? sharedLocationState.pickupCoords ?? null}
                 textFieldProps={{
                   size: "small",
                   fullWidth: true,
@@ -717,7 +719,7 @@ export default function DeliveryNew(): React.JSX.Element {
                       }
                       label={draft.routeMode === "multi_stop" ? `Destination ${index + 1}` : "Dropoff location"}
                       placeholder="e.g. 12, JJ Apartments, New Street, Kampala"
-                      nearbyCoordinates={draft.pickup?.coordinates ?? sharedLocationState.riderLocation ?? null}
+                      nearbyCoordinates={draft.pickup?.coordinates ?? riderLocation ?? null}
                       textFieldProps={{
                         size: "small",
                         fullWidth: true,

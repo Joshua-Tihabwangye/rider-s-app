@@ -23,6 +23,7 @@ import {
   saveRideLocationDraft
 } from "../features/rides/locationDraft";
 import { useAppData } from "../contexts/AppDataContext";
+import { useLiveLocation } from "../contexts/LiveLocationContext";
 
 interface CommonPlaceCardProps {
   icon: React.ReactElement;
@@ -90,6 +91,7 @@ function CommonPlaceCard({ icon, label, address, onClick }: CommonPlaceCardProps
 function EnterDestinationMainScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { sharedLocationState, actions } = useAppData();
+  const { riderLocation } = useLiveLocation();
   const { updateRideRequest, updateSharedLocationState } = actions;
   const draftLocation = useMemo(() => loadRideLocationDraft(), []);
   const [destinationQuery, setDestinationQuery] = useState(() => {
@@ -127,11 +129,11 @@ function EnterDestinationMainScreen(): React.JSX.Element {
 
   const persistDestinationDraft = (selection: LocationSelection): void => {
     saveRideLocationDraft({
-      pickup: sharedLocationState.pickupCoords || sharedLocationState.riderLocation
+      pickup: sharedLocationState.pickupCoords || riderLocation
         ? {
             label: "Current location",
             address: "Current location",
-            coordinates: sharedLocationState.pickupCoords ?? sharedLocationState.riderLocation ?? null
+            coordinates: sharedLocationState.pickupCoords ?? riderLocation ?? null
           }
         : null,
       destination: {
@@ -172,11 +174,11 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       destination: { label, address, coordinates: undefined },
     });
     saveRideLocationDraft({
-      pickup: sharedLocationState.pickupCoords || sharedLocationState.riderLocation
+      pickup: sharedLocationState.pickupCoords || riderLocation
         ? {
             label: "Current location",
             address: "Current location",
-            coordinates: sharedLocationState.pickupCoords ?? sharedLocationState.riderLocation ?? null
+            coordinates: sharedLocationState.pickupCoords ?? riderLocation ?? null
           }
         : null,
       destination: { label, address, coordinates: null },
@@ -228,7 +230,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         onValueChange={setDestinationQuery}
         onSelectLocation={handleSelectDestination}
         placeholder="Where to?"
-        nearbyCoordinates={sharedLocationState.riderLocation ?? sharedLocationState.pickupCoords ?? null}
+        nearbyCoordinates={riderLocation ?? sharedLocationState.pickupCoords ?? null}
         sx={{
           mb: 2,
           "& .MuiOutlinedInput-root": {
@@ -265,9 +267,9 @@ function EnterDestinationMainScreen(): React.JSX.Element {
         }}
       >
         <GoogleMapView
-          center={sharedLocationState.riderLocation ?? { lat: 0.3476, lng: 32.5825 }}
+          center={riderLocation ?? { lat: 0.3476, lng: 32.5825 }}
           zoom={14}
-          riderLocation={sharedLocationState.riderLocation}
+          riderLocation={riderLocation}
           pickupLocation={sharedLocationState.pickupCoords}
           dropoffLocation={
             destinationQuery
