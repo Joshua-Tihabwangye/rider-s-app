@@ -137,6 +137,8 @@ import {
   mapApiTripToRideTrip,
   updateRiderAmbulance,
   updateRiderTripTracking,
+  getRideFareEstimates,
+  type RideFareOption,
 } from "../services/api/riderApi";
 import { createRiderSocket } from "../services/riderSocket";
 import { DEFAULT_ROUND_TRIP_RETURN_PATTERN, RIDE_MAX_STOPS } from "../features/rides/constants";
@@ -3432,16 +3434,86 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
   }, []);
 
   const refreshRideOptionPricing = useCallback((distanceKm?: number | null) => {
+    // When the backend is enabled and a real distance is known, fetch live
+    // prices from the database so the displayed fare reflects what the admin
+    // configured rather than hardcoded seed values.
+    if (riderBackendEnabled && distanceKm != null && distanceKm > 0) {
+      const durationMin = state.sharedLocationState.routeDurationMin ?? undefined;
+      getRideFareEstimates(distanceKm, durationMin as number | undefined).then((estimates) => {
+        if (!estimates || estimates.length === 0) {
+          // Fall back to local computation if API returned nothing
+          const fallback = computeRideOptionsForDistance(
+            state.ride,
+            state.ride.request,
+            state.sharedLocationState,
+            distanceKm,
+          );
+          if (!areRideOptionPricesEquivalent(state.ride.options, fallback)) {
+            dispatch({ type: "ride/options", payload: fallback });
+          }
+          return;
+        }
+
+        // Map backend estimates onto existing RideOption objects.
+        // Match by vehicleCategoryName → option.id (best effort) so existing
+        // option metadata (image, capacity, ETA label) is preserved.
+        const updatedOptions: RideOption[] = state.ride.options.map((option) => {
+          const match: RideFareOption | undefined =
+            estimates.find(
+              (e) =>
+                e.vehicleCategoryName.toLowerCase() === option.id.toLowerCase() ||
+                e.vehicleCategoryName.toLowerCase().includes(option.id.toLowerCase()) ||
+                option.id.toLowerCase().includes(e.vehicleCategoryName.toLowerCase()),
+            ) ?? estimates[0]; // fallback to first estimate if no name match
+
+          if (!match) return option;
+
+          const totalUGX = match.fare.total;
+          const formattedFare = `UGX ${totalUGX.toLocaleString()}`;
+          const etaLabel =
+            typeof durationMin === "number" && durationMin > 0
+              ? `${Math.round(durationMin)} min`
+              : option.eta;
+
+          return {
+            ...option,
+            fare: formattedFare,
+            eta: etaLabel,
+            // Store the vehicleCategoryId so it can be passed to requestTrip
+            // for server-side fare calculation.
+            vehicleCategoryId: match.vehicleCategoryId,
+          } as RideOption;
+        });
+
+        if (!areRideOptionPricesEquivalent(state.ride.options, updatedOptions)) {
+          dispatch({ type: "ride/options", payload: updatedOptions });
+        }
+      }).catch(() => {
+        // API failed — fall back to local seed computation silently
+        const fallback = computeRideOptionsForDistance(
+          state.ride,
+          state.ride.request,
+          state.sharedLocationState,
+          distanceKm,
+        );
+        if (!areRideOptionPricesEquivalent(state.ride.options, fallback)) {
+          dispatch({ type: "ride/options", payload: fallback });
+        }
+      });
+      return;
+    }
+
+    // Offline / no distance — use local computation from pricingModel in seedData
     const repricedOptions = computeRideOptionsForDistance(
       state.ride,
       state.ride.request,
       state.sharedLocationState,
-      distanceKm
+      distanceKm,
     );
     const unchanged = areRideOptionPricesEquivalent(state.ride.options, repricedOptions);
     if (unchanged) return;
     dispatch({ type: "ride/options", payload: repricedOptions });
-  }, [state.ride, state.sharedLocationState]);
+  }, [riderBackendEnabled, state.ride, state.sharedLocationState]);
 
   const updateRideSharing = useCallback((patch: Partial<RideState["sharing"]>) => {
     dispatch({ type: "ride/sharing", payload: patch });
@@ -3519,7 +3591,19 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
             lat: point.coordinates?.lat,
             lng: point.coordinates?.lng
           })),
-        bookedFor: requestPayload.bookedFor ?? null
+        bookedFor: requestPayload.bookedFor ?? null,
+        // Pass distance and vehicle category so the backend can calculate the
+        // fare from the database pricing config instead of storing 0.
+        ...(state.sharedLocationState.routeDistanceKm != null && {
+          distanceKm: state.sharedLocationState.routeDistanceKm,
+        }),
+        ...(state.sharedLocationState.routeDurationMin != null && {
+          durationMinutes: state.sharedLocationState.routeDurationMin,
+        }),
+        // vehicleCategoryId is set on the option when the backend estimate was fetched
+        ...((state.ride.options.find((o) => o.id === requestPayload.serviceLevel) as any)?.vehicleCategoryId
+          ? { vehicleCategoryId: (state.ride.options.find((o) => o.id === requestPayload.serviceLevel) as any).vehicleCategoryId }
+          : {}),
       })
         .then((trip) => {
           const mappedTrip = mapApiTripToRideTrip(trip);
