@@ -47,35 +47,51 @@ export function useRiderLiveLocation({ enabled = true, onLocation }: Options = {
     useEffect(() => {
         if (!enabled || typeof navigator === "undefined" || !navigator.geolocation) return;
 
-        const watchId = navigator.geolocation.watchPosition(
+        let cancelled = false;
+
+        const emitLocation = (coords: Coordinates) => {
+            if (cancelled) return;
+
+            const now = Date.now();
+            const prev = lastCoords.current;
+
+            if (now - lastEmitAt.current < MIN_INTERVAL_MS) return;
+            if (prev && haversineMeters(prev, coords) < MIN_DISTANCE_M) return;
+
+            lastCoords.current = coords;
+            lastEmitAt.current = now;
+
+            if (rafHandle.current !== null) cancelAnimationFrame(rafHandle.current);
+            rafHandle.current = requestAnimationFrame(() => {
+                rafHandle.current = null;
+                onLocationRef.current?.(coords);
+            });
+        };
+
+        navigator.geolocation.getCurrentPosition(
             (pos) => {
-                const next: Coordinates = {
+                emitLocation({
                     lat: pos.coords.latitude,
                     lng: pos.coords.longitude,
-                };
-                const now = Date.now();
-                const prev = lastCoords.current;
-
-                // Throttle by time
-                if (now - lastEmitAt.current < MIN_INTERVAL_MS) return;
-                // Throttle by distance
-                if (prev && haversineMeters(prev, next) < MIN_DISTANCE_M) return;
-
-                lastCoords.current = next;
-                lastEmitAt.current = now;
-
-                // Batch via RAF so we never dispatch mid-render
-                if (rafHandle.current !== null) cancelAnimationFrame(rafHandle.current);
-                rafHandle.current = requestAnimationFrame(() => {
-                    rafHandle.current = null;
-                    onLocationRef.current?.(next);
                 });
             },
             undefined,
-            { enableHighAccuracy: true, maximumAge: 5_000, timeout: 20_000 },
+            { enableHighAccuracy: true, maximumAge: 0, timeout: 10_000 },
+        );
+
+        const watchId = navigator.geolocation.watchPosition(
+            (pos) => {
+                emitLocation({
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                });
+            },
+            undefined,
+            { enableHighAccuracy: true, maximumAge: 0, timeout: 20_000 },
         );
 
         return () => {
+            cancelled = true;
             navigator.geolocation.clearWatch(watchId);
             if (rafHandle.current !== null) {
                 cancelAnimationFrame(rafHandle.current);

@@ -107,6 +107,9 @@ export interface CreateRiderTripRequestPayload {
   tripType?: "One Way" | "Round Trip" | "Multi-stop";
   tripMode?: "one_way" | "round_trip";
   returnToOrigin?: boolean;
+  distanceKm?: number;
+  durationMinutes?: number;
+  vehicleCategoryId?: string;
   waypoints?: Array<{
     label: string;
     address: string;
