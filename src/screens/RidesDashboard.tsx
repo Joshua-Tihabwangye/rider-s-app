@@ -753,7 +753,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const [whereTo, setWhereTo] = useState("");
   const [locationPermission, setLocationPermission] = useState<LocationPermissionState>("prompt");
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(
-    riderLocation ?? sharedLocationState.pickupCoords ?? ride.request.origin?.coordinates ?? null
+    riderLocation ?? null
   );
   const [routeData, setRouteData] = useState<RouteData | null>(null);
   const [destinationCoords, setDestinationCoords] = useState<Coordinates | null>(null);
@@ -841,9 +841,9 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             }
           },
           {
-            enableHighAccuracy: false,
+            enableHighAccuracy: true,
             timeoutMs: 10000,
-            maximumAgeMs: 15000
+            maximumAgeMs: 5000
           }
         );
       })
@@ -1085,7 +1085,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
               address: "Your current location",
               coordinates: currentLocation
             }
-          : ride.request.origin,
+          : null,
         destination: {
           label: location.label,
           address: location.address,
@@ -1103,7 +1103,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       setTimeout(() => {
         navigate("/rides/enter/details", {
           state: {
-            pickup: currentLocation ? "Current location" : ride.request.origin?.label || "",
+            pickup: currentLocation ? "Current location" : "",
             pickupCoords: currentLocation ?? null,
             destination: location.address,
             destinationCoords: location.coordinates,
@@ -1132,7 +1132,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
             address: "Your current location",
             coordinates: currentLocation
           }
-        : ride.request.origin,
+        : null,
       destination: selectedDestination
     });
     updateSharedLocationState({
@@ -1143,14 +1143,14 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     });
     
     // Navigate to Enter Destination screen (RA05) after route calculation
-    setTimeout(() => {
-      navigate("/rides/enter/details", {
-        state: {
-          pickup: currentLocation ? "Current location" : ride.request.origin?.label || "",
-          pickupCoords: currentLocation ?? null,
-          destination: place.description,
-          destinationCoords: selectedDestination.coordinates ?? null,
-          isSharedRide: isSharedRideMode // Pass shared ride mode to details screen
+      setTimeout(() => {
+        navigate("/rides/enter/details", {
+          state: {
+            pickup: currentLocation ? "Current location" : "",
+            pickupCoords: currentLocation ?? null,
+            destination: place.description,
+            destinationCoords: selectedDestination.coordinates ?? null,
+            isSharedRide: isSharedRideMode // Pass shared ride mode to details screen
         }
       });
     }, dashboardWorkflow.navigateToDetailsDelayMs);

@@ -72,7 +72,7 @@ export function useRiderLiveLocation({ enabled = true, onLocation }: Options = {
                 });
             },
             undefined,
-            { enableHighAccuracy: false, maximumAge: 15_000, timeout: 20_000 },
+            { enableHighAccuracy: true, maximumAge: 5_000, timeout: 20_000 },
         );
 
         return () => {
