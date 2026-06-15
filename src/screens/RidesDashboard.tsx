@@ -843,7 +843,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           {
             enableHighAccuracy: true,
             timeoutMs: 10000,
-            maximumAgeMs: 5000
+            maximumAgeMs: 0
           }
         );
       })

@@ -56,6 +56,17 @@ function distanceKm(a: Coordinates, b: Coordinates): number {
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
+function buildDirectRouteFallback(origin: Coordinates, destination: Coordinates): RouteResult {
+  const distance = distanceKm(origin, destination);
+  const durationMin = Math.max(1, Math.round((distance / 35) * 60));
+  return {
+    distanceKm: Number(distance.toFixed(1)),
+    durationMin,
+    path: [origin, destination],
+    alternativePaths: [],
+  };
+}
+
 function isValidCoordinates(point: Coordinates | null | undefined): point is Coordinates {
   return Boolean(
     point &&
@@ -304,7 +315,12 @@ export async function calculateRoute(origin: Coordinates, destination: Coordinat
 
   // Fallback: use Google Maps Directions Service directly in the browser.
   // This draws the route even when the backend /geo/routes/estimate is down.
-  return calculateRouteClientSide(origin, destination);
+  const clientSideRoute = await calculateRouteClientSide(origin, destination);
+  if (clientSideRoute) {
+    return clientSideRoute;
+  }
+
+  return buildDirectRouteFallback(origin, destination);
 }
 
 export async function calculateRouteThroughPoints(points: Coordinates[]): Promise<RouteResult | null> {
