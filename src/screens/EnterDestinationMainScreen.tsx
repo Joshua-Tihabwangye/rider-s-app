@@ -111,7 +111,11 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       setDestinationQuery((current) => (current.trim().length > 0 ? current : draftLocation.destination!.address));
     }
 
-    if (draftLocation.pickup?.coordinates && !sharedLocationState.pickupCoords) {
+    if (
+      draftLocation.pickup?.coordinates &&
+      draftLocation.pickup.label !== "Current location" &&
+      !sharedLocationState.pickupCoords
+    ) {
       updateSharedLocationState({ pickupCoords: draftLocation.pickup.coordinates });
     }
 
@@ -129,11 +133,11 @@ function EnterDestinationMainScreen(): React.JSX.Element {
 
   const persistDestinationDraft = (selection: LocationSelection): void => {
     saveRideLocationDraft({
-      pickup: sharedLocationState.pickupCoords || riderLocation
+      pickup: riderLocation
         ? {
             label: "Current location",
             address: "Current location",
-            coordinates: sharedLocationState.pickupCoords ?? riderLocation ?? null
+            coordinates: riderLocation
           }
         : null,
       destination: {
@@ -174,11 +178,11 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       destination: { label, address, coordinates: undefined },
     });
     saveRideLocationDraft({
-      pickup: sharedLocationState.pickupCoords || riderLocation
+      pickup: riderLocation
         ? {
             label: "Current location",
             address: "Current location",
-            coordinates: sharedLocationState.pickupCoords ?? riderLocation ?? null
+            coordinates: riderLocation
           }
         : null,
       destination: { label, address, coordinates: null },

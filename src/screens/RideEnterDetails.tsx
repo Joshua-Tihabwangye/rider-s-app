@@ -215,12 +215,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const updateRideRequest = useCallback((patch: Parameters<typeof actions.updateRideRequest>[0]) => {
 		updateRideRequestRef.current(patch);
 	}, []);
-	const resolvedCurrentPickupCoords =
-		riderLocation ||
-		sharedLocationState.pickupCoords ||
-		ride.request.origin?.coordinates ||
-		locationDraft?.pickup?.coordinates ||
-		null;
+	const resolvedCurrentPickupCoords = riderLocation ?? null;
 
 	// Get initial values from navigation state
 	const initialState = location.state || {};
@@ -236,11 +231,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [pickup, setPickup] = useState(defaultPickupLabel);
 	const [pickupCoords, setPickupCoords] = useState(
 		initialState.pickupCoords ||
-			locationDraft?.pickup?.coordinates ||
-			(ride.request.origin?.coordinates ||
-				riderLocation ||
-				sharedLocationState.pickupCoords) ||
-			null,
+			(defaultPickupLabel === "Current location"
+				? riderLocation ?? null
+				: locationDraft?.pickup?.coordinates ||
+					ride.request.origin?.coordinates ||
+					sharedLocationState.pickupCoords ||
+					null),
 	);
 
 	// Keep current-location pickup in sync with live rider coordinates.
@@ -362,7 +358,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 		() => (destinationCoords ? destination : debouncedDestination),
 		[destinationCoords, destination, debouncedDestination]
 	);
-	const mapCenter = pickupCoords ?? riderLocation ?? ride.request.origin?.coordinates ?? KAMPALA_CENTER;
+	const mapCenter = pickupCoords ?? riderLocation ?? KAMPALA_CENTER;
 
 	useEffect(() => {
 		if (!destination.trim()) {
@@ -394,7 +390,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const tripType = deriveTripTypeLabel(routeMode, tripMode);
 	const persistRideLocationDraft = useCallback(() => {
 		const normalizedStops = uniqueStops(removeConsecutiveDuplicateStops(stops));
-		const fallbackPickupCoords = pickupCoords ?? sharedLocationState.pickupCoords ?? riderLocation ?? null;
+		const fallbackPickupCoords =
+			pickup === "Current location"
+				? riderLocation ?? null
+				: pickupCoords ?? sharedLocationState.pickupCoords ?? null;
 		const lastStop = normalizedStops[normalizedStops.length - 1] || null;
 		const draftDestination = isMultiStopMode
 			? lastStop
@@ -441,9 +440,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 		const currentCoords = resolvedCurrentPickupCoords;
 		if (!currentCoords) {
 			setPickup("Current location");
-			clearFieldError("pickup");
-			setShowError(false);
-			setErrorMessage("");
+			setPickupCoords(null);
+			updateSharedLocationState({ pickupCoords: null });
+			setShowError(true);
+			setErrorMessage("Waiting for your live location. Please allow GPS access and try again.");
 			return;
 		}
 		setPickup("Current location");
@@ -636,9 +636,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 				},
 				() => {},
 				{
-					enableHighAccuracy: false,
+					enableHighAccuracy: true,
 					timeoutMs: 10000,
-					maximumAgeMs: 15000
+					maximumAgeMs: 5000
 				}
 			);
 		});
