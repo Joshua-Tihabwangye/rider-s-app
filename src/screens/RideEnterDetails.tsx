@@ -215,6 +215,12 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const updateRideRequest = useCallback((patch: Parameters<typeof actions.updateRideRequest>[0]) => {
 		updateRideRequestRef.current(patch);
 	}, []);
+	const resolvedCurrentPickupCoords =
+		riderLocation ||
+		sharedLocationState.pickupCoords ||
+		ride.request.origin?.coordinates ||
+		locationDraft?.pickup?.coordinates ||
+		null;
 
 	// Get initial values from navigation state
 	const initialState = location.state || {};
@@ -239,13 +245,13 @@ function EnterDestinationScreen(): React.JSX.Element {
 
 	// Keep current-location pickup in sync with live rider coordinates.
 	useEffect(() => {
-		if (pickup === "Current location" && riderLocation) {
-			if (!pickupCoords || !areSameCoordinates(pickupCoords, riderLocation)) {
-				setPickupCoords(riderLocation);
-				updateSharedLocationState({ pickupCoords: riderLocation });
+		if (pickup === "Current location" && resolvedCurrentPickupCoords) {
+			if (!pickupCoords || !areSameCoordinates(pickupCoords, resolvedCurrentPickupCoords)) {
+				setPickupCoords(resolvedCurrentPickupCoords);
+				updateSharedLocationState({ pickupCoords: resolvedCurrentPickupCoords });
 			}
 		}
-	}, [pickup, pickupCoords, riderLocation, updateSharedLocationState]);
+	}, [pickup, pickupCoords, resolvedCurrentPickupCoords, updateSharedLocationState]);
 	const [destination, setDestination] = useState(
 		initialState.destination || ride.request.destination?.label || locationDraft?.destination?.address || "",
 	);
@@ -432,17 +438,22 @@ function EnterDestinationScreen(): React.JSX.Element {
 		stops,
 	]);
 	const handleUseCurrentLocation = useCallback(() => {
-		if (!riderLocation) {
+		const currentCoords = resolvedCurrentPickupCoords;
+		if (!currentCoords) {
+			setPickup("Current location");
+			clearFieldError("pickup");
+			setShowError(false);
+			setErrorMessage("");
 			return;
 		}
 		setPickup("Current location");
-		setPickupCoords(riderLocation);
-		updateSharedLocationState({ pickupCoords: riderLocation });
+		setPickupCoords(currentCoords);
+		updateSharedLocationState({ pickupCoords: currentCoords });
 		saveRideLocationDraft({
 			pickup: {
 				label: "Current location",
 				address: "Current location",
-				coordinates: riderLocation,
+				coordinates: currentCoords,
 			},
 			destination: destination.trim().length > 0
 				? {
@@ -457,7 +468,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 		setShowError(false);
 		setErrorMessage("");
 		clearFieldError("pickup");
-	}, [destination, destinationCoords, destinationLabelForRequest, routeAlternatives, routePolyline, riderLocation, updateSharedLocationState]);
+	}, [destination, destinationCoords, destinationLabelForRequest, resolvedCurrentPickupCoords, routeAlternatives, routePolyline, updateSharedLocationState]);
 
 	const rideTypeCards = ride.options.slice(0, 3).map((option, index): RideTypeCardData => ({
 		id: option.id,
