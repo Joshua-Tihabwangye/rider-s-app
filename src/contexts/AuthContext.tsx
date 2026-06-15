@@ -147,7 +147,7 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
         const storedRefreshToken = localStorage.getItem(STORAGE_KEY_REFRESH_TOKEN);
 
         if (riderBackendEnabled) {
-          if (!storedToken) {
+          if (!storedToken && !storedRefreshToken) {
             clearSession();
             if (!cancelled) {
               setUser(null);
@@ -155,7 +155,7 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
             return;
           }
 
-          if (!isLikelyUsableAccessToken(storedToken) && !storedRefreshToken) {
+          if (storedToken && !isLikelyUsableAccessToken(storedToken) && !storedRefreshToken) {
             clearSession();
             if (!cancelled) {
               setUser(null);
@@ -163,7 +163,7 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
             return;
           }
 
-          if (hasUnsupportedRiderRoleClaims(storedToken)) {
+          if (storedToken && hasUnsupportedRiderRoleClaims(storedToken)) {
             clearSession();
             if (!cancelled) {
               setUser(null);
@@ -247,7 +247,8 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
   useEffect(() => {
     if (!user) return;
     const storedToken = localStorage.getItem(STORAGE_KEY_TOKEN);
-    if (!storedToken) {
+    const storedRefreshToken = localStorage.getItem(STORAGE_KEY_REFRESH_TOKEN);
+    if (!storedToken && !storedRefreshToken) {
       setUser(null);
       clearSession();
     }
@@ -286,10 +287,6 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
     if (!riderBackendEnabled || !user) {
       return;
     }
-
-      if (!localStorage.getItem(STORAGE_KEY_TOKEN)) {
-        return;
-      }
 
       try {
         const backendProfile = await getRiderProfile();
