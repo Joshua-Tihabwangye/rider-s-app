@@ -3360,7 +3360,7 @@ interface AppDataProviderProps {
 }
 
 export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.Element {
-  const { user } = useAuth();
+  const { user, hydrated: authHydrated } = useAuth();
   const [state, dispatch] = useReducer(appReducer, initialState, createInitialState);
   const senderConfirmationTimersRef = useRef<Map<string, number>>(new Map());
   const ambulanceCreateInFlightRef = useRef(false);
@@ -3549,7 +3549,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       return;
     }
 
-    if (!window.localStorage.getItem("evzone_auth_token")) {
+    if (!authHydrated || !user) {
       return;
     }
 
@@ -3618,7 +3618,11 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           });
         })
         .catch((error) => {
-          console.warn("Rider backend trip request failed. Keeping local ride flow.", error);
+          console.warn("Rider backend trip request failed. Falling back to local ride flow.", error);
+          const localTrip = createRideTripFromRequest(state);
+          if (localTrip) {
+            dispatch({ type: "ride/set-active", payload: localTrip });
+          }
         });
       return;
     }
@@ -3632,7 +3636,15 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     void updateRiderTripTracking(tripId, { status: backendStatus }).catch((error) => {
       console.warn("Rider backend tracking status update failed. Keeping local ride flow.", error);
     });
-  }, [riderBackendEnabled, state, state.ride.activeTrip?.id, state.ride.activeTrip?.status, state.ride.request]);
+  }, [
+    authHydrated,
+    riderBackendEnabled,
+    state,
+    state.ride.activeTrip?.id,
+    state.ride.activeTrip?.status,
+    state.ride.request,
+    user,
+  ]);
 
   const setActiveTrip = useCallback((trip: RideTrip | null) => {
     dispatch({ type: "ride/set-active", payload: trip });
@@ -3658,7 +3670,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     }
 
     const tripId = state.ride.activeTrip?.id;
-    if (!window.localStorage.getItem("evzone_auth_token") || !tripId) {
+    if (!tripId) {
       return;
     }
 
@@ -4656,10 +4668,6 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
   useEffect(() => {
     if (!riderBackendEnabled || !user || typeof window === "undefined") {
-      return;
-    }
-
-    if (!window.localStorage.getItem("evzone_auth_token")) {
       return;
     }
 
