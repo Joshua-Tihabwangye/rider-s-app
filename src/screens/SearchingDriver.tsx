@@ -21,7 +21,7 @@ import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import { useLiveLocation } from "../contexts/LiveLocationContext";
-import { isRiderBackendEnabled } from "../services/api/riderApi";
+import { getRiderActiveTrip, isRiderBackendEnabled, mapApiTripToRideTrip } from "../services/api/riderApi";
 import { fetchNearbyDrivers } from "../services/maps";
 import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 
@@ -30,7 +30,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
   const location = useLocation();
   const { ride, sharedLocationState, actions } = useAppData();
   const { riderLocation } = useLiveLocation();
-  const { setRideStatus, updateSharedLocationState } = actions;
+  const { setRideStatus, setActiveTrip, updateSharedLocationState } = actions;
   const [dots, setDots] = useState(".");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [searchTime, setSearchTime] = useState(0);
@@ -167,6 +167,29 @@ function SearchingForDriverScreen(): React.JSX.Element {
     return () => clearInterval(interval);
   }, [backendMode, routeReady, tripWorkflow.searchingDriverProgressCap, tripWorkflow.searchingDriverProgressPerTick]);
 
+  // Poll the backend for active trip status while searching.
+  useEffect(() => {
+    if (!backendMode) return;
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const trip = await getRiderActiveTrip();
+        if (cancelled) return;
+        if (trip) {
+          setActiveTrip(mapApiTripToRideTrip(trip));
+        }
+      } catch {
+        // Ignore polling errors; the search UI stays alive.
+      }
+    };
+    void poll();
+    const intervalId = window.setInterval(() => void poll(), 3000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [backendMode, setActiveTrip]);
+
   useEffect(() => {
     const backendTripStatus = ride.activeTrip?.status as string | undefined;
     if (!backendMode || !backendTripStatus) {
@@ -229,14 +252,16 @@ function SearchingForDriverScreen(): React.JSX.Element {
     };
   }, [navigate]);
 
+  // Frontend-only simulation timer: only run when the backend is disabled.
   useEffect(() => {
+    if (backendMode) return;
     if (hasTransitionedToOnWayRef.current) return;
     if (!routeReady) return;
     if (searchTime < tripWorkflow.searchingToOnWayDelaySec) return;
     hasTransitionedToOnWayRef.current = true;
     setRideStatus("driver_on_way");
     navigate("/rides/driver-on-way");
-  }, [navigate, routeReady, searchTime, setRideStatus, tripWorkflow.searchingToOnWayDelaySec]);
+  }, [backendMode, navigate, routeReady, searchTime, setRideStatus, tripWorkflow.searchingToOnWayDelaySec]);
 
   const topMapBleedSx = {
     position: "relative",
