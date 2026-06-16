@@ -23,6 +23,15 @@ export interface RouteResult {
   alternativePaths: Coordinates[][];
 }
 
+export interface NearbyDriverResult {
+  driverId: string;
+  latitude: number;
+  longitude: number;
+  distanceMeters: number;
+  accuracy?: number;
+  timestamp?: number;
+}
+
 function samePoint(a: Coordinates, b: Coordinates): boolean {
   return Math.abs(a.lat - b.lat) < 0.000001 && Math.abs(a.lng - b.lng) < 0.000001;
 }
@@ -42,29 +51,6 @@ function normalizeQuery(value: string): string {
 
 function toRadians(value: number): number {
   return (value * Math.PI) / 180;
-}
-
-function distanceKm(a: Coordinates, b: Coordinates): number {
-  const earthRadiusKm = 6371;
-  const dLat = toRadians(b.lat - a.lat);
-  const dLng = toRadians(b.lng - a.lng);
-  const lat1 = toRadians(a.lat);
-  const lat2 = toRadians(b.lat);
-  const sinLat = Math.sin(dLat / 2);
-  const sinLng = Math.sin(dLng / 2);
-  const h = sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLng * sinLng;
-  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
-}
-
-function buildDirectRouteFallback(origin: Coordinates, destination: Coordinates): RouteResult {
-  const distance = distanceKm(origin, destination);
-  const durationMin = Math.max(1, Math.round((distance / 35) * 60));
-  return {
-    distanceKm: Number(distance.toFixed(1)),
-    durationMin,
-    path: [origin, destination],
-    alternativePaths: [],
-  };
 }
 
 function isValidCoordinates(point: Coordinates | null | undefined): point is Coordinates {
@@ -181,6 +167,45 @@ export async function reverseGeocode(point: Coordinates): Promise<string | null>
   const payload = (await response.json()) as { data?: { displayName?: string; display_name?: string } | null; displayName?: string; display_name?: string };
   const data = payload.data ?? payload;
   return (data.displayName ?? data.display_name ?? null)?.trim() || null;
+}
+
+export async function fetchNearbyDrivers(
+  origin: Coordinates,
+  radiusMeters = 5000,
+): Promise<NearbyDriverResult[]> {
+  if (!isValidCoordinates(origin)) {
+    return [];
+  }
+
+  const params = new URLSearchParams({
+    lat: String(origin.lat),
+    lng: String(origin.lng),
+    radius: String(radiusMeters),
+  });
+  const response = await fetch(`${getApiBaseUrl()}/geo/nearby-drivers?${params.toString()}`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const payload = (await response.json()) as {
+    data?: NearbyDriverResult[];
+  } | NearbyDriverResult[];
+  const rows = Array.isArray(payload) ? payload : payload.data ?? [];
+  return rows
+    .filter(
+      (item) =>
+        typeof item.driverId === "string" &&
+        isFiniteCoordinate(item.latitude) &&
+        isFiniteCoordinate(item.longitude) &&
+        isFiniteCoordinate(item.distanceMeters),
+    )
+    .sort((a, b) => a.distanceMeters - b.distanceMeters);
 }
 
 /**
@@ -320,7 +345,7 @@ export async function calculateRoute(origin: Coordinates, destination: Coordinat
     return clientSideRoute;
   }
 
-  return buildDirectRouteFallback(origin, destination);
+  return null;
 }
 
 export async function calculateRouteThroughPoints(points: Coordinates[]): Promise<RouteResult | null> {
