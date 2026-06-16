@@ -91,6 +91,7 @@ import {
   estimateRentalDays,
   getRentalBookingVehicle
 } from "../features/rental/booking";
+import { clearRideLocationDraft } from "../features/rides/locationDraft";
 import {
   SEED_PAYMENT_METHODS,
   SEED_TRANSACTIONS,
@@ -256,6 +257,7 @@ interface AppActions {
   resumeTripAfterTemporaryStop: () => void;
   markTemporaryStopContinuePromptShown: () => void;
   respondToSafetyCheck: (action: "okay" | "sos") => void;
+  resetRidePlanningState: (options?: { preserveRiderLocation?: boolean }) => void;
   updateSharedLocationState: (patch: Partial<SharedLocationState>) => void;
 }
 
@@ -392,6 +394,23 @@ interface PersistedAppState {
   sharedLocationState?: SharedLocationState;
 }
 
+function resetRideSharedLocationState(
+  state: SharedLocationState,
+  options?: { preserveRiderLocation?: boolean }
+): SharedLocationState {
+  return {
+    ...state,
+    pickupCoords: null,
+    destinationCoords: null,
+    routePolyline: [],
+    routeAlternativePolylines: [],
+    routeDistanceKm: null,
+    routeDurationMin: null,
+    driverLocation: null,
+    riderLocation: options?.preserveRiderLocation ? state.riderLocation ?? null : null,
+  };
+}
+
 function mergePersistedRideState(baseRide: RideState, persistedRide?: PersistedRideState): RideState {
   if (!persistedRide?.request) {
     return baseRide;
@@ -399,29 +418,28 @@ function mergePersistedRideState(baseRide: RideState, persistedRide?: PersistedR
 
   const mergedRequest = normalizeRideRequest({
     ...baseRide.request,
-    ...persistedRide.request,
+    passengers: persistedRide.request.passengers ?? baseRide.request.passengers,
+    tripType: persistedRide.request.tripType ?? baseRide.request.tripType,
+    tripMode: persistedRide.request.tripMode ?? baseRide.request.tripMode,
+    routeMode: persistedRide.request.routeMode ?? baseRide.request.routeMode,
+    returnToOrigin: persistedRide.request.returnToOrigin ?? baseRide.request.returnToOrigin,
+    maxStops: persistedRide.request.maxStops ?? baseRide.request.maxStops,
     roundTripConfig: {
       ...baseRide.request.roundTripConfig,
       ...persistedRide.request.roundTripConfig
-    }
+    },
+    rideType: persistedRide.request.rideType ?? baseRide.request.rideType,
+    serviceLevel: persistedRide.request.serviceLevel ?? baseRide.request.serviceLevel,
+    serviceClass: persistedRide.request.serviceClass ?? baseRide.request.serviceClass,
+    riderType: persistedRide.request.riderType ?? baseRide.request.riderType,
+    riderContact: persistedRide.request.riderContact ?? baseRide.request.riderContact,
+    bookedFor: persistedRide.request.bookedFor ?? baseRide.request.bookedFor,
+    notes: persistedRide.request.notes ?? baseRide.request.notes,
   });
-  const usesCurrentLocationOrigin =
-    mergedRequest.origin?.label === "Current location" ||
-    mergedRequest.origin?.address === "Current location";
 
   return {
     ...baseRide,
-    request: usesCurrentLocationOrigin
-      ? {
-          ...mergedRequest,
-          origin: mergedRequest.origin
-            ? {
-                ...mergedRequest.origin,
-                coordinates: undefined
-              }
-            : mergedRequest.origin
-        }
-      : mergedRequest,
+    request: mergedRequest,
     savedPlaces: persistedRide.savedPlaces?.length ? persistedRide.savedPlaces : baseRide.savedPlaces,
     options: persistedRide.options?.length ? persistedRide.options : baseRide.options,
     sharing: {
@@ -481,6 +499,8 @@ function createInitialState(baseState: AppState): AppState {
             // Device-derived coordinates must not survive an app restart.
             riderLocation: null,
             pickupCoords: null,
+            destinationCoords: null,
+            driverLocation: null,
             routePolyline: [],
             routeAlternativePolylines: [],
             routeDistanceKm: null,
@@ -779,6 +799,7 @@ type AppAction =
   | { type: "ride/history"; payload: RideTrip[] }
   | { type: "ride/status"; payload: RideStatus }
   | { type: "ride/set-active"; payload: RideTrip | null }
+  | { type: "ride/reset-planning"; payload?: { preserveRiderLocation?: boolean } }
   | { type: "delivery/notifications-replace"; payload: DeliveryState["notifications"] }
   | { type: "delivery/draft"; payload: Partial<DeliveryDraft> }
   | { type: "delivery/reset-draft" }
@@ -1142,6 +1163,15 @@ function normalizeRideRequest(request: RideRequest): RideRequest {
           }
         : { source: "self" })
   };
+}
+
+function createResetRideRequest(previous: RideRequest): RideRequest {
+  return normalizeRideRequest({
+    ...SEED_RIDE_STATE.request,
+    passengers: previous.passengers,
+    rideType: previous.rideType,
+    serviceLevel: previous.serviceLevel,
+  });
 }
 
 function buildRideLegsFromRoutePoints(routePoints: RideLocation[], tripMode: "one_way" | "round_trip"): RideTripLeg[] {
@@ -1957,6 +1987,30 @@ function appReducer(state: AppState, action: AppAction): AppState {
         return state;
       }
       return { ...state, ride: { ...state.ride, activeTrip: action.payload } };
+    case "ride/reset-planning": {
+      const nextSharedLocationState = resetRideSharedLocationState(
+        state.sharedLocationState,
+        action.payload,
+      );
+      const nextRequest = createResetRideRequest(state.ride.request);
+      const nextOptions = computeRideOptionsForDistance(
+        state.ride,
+        nextRequest,
+        nextSharedLocationState,
+      );
+      return {
+        ...state,
+        sharedLocationState: nextSharedLocationState,
+        ride: {
+          ...state.ride,
+          request: nextRequest,
+          activeTrip: null,
+          options: nextOptions,
+          temporaryStop: { ...SEED_RIDE_STATE.temporaryStop },
+          safetyCheck: { ...SEED_RIDE_STATE.safetyCheck },
+        },
+      };
+    }
     case "ride/history":
       return { ...state, ride: { ...state.ride, history: action.payload } };
     case "delivery/notifications-replace":
@@ -3737,6 +3791,15 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     dispatch({ type: "ride/set-active", payload: trip });
   }, []);
 
+  const resetRidePlanningState = useCallback((options?: { preserveRiderLocation?: boolean }) => {
+    clearRideLocationDraft();
+    if (typeof window !== "undefined") {
+      window.sessionStorage.removeItem("evzone_last_trip_dispatch");
+      window.sessionStorage.removeItem("evzone_last_trip_request_error");
+    }
+    dispatch({ type: "ride/reset-planning", payload: options });
+  }, []);
+
   const updateSharedLocationState = useCallback((patch: Partial<SharedLocationState>) => {
     dispatch({ type: "location/update", payload: patch });
     if (patch.routeDistanceKm !== undefined) {
@@ -4951,12 +5014,14 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
 
     const persistedState: PersistedAppState = {
       ride: {
-        request: state.ride.request,
         savedPlaces: state.ride.savedPlaces,
         options: state.ride.options,
         sharing: state.ride.sharing
       },
-      sharedLocationState: state.sharedLocationState,
+      sharedLocationState: {
+        deliveryPickupCoords: state.sharedLocationState.deliveryPickupCoords ?? null,
+        deliveryDropoffCoords: state.sharedLocationState.deliveryDropoffCoords ?? null,
+      },
       delivery: state.delivery,
       rental: state.rental,
       tours: state.tours,
@@ -4969,6 +5034,11 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       // Ignore persistence failures so workflow interactions keep working.
     }
   }, [
+    state.ride.savedPlaces,
+    state.ride.options,
+    state.ride.sharing,
+    state.sharedLocationState.deliveryPickupCoords,
+    state.sharedLocationState.deliveryDropoffCoords,
     state.delivery,
     state.rental,
     state.tours,
@@ -5300,6 +5370,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       resumeTripAfterTemporaryStop,
       markTemporaryStopContinuePromptShown,
       respondToSafetyCheck,
+      resetRidePlanningState,
       updateSharedLocationState,
     }),
     [
@@ -5366,6 +5437,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       resumeTripAfterTemporaryStop,
       markTemporaryStopContinuePromptShown,
       respondToSafetyCheck,
+      resetRidePlanningState,
       updateSharedLocationState,
     ]
   );

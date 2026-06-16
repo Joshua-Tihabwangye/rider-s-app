@@ -383,6 +383,7 @@ export function PaymentSuccessScreen(): React.JSX.Element {
       actions.setRideStatus("completed");
     }
     actions.setActiveTrip(null);
+    actions.resetRidePlanningState({ preserveRiderLocation: true });
     navigate("/home", {
       replace: true,
       state: {

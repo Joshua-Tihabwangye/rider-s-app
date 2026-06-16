@@ -17,6 +17,8 @@ export type RideLocationDraft = {
 };
 
 const STORAGE_KEY = "evzone_rider_location_draft";
+const LEGACY_STORAGE_KEY = STORAGE_KEY;
+const MAX_DRAFT_AGE_MS = 30 * 60 * 1000;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -54,30 +56,29 @@ export function loadRideLocationDraft(): RideLocationDraft | null {
   }
 
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw =
+      window.sessionStorage.getItem(STORAGE_KEY) ??
+      window.localStorage.getItem(LEGACY_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as unknown;
     if (!isRecord(parsed)) return null;
 
+    const updatedAt = isFiniteNumber(parsed.updatedAt) ? parsed.updatedAt : undefined;
+    if (updatedAt && Date.now() - updatedAt > MAX_DRAFT_AGE_MS) {
+      clearRideLocationDraft();
+      return null;
+    }
+
     const draft: RideLocationDraft = {
       pickup: normalizeLocation(parsed.pickup),
       destination: normalizeLocation(parsed.destination),
-      routePolyline: Array.isArray(parsed.routePolyline)
-        ? parsed.routePolyline
-            .map((point) => normalizeCoordinates(point))
-            .filter((point): point is Coordinates => Boolean(point))
-        : undefined,
-      routeAlternativePolylines: Array.isArray(parsed.routeAlternativePolylines)
-        ? parsed.routeAlternativePolylines.map((route) =>
-            Array.isArray(route)
-              ? route
-                  .map((point) => normalizeCoordinates(point))
-                  .filter((point): point is Coordinates => Boolean(point))
-              : [],
-          )
-        : undefined,
-      updatedAt: isFiniteNumber(parsed.updatedAt) ? parsed.updatedAt : undefined,
+      routePolyline: [],
+      routeAlternativePolylines: [],
+      updatedAt,
     };
+
+    // Remove legacy localStorage drafts once a valid draft has been recovered.
+    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
 
     return draft;
   } catch {
@@ -92,11 +93,12 @@ export function saveRideLocationDraft(draft: RideLocationDraft | null): void {
 
   try {
     if (!draft) {
-      window.localStorage.removeItem(STORAGE_KEY);
+      window.sessionStorage.removeItem(STORAGE_KEY);
+      window.localStorage.removeItem(LEGACY_STORAGE_KEY);
       return;
     }
 
-    window.localStorage.setItem(
+    window.sessionStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
         ...draft,
@@ -107,17 +109,12 @@ export function saveRideLocationDraft(draft: RideLocationDraft | null): void {
                 coordinates: null,
               }
             : draft.pickup,
-        routePolyline:
-          draft.pickup?.label === "Current location" || draft.pickup?.address === "Current location"
-            ? []
-            : draft.routePolyline,
-        routeAlternativePolylines:
-          draft.pickup?.label === "Current location" || draft.pickup?.address === "Current location"
-            ? []
-            : draft.routeAlternativePolylines,
+        routePolyline: [],
+        routeAlternativePolylines: [],
         updatedAt: draft.updatedAt ?? Date.now(),
       }),
     );
+    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
   } catch {
     // Ignore storage failures. The flow still works in memory.
   }
