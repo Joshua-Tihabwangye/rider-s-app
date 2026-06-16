@@ -37,10 +37,14 @@ function normalizeLocation(value: unknown): RideLocationDraft["pickup"] {
   const label = typeof value.label === "string" ? value.label.trim() : "";
   const address = typeof value.address === "string" ? value.address.trim() : label;
   if (!label && !address) return null;
+  const normalizedCoordinates =
+    label === "Current location" || address === "Current location"
+      ? null
+      : normalizeCoordinates(value.coordinates);
   return {
     label: label || address,
     address: address || label,
-    coordinates: normalizeCoordinates(value.coordinates),
+    coordinates: normalizedCoordinates,
   };
 }
 
@@ -96,6 +100,21 @@ export function saveRideLocationDraft(draft: RideLocationDraft | null): void {
       STORAGE_KEY,
       JSON.stringify({
         ...draft,
+        pickup:
+          draft.pickup?.label === "Current location" || draft.pickup?.address === "Current location"
+            ? {
+                ...draft.pickup,
+                coordinates: null,
+              }
+            : draft.pickup,
+        routePolyline:
+          draft.pickup?.label === "Current location" || draft.pickup?.address === "Current location"
+            ? []
+            : draft.routePolyline,
+        routeAlternativePolylines:
+          draft.pickup?.label === "Current location" || draft.pickup?.address === "Current location"
+            ? []
+            : draft.routeAlternativePolylines,
         updatedAt: draft.updatedAt ?? Date.now(),
       }),
     );

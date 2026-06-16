@@ -69,6 +69,12 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
   const [geoLoading, setGeoLoading] = useState(false);
   const [contentExtendedDown, setContentExtendedDown] = useState(false);
   const pickupInputRef = useRef<HTMLInputElement | null>(null);
+  const pageSx = {
+    ...(ambulanceCompactTypographySx as Record<string, unknown>),
+    px: 2.5,
+    pt: 2.5,
+    pb: 4,
+  };
 
   const canContinue =
     pickupAddress.trim().length > 0 &&
@@ -99,9 +105,15 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
         setPickupHint("Live coordinates fetched from your device location.");
         setGeoLoading(false);
       },
-      () => {
-        setPickupAddress("Kampala, Uganda");
-        setPickupHint("Unable to fetch GPS location. Fallback set to Kampala.");
+      (error) => {
+        const message =
+          error.code === error.PERMISSION_DENIED
+            ? "Location permission is blocked. Enable browser and device GPS access."
+            : error.code === error.POSITION_UNAVAILABLE
+              ? "GPS is unavailable right now. Try again or enter the address manually."
+              : "Timed out while fetching GPS. Try again or enter the address manually.";
+        setPickupAddress("Current location unavailable");
+        setPickupHint(message);
         setGeoLoading(false);
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
@@ -128,7 +140,7 @@ function AmbulanceLocationPatientDetailsScreen(): React.JSX.Element {
   };
 
   return (
-    <Box sx={[{ px: 2.5, pt: 2.5, pb: 4 }, ambulanceCompactTypographySx]}>
+    <Box sx={pageSx}>
       <Box
         sx={{
           mb: 2,

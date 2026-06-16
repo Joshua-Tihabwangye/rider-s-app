@@ -22,6 +22,7 @@ import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import { useLiveLocation } from "../contexts/LiveLocationContext";
 import { isRiderBackendEnabled } from "../services/api/riderApi";
+import { fetchNearbyDrivers } from "../services/maps";
 import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 
 function SearchingForDriverScreen(): React.JSX.Element {
@@ -34,6 +35,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [searchTime, setSearchTime] = useState(0);
   const [driverProgress, setDriverProgress] = useState(0);
+  const [nearbyDrivers, setNearbyDrivers] = useState<Array<{ id: string; lat: number; lng: number; distanceMeters: number }>>([]);
   const hasInitializedSearchStatusRef = React.useRef(false);
   const hasTransitionedToOnWayRef = React.useRef(false);
   const companyOrange = "#F79009";
@@ -109,6 +111,39 @@ function SearchingForDriverScreen(): React.JSX.Element {
   }, [driverLocation, sharedLocationState.driverLocation, updateSharedLocationState]);
 
   useEffect(() => {
+    if (!backendMode || !sharedLocationState.pickupCoords) {
+      setNearbyDrivers([]);
+      return undefined;
+    }
+
+    let cancelled = false;
+    const syncNearbyDrivers = async () => {
+      const rows = await fetchNearbyDrivers(sharedLocationState.pickupCoords!, 5000);
+      if (cancelled) {
+        return;
+      }
+      setNearbyDrivers(
+        rows.map((row) => ({
+          id: row.driverId,
+          lat: row.latitude,
+          lng: row.longitude,
+          distanceMeters: row.distanceMeters,
+        })),
+      );
+    };
+
+    void syncNearbyDrivers();
+    const intervalId = window.setInterval(() => {
+      void syncNearbyDrivers();
+    }, 8000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [backendMode, sharedLocationState.pickupCoords]);
+
+  useEffect(() => {
     console.debug("[SearchingDriver] mounted", location.pathname);
     return () => {
       console.debug("[SearchingDriver] unmounted", location.pathname);
@@ -138,12 +173,16 @@ function SearchingForDriverScreen(): React.JSX.Element {
       return;
     }
 
-    if (backendTripStatus === "driver_assigned" || backendTripStatus === "driver_arriving") {
+    if (
+      backendTripStatus === "driver_assigned" ||
+      backendTripStatus === "driver_arriving" ||
+      backendTripStatus === "driver_on_way"
+    ) {
       navigate("/rides/driver-on-way", { replace: true });
       return;
     }
 
-    if (backendTripStatus === "arrived") {
+    if (backendTripStatus === "arrived" || backendTripStatus === "driver_arrived") {
       navigate("/rides/driver-arrived", { replace: true });
       return;
     }
@@ -157,6 +196,38 @@ function SearchingForDriverScreen(): React.JSX.Element {
       navigate("/rides/trip/completed", { replace: true });
     }
   }, [backendMode, navigate, ride.activeTrip?.status]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const navigateToRideConfirm = () => {
+      navigate("/rides/details/confirm", {
+        replace: true,
+        state: {
+          rideRequestError: "Unable to send the ride request right now. Please try again.",
+        },
+      });
+    };
+
+    const rawFailureState = window.sessionStorage.getItem("evzone_last_trip_request_error");
+    if (rawFailureState) {
+      window.sessionStorage.removeItem("evzone_last_trip_request_error");
+      navigateToRideConfirm();
+      return undefined;
+    }
+
+    const handleRideRequestFailed = () => {
+      window.sessionStorage.removeItem("evzone_last_trip_request_error");
+      navigateToRideConfirm();
+    };
+
+    window.addEventListener("evzone:ride-request-failed", handleRideRequestFailed);
+    return () => {
+      window.removeEventListener("evzone:ride-request-failed", handleRideRequestFailed);
+    };
+  }, [navigate]);
 
   useEffect(() => {
     if (hasTransitionedToOnWayRef.current) return;
@@ -194,12 +265,18 @@ function SearchingForDriverScreen(): React.JSX.Element {
         buttonOffsetExpanded={14}
         detailsWrapperSx={{ mt: 1.2 }}
         map={
-          <MapShell
+	          <MapShell
             preset="compact"
             sx={{ height: "100%" }}
             showControls={false}
             showRouteInfo={false}
-            pickupLocation={sharedLocationState.pickupCoords}
+	            mapMarkers={nearbyDrivers.map((driver) => ({
+	              id: driver.id,
+	              position: { lat: driver.lat, lng: driver.lng },
+	              label: `${Math.max(1, Math.round(driver.distanceMeters / 1000 * 10) / 10)} km`,
+	              color: "#14b8a6",
+	            }))}
+	            pickupLocation={sharedLocationState.pickupCoords}
             dropoffLocation={sharedLocationState.destinationCoords}
             driverLocation={driverLocation}
             riderLocation={riderLocation}

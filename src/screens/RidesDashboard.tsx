@@ -838,6 +838,14 @@ function EnterDestinationMainScreen(): React.JSX.Element {
           (error) => {
             if (error.code === 1) {
               setLocationPermission("denied");
+              return;
+            }
+            if (error.code === 2) {
+              setLocationPermission("prompt");
+              return;
+            }
+            if (error.code === 3) {
+              setLocationPermission("prompt");
             }
           },
           {
@@ -959,12 +967,12 @@ function EnterDestinationMainScreen(): React.JSX.Element {
       lastRouteQueryRef.current = null;
       if (routeData !== null) {
         setRouteData(null);
-      }
-      const hasRouteStateToClear =
-        sharedLocationState.routePolyline.length > 0 ||
-        sharedLocationState.routeAlternativePolylines.length > 0 ||
-        sharedLocationState.routeDistanceKm !== null ||
-        sharedLocationState.routeDurationMin !== null;
+	      }
+	      const hasRouteStateToClear =
+	        (sharedLocationState.routePolyline?.length ?? 0) > 0 ||
+	        (sharedLocationState.routeAlternativePolylines?.length ?? 0) > 0 ||
+	        sharedLocationState.routeDistanceKm !== null ||
+	        sharedLocationState.routeDurationMin !== null;
       if (hasRouteStateToClear) {
         updateSharedLocationStateRef.current({
           routePolyline: [],
@@ -978,11 +986,11 @@ function EnterDestinationMainScreen(): React.JSX.Element {
     currentLocation,
     destinationCoords,
     routeData,
-    sharedLocationState.routeAlternativePolylines.length,
-    sharedLocationState.routeDistanceKm,
-    sharedLocationState.routeDurationMin,
-    sharedLocationState.routePolyline.length
-  ]);
+	    sharedLocationState.routeAlternativePolylines?.length,
+	    sharedLocationState.routeDistanceKm,
+	    sharedLocationState.routeDurationMin,
+	    sharedLocationState.routePolyline?.length
+	  ]);
 
 
   const handleCommuteRequest = (commute: Commute): void => {

@@ -231,13 +231,45 @@ function EnterDestinationScreen(): React.JSX.Element {
 	const [pickup, setPickup] = useState(defaultPickupLabel);
 	const [pickupCoords, setPickupCoords] = useState(
 		initialState.pickupCoords ||
-			(defaultPickupLabel === "Current location"
-				? riderLocation ?? null
-				: locationDraft?.pickup?.coordinates ||
-					ride.request.origin?.coordinates ||
-					sharedLocationState.pickupCoords ||
-					null),
+			(defaultPickupLabel === "Current location" && riderLocation
+					? { ...riderLocation }
+					: (defaultPickupLabel === "Current location"
+						? null
+						: (locationDraft?.pickup?.coordinates || ride.request.origin?.coordinates || sharedLocationState.pickupCoords || null))),
 	);
+
+	// Initialize GPS tracking immediately on mount - don't wait for "Current location" pickup
+	useEffect(() => {
+		let mounted = true;
+
+		// Try to get current position immediately
+		if (typeof navigator !== "undefined" && navigator.geolocation) {
+				navigator.geolocation.getCurrentPosition(
+					(pos) => {
+						if (!mounted) return;
+						const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+					// Only set if we don't have pickupCoords yet OR if pickup is "Current location"
+					if (pickup === "Current location" || !pickupCoords) {
+						setPickupCoords(coords);
+						updateSharedLocationState({ riderLocation: coords, pickupCoords: coords });
+					}
+					},
+					(error) => {
+						if (!mounted) return;
+						if (error.code === error.PERMISSION_DENIED) {
+							setLocationPermission("denied");
+						}
+						if (pickup === "Current location") {
+							setPickupCoords(null);
+							updateSharedLocationState({ riderLocation: null, pickupCoords: null });
+						}
+					},
+					{ enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+				);
+			}
+
+		return () => { mounted = false; };
+	}, []); // Run once on mount
 
 	// Keep current-location pickup in sync with live rider coordinates.
 	useEffect(() => {
@@ -330,11 +362,9 @@ function EnterDestinationScreen(): React.JSX.Element {
 		() => typeof navigator === "undefined" || typeof navigator.onLine !== "boolean" ? true : navigator.onLine
 	);
 	const [showSwitchRiderModal, setShowSwitchRiderModal] = useState(false);
-	const [routePolyline, setRoutePolyline] = useState<{ lat: number; lng: number }[]>(
-		locationDraft?.routePolyline || sharedLocationState.routePolyline || [],
-	);
+	const [routePolyline, setRoutePolyline] = useState<{ lat: number; lng: number }[]>([]);
 	const [routeAlternatives, setRouteAlternatives] = useState<Array<{ lat: number; lng: number }[]>>(
-		locationDraft?.routeAlternativePolylines || sharedLocationState.routeAlternativePolylines || [],
+		[]
 	);
 	const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
 	const [isMapExpanded, setIsMapExpanded] = useState(false);
@@ -488,6 +518,7 @@ function EnterDestinationScreen(): React.JSX.Element {
 	}));
 
 	// Calculate route with waypoints for multi-stop and round-trip.
+	// Triggers on debouncedDestination OR destinationCoords change (immediate geocode selection).
 	useEffect(() => {
 		const calculateAndSetRoute = async () => {
 			if (!pickupCoords) {
@@ -626,18 +657,37 @@ function EnterDestinationScreen(): React.JSX.Element {
 				if (pickup !== "Current location") return;
 				if (permission === "denied" || permission === "unsupported") return;
 
-			dispose = watchLiveLocation(
-				(coords) => {
-					setPickupCoords(coords);
-					updateSharedLocationState({
-						riderLocation: coords,
-						pickupCoords: coords
-					});
-				},
-				() => {},
-				{
-					enableHighAccuracy: true,
-					timeoutMs: 10000,
+				dispose = watchLiveLocation(
+					(coords) => {
+						setPickupCoords(coords);
+						updateSharedLocationState({
+							riderLocation: coords,
+							pickupCoords: coords
+						});
+					},
+					(error) => {
+						if (!mounted) return;
+						if (error.code === error.PERMISSION_DENIED) {
+							setLocationPermission("denied");
+							setPickupCoords(null);
+							updateSharedLocationState({ riderLocation: null, pickupCoords: null });
+							setShowError(true);
+							setErrorMessage("Location permission is blocked. Enable browser and device GPS access to use current location.");
+							return;
+						}
+						if (error.code === error.POSITION_UNAVAILABLE) {
+							setShowError(true);
+							setErrorMessage("GPS is unavailable on this device right now. Move to an open area or enter pickup manually.");
+							return;
+						}
+						if (error.code === error.TIMEOUT) {
+							setShowError(true);
+							setErrorMessage("Timed out while fetching your live location. Try again or enter pickup manually.");
+						}
+					},
+					{
+						enableHighAccuracy: true,
+						timeoutMs: 10000,
 					maximumAgeMs: 0
 				}
 			);
@@ -1009,6 +1059,8 @@ function EnterDestinationScreen(): React.JSX.Element {
 				}
 			} else if (!destination.trim() || !destinationCoords) {
 				nextErrors.destination = "Choose destination.";
+			} else if (routePolyline.length < 2 || sharedLocationState.routeDistanceKm == null || sharedLocationState.routeDurationMin == null) {
+				nextErrors.destination = "Route unavailable. Confirm both locations and try again.";
 			}
 
 			if (isRoundTripMode && (!returnDate || !returnTime)) {
@@ -1723,13 +1775,10 @@ function EnterDestinationScreen(): React.JSX.Element {
 												setDestination(selection.address);
 												setDestinationCoords(selection.coordinates);
 												clearFieldError("destination");
-												setRouteAlternatives([]);
+												// Trigger route calculation immediately by updating shared state
+												// The route polyline will be populated by the calculate route effect
 												updateSharedLocationState({
 													destinationCoords: selection.coordinates,
-													routePolyline: [],
-													routeAlternativePolylines: [],
-													routeDistanceKm: null,
-													routeDurationMin: null
 												});
 												setShowError(false);
 												setErrorMessage("");

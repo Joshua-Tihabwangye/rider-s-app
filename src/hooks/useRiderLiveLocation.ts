@@ -31,18 +31,24 @@ function haversineMeters(a: Coordinates, b: Coordinates): number {
 interface Options {
     enabled?: boolean;
     onLocation?: (coords: Coordinates) => void;
+    onError?: () => void;
 }
 
-export function useRiderLiveLocation({ enabled = true, onLocation }: Options = {}): void {
+export function useRiderLiveLocation({ enabled = true, onLocation, onError }: Options = {}): void {
     const lastCoords = useRef<Coordinates | null>(null);
     const lastEmitAt = useRef(0);
     const rafHandle = useRef<number | null>(null);
     const onLocationRef = useRef(onLocation);
+    const onErrorRef = useRef(onError);
 
     // Keep callback ref fresh without re-subscribing GPS
     useEffect(() => {
         onLocationRef.current = onLocation;
     }, [onLocation]);
+
+    useEffect(() => {
+        onErrorRef.current = onError;
+    }, [onError]);
 
     useEffect(() => {
         if (!enabled || typeof navigator === "undefined" || !navigator.geolocation) return;
@@ -75,7 +81,10 @@ export function useRiderLiveLocation({ enabled = true, onLocation }: Options = {
                     lng: pos.coords.longitude,
                 });
             },
-            undefined,
+            () => {
+                lastCoords.current = null;
+                onErrorRef.current?.();
+            },
             { enableHighAccuracy: true, maximumAge: 0, timeout: 10_000 },
         );
 
@@ -86,7 +95,10 @@ export function useRiderLiveLocation({ enabled = true, onLocation }: Options = {
                     lng: pos.coords.longitude,
                 });
             },
-            undefined,
+            () => {
+                lastCoords.current = null;
+                onErrorRef.current?.();
+            },
             { enableHighAccuracy: true, maximumAge: 0, timeout: 20_000 },
         );
 

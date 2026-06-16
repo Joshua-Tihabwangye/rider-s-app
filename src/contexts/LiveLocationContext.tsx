@@ -30,7 +30,11 @@ export function LiveLocationProvider({ children }: { children: React.ReactNode }
     setRiderLocation(coords);
   }, []);
 
-  useRiderLiveLocation({ enabled: true, onLocation: handleLocation });
+  const handleLocationError = useCallback(() => {
+    setRiderLocation(null);
+  }, []);
+
+  useRiderLiveLocation({ enabled: true, onLocation: handleLocation, onError: handleLocationError });
 
   const value = useMemo(() => ({ riderLocation }), [riderLocation]);
 

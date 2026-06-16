@@ -397,16 +397,31 @@ function mergePersistedRideState(baseRide: RideState, persistedRide?: PersistedR
     return baseRide;
   }
 
+  const mergedRequest = normalizeRideRequest({
+    ...baseRide.request,
+    ...persistedRide.request,
+    roundTripConfig: {
+      ...baseRide.request.roundTripConfig,
+      ...persistedRide.request.roundTripConfig
+    }
+  });
+  const usesCurrentLocationOrigin =
+    mergedRequest.origin?.label === "Current location" ||
+    mergedRequest.origin?.address === "Current location";
+
   return {
     ...baseRide,
-    request: normalizeRideRequest({
-      ...baseRide.request,
-      ...persistedRide.request,
-      roundTripConfig: {
-        ...baseRide.request.roundTripConfig,
-        ...persistedRide.request.roundTripConfig
-      }
-    }),
+    request: usesCurrentLocationOrigin
+      ? {
+          ...mergedRequest,
+          origin: mergedRequest.origin
+            ? {
+                ...mergedRequest.origin,
+                coordinates: undefined
+              }
+            : mergedRequest.origin
+        }
+      : mergedRequest,
     savedPlaces: persistedRide.savedPlaces?.length ? persistedRide.savedPlaces : baseRide.savedPlaces,
     options: persistedRide.options?.length ? persistedRide.options : baseRide.options,
     sharing: {
@@ -460,7 +475,17 @@ function createInitialState(baseState: AppState): AppState {
         ? { ...runtimeBaseState.ambulance, ...persisted.ambulance }
         : runtimeBaseState.ambulance,
       sharedLocationState: persisted.sharedLocationState
-        ? { ...runtimeBaseState.sharedLocationState, ...persisted.sharedLocationState }
+        ? {
+            ...runtimeBaseState.sharedLocationState,
+            ...persisted.sharedLocationState,
+            // Device-derived coordinates must not survive an app restart.
+            riderLocation: null,
+            pickupCoords: null,
+            routePolyline: [],
+            routeAlternativePolylines: [],
+            routeDistanceKm: null,
+            routeDurationMin: null
+          }
         : runtimeBaseState.sharedLocationState
     };
   } catch {
@@ -945,6 +970,44 @@ function buildRideRouteSignature(request: RideRequest): string {
       return `${index}:${label}:${lat},${lng}`;
     })
     .join("|");
+}
+
+function normalizeRideFareLookupKey(value: string | null | undefined): string {
+  return String(value ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function findMatchingRideFareOption(
+  option: RideOption,
+  estimates: RideFareOption[],
+  fallbackIndex: number
+): RideFareOption | null {
+  const aliases: Record<string, string[]> = {
+    scooter: ["motorcycle", "bike", "boda", "ev scooter", "scooter"],
+    "car-mini": ["sedan", "mini", "compact", "ev car mini", "car mini"],
+    "car-comfort": ["suv", "comfort", "premium", "xl", "ev comfort"],
+  };
+  const lookupKeys = new Set<string>([
+    normalizeRideFareLookupKey(option.id),
+    normalizeRideFareLookupKey(option.name),
+    ...((aliases[option.id] ?? []).map(normalizeRideFareLookupKey)),
+  ]);
+
+  const directMatch = estimates.find((estimate) => {
+    const estimateKey = normalizeRideFareLookupKey(estimate.vehicleCategoryName);
+    if (lookupKeys.has(estimateKey)) {
+      return true;
+    }
+    return Array.from(lookupKeys).some(
+      (lookupKey) =>
+        (lookupKey.length > 0 && estimateKey.includes(lookupKey)) ||
+        (estimateKey.length > 0 && lookupKey.includes(estimateKey)),
+    );
+  });
+
+  return directMatch ?? estimates[fallbackIndex] ?? null;
 }
 
 function computeRideOptionsForDistance(
@@ -3457,14 +3520,8 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         // Map backend estimates onto existing RideOption objects.
         // Match by vehicleCategoryName → option.id (best effort) so existing
         // option metadata (image, capacity, ETA label) is preserved.
-        const updatedOptions: RideOption[] = state.ride.options.map((option) => {
-          const match: RideFareOption | undefined =
-            estimates.find(
-              (e) =>
-                e.vehicleCategoryName.toLowerCase() === option.id.toLowerCase() ||
-                e.vehicleCategoryName.toLowerCase().includes(option.id.toLowerCase()) ||
-                option.id.toLowerCase().includes(e.vehicleCategoryName.toLowerCase()),
-            ) ?? estimates[0]; // fallback to first estimate if no name match
+        const updatedOptions: RideOption[] = state.ride.options.map((option, index) => {
+          const match = findMatchingRideFareOption(option, estimates, index);
 
           if (!match) return option;
 
@@ -3515,6 +3572,19 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     dispatch({ type: "ride/options", payload: repricedOptions });
   }, [riderBackendEnabled, state.ride, state.sharedLocationState]);
 
+  useEffect(() => {
+    const distanceKm = state.sharedLocationState.routeDistanceKm;
+    if (!riderBackendEnabled || distanceKm == null || distanceKm <= 0) {
+      return;
+    }
+    refreshRideOptionPricing(distanceKm);
+  }, [
+    refreshRideOptionPricing,
+    riderBackendEnabled,
+    state.sharedLocationState.routeDistanceKm,
+    state.sharedLocationState.routeDurationMin,
+  ]);
+
   const updateRideSharing = useCallback((patch: Partial<RideState["sharing"]>) => {
     dispatch({ type: "ride/sharing", payload: patch });
   }, []);
@@ -3562,8 +3632,11 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         return;
       }
 
-      const pickupCoords = requestPayload.origin.coordinates ?? { lat: 0, lng: 0 };
-      const dropoffCoords = requestPayload.destination.coordinates ?? { lat: 0, lng: 0 };
+      const pickupCoords = requestPayload.origin.coordinates ?? null;
+      const dropoffCoords = requestPayload.destination.coordinates ?? null;
+      if (!pickupCoords || !dropoffCoords) {
+        return;
+      }
 
       void createRiderTripRequest({
         pickupLabel: requestPayload.origin.label,
@@ -3618,10 +3691,24 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           });
         })
         .catch((error) => {
-          console.warn("Rider backend trip request failed. Falling back to local ride flow.", error);
-          const localTrip = createRideTripFromRequest(state);
-          if (localTrip) {
-            dispatch({ type: "ride/set-active", payload: localTrip });
+          console.warn("Rider backend trip request failed.", error);
+          dispatch({ type: "ride/set-active", payload: null });
+          dispatch({ type: "ride/status", payload: "idle" });
+          if (typeof window !== "undefined") {
+            window.sessionStorage.setItem(
+              "evzone_last_trip_request_error",
+              JSON.stringify({
+                message: "Unable to send the ride request right now. Please try again.",
+                updatedAt: Date.now(),
+              }),
+            );
+            window.dispatchEvent(
+              new CustomEvent("evzone:ride-request-failed", {
+                detail: {
+                  message: "Unable to send the ride request right now. Please try again.",
+                },
+              }),
+            );
           }
         });
       return;
@@ -4015,8 +4102,11 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       return null;
     }
     if (riderBackendEnabled && user) {
-      const pickupCoords = previewOrder.pickup.coordinates ?? { lat: 0, lng: 0 };
-      const dropoffCoords = previewOrder.dropoff.coordinates ?? { lat: 0, lng: 0 };
+      const pickupCoords = previewOrder.pickup.coordinates ?? null;
+      const dropoffCoords = previewOrder.dropoff.coordinates ?? null;
+      if (!pickupCoords || !dropoffCoords) {
+        return null;
+      }
       dispatch({
         type: "delivery/orders-sync",
         payload: {
@@ -4488,10 +4578,14 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       }
 
       ambulanceCreateInFlightRef.current = true;
+      if (!pickup.coordinates) {
+        ambulanceCreateInFlightRef.current = false;
+        return;
+      }
       void createRiderAmbulance({
         pickupAddress: pickup.address || pickup.label,
-        pickupLat: pickup.coordinates?.lat ?? 0.3136,
-        pickupLng: pickup.coordinates?.lng ?? 32.5811,
+        pickupLat: pickup.coordinates.lat,
+        pickupLng: pickup.coordinates.lng,
         dropoffAddress: nextRequest.destination?.address || nextRequest.destination?.label,
         hospitalName: nextRequest.hospitalContactName,
         priority,
