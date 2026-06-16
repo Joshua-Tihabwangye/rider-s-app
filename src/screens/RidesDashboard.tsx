@@ -732,7 +732,7 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const sharedRidesEnabled = useRiderSharedRidesEnabled();
   const { ride, sharedLocationState, actions } = useAppData();
   const { riderLocation } = useLiveLocation();
-  const { updateRideRequest, updateSharedLocationState } = actions;
+  const { resetRidePlanningState, updateRideRequest, updateSharedLocationState } = actions;
   const updateRideRequestRef = useRef(updateRideRequest);
   const updateSharedLocationStateRef = useRef(updateSharedLocationState);
   useEffect(() => {
@@ -759,6 +759,35 @@ function EnterDestinationMainScreen(): React.JSX.Element {
   const [destinationCoords, setDestinationCoords] = useState<Coordinates | null>(null);
   const [dismissedUpcomingRideIds, setDismissedUpcomingRideIds] = useState<string[]>([]);
   const lastRouteQueryRef = useRef<{ key: string; at: number } | null>(null);
+  const didCleanupStaleRidePlanningRef = useRef(false);
+
+  useEffect(() => {
+    if (didCleanupStaleRidePlanningRef.current) {
+      return;
+    }
+    didCleanupStaleRidePlanningRef.current = true;
+    if (ride.activeTrip) {
+      return;
+    }
+    const hasStaleRidePlanningState =
+      Boolean(ride.request.origin) ||
+      Boolean(ride.request.destination) ||
+      (sharedLocationState.routePolyline?.length ?? 0) > 0 ||
+      sharedLocationState.routeDistanceKm != null ||
+      sharedLocationState.routeDurationMin != null;
+    if (!hasStaleRidePlanningState) {
+      return;
+    }
+    resetRidePlanningState({ preserveRiderLocation: true });
+  }, [
+    resetRidePlanningState,
+    ride.activeTrip,
+    ride.request.destination,
+    ride.request.origin,
+    sharedLocationState.routeDistanceKm,
+    sharedLocationState.routeDurationMin,
+    sharedLocationState.routePolyline,
+  ]);
 
   const insightRoutes = useMemo(() => buildRideInsightRoutes(ride), [ride]);
   const rideInsights = useMemo(() => deriveRideInsights(insightRoutes), [insightRoutes]);

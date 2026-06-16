@@ -30,7 +30,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
   const location = useLocation();
   const { ride, sharedLocationState, actions } = useAppData();
   const { riderLocation } = useLiveLocation();
-  const { setRideStatus, setActiveTrip, updateSharedLocationState } = actions;
+  const { resetRidePlanningState, setRideStatus, setActiveTrip, updateSharedLocationState } = actions;
   const [dots, setDots] = useState(".");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [searchTime, setSearchTime] = useState(0);
@@ -53,7 +53,17 @@ function SearchingForDriverScreen(): React.JSX.Element {
       undefined,
       { enableHighAccuracy: true, timeout: 8000 },
     );
-  }, [updateSharedLocationState]);  const routeSummary = React.useMemo(() => {
+  }, [updateSharedLocationState]);
+
+  const handleCancelRequest = React.useCallback(() => {
+    resetRidePlanningState({ preserveRiderLocation: true });
+    navigate("/rides/enter/details", {
+      replace: true,
+      state: { resetFromCancel: true },
+    });
+  }, [navigate, resetRidePlanningState]);
+
+  const routeSummary = React.useMemo(() => {
     const distance = sharedLocationState.routeDistanceKm;
     const duration = sharedLocationState.routeDurationMin;
     if (!distance || !duration) return null;
@@ -426,7 +436,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
             Keep searching
           </Button>
           <Button
-            onClick={() => navigate("/rides/enter/details")}
+            onClick={handleCancelRequest}
             variant="contained"
             sx={{ textTransform: "none", bgcolor: "#EF4444", "&:hover": { bgcolor: "#DC2626" } }}
           >
