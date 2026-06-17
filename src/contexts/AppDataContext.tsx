@@ -119,6 +119,7 @@ import {
   type RiderEmergencyContactApi,
   type RiderPaymentMethodApi,
   type RiderPreferencesApi,
+  type RiderTripApi,
   type RiderWalletApi,
   type RiderWalletTransactionApi,
   getRiderActiveTrip,
@@ -136,12 +137,14 @@ import {
   getRiderTripHistory,
   isRiderBackendEnabled,
   mapApiTripToRideTrip,
+  mapApiTripStatusToRideStatus,
   updateRiderAmbulance,
   updateRiderTripTracking,
   getRideFareEstimates,
   type RideFareOption,
 } from "../services/api/riderApi";
 import { createRiderSocket } from "../services/riderSocket";
+import { RiderServerEvents, RiderClientEvents } from "../services/api/events";
 import { DEFAULT_ROUND_TRIP_RETURN_PATTERN, RIDE_MAX_STOPS } from "../features/rides/constants";
 
 interface AppState extends AppData {
@@ -5190,10 +5193,10 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     };
     const subscribeToActiveRooms = () => {
       if (state.ride.activeTrip?.id) {
-        socket.emit("subscribe", { channel: "trip", id: state.ride.activeTrip.id });
+        socket.emit(RiderClientEvents.SUBSCRIBE, { channel: "trip", id: state.ride.activeTrip.id });
       }
       if (state.delivery.activeOrder?.routeId) {
-        socket.emit("subscribe", { channel: "delivery-route", id: state.delivery.activeOrder.routeId });
+        socket.emit(RiderClientEvents.SUBSCRIBE, { channel: "delivery-route", id: state.delivery.activeOrder.routeId });
       }
     };
     const syncRiderTripsFromBackend = async () => {
@@ -5229,21 +5232,21 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     socket.on("connect_error", () => {
       dispatch({ type: "delivery/ws-connected", payload: false });
     });
-    let deliveryPatchEvent = "delivery.patch";
-    let deliveryOrderNewEvent = "delivery.order.new";
-    let deliveryRouteUpdatedEvent = "delivery.route.updated";
-    let serviceRequestNewEvent = "service.request.new";
-    let serviceRequestUpdatedEvent = "service.request.updated";
-    let tripLocationEvent = "trip.location.updated";
+    const deliveryPatchEvent = RiderServerEvents.DELIVERY_PATCH;
+    const deliveryOrderNewEvent = RiderServerEvents.DELIVERY_ORDER_NEW;
+    const deliveryRouteUpdatedEvent = RiderServerEvents.DELIVERY_ROUTE_UPDATED;
+    const serviceRequestNewEvent = "service.request.new";
+    const serviceRequestUpdatedEvent = "service.request.updated";
+    const tripLocationEvent = RiderServerEvents.TRIP_LOCATION_UPDATED;
     const defaultTripEvents = [
-      "trip.driver.assigned",
-      "trip.driver.arriving",
-      "trip.arrived",
-      "trip.started",
-      "trip.completed",
-      "trip.cancelled",
-    ] as const;
-    let tripEvents: string[] = [...defaultTripEvents];
+      RiderServerEvents.TRIP_DRIVER_ASSIGNED,
+      RiderServerEvents.TRIP_DRIVER_ARRIVING,
+      RiderServerEvents.TRIP_ARRIVED,
+      RiderServerEvents.TRIP_STARTED,
+      RiderServerEvents.TRIP_COMPLETED,
+      RiderServerEvents.TRIP_CANCELLED,
+    ];
+    const tripEvents: string[] = [...defaultTripEvents];
 
     const handleDeliveryPatch = (payload: DeliveryRealtimePatch) => {
       if (!payload?.orderId) {
@@ -5251,7 +5254,11 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
       }
       dispatch({ type: "delivery/realtime", payload });
     };
-    const handleTripLocationUpdated = (payload: { latitude: number; longitude: number }) => {
+
+    const handleTripLocationUpdated = (payload: { latitude?: number; longitude?: number }) => {
+      if (typeof payload?.latitude !== "number" || typeof payload?.longitude !== "number") {
+        return;
+      }
       dispatch({
         type: "location/update",
         payload: {
@@ -5261,6 +5268,15 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           },
         },
       });
+    };
+
+    const handleTripLifecycleEvent = (payload: { status?: string; tripId?: string }) => {
+      if (payload?.status && state.ride.activeTrip?.id === payload.tripId) {
+        const nextStatus = mapApiTripStatusToRideStatus(payload.status as RiderTripApi["status"]);
+        dispatch({ type: "ride/status", payload: nextStatus });
+      }
+      // Keep the refetch fallback for full driver/vehicle/fare details.
+      void syncRiderTripsFromBackend();
     };
 
     const bootstrapRealtime = () => {
@@ -5280,9 +5296,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         void syncBackendReadOnlyState();
       });
       tripEvents.forEach((eventName) => {
-        socket.on(eventName, () => {
-          void syncRiderTripsFromBackend();
-        });
+        socket.on(eventName, handleTripLifecycleEvent);
       });
       socket.connect();
     };
@@ -5292,7 +5306,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
     return () => {
       cancelled = true;
       tripEvents.forEach((eventName) => {
-        socket.off(eventName);
+        socket.off(eventName, handleTripLifecycleEvent);
       });
       socket.off(deliveryPatchEvent, handleDeliveryPatch);
       socket.off(deliveryOrderNewEvent);

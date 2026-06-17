@@ -31,7 +31,7 @@ import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import { useLiveLocation } from "../contexts/LiveLocationContext";
-import { isRiderBackendEnabled } from "../services/api/riderApi";
+import { cancelRiderTrip, isRiderBackendEnabled } from "../services/api/riderApi";
 import { getPointAtProgress, normalizeRoute } from "../utils/mapRoutes";
 
 function normalizeLegDuration(etaMinutes?: number): number {
@@ -131,6 +131,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   const {
     markTemporaryStopContinuePromptShown,
     resumeTripAfterTemporaryStop,
+    resetRidePlanningState,
     setActiveTrip,
     setRideStatus,
     simulateDriverAddStopRequest,
@@ -147,6 +148,7 @@ function TripInProgressBasicScreen(): React.JSX.Element {
   const [clockNowMs, setClockNowMs] = useState(() => Date.now());
   const [showContinueTripDialog, setShowContinueTripDialog] = useState(false);
   const [driverProgress, setDriverProgress] = useState(0);
+  const [isCancelling, setIsCancelling] = useState(false);
   const backendMode = isRiderBackendEnabled();
   const hasHandledReloadResetRef = useRef(false);
   const isTripCompletedRef = useRef(false);
@@ -716,6 +718,22 @@ function TripInProgressBasicScreen(): React.JSX.Element {
     });
   };
 
+  const handleCancelTrip = async () => {
+    if (!activeTrip?.id) return;
+    const confirmed = window.confirm("Cancel this ride?");
+    if (!confirmed) return;
+    setIsCancelling(true);
+    try {
+      await cancelRiderTrip(activeTrip.id, "Rider cancelled during trip");
+      resetRidePlanningState({ preserveRiderLocation: true });
+      navigate("/rides/enter/details", { replace: true, state: { resetFromCancel: true } });
+    } catch (error) {
+      console.error("Failed to cancel ride", error);
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   const topMapBleedSx = {
     position: "relative",
     width: {
@@ -1055,6 +1073,23 @@ function TripInProgressBasicScreen(): React.JSX.Element {
             </Box>
           </CardContent>
         </Card>
+
+        <Button
+          fullWidth
+          variant="outlined"
+          color="error"
+          disabled={isCancelling}
+          onClick={handleCancelTrip}
+          sx={{
+            borderRadius: uiTokens.radius.xl,
+            py: 1.15,
+            fontSize: 14,
+            fontWeight: 700,
+            textTransform: "none",
+          }}
+        >
+          {isCancelling ? "Cancelling..." : "Cancel ride"}
+        </Button>
 
         {!backendMode && (
           <Button
