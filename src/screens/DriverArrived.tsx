@@ -497,12 +497,15 @@ function DriverHasArrivedScreen(): React.JSX.Element {
                 display: "block"
               }}
             >
-              Trip will start automatically once the driver verifies OTP or QR.
+              {backendMode
+                ? "Trip will start automatically once the driver verifies your OTP."
+                : "Trip will start automatically once the driver verifies OTP or QR."}
             </Typography>
 
             <Button
               fullWidth
               variant="contained"
+              disabled={backendMode}
               onClick={handleStartTrip}
               sx={{
                 borderRadius: 5,

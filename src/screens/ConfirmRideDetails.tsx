@@ -32,6 +32,8 @@ import {
 	mapApiTripToRideTrip,
 	isRiderBackendEnabled,
 } from "../services/api/riderApi";
+import { createRiderSocket } from "../services/riderSocket";
+import { RiderClientEvents } from "../services/api/events";
 
 function RideDetailsScreen(): React.JSX.Element {
 	const navigate = useNavigate();

@@ -21,7 +21,7 @@ import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import { useLiveLocation } from "../contexts/LiveLocationContext";
-import { getRiderActiveTrip, isRiderBackendEnabled, mapApiTripToRideTrip } from "../services/api/riderApi";
+import { cancelRiderTrip, getRiderActiveTrip, isRiderBackendEnabled, mapApiTripToRideTrip } from "../services/api/riderApi";
 import { fetchNearbyDrivers } from "../services/maps";
 import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 
@@ -33,6 +33,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
   const { resetRidePlanningState, setRideStatus, setActiveTrip, updateSharedLocationState } = actions;
   const [dots, setDots] = useState(".");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [searchTime, setSearchTime] = useState(0);
   const [driverProgress, setDriverProgress] = useState(0);
   const [nearbyDrivers, setNearbyDrivers] = useState<Array<{ id: string; lat: number; lng: number; distanceMeters: number }>>([]);
@@ -55,13 +56,23 @@ function SearchingForDriverScreen(): React.JSX.Element {
     );
   }, [updateSharedLocationState]);
 
-  const handleCancelRequest = React.useCallback(() => {
+  const handleCancelRequest = React.useCallback(async () => {
+    if (backendMode && ride.activeTrip?.id) {
+      setIsCancelling(true);
+      try {
+        await cancelRiderTrip(ride.activeTrip.id, "Rider cancelled while searching");
+      } catch (error) {
+        console.error("Failed to cancel trip", error);
+      } finally {
+        setIsCancelling(false);
+      }
+    }
     resetRidePlanningState({ preserveRiderLocation: true });
     navigate("/rides/enter/details", {
       replace: true,
       state: { resetFromCancel: true },
     });
-  }, [navigate, resetRidePlanningState]);
+  }, [backendMode, navigate, resetRidePlanningState, ride.activeTrip?.id]);
 
   const routeSummary = React.useMemo(() => {
     const distance = sharedLocationState.routeDistanceKm;
@@ -438,9 +449,11 @@ function SearchingForDriverScreen(): React.JSX.Element {
           <Button
             onClick={handleCancelRequest}
             variant="contained"
+            disabled={isCancelling}
+            startIcon={isCancelling ? <CircularProgress size={16} color="inherit" /> : undefined}
             sx={{ textTransform: "none", bgcolor: "#EF4444", "&:hover": { bgcolor: "#DC2626" } }}
           >
-            Cancel request
+            {isCancelling ? "Cancelling..." : "Cancel request"}
           </Button>
         </DialogActions>
       </Dialog>

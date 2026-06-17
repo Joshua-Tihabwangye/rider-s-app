@@ -6,6 +6,7 @@ import {
   Button,
   Card,
   CardContent,
+  CircularProgress,
   IconButton,
   Stack,
   Typography
@@ -23,14 +24,30 @@ import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import { useLiveLocation } from "../contexts/LiveLocationContext";
-import { isRiderBackendEnabled } from "../services/api/riderApi";
+import { cancelRiderTrip, isRiderBackendEnabled } from "../services/api/riderApi";
 import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
+
+function toRadians(value: number): number {
+  return (value * Math.PI) / 180;
+}
+
+function distanceKmBetween(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const earthRadiusKm = 6371;
+  const dLat = toRadians(b.lat - a.lat);
+  const dLng = toRadians(b.lng - a.lng);
+  const lat1 = toRadians(a.lat);
+  const lat2 = toRadians(b.lat);
+  const sinLat = Math.sin(dLat / 2);
+  const sinLng = Math.sin(dLng / 2);
+  const h = sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLng * sinLng;
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
 
 function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const navigate = useNavigate();
   const { ride, sharedLocationState, actions } = useAppData();
   const { riderLocation } = useLiveLocation();
-  const { setRideStatus, updateSharedLocationState } = actions;
+  const { setRideStatus, updateSharedLocationState, resetRidePlanningState } = actions;
   const activeTrip = ride.activeTrip;
   const bookedForLabel = useMemo(() => {
     const bookedFor = activeTrip?.bookedFor ?? ride.request.bookedFor;
@@ -47,14 +64,28 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
     Math.max(0, legs.length - 1)
   );
   const currentLeg = legs[currentLegIndex];
-  const [arrivalTime, setArrivalTime] = useState(activeTrip?.etaMinutes ?? 5);
   const [chatOpen, setChatOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [driverProgress, setDriverProgress] = useState(arrivalWorkflow.initialProgress);
   const hasInitializedOnWayStatusRef = React.useRef(false);
   const backendMode = isRiderBackendEnabled();
   const companyOrange = "#F79009";
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
-  const driverLocation = getApproachPoint(routePolyline, driverProgress);
+  const liveDriverLocation = sharedLocationState.driverLocation;
+  const simulatedDriverLocation = getApproachPoint(routePolyline, driverProgress);
+  const driverLocation = liveDriverLocation ?? simulatedDriverLocation;
+  const approachDistanceKm = useMemo(() => {
+    if (!driverLocation || !sharedLocationState.pickupCoords) {
+      return sharedLocationState.routeDistanceKm ?? 0;
+    }
+    return Math.max(0.05, distanceKmBetween(driverLocation, sharedLocationState.pickupCoords));
+  }, [driverLocation, sharedLocationState.pickupCoords, sharedLocationState.routeDistanceKm]);
+  const arrivalTime = useMemo(() => {
+    if (!backendMode) {
+      return activeTrip?.etaMinutes ?? 5;
+    }
+    return Math.max(1, Math.round(approachDistanceKm / 0.42));
+  }, [backendMode, approachDistanceKm, activeTrip?.etaMinutes]);
 
   // Phase 5.3 — pan map to rider's current GPS position on button tap
   const handleLocateMe = React.useCallback(() => {
@@ -129,12 +160,6 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
       return undefined;
     }
     const interval = setInterval(() => {
-      setArrivalTime((prev) => {
-        if (prev > 0) {
-          return prev - 0.0167;
-        }
-        return 0;
-      });
       setDriverProgress((prev) => Math.min(prev + arrivalWorkflow.progressStepPerTick, 1));
     }, arrivalWorkflow.progressTickMs);
 
@@ -160,8 +185,11 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   }, [activeTrip?.status, backendMode, navigate]);
 
   useEffect(() => {
+    if (backendMode || !simulatedDriverLocation) {
+      return;
+    }
     const previous = sharedLocationState.driverLocation;
-    const next = driverLocation;
+    const next = simulatedDriverLocation;
     if (
       (!previous && !next) ||
       (previous &&
@@ -171,8 +199,8 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
     ) {
       return;
     }
-    updateSharedLocationState({ driverLocation });
-  }, [driverLocation, sharedLocationState.driverLocation, updateSharedLocationState]);
+    updateSharedLocationState({ driverLocation: simulatedDriverLocation });
+  }, [backendMode, simulatedDriverLocation, sharedLocationState.driverLocation, updateSharedLocationState]);
 
   const handleAccept = () => {
     setRideStatus("driver_arrived");
@@ -193,6 +221,22 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
       }
     } catch {
       window.location.href = href;
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!activeTrip?.id) return;
+    const confirmed = window.confirm("Cancel this ride?");
+    if (!confirmed) return;
+    setIsCancelling(true);
+    try {
+      await cancelRiderTrip(activeTrip.id, "Rider cancelled while driver was en route");
+      resetRidePlanningState({ preserveRiderLocation: true });
+      navigate("/rides/enter/details", { replace: true, state: { resetFromCancel: true } });
+    } catch (error) {
+      console.error("Failed to cancel ride", error);
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -497,6 +541,24 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
                 Change
               </Button>
             </Stack>
+
+            <Button
+              fullWidth
+              variant="outlined"
+              color="error"
+              disabled={isCancelling}
+              startIcon={isCancelling ? <CircularProgress size={16} color="inherit" /> : undefined}
+              onClick={handleCancel}
+              sx={{
+                borderRadius: 5,
+                py: 1.1,
+                fontSize: 15,
+                fontWeight: 600,
+                textTransform: "none",
+              }}
+            >
+              {isCancelling ? "Cancelling..." : "Cancel ride"}
+            </Button>
           </Stack>
         }
       />

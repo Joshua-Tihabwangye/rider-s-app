@@ -340,6 +340,13 @@ export async function updateRiderTripTracking(tripId: string, patch: UpdateRider
   });
 }
 
+export async function cancelRiderTrip(tripId: string, reason?: string): Promise<RiderTripApi> {
+  return request<RiderTripApi>(`/riders/me/trips/${tripId}/cancel`, {
+    method: "POST",
+    body: reason ? { reason } : undefined,
+  });
+}
+
 // Notification endpoints
 export async function getRiderNotifications(): Promise<RiderNotificationApi[]> {
   return request<RiderNotificationApi[]>("/riders/me/notifications", { method: "GET" });
@@ -427,7 +434,7 @@ export function mapApiTripToRideTrip(apiTrip: RiderTripApi): RideTrip {
   };
 }
 
-function mapApiTripStatusToRideStatus(status: RiderTripApi["status"]): RideTrip["status"] {
+export function mapApiTripStatusToRideStatus(status: RiderTripApi["status"]): RideTrip["status"] {
   const mapping: Record<RiderTripApi["status"], RideTrip["status"]> = {
     requested: "searching",
     driver_assigned: "driver_assigned",
