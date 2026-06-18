@@ -191,36 +191,16 @@ function RideDetailsScreen(): React.JSX.Element {
 							"Failed to create trip request. Please try again.",
 					}),
 				);
-				navigate("/rides/booking/confirmation", {
-					state: {
-						...tripData,
-						rideDetails,
-						fromRideDetails: true,
-						selectedRide: tripData.selectedRide,
-						rideType: tripData.rideType,
-						fare: rideDetails.fare,
-						distance: tripData.distance,
-						estimatedTime: tripData.estimatedTime,
-					},
-				});
+				// Navigate to search page even if backend fails
+				actions.setRideStatus("searching");
+				navigate("/rides/searching-driver", { replace: true });
 			} finally {
 				setIsBooking(false);
 			}
 		} else {
 			// Keep existing simulation if backend disabled
 			actions.setRideStatus("searching");
-			navigate("/rides/booking/confirmation", {
-				state: {
-					...tripData,
-					rideDetails,
-					fromRideDetails: true,
-					selectedRide: tripData.selectedRide,
-					rideType: tripData.rideType,
-					fare: rideDetails.fare,
-					distance: tripData.distance,
-					estimatedTime: tripData.estimatedTime,
-				},
-			});
+			navigate("/rides/searching-driver", { replace: true });
 			setIsBooking(false);
 		}
 	};

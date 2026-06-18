@@ -171,18 +171,26 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
             return;
           }
 
-          const backendUser = await buildBackendAuthUser(null);
+          // Try to get backend user, but fail fast
+          const backendUser = await buildBackendAuthUser(null).catch(() => null);
+          
           if (!backendUser) {
-            clearSession();
-            if (!cancelled) {
-              setUser(null);
+            // If backend fails, try local fallback first if available
+            if (storedUser) {
+              try {
+                const parsedUser = JSON.parse(storedUser);
+                if (parsedUser && typeof parsedUser === "object" && !Array.isArray(parsedUser) && ("id" in parsedUser)) {
+                  if (!cancelled) setUser(parsedUser as User);
+                  return;
+                }
+              } catch (e) { /* ignore */ }
             }
+            clearSession();
+            if (!cancelled) setUser(null);
             return;
           }
 
-          if (!cancelled) {
-            setUser(backendUser);
-          }
+          if (!cancelled) setUser(backendUser);
           return;
         }
 

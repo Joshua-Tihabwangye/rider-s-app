@@ -121,45 +121,59 @@ function handleUnauthorized() {
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const response = await fetch(buildRequestUrl(path, options.query), {
-    method: options.method || "GET",
-    headers: buildHeaders(options),
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
-  if (response.status === 401 && options.retryOnUnauthorized !== false && authAdapter) {
-    try {
-      const refreshed = await attemptRefresh();
-      authAdapter.setTokens(refreshed.accessToken, refreshed.refreshToken);
-      return request<T>(path, {
-        ...options,
-        retryOnUnauthorized: false,
-        headers: {
-          ...(options.headers || {}),
-          Authorization: `Bearer ${refreshed.accessToken}`,
-        },
-      });
-    } catch (error) {
-      handleUnauthorized();
-      throw error instanceof ApiRequestError ? error : new ApiRequestError("Session expired", 401);
+  try {
+    const response = await fetch(buildRequestUrl(path, options.query), {
+      method: options.method || "GET",
+      headers: buildHeaders(options),
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (response.status === 401 && options.retryOnUnauthorized !== false && authAdapter) {
+      try {
+        const refreshed = await attemptRefresh();
+        authAdapter.setTokens(refreshed.accessToken, refreshed.refreshToken);
+        return request<T>(path, {
+          ...options,
+          retryOnUnauthorized: false,
+          headers: {
+            ...(options.headers || {}),
+            Authorization: `Bearer ${refreshed.accessToken}`,
+          },
+        });
+      } catch (error) {
+        handleUnauthorized();
+        throw error instanceof ApiRequestError ? error : new ApiRequestError("Session expired", 401);
+      }
     }
+
+    const raw = await response.text();
+    const parsed = parseJson<ApiEnvelope<T>>(raw);
+
+    if (!response.ok) {
+      const message = parsed?.message || `Request failed with status ${response.status}`;
+      throw new ApiRequestError(message, response.status, parsed?.details);
+    }
+
+    if (parsed && "data" in parsed && parsed.data !== undefined) {
+      return parsed.data;
+    }
+
+    if (parsed !== null) {
+      return parsed as unknown as T;
+    }
+
+    throw new ApiRequestError("Empty response from server", response.status);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === "AbortError") {
+      throw new ApiRequestError("Request timeout", 408);
+    }
+    throw error;
   }
-
-  const raw = await response.text();
-  const parsed = parseJson<ApiEnvelope<T>>(raw);
-
-  if (!response.ok) {
-    const message = parsed?.message || `Request failed with status ${response.status}`;
-    throw new ApiRequestError(message, response.status, parsed?.details);
-  }
-
-  if (parsed && "data" in parsed && parsed.data !== undefined) {
-    return parsed.data;
-  }
-
-  if (parsed !== null) {
-    return parsed as unknown as T;
-  }
-
-  throw new ApiRequestError("Empty response from server", response.status);
 }
