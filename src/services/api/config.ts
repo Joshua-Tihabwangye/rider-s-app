@@ -6,7 +6,7 @@ function parseBooleanFlag(value: string | undefined, fallback = false): boolean 
   return normalized === "true" || normalized === "1" || normalized === "yes";
 }
 
-const DEFAULT_LOCAL_BACKEND_BASE_URL = "http://localhost:3000/api/v1";
+const DEFAULT_LOCAL_BACKEND_BASE_URL = "http://localhost:3001/api/v1";
 
 function normalizeBaseUrl(value: string | undefined): string {
   const raw = value?.trim();
