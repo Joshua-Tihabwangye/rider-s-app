@@ -103,10 +103,12 @@ function SearchingForDriverScreen(): React.JSX.Element {
     return `For: ${name}${bookedFor.phone ? ` (${bookedFor.phone})` : ""}`;
   }, [ride.activeTrip?.bookedFor, ride.request.bookedFor]);
 
-  // Calculate driver location along the route
+  // Calculate driver location along the route.
+  // In backend mode we do not synthesize a moving driver marker.
   const driverLocation = React.useMemo(() => {
+    if (backendMode) return null;
     return getApproachPoint(routePolyline, driverProgress);
-  }, [driverProgress, routePolyline]);
+  }, [backendMode, driverProgress, routePolyline]);
 
   useEffect(() => {
     if (hasInitializedSearchStatusRef.current) {
@@ -117,6 +119,12 @@ function SearchingForDriverScreen(): React.JSX.Element {
   }, [setRideStatus]);
 
   useEffect(() => {
+    if (backendMode) {
+      if (sharedLocationState.driverLocation) {
+        updateSharedLocationState({ driverLocation: null });
+      }
+      return;
+    }
     const previous = sharedLocationState.driverLocation;
     const next = driverLocation;
     if (
@@ -129,7 +137,7 @@ function SearchingForDriverScreen(): React.JSX.Element {
       return;
     }
     updateSharedLocationState({ driverLocation });
-  }, [driverLocation, sharedLocationState.driverLocation, updateSharedLocationState]);
+  }, [backendMode, driverLocation, sharedLocationState.driverLocation, updateSharedLocationState]);
 
   useEffect(() => {
     if (!backendMode || !sharedLocationState.pickupCoords) {

@@ -52,6 +52,22 @@ export interface RiderTripApi {
   id: string;
   riderId: string;
   driverId?: string;
+  driver?: {
+    id: string;
+    name: string;
+    phone: string;
+    rating: number;
+    avatar: string;
+    totalRatings?: number;
+    ridesLabel?: string;
+    experienceLabel?: string;
+  } | null;
+  vehicle?: {
+    model: string;
+    color: string;
+    plate: string;
+    category: string;
+  } | null;
   status:
   | "requested"
   | "driver_assigned"
@@ -425,8 +441,26 @@ export function mapApiTripToRideTrip(apiTrip: RiderTripApi): RideTrip {
     remainingLegs: 1,
     completedStopIds: [],
     isReturnLeg: false,
-    driver: null, // Populate from separate driver endpoint if available
-    vehicle: null, // Populate from separate vehicle endpoint if available
+    driver: apiTrip.driver
+      ? {
+          id: apiTrip.driver.id,
+          name: apiTrip.driver.name,
+          phone: apiTrip.driver.phone,
+          rating: apiTrip.driver.rating,
+          avatar: apiTrip.driver.avatar,
+          totalRatings: apiTrip.driver.totalRatings,
+          ridesLabel: apiTrip.driver.ridesLabel,
+          experienceLabel: apiTrip.driver.experienceLabel,
+        }
+      : null,
+    vehicle: apiTrip.vehicle
+      ? {
+          model: apiTrip.vehicle.model,
+          color: apiTrip.vehicle.color,
+          plate: apiTrip.vehicle.plate,
+          category: apiTrip.vehicle.category,
+        }
+      : null,
     bookedFor: apiTrip.bookedFor ?? null,
     lastKnownLocation: undefined,
     startedAt: apiTrip.startedAt ? new Date(apiTrip.startedAt).toISOString() : undefined,
