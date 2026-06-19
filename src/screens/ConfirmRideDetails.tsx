@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import {
 	Box,
+	Alert,
 	IconButton,
 	Typography,
 	Card,
@@ -32,6 +33,7 @@ import {
 	mapApiTripToRideTrip,
 	isRiderBackendEnabled,
 } from "../services/api/riderApi";
+import { ApiRequestError } from "../services/api/httpClient";
 import { createRiderSocket } from "../services/riderSocket";
 import { RiderClientEvents } from "../services/api/events";
 
@@ -43,6 +45,11 @@ function RideDetailsScreen(): React.JSX.Element {
 
 	// Get trip data from navigation state or use defaults
 	const tripData = location.state || {};
+	const rideRequestError =
+		typeof tripData.rideRequestError === "string" &&
+		tripData.rideRequestError.trim().length > 0
+			? tripData.rideRequestError.trim()
+			: null;
 
 	const activeTrip = ride.activeTrip;
 	const resolvePublicImagePath = (value: unknown): string | null => {
@@ -51,6 +58,7 @@ function RideDetailsScreen(): React.JSX.Element {
 		if (!trimmed.startsWith("/")) return null;
 		return trimmed;
 	};
+	const hasAssignedDriver = Boolean(tripData.driver?.name && tripData.driver?.licensePlate);
 
 	const rideDetails = {
 		dateLabel:
@@ -86,29 +94,22 @@ function RideDetailsScreen(): React.JSX.Element {
 			)?.fare ||
 			ride.options[0]?.fare ||
 			"UGX 0",
-		driver: {
-			name: tripData.driver?.name || activeTrip?.driver?.name || "Driver",
-			vehicle:
-				tripData.driver?.vehicle || activeTrip?.vehicle?.model || "EV",
-			licensePlate:
-				tripData.driver?.licensePlate ||
-				activeTrip?.vehicle?.plate ||
-				"—",
-			rating: tripData.driver?.rating || activeTrip?.driver?.rating || 0,
-			totalRatings:
-				tripData.driver?.totalRatings ||
-				activeTrip?.driver?.totalRatings ||
-				0,
-			rides:
-				tripData.driver?.rides || activeTrip?.driver?.ridesLabel || "—",
-			experience:
-				tripData.driver?.experience ||
-				activeTrip?.driver?.experienceLabel ||
-				"—",
-			photo: tripData.driver?.photo || activeTrip?.driver?.avatar || "DR",
-		},
+		driver: hasAssignedDriver
+			? {
+					name: tripData.driver?.name || "Driver",
+					vehicle: tripData.driver?.vehicle || "EV",
+					licensePlate: tripData.driver?.licensePlate || "—",
+					rating: tripData.driver?.rating || 0,
+					totalRatings: tripData.driver?.totalRatings || 0,
+					rides: tripData.driver?.rides || "—",
+					experience: tripData.driver?.experience || "—",
+					photo: tripData.driver?.photo || "DR",
+				}
+			: null,
 		vehicleImage: resolvePublicImagePath(tripData.vehicleImage), // Serve only from public assets.
 	};
+	const [bookingError, setBookingError] = React.useState<string | null>(null);
+	const resolvedError = bookingError ?? rideRequestError;
 
 	const handleBack = () => {
 		navigate(-1);
@@ -126,6 +127,7 @@ function RideDetailsScreen(): React.JSX.Element {
 	};
 
 	const handleViewDriverProfile = () => {
+		if (!rideDetails.driver) return;
 		// Navigate to driver profile screen (RA28)
 		navigate("/rides/trip/driver-profile", {
 			state: {
@@ -139,6 +141,7 @@ function RideDetailsScreen(): React.JSX.Element {
 	const handleBookTrip = async () => {
 		if (isBooking) return;
 		setIsBooking(true);
+		setBookingError(null);
 
 		if (isRiderBackendEnabled()) {
 			try {
@@ -184,16 +187,11 @@ function RideDetailsScreen(): React.JSX.Element {
 				navigate("/rides/searching-driver", { replace: true });
 			} catch (error) {
 				console.error("Failed to create trip request", error);
-				window.sessionStorage.setItem(
-					"evzone_last_trip_request_error",
-					JSON.stringify({
-						message:
-							"Failed to create trip request. Please try again.",
-					}),
-				);
-				// Navigate to search page even if backend fails
-				actions.setRideStatus("searching");
-				navigate("/rides/searching-driver", { replace: true });
+				const message =
+					error instanceof ApiRequestError && error.message.trim().length > 0
+						? error.message
+						: "Failed to create trip request. Please try again.";
+				setBookingError(message);
 			} finally {
 				setIsBooking(false);
 			}
@@ -210,8 +208,8 @@ function RideDetailsScreen(): React.JSX.Element {
 	};
 
 	// Calculate star rating display
-	const fullStars = Math.floor(rideDetails.driver.rating);
-	const hasHalfStar = rideDetails.driver.rating % 1 >= 0.5;
+	const fullStars = Math.floor(rideDetails.driver?.rating ?? 0);
+	const hasHalfStar = (rideDetails.driver?.rating ?? 0) % 1 >= 0.5;
 
 	const contentBg =
 		theme.palette.mode === "light"
@@ -562,6 +560,11 @@ function RideDetailsScreen(): React.JSX.Element {
 							py: uiTokens.spacing.mdPlus,
 						}}
 					>
+						{resolvedError ? (
+							<Alert severity="error" sx={{ mb: 2, borderRadius: uiTokens.radius.sm }}>
+								{resolvedError}
+							</Alert>
+						) : null}
 						{/* Profile Section */}
 						<Box
 							sx={{
@@ -579,36 +582,37 @@ function RideDetailsScreen(): React.JSX.Element {
 									fontSize: 24,
 									fontWeight: 600,
 									color: "#FFFFFF",
-								}}
-							>
-								{rideDetails.driver.photo}
-							</Avatar>
-							<Box sx={{ flex: 1 }}>
-								<Typography
+									}}
+								>
+									{rideDetails.driver?.photo ?? "DR"}
+								</Avatar>
+								<Box sx={{ flex: 1 }}>
+									<Typography
 									variant="body1"
 									sx={{
 										fontWeight: 600,
 										letterSpacing: "-0.01em",
 										mb: 0.5,
 										color: theme.palette.text.primary,
-									}}
-								>
-									{rideDetails.driver.name}
-								</Typography>
-								<Typography
-									variant="caption"
+										}}
+									>
+										{rideDetails.driver?.name ?? "Driver will be assigned after booking"}
+									</Typography>
+									<Typography
+										variant="caption"
 									sx={{
 										fontSize: 11,
 										color: theme.palette.text.secondary,
 										display: "block",
 										mb: 0.5,
-									}}
-								>
-									{rideDetails.driver.vehicle} –{" "}
-									{rideDetails.driver.licensePlate}
-								</Typography>
-								<Box
-									sx={{
+										}}
+									>
+										{rideDetails.driver
+											? `${rideDetails.driver.vehicle} – ${rideDetails.driver.licensePlate}`
+											: "Vehicle pending"}
+									</Typography>
+									<Box
+										sx={{
 										display: "flex",
 										alignItems: "center",
 										gap: 0.5,
@@ -647,21 +651,21 @@ function RideDetailsScreen(): React.JSX.Element {
 												color: "#D1D5DB",
 											}}
 										/>
-									))}
-									<Typography
-										variant="caption"
-										sx={{
-											fontSize: 11,
-											ml: 0.5,
-											color: theme.palette.text.secondary,
-										}}
-									>
-										{rideDetails.driver.rating} (
-										{rideDetails.driver.totalRatings}{" "}
-										ratings)
-									</Typography>
+										))}
+										<Typography
+											variant="caption"
+											sx={{
+												fontSize: 11,
+												ml: 0.5,
+												color: theme.palette.text.secondary,
+											}}
+										>
+											{rideDetails.driver
+												? `${rideDetails.driver.rating} (${rideDetails.driver.totalRatings} ratings)`
+												: "Driver not assigned yet"}
+										</Typography>
+									</Box>
 								</Box>
-							</Box>
 						</Box>
 
 						{/* Driver Stats */}
@@ -677,16 +681,16 @@ function RideDetailsScreen(): React.JSX.Element {
 								>
 									Rides
 								</Typography>
-								<Typography
-									variant="body2"
-									sx={{
-										fontWeight: 600,
-										color: theme.palette.text.primary,
-									}}
-								>
-									{rideDetails.driver.rides}
-								</Typography>
-							</Box>
+									<Typography
+										variant="body2"
+										sx={{
+											fontWeight: 600,
+											color: theme.palette.text.primary,
+										}}
+									>
+										{rideDetails.driver?.rides ?? "Pending"}
+									</Typography>
+								</Box>
 							<Box>
 								<Typography
 									variant="caption"
@@ -698,29 +702,30 @@ function RideDetailsScreen(): React.JSX.Element {
 								>
 									Experience
 								</Typography>
-								<Typography
-									variant="body2"
-									sx={{
-										fontWeight: 600,
-										color: theme.palette.text.primary,
-									}}
-								>
-									{rideDetails.driver.experience}
-								</Typography>
+									<Typography
+										variant="body2"
+										sx={{
+											fontWeight: 600,
+											color: theme.palette.text.primary,
+										}}
+									>
+										{rideDetails.driver?.experience ?? "Pending"}
+									</Typography>
+								</Box>
 							</Box>
-						</Box>
 
 						<Divider sx={{ my: 1.5 }} />
 
 						{/* Action Buttons */}
 						<Box sx={{ display: "flex", gap: 1 }}>
-							<Button
-								variant="outlined"
-								startIcon={
-									<PhoneRoundedIcon sx={{ fontSize: 18 }} />
-								}
-								onClick={handleCallDriver}
-								sx={{
+								<Button
+									variant="outlined"
+									startIcon={
+										<PhoneRoundedIcon sx={{ fontSize: 18 }} />
+									}
+									onClick={handleCallDriver}
+									disabled={!rideDetails.driver}
+									sx={{
 									flex: 1,
 									borderRadius: uiTokens.radius.xl,
 									textTransform: "none",
@@ -737,13 +742,14 @@ function RideDetailsScreen(): React.JSX.Element {
 							>
 								Call
 							</Button>
-							<Button
-								variant="outlined"
-								startIcon={
-									<MessageRoundedIcon sx={{ fontSize: 18 }} />
-								}
-								onClick={handleMessageDriver}
-								sx={{
+								<Button
+									variant="outlined"
+									startIcon={
+										<MessageRoundedIcon sx={{ fontSize: 18 }} />
+									}
+									onClick={handleMessageDriver}
+									disabled={!rideDetails.driver}
+									sx={{
 									flex: 1,
 									borderRadius: uiTokens.radius.xl,
 									textTransform: "none",
@@ -760,9 +766,10 @@ function RideDetailsScreen(): React.JSX.Element {
 							>
 								Message
 							</Button>
-							<IconButton
-								onClick={handleViewDriverProfile}
-								sx={{
+								<IconButton
+									onClick={handleViewDriverProfile}
+									disabled={!rideDetails.driver}
+									sx={{
 									borderRadius: uiTokens.radius.xl,
 									border:
 										theme.palette.mode === "light"
@@ -811,7 +818,7 @@ function RideDetailsScreen(): React.JSX.Element {
 							position: "relative",
 						}}
 					>
-						{rideDetails.vehicleImage ? (
+						{rideDetails.vehicleImage && rideDetails.driver ? (
 							<Box
 								component="img"
 								src={rideDetails.vehicleImage}
@@ -832,14 +839,14 @@ function RideDetailsScreen(): React.JSX.Element {
 								<PlaceRoundedIcon
 									sx={{ fontSize: 48, mb: 1, opacity: 0.5 }}
 								/>
-								<Typography
-									variant="caption"
-									sx={{ fontSize: 11, display: "block" }}
-								>
-									{rideDetails.driver.vehicle}
-								</Typography>
-							</Box>
-						)}
+									<Typography
+										variant="caption"
+										sx={{ fontSize: 11, display: "block" }}
+									>
+										{rideDetails.driver?.vehicle ?? "Vehicle pending"}
+									</Typography>
+								</Box>
+							)}
 					</Box>
 				</Card>
 

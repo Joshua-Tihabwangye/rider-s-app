@@ -930,139 +930,7 @@ function createSeedDeliveryOrder(params: {
   };
 }
 
-const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [
-  createSeedDeliveryOrder({
-    id: "DLV-2026-04-10-101",
-    packageName: "Laptop & charger",
-    pickupLabel: "Nakasero Office",
-    pickupAddress: "Plot 14, Nakasero Rd, Kampala",
-    dropoffLabel: "Bugolobi Residence",
-    dropoffAddress: "12, JJ Apartments, New Street, Kampala",
-    senderName: "Sarah M.",
-    senderPhone: "+256 709 332 112",
-    senderAvatar: "SM",
-    recipientName: "John Kato",
-    recipientPhone: "+256 779 111 333",
-    recipientAddress: "12, JJ Apartments, New Street, Kampala",
-    status: "in_transit",
-    etaMinutes: 24,
-    distanceKm: 8.6,
-    progress: 64,
-    paymentMethodId: "pm_card_1",
-    participantRole: "sender"
-  }),
-  createSeedDeliveryOrder({
-    id: "DLV-2026-04-10-102",
-    packageName: "Business documents",
-    pickupLabel: "Industrial Area",
-    pickupAddress: "5th Street Industrial Area, Kampala",
-    dropoffLabel: "Kololo",
-    dropoffAddress: "Wampewo Ave, Kololo, Kampala",
-    senderName: "Mark O.",
-    senderPhone: "+256 701 420 901",
-    senderAvatar: "MO",
-    recipientName: "Brenda A.",
-    recipientPhone: "+256 701 887 221",
-    recipientAddress: "Wampewo Ave, Kololo, Kampala",
-    status: "requested",
-    etaMinutes: 36,
-    distanceKm: 11.2,
-    progress: 12,
-    scheduled: true,
-    paymentMethodId: "pm_cash",
-    participantRole: "sender",
-    orderMode: "business",
-    orderModeConfig: {
-      business: {
-        costCenter: "Operations",
-        note: "Urgent legal package"
-      }
-    }
-  }),
-  createSeedDeliveryOrder({
-    id: "DLV-2026-04-09-088",
-    packageName: "Food package",
-    pickupLabel: "Kampala Road",
-    pickupAddress: "Kampala Road, Kampala",
-    dropoffLabel: "Muyenga",
-    dropoffAddress: "Tank Hill Rd, Muyenga, Kampala",
-    senderName: "EV Mart",
-    senderPhone: "+256 700 888 444",
-    senderAvatar: "EM",
-    recipientName: "Jane L.",
-    recipientPhone: "+256 772 100 909",
-    recipientAddress: "Tank Hill Rd, Muyenga, Kampala",
-    status: "delivered",
-    etaMinutes: 0,
-    distanceKm: 0,
-    progress: 100,
-    paymentMethodId: "pm_momo_1",
-    participantRole: "sender",
-    dropoffMethod: "hand_to_recipient",
-    hasSignatureConfirmation: true
-  }),
-  createSeedDeliveryOrder({
-    id: "DLV-2026-04-08-077",
-    packageName: "Home groceries",
-    pickupLabel: "Lugogo Supermarket",
-    pickupAddress: "Lugogo Bypass, Kampala",
-    dropoffLabel: "Mbuya Residence",
-    dropoffAddress: "Mbuya Hill, Kampala",
-    senderName: "Fresh Basket",
-    senderPhone: "+256 776 510 224",
-    senderAvatar: "FB",
-    recipientName: "Miriam T.",
-    recipientPhone: "+256 781 300 912",
-    recipientAddress: "Mbuya Hill, Kampala",
-    status: "delivered",
-    etaMinutes: 0,
-    distanceKm: 0,
-    progress: 100,
-    paymentMethodId: "pm_wallet",
-    participantRole: "sender",
-    dropoffMethod: "leave_at_door"
-  }),
-  createSeedDeliveryOrder({
-    id: "DLV-2026-04-11-203",
-    packageName: "Medical supplies",
-    pickupLabel: "Makerere Distribution Hub",
-    pickupAddress: "Makerere Hill Rd, Kampala",
-    dropoffLabel: "Ntinda Home",
-    dropoffAddress: "Ntinda Kigoowa Rd, Kampala",
-    senderName: "Dr. Peter N.",
-    senderPhone: "+256 777 244 889",
-    senderAvatar: "PN",
-    recipientName: "Rachel Zoe",
-    recipientPhone: "+256 777 777 777",
-    recipientAddress: "Ntinda Kigoowa Rd, Kampala",
-    status: "out_for_delivery",
-    etaMinutes: 18,
-    distanceKm: 6.4,
-    progress: 82,
-    paymentMethodId: "pm_cash",
-    participantRole: "receiver"
-  }),
-  createSeedDeliveryOrder({
-    id: "DLV-2026-04-11-204",
-    packageName: "Birthday gift box",
-    pickupLabel: "Acacia Mall",
-    pickupAddress: "14-18 Cooper Rd, Kampala",
-    dropoffLabel: "Bukoto Apartment",
-    dropoffAddress: "Bukoto Kisasi Rd, Kampala",
-    senderName: "Martha L.",
-    senderPhone: "+256 703 112 665",
-    senderAvatar: "ML",
-    recipientName: "Rachel Zoe",
-    recipientPhone: "+256 777 777 777",
-    recipientAddress: "Bukoto Kisasi Rd, Kampala",
-    status: "requested",
-    etaMinutes: 34,
-    distanceKm: 10.2,
-    progress: 14,
-    paymentMethodId: "pm_wallet",
-    participantRole: "receiver"
-  })
-];
+const SEED_DELIVERY_ORDERS: DeliveryOrder[] = [];
 
 export const SEED_DELIVERY_STATE: DeliveryState = {
   draft: {
@@ -1090,7 +958,7 @@ export const SEED_DELIVERY_STATE: DeliveryState = {
         costCenter: "",
         note: ""
       },
-      company: {
+        company: {
         requesterName: "",
         delegateName: "",
         approvalRequired: true
@@ -1113,28 +981,9 @@ export const SEED_DELIVERY_STATE: DeliveryState = {
     priceEstimate: "UGX 8,600",
     notes: ""
   },
-  activeOrder: SEED_DELIVERY_ORDERS[0] ?? null,
-  orders: SEED_DELIVERY_ORDERS,
-  notifications: [
-    createDeliveryNotification({
-      orderId: "DLV-2026-04-10-101",
-      title: "Courier in transit",
-      body: "Your parcel is on the way and arriving soon.",
-      category: "status"
-    }),
-    createDeliveryNotification({
-      orderId: "DLV-2026-04-09-088",
-      title: "Proof of delivery available",
-      body: "View recipient confirmation, timestamp, and dropoff location.",
-      category: "proof"
-    }),
-    createDeliveryNotification({
-      orderId: "DLV-2026-04-11-203",
-      title: "Incoming parcel arriving soon",
-      body: "Medical supplies are out for delivery to your address.",
-      category: "status"
-    })
-  ],
+  activeOrder: null,
+  orders: [],
+  notifications: [],
   websocketConnected: false,
   lastRealtimeSync: undefined
 };

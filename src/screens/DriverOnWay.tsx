@@ -57,6 +57,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   }, [activeTrip?.bookedFor, ride.request.bookedFor]);
   const driver = activeTrip?.driver;
   const vehicle = activeTrip?.vehicle;
+  const hasAssignedDriver = Boolean(driver?.name && vehicle?.plate);
   const arrivalWorkflow = ride.workflow.driverArrival;
   const legs = activeTrip?.legs ?? [];
   const currentLegIndex = Math.min(
@@ -72,8 +73,8 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   const companyOrange = "#F79009";
   const routePolyline = normalizeRoute(sharedLocationState.routePolyline);
   const liveDriverLocation = sharedLocationState.driverLocation;
-  const simulatedDriverLocation = getApproachPoint(routePolyline, driverProgress);
-  const driverLocation = liveDriverLocation ?? simulatedDriverLocation;
+  const simulatedDriverLocation = backendMode ? null : getApproachPoint(routePolyline, driverProgress);
+  const driverLocation = backendMode ? liveDriverLocation : liveDriverLocation ?? simulatedDriverLocation;
   const approachDistanceKm = useMemo(() => {
     if (!driverLocation || !sharedLocationState.pickupCoords) {
       return sharedLocationState.routeDistanceKm ?? 0;
@@ -142,7 +143,8 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
     return "/rides-ui/EV--3.png";
   }, [vehicle?.model]);
   const callTarget = useMemo(() => {
-    const raw = driver?.phone || "+256700000000";
+    if (!driver?.phone) return null;
+    const raw = driver.phone;
     const cleaned = raw.replace(/[^\d+]/g, "");
     return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
   }, [driver?.phone]);
@@ -165,6 +167,13 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
 
     return () => clearInterval(interval);
   }, [arrivalWorkflow.progressStepPerTick, arrivalWorkflow.progressTickMs, backendMode]);
+
+  useEffect(() => {
+    if (!backendMode) return;
+    if (sharedLocationState.driverLocation) {
+      updateSharedLocationState({ driverLocation: null });
+    }
+  }, [backendMode, sharedLocationState.driverLocation, updateSharedLocationState]);
 
   useEffect(() => {
     const backendTripStatus = activeTrip?.status as string | undefined;
@@ -213,6 +222,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
   };
 
   const handleCall = () => {
+    if (!callTarget) return;
     const href = `tel:${callTarget}`;
     try {
       const opened = window.open(href, "_self");
@@ -375,16 +385,18 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
                         fontWeight: 700
                       }}
                     >
-                      {driver?.avatar ?? driver?.name?.slice(0, 2).toUpperCase() ?? "DR"}
+                      {hasAssignedDriver
+                        ? driver?.avatar ?? driver?.name?.slice(0, 2).toUpperCase() ?? "DR"
+                        : "DR"}
                     </Avatar>
                     <Box>
                       <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                        {driver?.name ?? "Driver"}
+                        {hasAssignedDriver ? driver?.name ?? "Driver" : "Waiting for driver"}
                       </Typography>
                       <Stack direction="row" spacing={0.4} alignItems="center">
                         <StarRoundedIcon sx={{ fontSize: 14, color: "#F59E0B" }} />
                         <Typography variant="caption" sx={{ color: (t) => t.palette.text.secondary }}>
-                          {driver?.rating?.toFixed(1) ?? "4.6"} rating
+                          {hasAssignedDriver ? `${driver?.rating?.toFixed(1) ?? "4.6"} rating` : "Searching nearby drivers"}
                         </Typography>
                       </Stack>
                     </Box>
@@ -394,7 +406,8 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
                       size="small"
                       onClick={handleCall}
                       component="a"
-                      href={`tel:${callTarget}`}
+                      href={callTarget ? `tel:${callTarget}` : undefined}
+                      disabled={!callTarget}
                       sx={{
                         border: `1px solid rgba(247, 144, 9, 0.35)`,
                         color: companyOrange
@@ -405,6 +418,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
                     <IconButton
                       size="small"
                       onClick={() => setChatOpen(true)}
+                      disabled={!hasAssignedDriver}
                       sx={{
                         border: "1px solid rgba(3, 205, 140, 0.35)",
                         color: "#03CD8C"
@@ -441,33 +455,54 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Stack spacing={0.7}>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        Number plate: {vehicle?.plate ?? "UAX 278C"}
+                        Number plate: {hasAssignedDriver ? vehicle?.plate ?? "—" : "Pending assignment"}
                       </Typography>
                       <Typography variant="body2">
-                        Model: {vehicle?.model ?? "Tesla Model 3"}
+                        Model: {hasAssignedDriver ? vehicle?.model ?? "—" : "Pending assignment"}
                       </Typography>
                       <Typography variant="body2">
-                        Color: {vehicle?.color ?? "Pearl White"}
+                        Color: {hasAssignedDriver ? vehicle?.color ?? "—" : "Pending assignment"}
                       </Typography>
                       <Typography variant="body2">
                         Ride class: {selectedRideClass}
                       </Typography>
                     </Stack>
                   </Box>
-                  <Box
-                    component="img"
-                    src={vehicleImage}
-                    alt={vehicle?.model ?? "Vehicle"}
-                    sx={{
-                      width: 84,
-                      height: 56,
-                      objectFit: "contain",
-                      borderRadius: 1.5,
-                      bgcolor: "rgba(247, 144, 9, 0.08)",
-                      border: "1px solid rgba(247, 144, 9, 0.2)",
-                      p: 0.4
-                    }}
-                  />
+                  {hasAssignedDriver ? (
+                    <Box
+                      component="img"
+                      src={vehicleImage}
+                      alt={vehicle?.model ?? "Vehicle"}
+                      sx={{
+                        width: 84,
+                        height: 56,
+                        objectFit: "contain",
+                        borderRadius: 1.5,
+                        bgcolor: "rgba(247, 144, 9, 0.08)",
+                        border: "1px solid rgba(247, 144, 9, 0.2)",
+                        p: 0.4
+                      }}
+                    />
+                  ) : (
+                    <Box
+                      sx={{
+                        width: 84,
+                        height: 56,
+                        borderRadius: 1.5,
+                        bgcolor: "rgba(15,23,42,0.04)",
+                        border: "1px dashed rgba(247, 144, 9, 0.25)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: (t) => t.palette.text.secondary,
+                        fontSize: 10,
+                        textAlign: "center",
+                        p: 0.5,
+                      }}
+                    >
+                      Waiting
+                    </Box>
+                  )}
                 </Stack>
               </CardContent>
             </Card>
@@ -483,7 +518,9 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
             >
               <CardContent sx={{ px: 1.75, py: 1.25 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, color: "#FFFFFF", fontSize: 13 }}>
-                  Driver is arriving in {String(Math.ceil(arrivalTime)).padStart(2, "0")} mins
+                  {hasAssignedDriver
+                    ? `Driver is arriving in ${String(Math.ceil(arrivalTime)).padStart(2, "0")} mins`
+                    : "Waiting for driver assignment"}
                 </Typography>
               </CardContent>
             </Card>
@@ -500,6 +537,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
                 fullWidth
                 variant="contained"
                 onClick={handleAccept}
+                disabled={!hasAssignedDriver}
                 sx={{
                   borderRadius: 5,
                   py: 1.3,
@@ -519,6 +557,7 @@ function DriverAssignedOnTheWayScreen(): React.JSX.Element {
                 fullWidth
                 variant="outlined"
                 onClick={handleChange}
+                disabled={!hasAssignedDriver}
                 sx={{
                   borderRadius: 5,
                   py: 1.3,

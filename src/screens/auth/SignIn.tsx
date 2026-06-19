@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { Alert, Box, Button, CircularProgress, IconButton, InputAdornment, Stack, Typography } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import AuthLayout from "../../components/auth/AuthLayout";
+import { AlternateEmailRounded, ArrowForwardRounded, LockOutlined, Visibility, VisibilityOff } from "@mui/icons-material";
 import AuthFormField from "../../components/auth/AuthFormField";
 import SocialAuthButtons from "../../components/auth/SocialAuthButtons";
 import { useAuth } from "../../contexts/AuthContext";
 import { validateEmail, validatePassword } from "../../utils/validation";
 import type { AuthProvider } from "../../store/types";
 import { clearAuthPrefillPassword, readAuthPrefill, saveAuthPrefill } from "../../utils/authPrefill";
+import RiderAuthShowcaseLayout from "../../components/auth/RiderAuthShowcaseLayout";
 
 export default function SignIn(): React.JSX.Element {
   const navigate = useNavigate();
@@ -56,36 +56,62 @@ export default function SignIn(): React.JSX.Element {
   }, [isAuthenticated, navigate]);
 
   return (
-    <AuthLayout title="Welcome back" subtitle="Sign in to your EVzone account">
+    <RiderAuthShowcaseLayout
+      title={
+        <>
+          Welcome <Box component="span" sx={{ color: "var(--evz-brand-green)" }}>back</Box>
+        </>
+      }
+      subtitle="Sign in to book rides, track trips, and manage your account."
+      promptText="Don’t have an account?"
+      promptActionLabel="Sign up"
+      promptActionTo="/auth/sign-up"
+      promptActionColor="var(--evz-brand-orange)"
+      footerText="Safe, secure, and cashless rides."
+    >
       <Box component="form" onSubmit={handleSubmit} noValidate>
-        <Stack spacing={{ xs: 1.6, sm: 2 }}>
+        <Stack spacing={{ xs: 0.92, sm: 1.1 }}>
           {error && (
-            <Alert severity="error" sx={{ borderRadius: "var(--evz-radius-md)", fontSize: 13 }}>
+            <Alert severity="error" sx={{ borderRadius: "16px", fontSize: 12.5 }}>
               {error}
             </Alert>
           )}
 
           <AuthFormField
             id="signin-email"
-            label="Email"
+            placeholder="Email address"
             type="email"
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             errorText={fieldErrors.email}
             disabled={loading}
+            inputProps={{ "aria-label": "Email address" }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <AlternateEmailRounded sx={{ fontSize: 20 }} />
+                </InputAdornment>
+              ),
+            }}
           />
 
           <AuthFormField
             id="signin-password"
-            label="Password"
+            placeholder="Password"
             type={showPassword ? "text" : "password"}
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             errorText={fieldErrors.password}
             disabled={loading}
+            inputProps={{ "aria-label": "Password" }}
             InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockOutlined sx={{ fontSize: 20 }} />
+                </InputAdornment>
+              ),
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
@@ -94,8 +120,9 @@ export default function SignIn(): React.JSX.Element {
                     onClick={() => setShowPassword((prev) => !prev)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     disabled={loading}
+                    sx={{ color: "rgba(107,114,128,0.88)" }}
                   >
-                    {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                    {showPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
                   </IconButton>
                 </InputAdornment>
               ),
@@ -110,7 +137,7 @@ export default function SignIn(): React.JSX.Element {
               sx={{
                 color: "var(--evz-brand-green)",
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 700,
                 textDecoration: "none",
                 "&:hover": { textDecoration: "underline" }
               }}
@@ -125,52 +152,56 @@ export default function SignIn(): React.JSX.Element {
             variant="contained"
             disabled={loading && !socialProvider}
             sx={{
-              py: 1.25,
-              fontSize: 14,
+              position: "relative",
+              py: 1.05,
+              fontSize: 13.25,
               fontWeight: 700,
               textTransform: "none",
-              borderRadius: "var(--evz-radius-md)",
-              bgcolor: "var(--evz-brand-green)",
+              borderRadius: "16px",
+              background: "linear-gradient(90deg, var(--evz-brand-green) 0%, var(--evz-brand-orange) 100%)",
               color: "#fff",
-              "&:hover": { bgcolor: "var(--evz-brand-green-hover)" }
+              boxShadow: "0 10px 20px rgba(247,127,0,0.14)",
+              "&:hover": {
+                background: "linear-gradient(90deg, var(--evz-brand-green-hover) 0%, var(--evz-brand-orange-hover) 100%)"
+              }
             }}
           >
             {loading && !socialProvider ? (
               <CircularProgress size={22} sx={{ color: "#fff" }} />
             ) : (
-              "Sign in"
+              <>
+                Sign In
+                <Box
+                  component="span"
+                  sx={{
+                    position: "absolute",
+                    right: 12,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: 26,
+                    height: 26,
+                    borderRadius: "50%",
+                    display: "grid",
+                    placeItems: "center",
+                    border: "1.5px solid rgba(255,255,255,0.42)",
+                    bgcolor: "rgba(255,255,255,0.08)",
+                  }}
+                >
+                  <ArrowForwardRounded sx={{ fontSize: 15 }} />
+                </Box>
+              </>
             )}
           </Button>
         </Stack>
 
-        <Box sx={{ mt: { xs: 1.75, sm: 2 } }}>
+        <Box sx={{ mt: { xs: 0.85, sm: 1.05 } }}>
           <SocialAuthButtons
             onProvider={handleSocial}
             loading={loading}
             disabledProvider={socialProvider}
           />
         </Box>
-
-        <Box sx={{ mt: { xs: 2.25, sm: 3 }, textAlign: "center" }}>
-          <Typography variant="body2" sx={{ fontSize: 13, color: (t) => t.palette.text.secondary }}>
-            Don't have an account?{" "}
-            <Typography
-              component={RouterLink}
-              to="/auth/sign-up"
-              variant="body2"
-              sx={{
-                color: "var(--evz-brand-green)",
-                fontSize: 13,
-                fontWeight: 600,
-                textDecoration: "none",
-                "&:hover": { textDecoration: "underline" }
-              }}
-            >
-              Sign up
-            </Typography>
-          </Typography>
-        </Box>
       </Box>
-    </AuthLayout>
+    </RiderAuthShowcaseLayout>
   );
 }

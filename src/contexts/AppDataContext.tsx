@@ -1203,7 +1203,14 @@ function buildRideLegsFromRoutePoints(routePoints: RideLocation[], tripMode: "on
   return legs;
 }
 
-function selectTripSimulationAssignment(state: AppState, request: RideRequest) {
+function selectTripSimulationAssignment(
+  state: AppState,
+  request: RideRequest,
+  allowSimulationDefaults: boolean,
+) {
+  if (!allowSimulationDefaults) {
+    return null;
+  }
   const assignments = state.ride.workflow.tripSimulation.mockAssignments ?? [];
   if (assignments.length === 0) {
     return null;
@@ -1223,22 +1230,26 @@ function selectTripSimulationAssignment(state: AppState, request: RideRequest) {
 function hydrateRideTripWithSimulationDefaults(
   state: AppState,
   trip: RideTrip,
-  requestOverride?: RideRequest
+  requestOverride?: RideRequest,
+  allowSimulationDefaults?: boolean,
 ): RideTrip;
 function hydrateRideTripWithSimulationDefaults(
   state: AppState,
   trip: null,
-  requestOverride?: RideRequest
+  requestOverride?: RideRequest,
+  allowSimulationDefaults?: boolean,
 ): null;
 function hydrateRideTripWithSimulationDefaults(
   state: AppState,
   trip: RideTrip | null,
-  requestOverride?: RideRequest
+  requestOverride?: RideRequest,
+  allowSimulationDefaults = true,
 ): RideTrip | null {
   if (!trip) return null;
+  if (!allowSimulationDefaults) return trip;
   if (trip.driver && trip.vehicle) return trip;
   const request = requestOverride ?? normalizeRideRequest(state.ride.request);
-  const assignment = selectTripSimulationAssignment(state, request);
+  const assignment = selectTripSimulationAssignment(state, request, allowSimulationDefaults);
   if (!assignment) {
     return trip;
   }
@@ -1281,7 +1292,7 @@ function createRideTripFromRequest(state: AppState): RideTrip | null {
   const selectedEtaMinutes =
     Number.parseInt((selectedOption?.eta ?? "").replace(/[^\d]/g, ""), 10) ||
     Math.max(4, totalEtaMinutes);
-  const assignment = selectTripSimulationAssignment(state, request);
+  const assignment = selectTripSimulationAssignment(state, request, true);
   const originLabel = request.origin.label || request.origin.address || "Pickup";
   const destinationLabel = request.destination.label || request.destination.address || "Destination";
 
@@ -3740,7 +3751,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
           dispatch({
             type: "ride/set-active",
             payload: {
-              ...hydrateRideTripWithSimulationDefaults(state, mappedTrip, requestPayload),
+              ...hydrateRideTripWithSimulationDefaults(state, mappedTrip, requestPayload, !riderBackendEnabled),
               // Ensure required fields conform to RideTrip type (id must be string)
               id: mappedTrip.id ?? trip.id ?? `local-${Date.now()}`,
               bookedFor: mappedTrip.bookedFor ?? requestPayload.bookedFor ?? null
@@ -4915,7 +4926,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         dispatch({
           type: "ride/history",
           payload: history.map((trip) =>
-            hydrateRideTripWithSimulationDefaults(state, mapApiTripToRideTrip(trip))
+            hydrateRideTripWithSimulationDefaults(state, mapApiTripToRideTrip(trip), undefined, !riderBackendEnabled)
           ).filter((trip): trip is RideTrip => Boolean(trip)),
         });
 
@@ -4995,7 +5006,7 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         if (activeTrip) {
           dispatch({
             type: "ride/set-active",
-            payload: hydrateRideTripWithSimulationDefaults(state, mapApiTripToRideTrip(activeTrip))
+            payload: hydrateRideTripWithSimulationDefaults(state, mapApiTripToRideTrip(activeTrip), undefined, !riderBackendEnabled)
           });
         }
       } catch (error) {
@@ -5211,12 +5222,12 @@ export function AppDataProvider({ children }: AppDataProviderProps): React.JSX.E
         dispatch({
           type: "ride/history",
           payload: history.map((trip) =>
-            hydrateRideTripWithSimulationDefaults(state, mapApiTripToRideTrip(trip))
+            hydrateRideTripWithSimulationDefaults(state, mapApiTripToRideTrip(trip), undefined, !riderBackendEnabled)
           ).filter((trip): trip is RideTrip => Boolean(trip)),
         });
         dispatch({
           type: "ride/set-active",
-          payload: activeTrip ? hydrateRideTripWithSimulationDefaults(state, mapApiTripToRideTrip(activeTrip)) : null,
+          payload: activeTrip ? hydrateRideTripWithSimulationDefaults(state, mapApiTripToRideTrip(activeTrip), undefined, !riderBackendEnabled) : null,
         });
       } catch (error) {
         console.warn("Failed to sync rider trips from realtime event.", error);

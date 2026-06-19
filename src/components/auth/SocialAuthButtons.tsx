@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Stack, Typography, Divider, CircularProgress } from "@mui/material";
+import { Box, Button, Stack, Typography, Divider, CircularProgress } from "@mui/material";
 import type { AuthProvider } from "../../store/types";
 
 interface SocialAuthButtonsProps {
@@ -30,19 +30,9 @@ function GoogleIcon(): React.JSX.Element {
   );
 }
 
-/** Apple icon */
-function AppleIcon(): React.JSX.Element {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C4.24 16.74 4.88 10.5 8.7 10.26c1.26.08 2.13.72 2.91.78.99-.2 1.95-.76 3.01-.69 1.29.1 2.25.6 2.87 1.56-2.66 1.6-2.02 5.12.44 6.1-.52 1.37-1.2 2.72-1.88 4.27zM12.75 10.13c-.14-2.32 1.76-4.3 3.94-4.5.3 2.55-2.3 4.65-3.94 4.5z" />
-    </svg>
-  );
-}
-
 const SOCIAL_BUTTONS: { provider: AuthProvider; label: string; icon: React.JSX.Element }[] = [
   { provider: "evzone", label: "Continue with EVzone", icon: <EvzoneIcon /> },
   { provider: "google", label: "Continue with Google", icon: <GoogleIcon /> },
-  { provider: "apple", label: "Continue with Apple", icon: <AppleIcon /> }
 ];
 
 export default function SocialAuthButtons({
@@ -50,57 +40,77 @@ export default function SocialAuthButtons({
   loading = false,
   disabledProvider = null
 }: SocialAuthButtonsProps): React.JSX.Element {
+  const topRowButtons = SOCIAL_BUTTONS.filter(({ provider }) => provider === "evzone" || provider === "google");
+  const lowerButtons = SOCIAL_BUTTONS.filter(({ provider }) => provider !== "evzone" && provider !== "google");
+
+  const renderButton = (
+    provider: AuthProvider,
+    label: string,
+    icon: React.JSX.Element,
+    compact = false
+  ): React.JSX.Element => {
+    const isLoading = loading && disabledProvider === provider;
+
+    return (
+      <Button
+        key={provider}
+        fullWidth
+        variant="outlined"
+        disabled={loading}
+        onClick={() => onProvider(provider)}
+        startIcon={isLoading ? <CircularProgress size={16} /> : icon}
+        sx={{
+          py: compact ? { xs: 0.6, sm: 0.68 } : { xs: 0.68, sm: 0.78 },
+          minHeight: compact ? 38 : 40,
+          fontSize: compact ? { xs: 11.25, sm: 11.75 } : { xs: 12.5, sm: 13 },
+          fontWeight: 500,
+          lineHeight: 1.15,
+          whiteSpace: "normal",
+          textTransform: "none",
+          borderRadius: compact ? "14px" : "15px",
+          justifyContent: compact ? "center" : "flex-start",
+          pl: compact ? 1.1 : 1.45,
+          pr: compact ? 1.1 : 1.25,
+          borderColor: "rgba(229,231,235,0.96)",
+          bgcolor: "rgba(255,255,255,0.96)",
+          boxShadow: "0 8px 18px rgba(15,23,42,0.04)",
+          color: "#111827",
+          "&:hover": {
+            borderColor: "rgba(209,213,219,1)",
+            bgcolor: "#fff"
+          },
+          "& .MuiButton-startIcon": {
+            mr: compact ? 0.65 : 1.05
+          }
+        }}
+      >
+        {label}
+      </Button>
+    );
+  };
+
   return (
-    <Stack spacing={{ xs: 1.1, sm: 1.5 }}>
-      <Divider sx={{ my: { xs: 0.25, sm: 0.5 } }}>
+    <Stack spacing={{ xs: 0.72, sm: 0.9 }}>
+      <Divider sx={{ my: { xs: 0.05, sm: 0.2 }, "&::before, &::after": { borderColor: "rgba(209,213,219,0.78)" } }}>
         <Typography
           variant="caption"
-          sx={{ color: (t) => t.palette.text.secondary, fontSize: 11, px: 1, lineHeight: 1 }}
+          sx={{ color: "#6b7280", fontSize: 10.5, px: 0.9, lineHeight: 1 }}
         >
           or
         </Typography>
       </Divider>
 
-      {SOCIAL_BUTTONS.map(({ provider, label, icon }) => {
-        const isLoading = loading && disabledProvider === provider;
-        return (
-          <Button
-            key={provider}
-            fullWidth
-            variant="outlined"
-            disabled={loading}
-            onClick={() => onProvider(provider)}
-            startIcon={isLoading ? <CircularProgress size={18} /> : icon}
-            sx={{
-              py: { xs: 1, sm: 1.15 },
-              minHeight: 44,
-              fontSize: { xs: 12.5, sm: 13 },
-              fontWeight: 600,
-              lineHeight: 1.2,
-              whiteSpace: "normal",
-              textTransform: "none",
-              borderRadius: "var(--evz-radius-md)",
-              borderColor: (t) =>
-                t.palette.mode === "light"
-                  ? "rgba(209,213,219,0.9)"
-                  : "rgba(51,65,85,0.9)",
-              color: (t) => t.palette.text.primary,
-              "&:hover": {
-                borderColor: (t) =>
-                  t.palette.mode === "light"
-                    ? "rgba(156,163,175,1)"
-                    : "rgba(100,116,139,1)",
-                bgcolor: (t) =>
-                  t.palette.mode === "light"
-                    ? "rgba(0,0,0,0.02)"
-                    : "rgba(255,255,255,0.03)"
-              }
-            }}
-          >
-            {label}
-          </Button>
-        );
-      })}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          gap: 0.75,
+        }}
+      >
+        {topRowButtons.map(({ provider, label, icon }) => renderButton(provider, label, icon, true))}
+      </Box>
+
+      {lowerButtons.map(({ provider, label, icon }) => renderButton(provider, label, icon))}
     </Stack>
   );
 }
