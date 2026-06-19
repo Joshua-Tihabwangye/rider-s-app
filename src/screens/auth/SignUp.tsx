@@ -1,14 +1,22 @@
 import React, { useState } from "react";
-import { useNavigate, Link as RouterLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Alert, Box, Button, CircularProgress, IconButton, InputAdornment, Stack, Typography } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import AuthLayout from "../../components/auth/AuthLayout";
+import {
+  AlternateEmailRounded,
+  ArrowForwardRounded,
+  LockOutlined,
+  PersonOutlineRounded,
+  PhoneIphoneRounded,
+  Visibility,
+  VisibilityOff
+} from "@mui/icons-material";
 import AuthFormField from "../../components/auth/AuthFormField";
 import SocialAuthButtons from "../../components/auth/SocialAuthButtons";
 import { useAuth } from "../../contexts/AuthContext";
 import { validateEmail, validatePassword, validateName, validateConfirmPassword, validatePhone } from "../../utils/validation";
 import type { AuthProvider } from "../../store/types";
 import { saveAuthPrefill } from "../../utils/authPrefill";
+import RiderAuthShowcaseLayout from "../../components/auth/RiderAuthShowcaseLayout";
 
 export default function SignUp(): React.JSX.Element {
   const navigate = useNavigate();
@@ -70,57 +78,108 @@ export default function SignUp(): React.JSX.Element {
   }, [isAuthenticated, navigate]);
 
   return (
-    <AuthLayout title="Create an account" subtitle="Join EVzone and ride electric">
+    <RiderAuthShowcaseLayout
+      title={
+        <>
+          Create your <Box component="span" sx={{ color: "var(--evz-brand-green)" }}>account</Box>
+        </>
+      }
+      subtitle={
+        <>
+          Join <Box component="span" sx={{ color: "var(--evz-brand-green)", fontWeight: 600 }}>EVzone</Box>{" "}
+          <Box component="span" sx={{ color: "var(--evz-brand-orange)", fontWeight: 600 }}>Rides</Box> for smarter,
+          safer city travel.
+        </>
+      }
+      promptText="Already have an account?"
+      promptActionLabel="Sign in"
+      promptActionTo="/auth/sign-in"
+      promptActionColor="var(--evz-brand-green)"
+      footerText="Book in seconds, ride with confidence."
+      titleBlockMarginTop={-0.35}
+      subtitleMarginTop={0.18}
+      childrenMarginTop={0.62}
+    >
       <Box component="form" onSubmit={handleSubmit} noValidate>
-        <Stack spacing={{ xs: 1.5, sm: 2 }}>
+        <Stack spacing={{ xs: 0.58, sm: 0.72 }}>
           {error && (
-            <Alert severity="error" sx={{ borderRadius: "var(--evz-radius-md)", fontSize: 13 }}>
+            <Alert severity="error" sx={{ borderRadius: "16px", fontSize: 12.5 }}>
               {error}
             </Alert>
           )}
 
           <AuthFormField
             id="signup-name"
-            label="Full name"
+            placeholder="Full name"
             autoComplete="name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             errorText={fieldErrors.fullName}
             disabled={loading}
+            inputProps={{ "aria-label": "Full name" }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PersonOutlineRounded sx={{ fontSize: 20 }} />
+                </InputAdornment>
+              ),
+            }}
           />
 
           <AuthFormField
             id="signup-email"
-            label="Email"
+            placeholder="Email address"
             type="email"
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             errorText={fieldErrors.email}
             disabled={loading}
+            inputProps={{ "aria-label": "Email address" }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <AlternateEmailRounded sx={{ fontSize: 20 }} />
+                </InputAdornment>
+              ),
+            }}
           />
 
           <AuthFormField
             id="signup-phone"
-            label="Phone number"
+            placeholder="Phone number"
             type="tel"
             autoComplete="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             errorText={fieldErrors.phone}
             disabled={loading}
+            inputProps={{ "aria-label": "Phone number" }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PhoneIphoneRounded sx={{ fontSize: 20 }} />
+                </InputAdornment>
+              ),
+            }}
           />
 
           <AuthFormField
             id="signup-password"
-            label="Password"
+            placeholder="Password"
             type={showPassword ? "text" : "password"}
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             errorText={fieldErrors.password}
             disabled={loading}
+            inputProps={{ "aria-label": "Password" }}
             InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockOutlined sx={{ fontSize: 20 }} />
+                </InputAdornment>
+              ),
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
@@ -129,8 +188,9 @@ export default function SignUp(): React.JSX.Element {
                     onClick={() => setShowPassword((prev) => !prev)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     disabled={loading}
+                    sx={{ color: "rgba(107,114,128,0.88)" }}
                   >
-                    {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                    {showPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
                   </IconButton>
                 </InputAdornment>
               ),
@@ -139,14 +199,20 @@ export default function SignUp(): React.JSX.Element {
 
           <AuthFormField
             id="signup-confirm"
-            label="Confirm password"
+            placeholder="Confirm password"
             type={showConfirmPassword ? "text" : "password"}
             autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             errorText={fieldErrors.confirmPassword}
             disabled={loading}
+            inputProps={{ "aria-label": "Confirm password" }}
             InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockOutlined sx={{ fontSize: 20 }} />
+                </InputAdornment>
+              ),
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
@@ -155,11 +221,12 @@ export default function SignUp(): React.JSX.Element {
                     onClick={() => setShowConfirmPassword((prev) => !prev)}
                     aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                     disabled={loading}
+                    sx={{ color: "rgba(107,114,128,0.88)" }}
                   >
                     {showConfirmPassword ? (
-                      <VisibilityOff fontSize="small" />
+                      <VisibilityOff sx={{ fontSize: 20 }} />
                     ) : (
-                      <Visibility fontSize="small" />
+                      <Visibility sx={{ fontSize: 20 }} />
                     )}
                   </IconButton>
                 </InputAdornment>
@@ -167,58 +234,82 @@ export default function SignUp(): React.JSX.Element {
             }}
           />
 
+          <Typography
+            sx={{
+              px: 0.15,
+              pt: 0,
+              fontSize: 11,
+              lineHeight: 1.2,
+              color: "#6b7280",
+            }}
+          >
+            By creating an account, you agree to{" "}
+            <Box component="span" sx={{ color: "var(--evz-brand-green)", fontWeight: 600 }}>
+              Terms &amp; Conditions
+            </Box>{" "}
+            and{" "}
+            <Box component="span" sx={{ color: "var(--evz-brand-orange)", fontWeight: 600 }}>
+              Privacy Policy
+            </Box>
+            .
+          </Typography>
+
           <Button
             type="submit"
             fullWidth
             variant="contained"
             disabled={loading && !socialProvider}
             sx={{
-              py: 1.25,
-              fontSize: 14,
+              position: "relative",
+              py: 1.05,
+              fontSize: 13.25,
               fontWeight: 700,
               textTransform: "none",
-              borderRadius: "var(--evz-radius-md)",
-              bgcolor: "var(--evz-brand-green)",
+              borderRadius: "16px",
+              background: "linear-gradient(90deg, var(--evz-brand-green) 0%, var(--evz-brand-orange) 100%)",
               color: "#fff",
-              "&:hover": { bgcolor: "var(--evz-brand-green-hover)" },
+              boxShadow: "0 10px 20px rgba(247,127,0,0.14)",
+              "&:hover": {
+                background: "linear-gradient(90deg, var(--evz-brand-green-hover) 0%, var(--evz-brand-orange-hover) 100%)",
+              },
             }}
           >
             {loading && !socialProvider ? (
               <CircularProgress size={22} sx={{ color: "#fff" }} />
             ) : (
-              "Create account"
+              <>
+                Create Account
+                <Box
+                  component="span"
+                  sx={{
+                    position: "absolute",
+                    right: 12,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: 26,
+                    height: 26,
+                    borderRadius: "50%",
+                    display: "grid",
+                    placeItems: "center",
+                    border: "1.5px solid rgba(255,255,255,0.42)",
+                    bgcolor: "rgba(255,255,255,0.08)",
+                  }}
+                >
+                  <ArrowForwardRounded sx={{ fontSize: 15 }} />
+                </Box>
+              </>
             )}
           </Button>
         </Stack>
 
-        <Box sx={{ mt: { xs: 1.5, sm: 2 } }}>
+        <Box sx={{ mt: { xs: 0.58, sm: 0.72 } }}>
           <SocialAuthButtons
             onProvider={handleSocial}
             loading={loading}
             disabledProvider={socialProvider}
           />
         </Box>
-
-        <Box sx={{ mt: { xs: 2.1, sm: 3 }, textAlign: "center" }}>
-          <Typography variant="body2" sx={{ fontSize: 13, color: (t) => t.palette.text.secondary }}>
-            Already have an account?{" "}
-            <Typography
-              component={RouterLink}
-              to="/auth/sign-in"
-              variant="body2"
-              sx={{
-                color: "var(--evz-brand-green)",
-                fontSize: 13,
-                fontWeight: 600,
-                textDecoration: "none",
-                "&:hover": { textDecoration: "underline" },
-              }}
-            >
-              Sign in
-            </Typography>
-          </Typography>
-        </Box>
       </Box>
-    </AuthLayout>
+    </RiderAuthShowcaseLayout>
   );
 }
