@@ -16,6 +16,12 @@ export interface PlaceSearchOptions {
   signal?: AbortSignal;
 }
 
+interface SearchablePlaceSuggestion extends PlaceSuggestion {
+  source?: "backend" | "google-browser";
+  primaryText?: string;
+  types?: string[];
+}
+
 export interface RouteResult {
   distanceKm: number;
   durationMin: number;
@@ -63,13 +69,99 @@ function isValidCoordinates(point: Coordinates | null | undefined): point is Coo
   );
 }
 
-export async function searchPlaces(query: string, options: PlaceSearchOptions = {}): Promise<PlaceSuggestion[]> {
-  const term = normalizeQuery(query);
-  if (term.length < 3) return [];
+function normalizePlaceText(value: string): string {
+  return value.trim().toLowerCase();
+}
 
+function dedupeSuggestions(suggestions: SearchablePlaceSuggestion[]): SearchablePlaceSuggestion[] {
+  const seen = new Set<string>();
+  const deduped: SearchablePlaceSuggestion[] = [];
+  for (const suggestion of suggestions) {
+    const key = [
+      suggestion.placeId,
+      suggestion.coordinates.lat.toFixed(6),
+      suggestion.coordinates.lng.toFixed(6),
+      normalizePlaceText(suggestion.description),
+    ].join("|");
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    deduped.push(suggestion);
+  }
+  return deduped;
+}
+
+function scoreSuggestion(suggestion: SearchablePlaceSuggestion, query: string): number {
+  const normalizedQuery = normalizePlaceText(query);
+  const description = normalizePlaceText(suggestion.description);
+  const primaryText = normalizePlaceText(suggestion.primaryText || suggestion.description.split(",")[0] || suggestion.description);
+  const types = (suggestion.types || []).map((type) => normalizePlaceText(type));
+
+  const routeLikeTypes = new Set([
+    "route",
+    "street_address",
+    "street_number",
+    "intersection",
+    "plus_code",
+    "postal_code",
+  ]);
+  const landmarkTypes = new Set([
+    "establishment",
+    "point_of_interest",
+    "shopping_mall",
+    "store",
+    "hospital",
+    "school",
+    "university",
+    "airport",
+    "bank",
+    "museum",
+    "park",
+    "church",
+    "tourist_attraction",
+    "lodging",
+    "restaurant",
+    "cafe",
+    "bar",
+    "gym",
+    "stadium",
+    "movie_theater",
+    "local_government_office",
+    "premise",
+  ]);
+
+  let score = 0;
+  if (primaryText === normalizedQuery) score += 900;
+  if (description === normalizedQuery) score += 700;
+  if (primaryText.startsWith(normalizedQuery)) score += 280;
+  if (description.startsWith(normalizedQuery)) score += 180;
+  if (description.includes(` ${normalizedQuery}`)) score += 90;
+  if (types.some((type) => landmarkTypes.has(type))) score += 220;
+  if (types.includes("establishment")) score += 80;
+  if (types.some((type) => routeLikeTypes.has(type))) score -= 220;
+  if (suggestion.source === "google-browser") score += 60;
+  return score;
+}
+
+function sortSuggestions(
+  suggestions: SearchablePlaceSuggestion[],
+  query: string,
+  limit: number,
+): PlaceSuggestion[] {
+  return dedupeSuggestions(suggestions)
+    .sort((left, right) => scoreSuggestion(right, query) - scoreSuggestion(left, query))
+    .slice(0, limit)
+    .map(({ description, placeId, coordinates }) => ({ description, placeId, coordinates }));
+}
+
+async function searchPlacesViaBackend(
+  query: string,
+  options: PlaceSearchOptions,
+): Promise<SearchablePlaceSuggestion[]> {
   const limit = Math.max(1, Math.min(options.limit ?? 8, 20));
   const params = new URLSearchParams({
-    q: term,
+    q: query,
     countryCode: "UG",
     limit: String(limit)
   });
@@ -79,51 +171,311 @@ export async function searchPlaces(query: string, options: PlaceSearchOptions = 
     params.set("lng", String(options.near.lng));
   }
 
-  try {
-    const response = await fetch(`${getApiBaseUrl()}/geo/places/search?${params.toString()}`, {
-      method: "GET",
-      headers: {
-        Accept: "application/json"
-      },
-      signal: options.signal
-    });
+  const response = await fetch(`${getApiBaseUrl()}/geo/places/search?${params.toString()}`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json"
+    },
+    signal: options.signal
+  });
 
-    if (!response.ok) {
-      throw new Error(`Backend place search failed (${response.status})`);
-    }
+  if (!response.ok) {
+    throw new Error(`Backend place search failed (${response.status})`);
+  }
 
-    const payload = (await response.json()) as {
-      data?: Array<{
-        placeId: string;
-        displayName: string;
-        name?: string;
-        latitude: number;
-        longitude: number;
-      }>;
-    } | Array<{
+  const payload = (await response.json()) as {
+    data?: Array<{
       placeId: string;
       displayName: string;
       name?: string;
       latitude: number;
       longitude: number;
+      category?: string;
+      type?: string;
     }>;
+  } | Array<{
+    placeId: string;
+    displayName: string;
+    name?: string;
+    latitude: number;
+    longitude: number;
+    category?: string;
+    type?: string;
+  }>;
 
-    const results = Array.isArray(payload) ? payload : payload.data ?? [];
-    return results
-      .filter(
-        (item) =>
-          isFiniteCoordinate(item.latitude) &&
-          isFiniteCoordinate(item.longitude) &&
-          isValidUgandaCoordinate(item.latitude, item.longitude)
-      )
-      .map((item) => ({
-        description: item.displayName || item.name || term,
-        placeId: item.placeId,
-        coordinates: {
-          lat: item.latitude,
-          lng: item.longitude
+  const results = Array.isArray(payload) ? payload : payload.data ?? [];
+  return results
+    .filter(
+      (item) =>
+        isFiniteCoordinate(item.latitude) &&
+        isFiniteCoordinate(item.longitude) &&
+        isValidUgandaCoordinate(item.latitude, item.longitude)
+    )
+    .map((item) => ({
+      description: item.displayName || item.name || query,
+      placeId: item.placeId,
+      coordinates: {
+        lat: item.latitude,
+        lng: item.longitude
+      },
+      source: "backend" as const,
+      primaryText: item.name || item.displayName,
+      types: [item.category, item.type].filter((value): value is string => Boolean(value)),
+    }));
+}
+
+function getGooglePlacesApi(): any | null {
+  return (window as any).google?.maps?.places ?? null;
+}
+
+function createAbortError(): Error {
+  const error = new Error("Request aborted");
+  error.name = "AbortError";
+  return error;
+}
+
+function assertNotAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw createAbortError();
+  }
+}
+
+function getPlacePredictions(
+  service: any,
+  request: Record<string, unknown>,
+  signal?: AbortSignal,
+): Promise<any[]> {
+  return new Promise((resolve, reject) => {
+    assertNotAborted(signal);
+    const abortHandler = () => reject(createAbortError());
+    signal?.addEventListener("abort", abortHandler, { once: true });
+
+    service.getPlacePredictions(request, (predictions: any[] | null, status: string) => {
+      signal?.removeEventListener("abort", abortHandler);
+      if (signal?.aborted) {
+        reject(createAbortError());
+        return;
+      }
+      if (!status || status === "ZERO_RESULTS") {
+        resolve([]);
+        return;
+      }
+      if (status !== "OK") {
+        reject(new Error(`Google predictions failed (${status})`));
+        return;
+      }
+      resolve(predictions ?? []);
+    });
+  });
+}
+
+function getPlaceDetails(
+  service: any,
+  placeId: string,
+  signal?: AbortSignal,
+): Promise<any | null> {
+  return new Promise((resolve, reject) => {
+    assertNotAborted(signal);
+    const abortHandler = () => reject(createAbortError());
+    signal?.addEventListener("abort", abortHandler, { once: true });
+
+    service.getDetails(
+      {
+        placeId,
+        fields: ["place_id", "name", "formatted_address", "geometry", "types"],
+      },
+      (result: any, status: string) => {
+        signal?.removeEventListener("abort", abortHandler);
+        if (signal?.aborted) {
+          reject(createAbortError());
+          return;
         }
-      }));
+        if (!status || status === "ZERO_RESULTS" || status === "NOT_FOUND") {
+          resolve(null);
+          return;
+        }
+        if (status !== "OK") {
+          reject(new Error(`Google place details failed (${status})`));
+          return;
+        }
+        resolve(result ?? null);
+      },
+    );
+  });
+}
+
+function runTextSearch(
+  service: any,
+  request: Record<string, unknown>,
+  signal?: AbortSignal,
+): Promise<any[]> {
+  return new Promise((resolve, reject) => {
+    assertNotAborted(signal);
+    const abortHandler = () => reject(createAbortError());
+    signal?.addEventListener("abort", abortHandler, { once: true });
+
+    service.textSearch(request, (results: any[] | null, status: string) => {
+      signal?.removeEventListener("abort", abortHandler);
+      if (signal?.aborted) {
+        reject(createAbortError());
+        return;
+      }
+      if (!status || status === "ZERO_RESULTS") {
+        resolve([]);
+        return;
+      }
+      if (status !== "OK") {
+        reject(new Error(`Google text search failed (${status})`));
+        return;
+      }
+      resolve(results ?? []);
+    });
+  });
+}
+
+async function searchPlacesViaGoogleBrowser(
+  query: string,
+  options: PlaceSearchOptions,
+): Promise<SearchablePlaceSuggestion[]> {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  const placesApi = getGooglePlacesApi();
+  const mapsApi = (window as any).google?.maps;
+  if (!placesApi || !mapsApi) {
+    return [];
+  }
+
+  const autocompleteService = new placesApi.AutocompleteService();
+  const detailsService = new placesApi.PlacesService(document.createElement("div"));
+  const limit = Math.max(1, Math.min(options.limit ?? 8, 20));
+
+  const predictionRequest: Record<string, unknown> = {
+    input: query,
+    componentRestrictions: { country: "ug" },
+  };
+
+  if (isValidCoordinates(options.near)) {
+    predictionRequest.locationBias = new mapsApi.Circle({
+      center: { lat: options.near.lat, lng: options.near.lng },
+      radius: 50000,
+    });
+    predictionRequest.origin = { lat: options.near.lat, lng: options.near.lng };
+  }
+
+  const [predictions, textResults] = await Promise.all([
+    getPlacePredictions(autocompleteService, predictionRequest, options.signal),
+    runTextSearch(
+      detailsService,
+      {
+        query,
+        location: isValidCoordinates(options.near)
+          ? new mapsApi.LatLng(options.near.lat, options.near.lng)
+          : undefined,
+        radius: isValidCoordinates(options.near) ? 50000 : undefined,
+        region: "ug",
+      },
+      options.signal,
+    ).catch(() => []),
+  ]);
+
+  const predictionDetails = await Promise.all(
+    predictions.slice(0, limit).map(async (prediction: any) => {
+      const placeId = prediction.place_id;
+      if (!placeId) return null;
+      const details = await getPlaceDetails(detailsService, placeId, options.signal).catch(() => null);
+      const location = details?.geometry?.location;
+      const lat = typeof location?.lat === "function" ? location.lat() : location?.lat;
+      const lng = typeof location?.lng === "function" ? location.lng() : location?.lng;
+      if (!isFiniteCoordinate(lat) || !isFiniteCoordinate(lng) || !isValidUgandaCoordinate(lat, lng)) {
+        return null;
+      }
+      const description =
+        details?.formatted_address ||
+        prediction.description ||
+        details?.name ||
+        query;
+      return {
+        description,
+        placeId,
+        coordinates: { lat, lng },
+        source: "google-browser" as const,
+        primaryText:
+          prediction.structured_formatting?.main_text ||
+          details?.name ||
+          description.split(",")[0] ||
+          description,
+        types: Array.isArray(details?.types) ? details.types : Array.isArray(prediction.types) ? prediction.types : [],
+      } satisfies SearchablePlaceSuggestion;
+    }),
+  );
+
+  const textSuggestions = textResults.slice(0, limit).flatMap((result: any) => {
+    const location = result?.geometry?.location;
+    const lat = typeof location?.lat === "function" ? location.lat() : location?.lat;
+    const lng = typeof location?.lng === "function" ? location.lng() : location?.lng;
+    if (!isFiniteCoordinate(lat) || !isFiniteCoordinate(lng) || !isValidUgandaCoordinate(lat, lng)) {
+      return [];
+    }
+    const description =
+      (typeof result.formatted_address === "string" && result.formatted_address.trim()) ||
+      (typeof result.vicinity === "string" && result.vicinity.trim()) ||
+      (typeof result.name === "string" && result.name.trim()) ||
+      query;
+    return [{
+      description,
+      placeId: result.place_id || `${lat}:${lng}:${description}`,
+      coordinates: { lat, lng },
+      source: "google-browser" as const,
+      primaryText: result.name || description.split(",")[0] || description,
+      types: Array.isArray(result.types) ? result.types : [],
+    } satisfies SearchablePlaceSuggestion];
+  });
+
+  return [...predictionDetails.filter(Boolean), ...textSuggestions];
+}
+
+export async function searchPlaces(query: string, options: PlaceSearchOptions = {}): Promise<PlaceSuggestion[]> {
+  const term = normalizeQuery(query);
+  if (term.length < 3) return [];
+
+  const limit = Math.max(1, Math.min(options.limit ?? 8, 20));
+
+  try {
+    const [backendResult, browserResult] = await Promise.allSettled([
+      searchPlacesViaBackend(term, options),
+      searchPlacesViaGoogleBrowser(term, options),
+    ]);
+
+    const merged: SearchablePlaceSuggestion[] = [];
+    const failures: Error[] = [];
+
+    if (backendResult.status === "fulfilled") {
+      merged.push(...backendResult.value);
+    } else if (backendResult.reason instanceof Error) {
+      failures.push(backendResult.reason);
+    }
+
+    if (browserResult.status === "fulfilled") {
+      merged.push(...browserResult.value);
+    } else if (browserResult.reason instanceof Error) {
+      failures.push(browserResult.reason);
+    }
+
+    if (merged.length > 0) {
+      return sortSuggestions(merged, term, limit);
+    }
+
+    if (failures.some((error) => error.name === "AbortError")) {
+      return [];
+    }
+
+    if (failures.length > 0) {
+      throw failures[0];
+    }
+
+    return [];
   } catch (error) {
     if ((error as Error)?.name === "AbortError") {
       return [];
