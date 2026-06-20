@@ -12,6 +12,7 @@ import {
   saveRiderBackendTokens,
 } from "../services/api/authApi";
 import { ALLOW_DEV_AUTH_FALLBACK } from "../services/api/config";
+import { ApiRequestError } from "../services/api/httpClient";
 import { normalizeEmail, validateRiderSignUpInput } from "../utils/validation";
 
 function computeInitials(name: string): string {
@@ -92,7 +93,12 @@ export async function signIn(credentials: SignInCredentials): Promise<AuthRespon
       refreshToken: backend.refreshToken,
     };
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Sign in failed.";
+    const msg =
+      error instanceof ApiRequestError && error.status === 401
+        ? "Incorrect email or password."
+        : error instanceof Error
+          ? error.message
+          : "Sign in failed.";
     throw new Error(msg);
   }
 }
