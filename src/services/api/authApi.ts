@@ -135,6 +135,7 @@ export async function backendLogin(input: BackendLoginInput): Promise<BackendAut
   return request<BackendAuthResponse>("/auth/login", {
     method: "POST",
     body: input,
+    retryOnUnauthorized: false,
   });
 }
 
