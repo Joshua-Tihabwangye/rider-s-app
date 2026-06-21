@@ -12,8 +12,8 @@
 import { useEffect, useRef } from "react";
 import type { Coordinates } from "../services/maps";
 
-const MIN_DISTANCE_M = 8;     // skip update if moved less than 8 m
-const MIN_INTERVAL_MS = 6000; // never update more often than every 6 s
+const MIN_DISTANCE_M = 2;
+const MIN_INTERVAL_MS = 3000;
 
 function haversineMeters(a: Coordinates, b: Coordinates): number {
     const R = 6_371_000;

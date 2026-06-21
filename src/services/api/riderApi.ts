@@ -357,11 +357,31 @@ export async function updateRiderTripTracking(tripId: string, patch: UpdateRider
 }
 
 export async function cancelRiderTrip(tripId: string, reason?: string): Promise<RiderTripApi> {
-  return request<RiderTripApi>(`/riders/me/trips/${tripId}/cancel`, {
-    method: "POST",
-    body: reason ? { reason } : undefined,
-  });
-}
+   return request<RiderTripApi>(`/riders/me/trips/${tripId}/cancel`, {
+     method: "POST",
+     body: reason ? { reason } : undefined,
+   });
+ }
+
+export interface RiderTripDriverLocation {
+   driverId: string;
+   latitude: number;
+   longitude: number;
+   accuracy?: number;
+   heading?: number;
+   speed?: number;
+   lastSeenAt: number;
+ }
+
+export async function getRiderTripDriverLocation(tripId: string, driverId: string): Promise<RiderTripDriverLocation | null> {
+   const response = await request<RiderTripDriverLocation | null>(`/riders/me/trips/${tripId}/driver-location`, {
+     method: "GET",
+   });
+   if (!response || typeof response.latitude !== "number" || typeof response.longitude !== "number") {
+     return null;
+   }
+   return response;
+ }
 
 // Notification endpoints
 export async function getRiderNotifications(): Promise<RiderNotificationApi[]> {

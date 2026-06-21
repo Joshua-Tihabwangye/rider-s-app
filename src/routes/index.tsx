@@ -50,9 +50,8 @@ import AddStop from "../screens/AddStop";
 import RideDetails from "../screens/RideDetails";
 import MultiStopsSearchResults from "../screens/MultiStopsSearchResults";
 import RideAlt from "../screens/RideAlt";
-import RideVariantLayout from "../screens/RideVariantLayout";
 import RideDetailsVariant from "../screens/RideDetailsVariant";
-import ConfirmRideDetails from "../screens/ConfirmRideDetails";
+import RideVariantLayout from "../screens/RideVariantLayout";
 import BookingThankYou from "../screens/BookingThankYou";
 import BookingConfirmation from "../screens/BookingConfirmation";
 import Preferences from "../screens/Preferences";
@@ -233,19 +232,15 @@ export default function AppRouter(): React.JSX.Element {
 					<Route path="history/promotions" element={<RidePromotions />} />
 					<Route path="promotions" element={<RidePromotions />} />
 					<Route path="history/:rideId" element={<RideHistoryDetail />} />
-					<Route path="details" element={<RideDetails />} />
-					<Route
-						path="details/variant"
-						element={<RideDetailsVariant />}
-					/>
-					<Route
-						path="details/confirm"
-						element={<ConfirmRideDetails />}
-					/>
-					<Route
-						path="booking/confirmation"
-						element={<BookingConfirmation />}
-					/>
+<Route path="details" element={<RideDetails />} />
+				<Route
+					path="details/variant"
+					element={<RideDetailsVariant />}
+				/>
+				<Route
+					path="booking/confirmation"
+					element={<BookingConfirmation />}
+				/>
 					<Route path="booking/thank-you" element={<BookingThankYou />} />
 				</Route>
 					{/* Deliveries */}

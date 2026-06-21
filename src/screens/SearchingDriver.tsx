@@ -21,7 +21,7 @@ import ScreenScaffold from "../components/ScreenScaffold";
 import { uiTokens } from "../design/tokens";
 import { useAppData } from "../contexts/AppDataContext";
 import { useLiveLocation } from "../contexts/LiveLocationContext";
-import { cancelRiderTrip, getRiderActiveTrip, isRiderBackendEnabled, mapApiTripToRideTrip } from "../services/api/riderApi";
+import { cancelRiderTrip, getRiderActiveTrip, getRiderTripDriverLocation, isRiderBackendEnabled, mapApiTripToRideTrip } from "../services/api/riderApi";
 import { fetchNearbyDrivers } from "../services/maps";
 import { getApproachPoint, normalizeRoute } from "../utils/mapRoutes";
 
@@ -104,11 +104,46 @@ function SearchingForDriverScreen(): React.JSX.Element {
   }, [ride.activeTrip?.bookedFor, ride.request.bookedFor]);
 
   // Calculate driver location along the route.
-  // In backend mode we do not synthesize a moving driver marker.
+  // In backend mode, fetch live driver location from API.
   const driverLocation = React.useMemo(() => {
-    if (backendMode) return null;
-    return getApproachPoint(routePolyline, driverProgress);
+    if (!backendMode) {
+      return getApproachPoint(routePolyline, driverProgress);
+    }
+    // Backend mode: will be updated via useEffect polling
+    return null;
   }, [backendMode, driverProgress, routePolyline]);
+
+  // Fetch live driver location in backend mode
+  const [liveDriverLocation, setLiveDriverLocation] = React.useState<{ lat: number; lng: number } | null>(null);
+  const liveDriverLocationRef = React.useRef(liveDriverLocation);
+  liveDriverLocationRef.current = liveDriverLocation;
+
+  useEffect(() => {
+    if (!backendMode) return;
+    const tripId = ride.activeTrip?.id;
+    const driverId = ride.activeTrip?.driver?.id;
+    if (!tripId || !driverId) return;
+
+    let cancelled = false;
+    const pollDriverLocation = async () => {
+      try {
+        const location = await getRiderTripDriverLocation(tripId, driverId);
+        if (!cancelled && location) {
+          setLiveDriverLocation({ lat: location.latitude, lng: location.longitude });
+        }
+      } catch {
+        // Silently ignore polling errors
+      }
+    };
+
+    void pollDriverLocation();
+    const intervalId = window.setInterval(() => void pollDriverLocation(), 5000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [backendMode, ride.activeTrip?.id, ride.activeTrip?.driver?.id]);
 
   useEffect(() => {
     if (hasInitializedSearchStatusRef.current) {
@@ -254,26 +289,26 @@ function SearchingForDriverScreen(): React.JSX.Element {
       return undefined;
     }
 
-    const navigateToRideConfirm = () => {
-      navigate("/rides/details/confirm", {
-        replace: true,
-        state: {
-          rideRequestError: "Unable to send the ride request right now. Please try again.",
-        },
-      });
-    };
+const navigateToRideDetails = () => {
+       navigate("/rides/enter/details", {
+         replace: true,
+         state: {
+           rideRequestError: "Unable to send the ride request right now. Please try again.",
+         },
+       });
+     };
 
     const rawFailureState = window.sessionStorage.getItem("evzone_last_trip_request_error");
     if (rawFailureState) {
       window.sessionStorage.removeItem("evzone_last_trip_request_error");
-      navigateToRideConfirm();
+      navigateToRideDetails();
       return undefined;
     }
 
-    const handleRideRequestFailed = () => {
-      window.sessionStorage.removeItem("evzone_last_trip_request_error");
-      navigateToRideConfirm();
-    };
+const handleRideRequestFailed = () => {
+       window.sessionStorage.removeItem("evzone_last_trip_request_error");
+       navigateToRideDetails();
+     };
 
     window.addEventListener("evzone:ride-request-failed", handleRideRequestFailed);
     return () => {
@@ -318,30 +353,30 @@ function SearchingForDriverScreen(): React.JSX.Element {
         buttonOffsetCollapsed={-18}
         buttonOffsetExpanded={14}
         detailsWrapperSx={{ mt: 1.2 }}
-        map={
-	          <MapShell
-            preset="compact"
-            sx={{ height: "100%" }}
-            showControls={false}
-            showRouteInfo={false}
-	            mapMarkers={nearbyDrivers.map((driver) => ({
-	              id: driver.id,
-	              position: { lat: driver.lat, lng: driver.lng },
-	              label: `${Math.max(1, Math.round(driver.distanceMeters / 1000 * 10) / 10)} km`,
-	              color: "#14b8a6",
-	            }))}
-	            pickupLocation={sharedLocationState.pickupCoords}
-            dropoffLocation={sharedLocationState.destinationCoords}
-            driverLocation={driverLocation}
-            riderLocation={riderLocation}
-            routePolyline={routePolyline}
-            routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
-            routeDistanceKm={sharedLocationState.routeDistanceKm}
-            routeDurationMin={sharedLocationState.routeDurationMin}
-            onRecenter={handleLocateMe}
-            canvasSx={{ background: uiTokens.map.canvasEmphasis }}
-          />
-        }
+map={
+ 	          <MapShell
+             preset="compact"
+             sx={{ height: "100%" }}
+             showControls={false}
+             showRouteInfo={false}
+ 	            mapMarkers={nearbyDrivers.map((driver) => ({
+ 	              id: driver.id,
+ 	              position: { lat: driver.lat, lng: driver.lng },
+ 	              label: `${Math.max(1, Math.round(driver.distanceMeters / 1000 * 10) / 10)} km`,
+ 	              color: "#14b8a6",
+ 	            }))}
+ 	            pickupLocation={sharedLocationState.pickupCoords}
+             dropoffLocation={sharedLocationState.destinationCoords}
+             driverLocation={backendMode && liveDriverLocation ? liveDriverLocation : driverLocation}
+             riderLocation={riderLocation}
+             routePolyline={routePolyline}
+             routeAlternativePolylines={sharedLocationState.routeAlternativePolylines}
+             routeDistanceKm={sharedLocationState.routeDistanceKm}
+             routeDurationMin={sharedLocationState.routeDurationMin}
+             onRecenter={handleLocateMe}
+             canvasSx={{ background: uiTokens.map.canvasEmphasis }}
+           />
+         }
         details={
           <Stack spacing={1.25}>
             {routeSummary && (
